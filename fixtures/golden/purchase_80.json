@@ -1,0 +1,53 @@
+{
+  "fixture_id": "T-BOOK-01-purchase-80-v1",
+  "calculation": "Synthetic PLN minor units: opening Dr clearing 100 / Cr customer 100; purchase Dr customer 80 / Cr M1 80. Final clearing=100, customer=20, M1=80, M2=0.",
+  "workspace": {"id": "10000000-0000-4000-8000-000000000001", "currency": "PLN"},
+  "actors": [
+    {"id": "20000000-0000-4000-8000-000000000001", "kind": "SYSTEM", "label": "system"},
+    {"id": "20000000-0000-4000-8000-000000000002", "kind": "CUSTOMER", "label": "customer"},
+    {"id": "20000000-0000-4000-8000-000000000003", "kind": "MERCHANT", "label": "M1"},
+    {"id": "20000000-0000-4000-8000-000000000004", "kind": "MERCHANT", "label": "M2"}
+  ],
+  "accounts": [
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "id": "30000000-0000-4000-8000-000000000001", "owner_id": "20000000-0000-4000-8000-000000000001", "class": "SYNTHETIC_CLEARING", "normal_side": "D", "currency": "PLN", "label": "clearing"},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "id": "30000000-0000-4000-8000-000000000002", "owner_id": "20000000-0000-4000-8000-000000000002", "class": "CUSTOMER_LIABILITY", "normal_side": "C", "currency": "PLN", "label": "customer"},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "id": "30000000-0000-4000-8000-000000000003", "owner_id": "20000000-0000-4000-8000-000000000003", "class": "MERCHANT_LIABILITY", "normal_side": "C", "currency": "PLN", "label": "M1"},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "id": "30000000-0000-4000-8000-000000000004", "owner_id": "20000000-0000-4000-8000-000000000004", "class": "MERCHANT_LIABILITY", "normal_side": "C", "currency": "PLN", "label": "M2"}
+  ],
+  "operations": [
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "operation_id": "40000000-0000-4000-8000-000000000001", "kind": "OPENING"},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "operation_id": "40000000-0000-4000-8000-000000000002", "kind": "PURCHASE"}
+  ],
+  "purchase_request": {
+    "workspace_id": "10000000-0000-4000-8000-000000000001",
+    "operation_id": "40000000-0000-4000-8000-000000000002",
+    "customer_id": "20000000-0000-4000-8000-000000000002",
+    "customer_account_id": "30000000-0000-4000-8000-000000000002",
+    "merchant_id": "20000000-0000-4000-8000-000000000003",
+    "merchant_account_id": "30000000-0000-4000-8000-000000000003",
+    "amount_minor": 80,
+    "currency": "PLN"
+  },
+  "journals": [
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "journal_id": "50000000-0000-4000-8000-000000000001", "operation_id": "40000000-0000-4000-8000-000000000001", "kind": "OPENING", "line_count": 2, "total_minor": 100},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "journal_id": "50000000-0000-4000-8000-000000000002", "operation_id": "40000000-0000-4000-8000-000000000002", "kind": "PURCHASE", "line_count": 2, "total_minor": 80}
+  ],
+  "entries": [
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "journal_id": "50000000-0000-4000-8000-000000000001", "line_no": 1, "account_id": "30000000-0000-4000-8000-000000000001", "side": "D", "amount_minor": 100},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "journal_id": "50000000-0000-4000-8000-000000000001", "line_no": 2, "account_id": "30000000-0000-4000-8000-000000000002", "side": "C", "amount_minor": 100},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "journal_id": "50000000-0000-4000-8000-000000000002", "line_no": 1, "account_id": "30000000-0000-4000-8000-000000000002", "side": "D", "amount_minor": 80},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "journal_id": "50000000-0000-4000-8000-000000000002", "line_no": 2, "account_id": "30000000-0000-4000-8000-000000000003", "side": "C", "amount_minor": 80}
+  ],
+  "before_purchase": [
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "account_id": "30000000-0000-4000-8000-000000000001", "debits": 100, "credits": 0, "booked": 100, "reserved": 0, "version": 1},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "account_id": "30000000-0000-4000-8000-000000000002", "debits": 0, "credits": 100, "booked": 100, "reserved": 0, "version": 1},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "account_id": "30000000-0000-4000-8000-000000000003", "debits": 0, "credits": 0, "booked": 0, "reserved": 0, "version": 0},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "account_id": "30000000-0000-4000-8000-000000000004", "debits": 0, "credits": 0, "booked": 0, "reserved": 0, "version": 0}
+  ],
+  "after_purchase": [
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "account_id": "30000000-0000-4000-8000-000000000001", "debits": 100, "credits": 0, "booked": 100, "reserved": 0, "version": 1},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "account_id": "30000000-0000-4000-8000-000000000002", "debits": 80, "credits": 100, "booked": 20, "reserved": 0, "version": 2},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "account_id": "30000000-0000-4000-8000-000000000003", "debits": 0, "credits": 80, "booked": 80, "reserved": 0, "version": 1},
+    {"workspace_id": "10000000-0000-4000-8000-000000000001", "account_id": "30000000-0000-4000-8000-000000000004", "debits": 0, "credits": 0, "booked": 0, "reserved": 0, "version": 0}
+  ]
+}
