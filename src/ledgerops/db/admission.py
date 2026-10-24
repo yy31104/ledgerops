@@ -201,6 +201,179 @@ def _finish_request(cur, scope, result):
         raise InvariantViolation("Request claim disappeared")
 
 
+def _open_admission(cur, principal, command):
+    """Set transaction options, enter the workspace barrier, and authorize the customer."""
+    workspace = command.workspace_id.value
+    cur.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE")
+    cur.execute("SELECT set_config('lock_timeout', '5s', true)")
+    cur.execute("SELECT set_config('statement_timeout', '10s', true)")
+    cur.execute(
+        "SELECT pg_advisory_xact_lock_shared(hashtextextended(%s, 0))",
+        (f"ledgerops:workspace:{command.workspace_id}",),
+    )
+    ws = cur.execute("SELECT mode FROM ledger.workspace WHERE id = %s", (workspace,)).fetchone()
+    if ws is None:
+        raise NotAuthorized()
+    if ws["mode"] != "NORMAL":
+        raise RetrySameIdentity("workspace_not_normal")
+    _authorize_customer(cur, principal, command)
+
+
+def _replay_by_request_key(cur, principal, scope, payload):
+    """Authorize and return the retained result for an already claimed request key."""
+    workspace = scope[0]
+    retained = cur.execute(
+        """SELECT operation_id, payload, http_status, response_body
+           FROM ledger.request_result
+           WHERE workspace_id=%s AND client_id=%s AND route_family=%s AND key=%s""",
+        scope,
+    ).fetchone()
+    if retained is None:
+        raise InvariantViolation("Committed request disappeared")
+    op = cur.execute(
+        "SELECT * FROM ledger.operation WHERE workspace_id=%s AND operation_id=%s",
+        (workspace, retained["operation_id"]),
+    ).fetchone()
+    stored = _authorize_stored(cur, principal, op)
+    if retained["payload"] != payload:
+        raise IdempotencyConflict()
+    if any(retained[field] != op[field] for field in ("payload", "http_status")) or json.dumps(
+        retained["response_body"], sort_keys=True
+    ) != json.dumps(op["response_body"], sort_keys=True):
+        raise InvariantViolation("Request and operation disagree")
+    result = _retained_result(cur, op, stored)
+    return result
+
+
+def _replay_by_operation(cur, principal, scope, command, payload):
+    """Authorize the retained business result and link the newly claimed request key."""
+    workspace = command.workspace_id.value
+    operation_id = command.operation_id.value
+    op = cur.execute(
+        """SELECT * FROM ledger.operation
+           WHERE workspace_id=%s AND operation_id=%s FOR UPDATE""",
+        (workspace, operation_id),
+    ).fetchone()
+    stored = _authorize_stored(cur, principal, op)
+    if op["payload"] != payload:
+        raise BusinessIdConflict()
+    result = _retained_result(cur, op, stored)
+    _finish_request(cur, scope, result)
+    return result
+
+
+def _post_new_purchase(cur, principal, command, scope):
+    """Lock balances and atomically store the new purchase effect or business rejection."""
+    workspace = command.workspace_id.value
+    operation_id = command.operation_id.value
+    balances = {}
+    for account in sorted(
+        (command.customer_account_id, command.merchant_account_id),
+        key=lambda account: account.value.int,
+    ):
+        row = cur.execute(
+            """SELECT a.owner_id, a.class, a.normal_side, a.currency, a.enabled,
+                      b.debits, b.credits, b.booked, b.reserved, b.version
+               FROM ledger.account a JOIN ledger.account_balance b
+                 ON b.workspace_id=a.workspace_id AND b.account_id=a.id
+               WHERE a.workspace_id=%s AND a.id=%s FOR UPDATE OF b""",
+            (workspace, account.value),
+        ).fetchone()
+        if row is None:
+            exists = cur.execute(
+                "SELECT 1 FROM ledger.account WHERE workspace_id=%s AND id=%s",
+                (workspace, account.value),
+            ).fetchone()
+            if exists is not None:
+                raise InvariantViolation("Account projection missing")
+            raise NotAuthorized()
+        if not row["enabled"] or row["currency"] != "PLN" or row["normal_side"] != "C":
+            raise NotAuthorized()
+        balances[account] = row
+    customer = balances[command.customer_account_id]
+    merchant = balances[command.merchant_account_id]
+    if (
+        customer["owner_id"] != principal.actor_id.value
+        or customer["class"] != "CUSTOMER_LIABILITY"
+        or merchant["class"] != "MERCHANT_LIABILITY"
+    ):
+        raise NotAuthorized()
+    amount = command.amount_minor.value
+    # Convert exact domain integers before arithmetic: Decimal's
+    # ambient precision must not round 38-digit cumulative totals.
+    debit_after = int(customer["debits"]) + amount
+    credit_after = int(merchant["credits"]) + amount
+    if int(customer["booked"]) - int(customer["reserved"]) < amount:
+        result = _rejection(command, "INSUFFICIENT_AVAILABLE", str(uuid4()))
+    elif (
+        debit_after > MAX_TOTAL_MINOR
+        or credit_after > MAX_TOTAL_MINOR
+        or any(row["version"] >= 2**63 - 1 for row in balances.values())
+    ):
+        result = _rejection(command, "LIMIT_EXCEEDED", str(uuid4()))
+    else:
+        journal_id = uuid4()
+        cur.execute(
+            """INSERT INTO ledger.journal
+               (workspace_id,journal_id,operation_id,kind,line_count,total_minor)
+               VALUES (%s,%s,%s,'PURCHASE',2,%s)""",
+            (workspace, journal_id, operation_id, amount),
+        )
+        cur.execute(
+            """INSERT INTO ledger.journal_entry
+               (workspace_id,journal_id,line_no,account_id,side,amount_minor)
+               VALUES (%s,%s,1,%s,'D',%s), (%s,%s,2,%s,'C',%s)""",
+            (
+                workspace,
+                journal_id,
+                command.customer_account_id.value,
+                amount,
+                workspace,
+                journal_id,
+                command.merchant_account_id.value,
+                amount,
+            ),
+        )
+        for account in sorted(balances, key=lambda account: account.value.int):
+            delta = (amount, 0) if account == command.customer_account_id else (0, amount)
+            updated = cur.execute(
+                """UPDATE ledger.account_balance
+                   SET debits=debits+%s, credits=credits+%s, version=version+1
+                   WHERE workspace_id=%s AND account_id=%s RETURNING 1""",
+                (*delta, workspace, account.value),
+            ).fetchone()
+            if updated is None:
+                raise InvariantViolation("Locked account projection disappeared")
+        result = AdmissionResult(
+            201,
+            {
+                "operation_id": str(command.operation_id),
+                "admission": "accepted",
+                "journal_id": str(journal_id),
+                "amount_minor": str(amount),
+                "currency": "PLN",
+                "effect": "purchase_posted",
+                "contract_version": 1,
+            },
+        )
+    updated = cur.execute(
+        """UPDATE ledger.operation
+           SET admission=%s, http_status=%s, response_body=%s
+           WHERE workspace_id=%s AND operation_id=%s RETURNING 1""",
+        (
+            "ACCEPTED" if result.http_status == 201 else "REJECTED",
+            result.http_status,
+            Jsonb(result.body),
+            workspace,
+            operation_id,
+        ),
+    ).fetchone()
+    if updated is None:
+        raise InvariantViolation("Operation claim disappeared")
+    _finish_request(cur, scope, result)
+    return result
+
+
 def _submit_purchase_once(
     conn: psycopg.Connection,
     principal: Principal,
@@ -234,21 +407,7 @@ def _submit_purchase_once(
 
     try:
         with conn.transaction(), conn.cursor(row_factory=dict_row) as cur:
-            cur.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE")
-            cur.execute("SELECT set_config('lock_timeout', '5s', true)")
-            cur.execute("SELECT set_config('statement_timeout', '10s', true)")
-            cur.execute(
-                "SELECT pg_advisory_xact_lock_shared(hashtextextended(%s, 0))",
-                (f"ledgerops:workspace:{command.workspace_id}",),
-            )
-            ws = cur.execute(
-                "SELECT mode FROM ledger.workspace WHERE id = %s", (workspace,)
-            ).fetchone()
-            if ws is None:
-                raise NotAuthorized()
-            if ws["mode"] != "NORMAL":
-                raise RetrySameIdentity("workspace_not_normal")
-            _authorize_customer(cur, principal, command)
+            _open_admission(cur, principal, command)
 
             claimed_request = cur.execute(
                 """INSERT INTO ledger.request_result
@@ -259,28 +418,7 @@ def _submit_purchase_once(
                 (*scope, operation_id, payload, digest),
             ).fetchone()
             if claimed_request is None:
-                retained = cur.execute(
-                    """SELECT operation_id, payload, http_status, response_body
-                       FROM ledger.request_result
-                       WHERE workspace_id=%s AND client_id=%s AND route_family=%s AND key=%s""",
-                    scope,
-                ).fetchone()
-                if retained is None:
-                    raise InvariantViolation("Committed request disappeared")
-                op = cur.execute(
-                    "SELECT * FROM ledger.operation WHERE workspace_id=%s AND operation_id=%s",
-                    (workspace, retained["operation_id"]),
-                ).fetchone()
-                stored = _authorize_stored(cur, principal, op)
-                if retained["payload"] != payload:
-                    raise IdempotencyConflict()
-                if any(
-                    retained[field] != op[field] for field in ("payload", "http_status")
-                ) or json.dumps(retained["response_body"], sort_keys=True) != json.dumps(
-                    op["response_body"], sort_keys=True
-                ):
-                    raise InvariantViolation("Request and operation disagree")
-                result = _retained_result(cur, op, stored)
+                result = _replay_by_request_key(cur, principal, scope, payload)
             else:
                 claimed_operation = cur.execute(
                     """INSERT INTO ledger.operation
@@ -290,130 +428,9 @@ def _submit_purchase_once(
                     (workspace, operation_id, payload, digest),
                 ).fetchone()
                 if claimed_operation is None:
-                    op = cur.execute(
-                        """SELECT * FROM ledger.operation
-                           WHERE workspace_id=%s AND operation_id=%s FOR UPDATE""",
-                        (workspace, operation_id),
-                    ).fetchone()
-                    stored = _authorize_stored(cur, principal, op)
-                    if op["payload"] != payload:
-                        raise BusinessIdConflict()
-                    result = _retained_result(cur, op, stored)
-                    _finish_request(cur, scope, result)
+                    result = _replay_by_operation(cur, principal, scope, command, payload)
                 else:
-                    balances = {}
-                    for account in sorted(
-                        (command.customer_account_id, command.merchant_account_id),
-                        key=lambda account: account.value.int,
-                    ):
-                        row = cur.execute(
-                            """SELECT a.owner_id, a.class, a.normal_side, a.currency, a.enabled,
-                                      b.debits, b.credits, b.booked, b.reserved, b.version
-                               FROM ledger.account a JOIN ledger.account_balance b
-                                 ON b.workspace_id=a.workspace_id AND b.account_id=a.id
-                               WHERE a.workspace_id=%s AND a.id=%s FOR UPDATE OF b""",
-                            (workspace, account.value),
-                        ).fetchone()
-                        if row is None:
-                            exists = cur.execute(
-                                "SELECT 1 FROM ledger.account WHERE workspace_id=%s AND id=%s",
-                                (workspace, account.value),
-                            ).fetchone()
-                            if exists is not None:
-                                raise InvariantViolation("Account projection missing")
-                            raise NotAuthorized()
-                        if (
-                            not row["enabled"]
-                            or row["currency"] != "PLN"
-                            or row["normal_side"] != "C"
-                        ):
-                            raise NotAuthorized()
-                        balances[account] = row
-                    customer = balances[command.customer_account_id]
-                    merchant = balances[command.merchant_account_id]
-                    if (
-                        customer["owner_id"] != principal.actor_id.value
-                        or customer["class"] != "CUSTOMER_LIABILITY"
-                        or merchant["class"] != "MERCHANT_LIABILITY"
-                    ):
-                        raise NotAuthorized()
-                    amount = command.amount_minor.value
-                    # Convert exact domain integers before arithmetic: Decimal's
-                    # ambient precision must not round 38-digit cumulative totals.
-                    debit_after = int(customer["debits"]) + amount
-                    credit_after = int(merchant["credits"]) + amount
-                    if int(customer["booked"]) - int(customer["reserved"]) < amount:
-                        result = _rejection(command, "INSUFFICIENT_AVAILABLE", str(uuid4()))
-                    elif (
-                        debit_after > MAX_TOTAL_MINOR
-                        or credit_after > MAX_TOTAL_MINOR
-                        or any(row["version"] >= 2**63 - 1 for row in balances.values())
-                    ):
-                        result = _rejection(command, "LIMIT_EXCEEDED", str(uuid4()))
-                    else:
-                        journal_id = uuid4()
-                        cur.execute(
-                            """INSERT INTO ledger.journal
-                               (workspace_id,journal_id,operation_id,kind,line_count,total_minor)
-                               VALUES (%s,%s,%s,'PURCHASE',2,%s)""",
-                            (workspace, journal_id, operation_id, amount),
-                        )
-                        cur.execute(
-                            """INSERT INTO ledger.journal_entry
-                               (workspace_id,journal_id,line_no,account_id,side,amount_minor)
-                               VALUES (%s,%s,1,%s,'D',%s), (%s,%s,2,%s,'C',%s)""",
-                            (
-                                workspace,
-                                journal_id,
-                                command.customer_account_id.value,
-                                amount,
-                                workspace,
-                                journal_id,
-                                command.merchant_account_id.value,
-                                amount,
-                            ),
-                        )
-                        for account in sorted(balances, key=lambda account: account.value.int):
-                            delta = (
-                                (amount, 0)
-                                if account == command.customer_account_id
-                                else (0, amount)
-                            )
-                            updated = cur.execute(
-                                """UPDATE ledger.account_balance
-                                   SET debits=debits+%s, credits=credits+%s, version=version+1
-                                   WHERE workspace_id=%s AND account_id=%s RETURNING 1""",
-                                (*delta, workspace, account.value),
-                            ).fetchone()
-                            if updated is None:
-                                raise InvariantViolation("Locked account projection disappeared")
-                        result = AdmissionResult(
-                            201,
-                            {
-                                "operation_id": str(command.operation_id),
-                                "admission": "accepted",
-                                "journal_id": str(journal_id),
-                                "amount_minor": str(amount),
-                                "currency": "PLN",
-                                "effect": "purchase_posted",
-                                "contract_version": 1,
-                            },
-                        )
-                    updated = cur.execute(
-                        """UPDATE ledger.operation
-                           SET admission=%s, http_status=%s, response_body=%s
-                           WHERE workspace_id=%s AND operation_id=%s RETURNING 1""",
-                        (
-                            "ACCEPTED" if result.http_status == 201 else "REJECTED",
-                            result.http_status,
-                            Jsonb(result.body),
-                            workspace,
-                            operation_id,
-                        ),
-                    ).fetchone()
-                    if updated is None:
-                        raise InvariantViolation("Operation claim disappeared")
-                    _finish_request(cur, scope, result)
+                    result = _post_new_purchase(cur, principal, command, scope)
         return result
     except (
         psycopg.errors.LockNotAvailable,

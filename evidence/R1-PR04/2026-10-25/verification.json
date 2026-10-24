@@ -1,0 +1,17 @@
+{
+  "baseline_commit": "feb458864c293d77c838913e720e878f09b96846",
+  "baseline_tests_tree": "beb6960fe2dffc8812ce9b2cc5ebbd25fe068d97",
+  "tested_admission_git_blob": "4679453bdbfb609601a5e95de643442508cb9dfd",
+  "tested_admission_sha256": "781325737af6fcc8a0ec5cc6b0fae7c9850a2b6e89caeaf19af8616f5a2f1905",
+  "suite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "237",
+    "time": "27.768",
+    "timestamp": "2026-10-25T00:02:16.129885+02:00",
+    "hostname": "redacted-host"
+  },
+  "tests_fixtures_reference_schema_migrations_changed": false
+}

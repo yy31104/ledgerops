@@ -1,23 +1,27 @@
 # LedgerOps handoff
 
-Updated: 2026-10-23. Active scope: local LedgerOps through R1-PR03.
+Updated: 2026-10-25. Active scope: local LedgerOps through R1-PR04.
 
 ## Status
 
 | Field | Current fact |
 |---|---|
-| `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. No HTTP/authentication adapter. |
-| `verification` | Final PR03 run: 237 passed, zero failures/errors/skips (91 unit, 18 reference, 128 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See the separate evidence records. |
+| `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. No HTTP/authentication adapter. |
+| `verification` | Final PR04 run: 237 passed, zero failures/errors/skips (91 unit, 18 reference, 128 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See the separate evidence records. |
 | `personal_ownership` | Yi accepted four defaults by replying “沿用这组默认”. Independent explanation or modification has not been assessed. |
 
-The repository remains on local `main`, with no commit or remote. No deployment,
-external tracker change or Chronicle implementation is part of this delivery.
+The repository remains on local `main`, with baseline commit
+`feb458864c293d77c838913e720e878f09b96846` and a separate PR04 extraction commit.
+Use `git log --oneline` to locate that delivery and `git diff feb4588..HEAD` to review it.
+No remote, deployment or tracker update is part of this delivery.
+Chronicle already has its own baseline `be5df9a`, created by parallel work; this
+session did not modify its code, index or in-flight review fixes.
 
 ## Authority and implemented design
 
 The user authorized initial implementation, accepted [packet 1](docs/DECISION-PACKET-R1.md),
-then explicitly requested PR03. The current round completes concurrency, retries
-and response-loss recovery. Older design-only and
+then explicitly requested PR03 and supplied the Opus R1 review. This round follows
+the local-baseline and readability findings; optional demo and R2 work are separate. Older design-only and
 initialization instructions describe historical work. [ADR 0002](docs/adr/0002-r1-foundation.md),
 [ADR 0003](docs/adr/0003-purchase-admission.md),
 [ADR 0004](docs/adr/0004-contention-and-recovery.md) and the
@@ -44,6 +48,13 @@ wrong through the trusted runtime credential; independent checks remain essentia
 The migration owner can alter guards and is outside those protections.
 
 ## Verification and reproducibility
+
+- [PR04 evidence](evidence/R1-PR04/2026-10-25/README.md): existing 237-test regression,
+  with all tests unchanged. The 219-line orchestrator is now 63 lines with four
+  single-purpose helpers (16/24/15/110 source lines). Independent AST review confirms
+  extraction equivalence after SQL whitespace normalization; pre-existing functions
+  outside the orchestrator are identical. Commit `feb4588` preserves the received
+  baseline, and the subsequent implementation commit preserves the reviewed diff.
 
 - [PR03 evidence](evidence/R1-PR03/2026-10-23/README.md): 16 new integration tests plus
   regression. Two purchases of 80 against 100 produce exactly one success and one saved
@@ -79,6 +90,11 @@ current source directly; package checks avoid this Mac's hidden editable `.pth` 
 No persistent database is provisioned; opening journals remain explicit fixture SQL.
 
 ## Current boundary and next work
+
+[PR04 task](docs/tasks/R1-PR04.md) is complete: only admission.py was refactored in
+production; tests, SQL schema, migrations, fixtures and reference implementation
+remain identical to baseline. All helpers participate in the same explicit
+transaction; no new behavior or premature R2 abstraction was introduced.
 
 [PR03 task](docs/tasks/R1-PR03.md) is complete for its bounded schedules and fault
 locations. The service retries only 40P01/40001, at most three total attempts, sleeping

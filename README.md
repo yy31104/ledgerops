@@ -1,7 +1,7 @@
 # LedgerOps
 
 A local laboratory for synthetic transaction integrity, replay and recovery.
-**R1-PR01 through R1-PR03 are implemented locally:** typed money/identity, PostgreSQL
+**R1-PR01 through R1-PR04 are implemented locally:** typed money/identity, PostgreSQL
 safeguards, an explicit-SQL purchase service, bounded transaction retries, and
 concurrency / response-loss recovery tests with independent financial checks.
 All financial examples use synthetic PLN minor units.
@@ -48,6 +48,12 @@ covers the stored operation, so knowing its ID cannot reveal another customer's 
 Insufficient available funds persists a stable rejection; new funding requires a
 new operation ID for a new decision. Success contains no mutable current balance.
 
+The PR04 extraction keeps the transaction orchestrator to 63 source lines: workspace
+admission, request-key replay, business-ID replay and new purchase posting each have
+an explicit helper. Request/business claim order and the COMMIT boundary remain
+visible in the orchestrator. [PR04 evidence](evidence/R1-PR04/2026-10-25/README.md)
+compares this extraction to the committed R1 baseline without changing tests.
+
 ## Retry and recovery
 
 Deadlock 40P01 and serialization failure 40001 retry at most three whole transactions
@@ -92,8 +98,11 @@ provider, reversal, hold lifecycle, deployment or production-readiness claim.
 - [Foundation ADR](docs/adr/0002-r1-foundation.md), [purchase ADR](docs/adr/0003-purchase-admission.md)
   [retry/recovery ADR](docs/adr/0004-contention-and-recovery.md) and
   [working contract](docs/working/R1-CONTRACT.md).
-- [PR02 task](docs/tasks/R1-PR02.md) and [completed PR03 task](docs/tasks/R1-PR03.md).
+- [PR02 task](docs/tasks/R1-PR02.md), [PR03 task](docs/tasks/R1-PR03.md) and
+  [PR04 extraction task](docs/tasks/R1-PR04.md).
 - [Agent rules](AGENTS.md) and [source provenance](docs/reference/PROVENANCE.md).
 
-The repository remains local, with no remote or commits. PR numbers identify work
-slices; no GitHub pull request, deployment or tracker update has been made.
+The repository has local Git commits and no remote. The received R1 implementation
+is preserved in baseline `feb4588`; the PR04 extraction is the next independent
+commit. PR numbers identify work slices; no GitHub pull request, deployment or
+tracker update has been made.

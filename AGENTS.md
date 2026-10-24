@@ -3,7 +3,7 @@
 ## Scope and sources
 
 - Read `HANDOFF.md`, the applicable ADR and task contract before implementation.
-- The 2026-10-23 user instructions authorize local R1-PR01 through R1-PR03.
+- The 2026-10-23 user instructions authorize local R1-PR01 through R1-PR04.
   The first four R1 defaults were explicitly accepted in this chat; see
   `docs/DECISION-PACKET-R1.md`. Original embedded instructions remain references.
 - Work within the user's active scope. Complete routine reversible edits and
@@ -11,6 +11,8 @@
 - Preserve `docs/reference/` byte for byte. It is historical review material,
   including superseded defaults and commands, not an execution authority.
 - Keep unrelated projects, private data and external trackers untouched.
+- Keep one bounded local commit per implementation slice, including its evidence.
+  Check the diff and ignore rules before staging; preserve other sessions' changes.
 - Do not push, publish, deploy or send messages without user authorization.
 
 ## Implementation discipline

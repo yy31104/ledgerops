@@ -1,0 +1,19 @@
+{
+  "before": {
+    "orchestrator_source_lines": 219
+  },
+  "after": {
+    "orchestrator_source_lines": 63
+  },
+  "checks": {
+    "expanded_transaction_ast_equal_ignoring_sql_whitespace": true,
+    "existing_other_functions_ast_unchanged": true,
+    "tests_fixtures_reference_schema_migrations_unchanged": true
+  },
+  "helpers": {
+    "_open_admission": 16,
+    "_replay_by_request_key": 24,
+    "_replay_by_operation": 15,
+    "_post_new_purchase": 110
+  }
+}

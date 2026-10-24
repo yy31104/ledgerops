@@ -1,0 +1,13 @@
+uv run --locked ruff check src tests reference
+All checks passed!
+uv run --locked ruff format --check src tests reference
+36 files already formatted
+uv run --locked --no-editable python -c "import ledgerops; from importlib.resources import files; assert files('ledgerops.db').joinpath('sql/001_foundation.sql').is_file(); print('ledgerops: installed package and SQL resource OK')"
+Uninstalled 1 package in 3ms
+Installed 1 package in 106ms
+ledgerops: installed package and SQL resource OK
+uv build
+Building source distribution...
+Building wheel from source distribution...
+Successfully built dist/ledgerops-0.1.0.tar.gz
+Successfully built dist/ledgerops-0.1.0-py3-none-any.whl
