@@ -94,10 +94,10 @@ provider, reversal, hold lifecycle, deployment or production-readiness claim.
 ## R2 planning
 
 The [R2 task contract](docs/tasks/R2.md) and
-[five-item Chinese decision packet](docs/DECISION-PACKET-R2.md) are proposed for
-review. They cover independent export/checking, writer-drained maintenance rebuild,
-and success-only full purchase reversal. **No R2 code is implemented or decision
-recorded as approved.** Confirm/change the packet before starting implementation.
+[five-item Chinese decision packet](docs/DECISION-PACKET-R2.md) were adopted with user amendments on 2026-10-27. They cover independent export/checking, writer-drained maintenance rebuild,
+and success-only full purchase reversal. B checks retained canonical requests, and repair recomputes in one exclusive
+transaction without candidate tables. The current authorized implementation slice
+is [R2-PR01](docs/tasks/R2-PR01.md); repair and reversal admission remain later slices.
 R2 is split into four local commits; verification will reference Git revisions.
 
 ## Continue here

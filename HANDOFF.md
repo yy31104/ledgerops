@@ -1,6 +1,6 @@
 # LedgerOps handoff
 
-Updated: 2026-10-27. Implemented through R1-PR04; active round is R2 planning only.
+Updated: 2026-10-27. Implemented through R1-PR04; R2 decisions adopted; active implementation target is R2-PR01.
 
 ## Status
 
@@ -8,8 +8,8 @@ Updated: 2026-10-27. Implemented through R1-PR04; active round is R2 planning on
 |---|---|
 | `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. No HTTP/authentication adapter. |
 | `verification` | Final PR04 run: 237 passed, zero failures/errors/skips (91 unit, 18 reference, 128 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See the separate evidence records. |
-| `personal_ownership` | Yi accepted four R1 defaults by replying “沿用这组默认”. Independent explanation or modification has not been assessed. R2 choices remain pending. |
-| `R2 planning` | Task contract and five-item Chinese packet prepared; no R2 source, test, migration or demo implementation. |
+| `personal_ownership` | Yi accepted four R1 defaults by replying “沿用这组默认”. Independent explanation or modification has not been assessed. R2 decisions 2/4/5 accepted; 1/3 accepted with amendments. |
+| `R2 planning` | Decisions adopted: retained-payload intent, no candidate generations. Separate docs commit precedes R2-PR01 export/check implementation. |
 
 The repository remains on local `main`, with baseline commit
 `feb458864c293d77c838913e720e878f09b96846` and a separate PR04 extraction commit.
@@ -108,32 +108,19 @@ are not internally retried. No automatic reconnection is performed; the caller o
 the connection. COMMIT connection loss remains outcome-unknown until resubmission
 resolves persisted identity. No finite fault suite proves every failure schedule.
 
-The next release is R2. The [task contract](docs/tasks/R2.md) and
-[five-item Chinese decision packet](docs/DECISION-PACKET-R2.md) are now prepared,
-**proposed and unapproved**. This round writes documents only and does not start R2
-implementation. User-supplied independent review accepted PR04 and reported its
-own successful 237-test/check/build rerun; it is reported review evidence, not a
-new run by this planning session.
+R2 [task contract](docs/tasks/R2.md) and [Chinese packet](docs/DECISION-PACKET-R2.md)
+are adopted with the user's amendments: B verifies retained operation.payload,
+with hand-frozen inputs only as extra test oracles; repair uses fresh transactional
+recomputation plus before/after audit and epoch, without candidate generations.
+Decisions 2/4/5 remain consistent JSON snapshot export, retained 422 ALREADY_REVERSED,
+and original-merchant reversal authority. No repeated approval is required.
 
-The packet recommends: separate fold and command-intent verification; one consistent
-versioned local JSON export; frozen candidate rebuild with atomic activation into the
-existing balance working table; retained 422 ALREADY_REVERSED for additional new
-attempts after success; original-merchant authorization for full reversal. These are
-recommendations, especially the new authorization policy, not adopted defaults.
-
-The contract covers success-only uniqueness and rejected→funding→new-success;
-shared admission/replay without a copied transaction; original-purchase-before-sorted-
-balances locking and the limits of its no-cycle argument; cooperative database drain
-without claiming external sends stopped. Rebuild blocks unsupported/nonzero reserves,
-keeps failed/old generations, validates current freeze/epoch/source and resumes only
-through an explicit action. R2 does not repair a wrong-owner business journal.
-
-Proposed delivery order is four local commits: PR01 independent model/export/check;
-PR02 freeze/generations/rebuild; PR03 shared admission/full reversal; PR04 integrated
-concurrency/mutation/fault evidence. Before coding, record the user's packet choices.
-Future evidence names Git base/delivery commits and, if needed, Git code blobs/trees;
-no new SHA-256 source inventory. Historical R1 inventories remain unchanged and export
-content hashes have a separate data-integrity purpose.
+The user authorized a separate documentation commit followed by
+[R2-PR01](docs/tasks/R2-PR01.md). PR01 delivers bounded consistent export and offline
+structure/projection/retained-request checks, plus an independent test command model.
+Maintenance freeze/apply/resume is PR02; production full reversal is PR03; integrated
+failure/uniqueness/drain evidence is PR04. This round does not claim all R2 complete.
+Git commit references replace new source SHA inventories; original evidence remains.
 
 Full source-package release acceptance, a persistent local demo DB, HTTP/token
 verification and operational packaging must not be inferred from the service test count.

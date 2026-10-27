@@ -6,9 +6,10 @@
 - The 2026-10-23 user instructions authorize local R1-PR01 through R1-PR04.
   The first four R1 defaults were explicitly accepted in this chat; see
   `docs/DECISION-PACKET-R1.md`. Original embedded instructions remain references.
-- The 2026-10-27 instruction authorizes R2 task/decision documents only.
-  R2 implementation waits for the pending packet; do not infer approval from
-  a proposed contract or recommendations.
+- The latest 2026-10-27 instruction adopts R2 decisions (1/3 amended, 2/4/5 as
+  recommended): commit contract revisions separately, then implement R2-PR01.
+  Intent verification uses retained operation payloads; hand manifests are extra
+  test oracles. Repair recomputes under an exclusive transaction, without candidates.
 - Work within the user's active scope. Complete routine reversible edits and
   checks without repeatedly asking for confirmation.
 - Preserve `docs/reference/` byte for byte. It is historical review material,
