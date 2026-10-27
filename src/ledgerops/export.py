@@ -21,8 +21,12 @@ from psycopg.rows import dict_row
 MAX_ROWS_PER_TABLE = 10_000
 MAX_BUNDLE_BYTES = 16 * 1024 * 1024
 MAX_MANIFEST_BYTES = 64 * 1024
-SCHEMA_VERSIONS = ("001_foundation.sql", "002_export_reader.sql")
-_TABLES = {
+SCHEMA_VERSIONS_BY_FORMAT = {
+    1: ("001_foundation.sql", "002_export_reader.sql"),
+    2: ("001_foundation.sql", "002_export_reader.sql", "003_projection_maintenance.sql"),
+}
+SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[2]
+_BASE_TABLES = {
     "accounts": ("account", "workspace_id,id,owner_id,class,normal_side,currency,enabled", "id"),
     "balances": (
         "account_balance",
@@ -52,14 +56,84 @@ _TABLES = {
         "journal_id,line_no",
     ),
 }
+_MAINTENANCE_TABLES = {
+    "maintenance_freezes": (
+        "maintenance_freeze",
+        "workspace_id,freeze_id,actor_id,reason,frozen_at,resumed_at,resumed_by,resume_reason",
+        "freeze_id",
+    ),
+    "repairs": (
+        "projection_repair",
+        "workspace_id,repair_id,freeze_id,actor_id,reason,preview_export_id,source_witness,"
+        "old_epoch,new_epoch,account_count,applied_at",
+        "repair_id",
+    ),
+    "repair_rows": (
+        "projection_repair_row",
+        "workspace_id,repair_id,account_id,normal_side,before_debits,before_credits,"
+        "before_reserved,before_booked,before_version,after_debits,after_credits,"
+        "after_reserved,after_booked,after_version",
+        "repair_id,account_id",
+    ),
+}
+_TABLES_BY_FORMAT = {1: _BASE_TABLES, 2: {**_BASE_TABLES, **_MAINTENANCE_TABLES}}
+_TABLES = _TABLES_BY_FORMAT[2]
+_NULLABLE_FIELDS = frozenset(
+    {
+        "current_freeze_id",
+        "resumed_at",
+        "resumed_by",
+        "resume_reason",
+        "before_debits",
+        "before_credits",
+        "before_reserved",
+        "before_booked",
+        "before_version",
+    }
+)
 _MONEY_FIELDS = frozenset(
-    {"debits", "credits", "reserved", "booked", "total_minor", "amount_minor"}
+    {
+        "debits",
+        "credits",
+        "reserved",
+        "booked",
+        "total_minor",
+        "amount_minor",
+        "before_debits",
+        "before_credits",
+        "before_reserved",
+        "before_booked",
+        "after_debits",
+        "after_credits",
+        "after_reserved",
+        "after_booked",
+    }
 )
 _UUID_FIELDS = frozenset(
-    {"id", "workspace_id", "owner_id", "account_id", "operation_id", "client_id", "journal_id"}
+    {
+        "id",
+        "workspace_id",
+        "owner_id",
+        "account_id",
+        "operation_id",
+        "client_id",
+        "journal_id",
+        "current_freeze_id",
+        "freeze_id",
+        "actor_id",
+        "resumed_by",
+        "repair_id",
+        "preview_export_id",
+    }
 )
 _INT_FIELDS = {
     "schema_epoch": (1, 2**63 - 1),
+    "projection_epoch": (1, 2**63 - 1),
+    "old_epoch": (1, 2**63 - 2),
+    "new_epoch": (2, 2**63 - 1),
+    "before_version": (0, 2**63 - 2),
+    "after_version": (1, 2**63 - 1),
+    "account_count": (0, 10_000),
     "version": (0, 2**63 - 1),
     "line_count": (2, 16),
     "line_no": (1, 16),
@@ -86,17 +160,23 @@ _SORT_KEYS = {
     "requests": ("client_id", "route_family", "key"),
     "journals": ("journal_id",),
     "entries": ("journal_id", "line_no"),
+    "maintenance_freezes": ("freeze_id",),
+    "repairs": ("repair_id",),
+    "repair_rows": ("repair_id", "account_id"),
 }
-_DATA_KEYS = frozenset(
-    {
-        "format_version",
-        "workspace",
-        "snapshot_witness",
-        "schema_versions",
-        "server_version",
-        *_TABLES,
-    }
-)
+_DATA_KEYS_BY_FORMAT = {
+    version: frozenset(
+        {
+            "format_version",
+            "workspace",
+            "snapshot_witness",
+            "schema_versions",
+            "server_version",
+            *tables,
+        }
+    )
+    for version, tables in _TABLES_BY_FORMAT.items()
+}
 _MANIFEST_KEYS = frozenset(
     {
         "format_version",
@@ -148,6 +228,8 @@ def _normal_row(row):
             result["payload_hex"] = bytes(value).hex()
         elif key == "payload_sha256":
             result[key] = bytes(value).hex()
+        elif value is None and key in _NULLABLE_FIELDS:
+            result[key] = None
         elif key in _MONEY_FIELDS:
             if type(value) is int:
                 result[key] = str(value)
@@ -173,6 +255,8 @@ def _normal_row(row):
 
 
 def _validate_field(key, value):
+    if value is None and key in _NULLABLE_FIELDS:
+        return
     if key in _UUID_FIELDS:
         _uuid(value)
     elif key in _MONEY_FIELDS:
@@ -212,7 +296,7 @@ def _validate_field(key, value):
             valid = False
         if not valid:
             raise ExportError("Invalid request key")
-    elif key in {"created_at", "recorded_at"}:
+    elif key in {"created_at", "recorded_at", "frozen_at", "resumed_at", "applied_at"}:
         try:
             if type(value) is not str or not re.fullmatch(
                 r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z", value
@@ -221,26 +305,39 @@ def _validate_field(key, value):
             datetime.fromisoformat(value)
         except (ValueError, TypeError) as exc:
             raise ExportError("Invalid UTC timestamp") from exc
+    elif key in {"reason", "resume_reason"}:
+        try:
+            valid = type(value) is str and "\x00" not in value and 1 <= len(value.encode()) <= 256
+        except UnicodeEncodeError:
+            valid = False
+        if not valid:
+            raise ExportError("Invalid maintenance reason")
+    elif key == "source_witness":
+        if type(value) is not str or not re.fullmatch(
+            r"[0-9]+:[0-9]+:(?:[0-9]+(?:,[0-9]+)*)?", value
+        ):
+            raise ExportError("Invalid repair source witness")
     else:
         raise ExportError("Unknown export field")
 
 
 def _validate_snapshot(data):
-    if type(data) is not dict or data.keys() != _DATA_KEYS:
-        raise ExportError("Snapshot has missing or unknown members")
-    if type(data["format_version"]) is not int or data["format_version"] != 1:
+    if type(data) is not dict or type(data.get("format_version")) is not int:
         raise ExportError("Unsupported snapshot format")
+    version = data["format_version"]
+    if version not in _TABLES_BY_FORMAT:
+        raise ExportError("Unsupported snapshot format")
+    if data.keys() != _DATA_KEYS_BY_FORMAT[version]:
+        raise ExportError("Snapshot has missing or unknown members")
     workspace = data["workspace"]
-    if type(workspace) is not dict or workspace.keys() != {
-        "id",
-        "currency",
-        "schema_epoch",
-        "mode",
-    }:
+    workspace_fields = {"id", "currency", "schema_epoch", "mode"}
+    if version == 2:
+        workspace_fields |= {"projection_epoch", "current_freeze_id"}
+    if type(workspace) is not dict or workspace.keys() != workspace_fields:
         raise ExportError("Invalid workspace row")
     for field, value in workspace.items():
         _validate_field(field, value)
-    if data["schema_versions"] != list(SCHEMA_VERSIONS):
+    if data["schema_versions"] != list(SCHEMA_VERSIONS_BY_FORMAT[version]):
         raise ExportError("Unsupported database schema: explicit reader update required")
     if type(data["snapshot_witness"]) is not str or not re.fullmatch(
         r"[0-9]+:[0-9]+:(?:[0-9]+(?:,[0-9]+)*)?", data["snapshot_witness"]
@@ -250,7 +347,7 @@ def _validate_snapshot(data):
         r"[0-9]{5,8}", data["server_version"]
     ):
         raise ExportError("Invalid server version")
-    for table in _TABLES:
+    for table in _TABLES_BY_FORMAT[version]:
         rows = data[table]
         if type(rows) is not list:
             raise ExportError("Snapshot table must be an array")
@@ -281,51 +378,77 @@ def capture_snapshot(conn, workspace_id: str) -> dict:
         raise ExportError("Export requires an idle autocommit connection")
     with conn.transaction(), conn.cursor(row_factory=dict_row) as cur:
         cur.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+        return read_snapshot(cur, workspace_id)
+
+
+def read_snapshot(cur, workspace_id: str) -> dict:
+    """Read raw rows in the caller's transaction through a dict_row cursor.
+
+    No transaction or isolation changes are made here. The caller must provide a
+    single coherent snapshot or hold the exclusive workspace barrier throughout.
+    Maintenance uses this under its READ WRITE transaction after draining writers.
+    """
+    _uuid(workspace_id)
+    workspace = cur.execute(
+        "SELECT id,currency,schema_epoch,mode FROM ledger.workspace WHERE id=%s",
+        (workspace_id,),
+    ).fetchone()
+    if workspace is None:
+        raise ExportError("Workspace not found")
+    schemas = cur.execute("SELECT version FROM ledger.schema_migration ORDER BY version").fetchall()
+    versions = [row["version"] for row in schemas]
+    version = next(
+        (v for v, expected in SCHEMA_VERSIONS_BY_FORMAT.items() if versions == list(expected)), None
+    )
+    if version is None:
+        raise ExportError("Unsupported database schema: explicit reader update required")
+    if version == 2:
         workspace = cur.execute(
-            "SELECT id,currency,schema_epoch,mode FROM ledger.workspace WHERE id=%s",
+            "SELECT id,currency,schema_epoch,mode,projection_epoch,current_freeze_id "
+            "FROM ledger.workspace WHERE id=%s",
             (workspace_id,),
         ).fetchone()
-        if workspace is None:
-            raise ExportError("Workspace not found")
-        schemas = cur.execute(
-            "SELECT version FROM ledger.schema_migration ORDER BY version"
+    witness = cur.execute(
+        "SELECT pg_current_snapshot()::text AS snapshot_witness, "
+        "current_setting('server_version_num') AS server_version"
+    ).fetchone()
+    result = {
+        "format_version": version,
+        "workspace": _normal_row(workspace),
+        "schema_versions": versions,
+        **witness,
+    }
+    for name, (table, fields, ordering) in _TABLES_BY_FORMAT[version].items():
+        if name in {"operations", "requests"}:
+            # Bound the two unbounded bytea/jsonb fields before transferring
+            # full rows. Hexadecimal encoding doubles the payload bytes.
+            size = cur.execute(
+                "SELECT coalesce(sum(2::numeric * octet_length(payload) "
+                "+ 2::numeric * octet_length(payload_sha256) "
+                "+ octet_length(response_body::text)), 0) AS estimated_bytes "
+                f"FROM ledger.{table} WHERE workspace_id=%s",
+                (workspace_id,),
+            ).fetchone()["estimated_bytes"]
+            if size > MAX_BUNDLE_BYTES:
+                raise ExportLimitExceeded("Payload transfer byte limit exceeded")
+        elif name == "repairs":
+            size = cur.execute(
+                "SELECT coalesce(sum(octet_length(source_witness)), 0) AS estimated_bytes "
+                "FROM ledger.projection_repair WHERE workspace_id=%s",
+                (workspace_id,),
+            ).fetchone()["estimated_bytes"]
+            if size > MAX_BUNDLE_BYTES:
+                raise ExportLimitExceeded("Repair witness transfer byte limit exceeded")
+        # Every interpolated identifier/clause is a module constant, never input.
+        rows = cur.execute(
+            f"SELECT {fields} FROM ledger.{table} WHERE workspace_id=%s "
+            f"ORDER BY {ordering} LIMIT %s",
+            (workspace_id, MAX_ROWS_PER_TABLE + 1),
         ).fetchall()
-        versions = [row["version"] for row in schemas]
-        if versions != list(SCHEMA_VERSIONS):
-            raise ExportError("Unsupported database schema: explicit reader update required")
-        witness = cur.execute(
-            "SELECT pg_current_snapshot()::text AS snapshot_witness, "
-            "current_setting('server_version_num') AS server_version"
-        ).fetchone()
-        result = {
-            "format_version": 1,
-            "workspace": _normal_row(workspace),
-            "schema_versions": versions,
-            **witness,
-        }
-        for name, (table, fields, ordering) in _TABLES.items():
-            if name in {"operations", "requests"}:
-                # Bound the two unbounded bytea/jsonb fields before transferring
-                # full rows. Hexadecimal encoding doubles the payload bytes.
-                size = cur.execute(
-                    "SELECT coalesce(sum(2::numeric * octet_length(payload) "
-                    "+ 2::numeric * octet_length(payload_sha256) "
-                    "+ octet_length(response_body::text)), 0) AS estimated_bytes "
-                    f"FROM ledger.{table} WHERE workspace_id=%s",
-                    (workspace_id,),
-                ).fetchone()["estimated_bytes"]
-                if size > MAX_BUNDLE_BYTES:
-                    raise ExportLimitExceeded("Payload transfer byte limit exceeded")
-            # Every interpolated identifier/clause is a module constant, never input.
-            rows = cur.execute(
-                f"SELECT {fields} FROM ledger.{table} WHERE workspace_id=%s "
-                f"ORDER BY {ordering} LIMIT %s",
-                (workspace_id, MAX_ROWS_PER_TABLE + 1),
-            ).fetchall()
-            if len(rows) > MAX_ROWS_PER_TABLE:
-                raise ExportLimitExceeded("Table row limit exceeded")
-            result[name] = [_normal_row(row) for row in rows]
-        _validate_snapshot(result)
+        if len(rows) > MAX_ROWS_PER_TABLE:
+            raise ExportLimitExceeded("Table row limit exceeded")
+        result[name] = [_normal_row(row) for row in rows]
+    _validate_snapshot(result)
     return result
 
 
@@ -346,13 +469,22 @@ def _sync_directory(path):
 
 
 def _row_counts(data):
-    return {"workspace": 1, **{table: len(data[table]) for table in _TABLES}}
+    return {
+        "workspace": 1,
+        **{table: len(data[table]) for table in _TABLES_BY_FORMAT[data["format_version"]]},
+    }
 
 
 def export_workspace(
     conn, workspace_id: str, output_root: Path, *, code_revision: str, dirty: bool = False
 ) -> Path:
-    """Publish a fresh immutable UUID bundle after its complete snapshot is materialized.
+    """Capture a consistent snapshot and publish its complete local bundle."""
+    data = capture_snapshot(conn, workspace_id)
+    return publish_snapshot(data, output_root, code_revision=code_revision, dirty=dirty)
+
+
+def publish_snapshot(data, output_root: Path, *, code_revision: str, dirty: bool = False) -> Path:
+    """Publish a fresh immutable UUID bundle from already materialized raw rows.
 
     Failed publication may leave this call's recognizable temporary directory. If
     the final parent fsync fails after rename, a valid final bundle may already
@@ -362,13 +494,12 @@ def export_workspace(
         raise ExportError("Code revision must be a full Git commit hash")
     if type(dirty) is not bool:
         raise ExportError("Dirty flag must be boolean")
-    data = capture_snapshot(conn, workspace_id)
     encoded = _validate_snapshot(data)
     export_id = str(uuid4())
     manifest = {
-        "format_version": 1,
+        "format_version": data["format_version"],
         "export_id": export_id,
-        "workspace_id": workspace_id,
+        "workspace_id": data["workspace"]["id"],
         "code_revision": code_revision,
         "dirty": dirty,
         "data_bytes": len(encoded),
@@ -436,7 +567,10 @@ def _load_directory(path, *, expected_id):
         manifest_raw, manifest = _read_json(descriptor, "manifest.json", MAX_MANIFEST_BYTES)
         if type(manifest) is not dict or manifest.keys() != _MANIFEST_KEYS:
             raise ExportError("Manifest has missing or unknown fields")
-        if type(manifest["format_version"]) is not int or manifest["format_version"] != 1:
+        if (
+            type(manifest["format_version"]) is not int
+            or manifest["format_version"] not in _TABLES_BY_FORMAT
+        ):
             raise ExportError("Unsupported manifest format")
         _uuid(manifest["export_id"])
         _uuid(manifest["workspace_id"])
@@ -466,12 +600,14 @@ def _load_directory(path, *, expected_id):
         ):
             raise ExportError("Bundle data size/digest mismatch")
         _validate_snapshot(data)
+        if data["format_version"] != manifest["format_version"]:
+            raise ExportError("Manifest format does not match snapshot")
         if data["workspace"]["id"] != manifest["workspace_id"]:
             raise ExportError("Manifest workspace does not match snapshot")
         counts = manifest["row_counts"]
         if (
             type(counts) is not dict
-            or counts.keys() != {"workspace", *_TABLES}
+            or counts.keys() != {"workspace", *_TABLES_BY_FORMAT[data["format_version"]]}
             or any(
                 type(value) is not int or not 0 <= value <= MAX_ROWS_PER_TABLE
                 for value in counts.values()

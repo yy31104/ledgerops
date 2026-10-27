@@ -1,15 +1,15 @@
 # LedgerOps handoff
 
-Updated: 2026-10-27. R1-PR04 and R2-PR01 complete locally; maintenance/reversal remain next slices.
+Updated: 2026-10-27. R1-PR04 and R2-PR01/02 complete locally; production reversal remains next.
 
 ## Status
 
 | Field | Current fact |
 |---|---|
-| `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. R2-PR01 adds reader privileges, consistent export, offline structure/A/B checks, CLI and a test-only command model. No production repair/reversal or HTTP/authentication adapter. |
-| `verification` | R2-PR01: 358 passed, zero failures/errors/skips (165 unit, 41 reference, 152 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See Git-linked R2 evidence and historical R1 records. |
+| `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. R2-PR01 adds reader privileges, consistent export, offline structure/A/B checks, CLI and a test-only command model. R2-PR02 adds writer drain/freeze, preview, atomic live repair/audit/epoch, stable-ID recovery and explicit fresh-check resume. Format v2 includes maintenance; v1 remains accepted. No production reversal or HTTP/authentication adapter. |
+| `verification` | R2-PR02: 432 passed, zero failures/errors/skips (189 unit, 41 reference, 202 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See Git-linked R2 evidence and historical R1 records. |
 | `personal_ownership` | Yi accepted four R1 defaults by replying “沿用这组默认”. Independent explanation or modification has not been assessed. R2 decisions 2/4/5 accepted; 1/3 accepted with amendments. |
-| `R2 planning` | Decisions adopted: retained-payload intent, no candidate generations. Docs commit 328733b precedes completed R2-PR01; PR02–04 remain next. |
+| `R2 planning` | Decisions adopted: retained-payload intent, no candidate generations. Docs commit 328733b precedes PR01 a067785; PR02 now complete; PR03/04 remain next. |
 
 The repository remains on local `main`, with baseline commit
 `feb458864c293d77c838913e720e878f09b96846` and a separate PR04 extraction commit.
@@ -18,6 +18,8 @@ PR04 is `9add0b8fefd5fa7ad69abd842a02d5fa24baa046`; use
 This round first adds adoption commit `328733b871e12c5e4b096efe2db0a25793266123`,
 then a separate R2-PR01 implementation commit, identifiable with
 `git log -1 --format=%H -- evidence/R2-PR01/2026-10-27/verification.json`.
+The next separate PR02 commit is based on a067785 and is located by
+`git log -1 --format=%H -- evidence/R2-PR02/2026-10-27/verification.json`.
 No remote, deployment or tracker update is part of this delivery.
 Chronicle already has its own baseline `be5df9a`, created by parallel work; this
 session did not modify its code, index or in-flight review fixes.
@@ -27,7 +29,8 @@ session did not modify its code, index or in-flight review fixes.
 The user authorized initial implementation, accepted [packet 1](docs/DECISION-PACKET-R1.md),
 then explicitly requested PR03 and supplied the Opus R1 review. The baseline and
 readability findings were completed in PR04. This round follows the accepted R2
-packet, including the user's two amendments. Older design-only and
+packet, including the user's two amendments. The independent PR01 review then
+explicitly authorizes PR02 and requires old-export compatibility. Older design-only and
 initialization instructions describe historical work. [ADR 0002](docs/adr/0002-r1-foundation.md),
 [ADR 0003](docs/adr/0003-purchase-admission.md),
 [ADR 0004](docs/adr/0004-contention-and-recovery.md) and the
@@ -54,6 +57,15 @@ wrong through the trusted runtime credential; independent checks remain essentia
 The migration owner can alter guards and is outside those protections.
 
 ## Verification and reproducibility
+
+- [R2-PR02 evidence](evidence/R2-PR02/2026-10-27/README.md): 432 passing tests,
+  including 50 new real PostgreSQL maintenance/CLI cases and 24 new pure format/
+  audit cases. Observe actual writer→freeze lock dependencies, competing freeze IDs
+  and same repair-ID races. Literal before/after checks include missing idle rows,
+  versions/epoch and immutable complete audit. Wrong-owner/current-source/reservation
+  guards, stale-preview substitution, four SQL fault stages and both actual wire
+  COMMIT outcomes preserve atomicity and stable-ID recovery. Old v1 bundle bytes
+  remain accepted; new v2 carries maintenance records. See exact run/tooling metadata.
 
 - [R2-PR01 evidence](evidence/R2-PR01/2026-10-27/README.md): 358 passing tests in
   23.176 seconds; 121 new cases plus R1 regression. Actual reader-login tests verify
@@ -108,8 +120,9 @@ No persistent database is provisioned; opening journals remain explicit fixture 
 ## Current boundary and next work
 
 [PR04 task](docs/tasks/R1-PR04.md) is complete: only admission.py was refactored in
-production; tests, SQL schema, migrations, fixtures and reference implementation
-remain identical to baseline. All helpers participate in the same explicit
+that production slice; its tests, SQL schema, migrations, fixtures and reference
+implementation matched baseline. Later R2 slices add the changes recorded above.
+All admission helpers participate in the same explicit
 transaction; no new behavior or premature R2 abstraction was introduced.
 
 [PR03 task](docs/tasks/R1-PR03.md) is complete for its bounded schedules and fault
@@ -130,8 +143,9 @@ and original-merchant reversal authority. No repeated approval is required.
 The user authorized a separate documentation commit followed by
 [R2-PR01](docs/tasks/R2-PR01.md). PR01 now delivers bounded consistent export and offline
 structure/projection/retained-request checks, plus an independent test command model.
-Maintenance freeze/apply/resume is PR02; production full reversal is PR03; integrated
-failure/uniqueness/drain evidence is PR04. This round does not claim all R2 complete.
+Maintenance freeze/apply/resume is now delivered in [PR02](docs/tasks/R2-PR02.md);
+production full reversal remains PR03, integrated acceptance remains PR04. This does
+not claim all R2 complete.
 Git commit references replace new source SHA inventories; original evidence remains.
 
 Use [export/verify instructions](docs/EXPORT-AND-VERIFY.md). Before migrations,
@@ -139,14 +153,21 @@ provision `ledger_reader` alongside the existing owner/app roles. The CLI uses
 LEDGEROPS_EXPORT_DSN only for export; verification is offline. Reports separate
 structure/A/B and reservation support. Nonzero reserves prevent rebuild eligibility.
 Opaque OPENING funding intent is disclosed. Captured purchase payloads are B's
-authority, not proof of original external intent. PR02 must recheck live sources
-under the exclusive barrier, never apply target balances from a preview file.
+authority, not proof of original external intent. PR02 rechecks live sources
+under the exclusive barrier; it never applies target balances from a preview file.
+[Maintenance usage](docs/MAINTENANCE.md) documents the extra role, APIs, commands
+and failure recovery. Preview ID is a caller-supplied audit reference, not an
+authenticated file receipt. No command proves a human read a report. Historical
+freeze/repair/resume replay returns saved metadata without acting on a new session.
+Application remains FROZEN; resume checks sources/projections/reservations again.
+No internal maintenance retry/reconnect: SQL failures propagate, and COMMIT loss
+requires reconnecting with original IDs. A healthy freeze may resume without repair.
 
 Full source-package release acceptance, a persistent local demo DB, HTTP/token
 verification and operational packaging must not be inferred from the service test count.
 
 Retain later gates: R2 success-only reversal uniqueness with rejected attempts kept,
-maintenance freeze API, writer drain and full export/rebuild; R5 current evidence
+integrated purchase/reversal/maintenance fault evidence; R5 current evidence
 epoch and racing stale-approval rejection. A database freeze does not prove an
 external send stopped. No reversal/provider/hold lifecycle was added.
 

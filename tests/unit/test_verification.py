@@ -363,3 +363,135 @@ def test_deeply_nested_retained_payload_reports_failure_instead_of_crashing(snap
     report = verify_snapshot(snapshot)
     assert not report.request_intent_ok and not report.rebuild_eligible
     assert any(issue.code == "INVALID_STORED_REQUEST" for issue in report.issues)
+
+
+@pytest.fixture
+def maintenance_snapshot(snapshot):
+    freeze_id = "80000000-0000-4000-8000-000000000001"
+    repair_id = "80000000-0000-4000-8000-000000000002"
+    actor = "20000000-0000-4000-8000-000000000099"
+    snapshot["format_version"] = 2
+    snapshot["schema_versions"].append("003_projection_maintenance.sql")
+    snapshot["workspace"].update(mode="FROZEN", projection_epoch=2, current_freeze_id=freeze_id)
+    snapshot["maintenance_freezes"] = [
+        dict(
+            workspace_id=W,
+            freeze_id=freeze_id,
+            actor_id=actor,
+            reason="inspect",
+            frozen_at=TIME,
+            resumed_at=None,
+            resumed_by=None,
+            resume_reason=None,
+        )
+    ]
+    snapshot["repairs"] = [
+        dict(
+            workspace_id=W,
+            repair_id=repair_id,
+            freeze_id=freeze_id,
+            actor_id=actor,
+            reason="recompute",
+            preview_export_id="90000000-0000-4000-8000-000000000001",
+            source_witness="100:100:",
+            old_epoch=1,
+            new_epoch=2,
+            account_count=len(snapshot["accounts"]),
+            applied_at=TIME,
+        )
+    ]
+    snapshot["repair_rows"] = []
+    for balance in snapshot["balances"]:
+        audit = dict(
+            workspace_id=W,
+            repair_id=repair_id,
+            account_id=balance["account_id"],
+            normal_side=balance["normal_side"],
+        )
+        for field in ("debits", "credits", "reserved", "booked", "version"):
+            audit["before_" + field] = balance[field]
+            audit["after_" + field] = balance[field] + 1 if field == "version" else balance[field]
+        balance["version"] += 1
+        snapshot["repair_rows"].append(audit)
+    return snapshot
+
+
+def test_maintenance_audit_format_checks_without_changing_purchase_intent(maintenance_snapshot):
+    report = verify_snapshot(maintenance_snapshot)
+    assert report.healthy and report.rebuild_eligible
+    assert report.unverified_intent_kinds == ("OPENING",)
+    assert report.issues == ()
+
+
+def test_missing_projection_repair_audit_starts_version_one(maintenance_snapshot):
+    audit = maintenance_snapshot["repair_rows"][-1]
+    for field in ("debits", "credits", "reserved", "booked", "version"):
+        audit["before_" + field] = None
+    audit["after_version"] = 1
+    assert verify_snapshot(maintenance_snapshot).healthy
+
+
+def test_closed_freeze_remains_valid_immutable_history(maintenance_snapshot):
+    maintenance_snapshot["workspace"].update(mode="NORMAL", current_freeze_id=None)
+    maintenance_snapshot["maintenance_freezes"][0].update(
+        resumed_at=TIME,
+        resumed_by="20000000-0000-4000-8000-000000000099",
+        resume_reason="post-check passed",
+    )
+    assert verify_snapshot(maintenance_snapshot).healthy
+
+
+@pytest.mark.parametrize(
+    "fault",
+    [
+        "open-freeze",
+        "partial-resume",
+        "missing-freeze",
+        "epoch-gap",
+        "row-count",
+        "wrong-account",
+        "wrong-side",
+        "before-null",
+        "after-money",
+        "after-version",
+        "reserved",
+        "missing-new-table",
+        "cross-scope",
+        "bad-witness",
+    ],
+)
+def test_malformed_maintenance_history_blocks_repair(maintenance_snapshot, fault):
+    freeze = maintenance_snapshot["maintenance_freezes"][0]
+    repair = maintenance_snapshot["repairs"][0]
+    row = maintenance_snapshot["repair_rows"][0]
+    if fault == "open-freeze":
+        maintenance_snapshot["workspace"]["current_freeze_id"] = None
+    elif fault == "partial-resume":
+        freeze["resumed_at"] = TIME
+    elif fault == "missing-freeze":
+        repair["freeze_id"] = "80000000-0000-4000-8000-000000000099"
+    elif fault == "epoch-gap":
+        maintenance_snapshot["workspace"]["projection_epoch"] = 4
+    elif fault == "row-count":
+        maintenance_snapshot["repair_rows"].pop()
+    elif fault == "wrong-account":
+        row["account_id"] = "30000000-0000-4000-8000-000000000099"
+    elif fault == "wrong-side":
+        row["normal_side"] = "C"
+    elif fault == "before-null":
+        row["before_version"] = None
+    elif fault == "after-money":
+        row["after_booked"] = "0"
+    elif fault == "after-version":
+        row["after_version"] = True
+    elif fault == "reserved":
+        row["before_reserved"] = "1"
+    elif fault == "missing-new-table":
+        del maintenance_snapshot["repairs"]
+    elif fault == "cross-scope":
+        row["workspace_id"] = "10000000-0000-4000-8000-000000000099"
+    else:
+        repair["source_witness"] = ""
+    report = verify_snapshot(maintenance_snapshot)
+    assert not report.structure_ok and not report.rebuild_eligible
+    assert report.request_intent_ok

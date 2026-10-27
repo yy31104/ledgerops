@@ -25,9 +25,9 @@ def apply_migrations(conn: psycopg.Connection) -> list[str]:
             sql.SQL("REVOKE ALL ON DATABASE {} FROM PUBLIC").format(sql.Identifier(database))
         )
         conn.execute(
-            sql.SQL("GRANT CONNECT ON DATABASE {} TO ledger_app, ledger_reader").format(
-                sql.Identifier(database)
-            )
+            sql.SQL(
+                "GRANT CONNECT ON DATABASE {} TO ledger_app, ledger_reader, ledger_maintenance"
+            ).format(sql.Identifier(database))
         )
         conn.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC")
         conn.execute("CREATE SCHEMA IF NOT EXISTS ledger AUTHORIZATION ledger_migrator")

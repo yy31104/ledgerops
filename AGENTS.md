@@ -7,7 +7,8 @@
   The first four R1 defaults were explicitly accepted in this chat; see
   `docs/DECISION-PACKET-R1.md`. Original embedded instructions remain references.
 - The latest 2026-10-27 instruction adopts R2 decisions (1/3 amended, 2/4/5 as
-  recommended): commit contract revisions separately, then implement R2-PR01.
+  recommended): commit contract revisions separately, then implement R2-PR01. The subsequent independent review authorizes R2-PR02,
+  preserving old exported format-v1 bundles while adding maintenance format v2.
   Intent verification uses retained operation payloads; hand manifests are extra
   test oracles. Repair recomputes under an exclusive transaction, without candidates.
 - Work within the user's active scope. Complete routine reversible edits and

@@ -547,6 +547,151 @@ def _check_requests(check, rows, operations):
             check.issue("intent", "MISSING_REQUEST", identifier, "request_result", "present", None)
 
 
+def _reason(value):
+    if type(value) is not str or "\x00" in value or not 1 <= len(value.encode("utf-8")) <= 256:
+        raise _Invalid("bounded nonempty maintenance reason required")
+
+
+def _check_maintenance(check, snapshot, workspace, accounts):
+    """Validate audit relations, not reinterpret historical financial intent."""
+    workspace_id = workspace["id"]
+    freezes = check.index(
+        check.rows(snapshot, "maintenance_freezes", workspace_id),
+        "maintenance_freezes",
+        lambda row: _uuid(row["freeze_id"]),
+    )
+    open_freezes = set()
+    for identifier, row in freezes.items():
+        try:
+            _uuid(row["actor_id"])
+            _reason(row["reason"])
+            _time(row["frozen_at"])
+            resumed = (row["resumed_at"], row["resumed_by"], row["resume_reason"])
+            if resumed == (None, None, None):
+                open_freezes.add(identifier)
+            elif any(value is None for value in resumed):
+                raise _Invalid("partial freeze resume record")
+            else:
+                _time(row["resumed_at"])
+                _uuid(row["resumed_by"])
+                _reason(row["resume_reason"])
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue("structure", "INVALID_FREEZE", identifier, "freeze", str(exc), None)
+    current = workspace["current_freeze_id"]
+    expected_open = {current} if workspace["mode"] == "FROZEN" and current else set()
+    if (
+        (workspace["mode"] == "FROZEN" and current is None)
+        or (workspace["mode"] != "FROZEN" and current is not None)
+        or open_freezes != expected_open
+    ):
+        check.issue(
+            "structure",
+            "FREEZE_STATE_MISMATCH",
+            workspace_id,
+            "current_freeze_id",
+            sorted(expected_open),
+            sorted(open_freezes),
+        )
+    repairs = check.index(
+        check.rows(snapshot, "repairs", workspace_id),
+        "repairs",
+        lambda row: _uuid(row["repair_id"]),
+    )
+    epochs = []
+    for identifier, row in repairs.items():
+        try:
+            freeze = _uuid(row["freeze_id"])
+            if freeze not in freezes:
+                raise _Invalid("repair freeze is missing")
+            _uuid(row["actor_id"])
+            _reason(row["reason"])
+            _uuid(row["preview_export_id"])
+            _time(row["applied_at"])
+            if type(row["source_witness"]) is not str or not re.fullmatch(
+                r"[0-9]+:[0-9]+:(?:[0-9]+(?:,[0-9]+)*)?", row["source_witness"]
+            ):
+                raise _Invalid("invalid repair source witness")
+            old = _integer(row["old_epoch"], 1, 2**63 - 2)
+            new = _integer(row["new_epoch"], 2)
+            _integer(row["account_count"], 0, _MAX_ROWS)
+            if new != old + 1:
+                raise _Invalid("repair must advance epoch exactly once")
+            epochs.append(old)
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue("structure", "INVALID_REPAIR", identifier, "repair", str(exc), None)
+    if len(epochs) != workspace["projection_epoch"] - 1 or any(
+        old != index for index, old in enumerate(sorted(epochs), 1)
+    ):
+        check.issue(
+            "structure",
+            "REPAIR_EPOCH_GAP",
+            workspace_id,
+            "projection_epoch",
+            "complete unique repair epoch history",
+            workspace["projection_epoch"],
+        )
+    rows = check.rows(snapshot, "repair_rows", workspace_id)
+    indexed = check.index(
+        rows, "repair_rows", lambda row: (_uuid(row["repair_id"]), _uuid(row["account_id"]))
+    )
+    counts = defaultdict(int)
+    for identity, row in indexed.items():
+        try:
+            repair, account_id = identity
+            if repair not in repairs or account_id not in accounts:
+                raise _Invalid("repair row header/account is missing")
+            counts[repair] += 1
+            side = row["normal_side"]
+            if side != accounts[account_id]["normal_side"]:
+                raise _Invalid("repair row normal side differs from account")
+            after = {
+                name: _money(row["after_" + name])
+                for name in ("debits", "credits", "reserved", "booked")
+            }
+            version = _integer(row["after_version"], 1)
+            booked = (
+                after["debits"] - after["credits"]
+                if side == "D"
+                else after["credits"] - after["debits"]
+            )
+            if after["reserved"] != 0 or after["booked"] != booked:
+                raise _Invalid("invalid repaired totals/reservation")
+            before_names = ("debits", "credits", "reserved", "booked", "version")
+            before_values = [row["before_" + name] for name in before_names]
+            if all(value is None for value in before_values):
+                if version != 1:
+                    raise _Invalid("new projection must start at version 1")
+            else:
+                before = {
+                    name: _money(row["before_" + name])
+                    for name in ("debits", "credits", "reserved", "booked")
+                }
+                old_version = _integer(row["before_version"], 0, 2**63 - 2)
+                old_booked = (
+                    before["debits"] - before["credits"]
+                    if side == "D"
+                    else before["credits"] - before["debits"]
+                )
+                if (
+                    before["reserved"] != 0
+                    or before["booked"] != old_booked
+                    or version != old_version + 1
+                ):
+                    raise _Invalid("invalid original totals or projection version transition")
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue("structure", "INVALID_REPAIR_ROW", str(identity), "audit", str(exc), None)
+    for identifier, row in repairs.items():
+        if counts[identifier] != row.get("account_count"):
+            check.issue(
+                "structure",
+                "REPAIR_DECLARATION_MISMATCH",
+                identifier,
+                "account_count",
+                row.get("account_count"),
+                counts[identifier],
+            )
+
+
 def verify_snapshot(snapshot: dict) -> VerificationReport:
     """Check posted structure/projection and stored purchase intent without SUT helpers.
 
@@ -559,9 +704,9 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         if (
             type(snapshot) is not dict
             or type(snapshot.get("format_version")) is not int
-            or snapshot["format_version"] != 1
+            or snapshot["format_version"] not in (1, 2)
         ):
-            raise _Invalid("snapshot version 1 required")
+            raise _Invalid("snapshot version 1 or 2 required")
         workspace = snapshot["workspace"]
         if type(workspace) is not dict:
             raise _Invalid("workspace object required")
@@ -573,8 +718,15 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         }:
             raise _Invalid("unsupported workspace contract")
         _integer(workspace["schema_epoch"], 1)
+        version = snapshot["format_version"]
+        schemas = ["001_foundation.sql", "002_export_reader.sql"]
+        if version == 2:
+            schemas.append("003_projection_maintenance.sql")
+            _integer(workspace["projection_epoch"], 1)
+            if workspace["current_freeze_id"] is not None:
+                _uuid(workspace["current_freeze_id"])
         if (
-            snapshot["schema_versions"] != ["001_foundation.sql", "002_export_reader.sql"]
+            snapshot["schema_versions"] != schemas
             or type(snapshot["snapshot_witness"]) is not str
             or not snapshot["snapshot_witness"]
             or type(snapshot["server_version"]) is not str
@@ -586,6 +738,8 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         return check.report()
     tables = {name: check.rows(snapshot, name, workspace_id) for name in _TABLES}
     accounts = _check_accounts(check, tables["accounts"])
+    if snapshot["format_version"] == 2:
+        _check_maintenance(check, snapshot, workspace, accounts)
     operations = _check_operations(check, tables["operations"])
     _, lines, totals, by_operation = _check_journals(
         check, tables["journals"], tables["entries"], accounts, operations

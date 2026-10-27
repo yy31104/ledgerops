@@ -9,6 +9,13 @@ from pathlib import Path
 
 import psycopg
 
+from ledgerops.db.maintenance import (
+    MaintenanceError,
+    apply_rebuild,
+    freeze_workspace,
+    preview_rebuild,
+    resume_workspace,
+)
 from ledgerops.export import ExportError, export_workspace, load_export
 from ledgerops.verification import verify_snapshot
 
@@ -42,6 +49,42 @@ def _revision():
     return commit, dirty
 
 
+def _code_version(args):
+    if args.dirty and not args.code_revision:
+        raise ExportError("An explicit dirty flag requires an explicit code revision")
+    return (args.code_revision, args.dirty) if args.code_revision else _revision()
+
+
+def _maintenance(args):
+    dsn = os.environ.get("LEDGEROPS_MAINTENANCE_DSN")
+    if not dsn:
+        raise ExportError("LEDGEROPS_MAINTENANCE_DSN is required")
+    with psycopg.connect(dsn, autocommit=True) as conn:
+        if args.command == "freeze":
+            return freeze_workspace(conn, args.workspace, args.freeze_id, args.actor, args.reason)
+        if args.command == "preview-rebuild":
+            revision, dirty = _code_version(args)
+            return preview_rebuild(
+                conn,
+                args.workspace,
+                args.freeze_id,
+                args.output_root,
+                code_revision=revision,
+                dirty=dirty,
+            )
+        if args.command == "apply-rebuild":
+            return apply_rebuild(
+                conn,
+                args.workspace,
+                args.freeze_id,
+                args.repair_id,
+                args.actor,
+                args.reason,
+                args.preview_export_id,
+            )
+        return resume_workspace(conn, args.workspace, args.freeze_id, args.actor, args.reason)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -52,24 +95,46 @@ def main(argv=None):
     export.add_argument("--dirty", action="store_true", help="mark an explicit revision as dirty")
     verify = commands.add_parser("verify", help="verify a completed bundle without database access")
     verify.add_argument("path", type=Path)
+    for name in ("freeze", "preview-rebuild", "apply-rebuild", "resume"):
+        command = commands.add_parser(
+            name, help="explicit local maintenance using its dedicated login"
+        )
+        command.add_argument("--workspace", required=True)
+        command.add_argument("--freeze-id", required=True)
+        if name != "preview-rebuild":
+            command.add_argument("--actor", required=True)
+            command.add_argument("--reason", required=True)
+        if name == "preview-rebuild":
+            command.add_argument("--output-root", type=Path, required=True)
+            command.add_argument("--code-revision")
+            command.add_argument("--dirty", action="store_true")
+        if name == "apply-rebuild":
+            command.add_argument("--repair-id", required=True)
+            command.add_argument("--preview-export-id", required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "verify":
             report = verify_snapshot(load_export(args.path))
             print(json.dumps(report.as_dict(), ensure_ascii=False, sort_keys=True, allow_nan=False))
             return 0 if report.healthy else 1
+        if args.command != "export":
+            print(
+                json.dumps(_maintenance(args), ensure_ascii=False, sort_keys=True, allow_nan=False)
+            )
+            return 0
         dsn = os.environ.get("LEDGEROPS_EXPORT_DSN")
         if not dsn:
             raise ExportError("LEDGEROPS_EXPORT_DSN is required")
-        if args.dirty and not args.code_revision:
-            raise ExportError("An explicit dirty flag requires an explicit code revision")
-        revision, dirty = (args.code_revision, args.dirty) if args.code_revision else _revision()
+        revision, dirty = _code_version(args)
         with psycopg.connect(dsn, autocommit=True) as conn:
             destination = export_workspace(
                 conn, args.workspace, args.output_root, code_revision=revision, dirty=dirty
             )
         print(json.dumps({"export_path": str(destination)}, sort_keys=True))
         return 0
+    except MaintenanceError as exc:
+        print(json.dumps({"error": exc.code, "report": exc.report}), file=sys.stderr)
+        return 2
     except (ExportError, psycopg.Error, OSError) as exc:
         # Connection exceptions may contain environment/host details; never print
         # their raw contents or a credential-bearing DSN into an evidence log.

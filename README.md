@@ -4,9 +4,10 @@ A local laboratory for synthetic transaction integrity, replay and recovery.
 **R1-PR01 through R1-PR04 are implemented locally:** typed money/identity, PostgreSQL
 safeguards, an explicit-SQL purchase service, bounded transaction retries, and
 concurrency / response-loss recovery tests with independent financial checks.
-**R2-PR01 is also implemented locally:** a dedicated reader exports one consistent
+**R2-PR01 and PR02 are also implemented locally:** a dedicated reader exports one consistent
 snapshot, and an offline verifier separately checks journal structure, projected
-balances and fidelity to retained purchase requests.
+balances and fidelity to retained purchase requests. Maintenance can drain writers,
+preview drift, atomically recompute/audit balances and explicitly resume.
 All financial examples use synthetic PLN minor units.
 
 ## Run locally
@@ -86,9 +87,31 @@ manifest additionally detects a request itself captured with the wrong merchant.
 Reports disclose the legacy OPENING fixture's opaque funding intent. Nonzero
 reservations prohibit rebuild eligibility even when posted balances agree.
 Eligibility is a source-check result, not permission to mutate a live DB.
-Unknown future schemas fail until the reader supports their new relations.
+Format v2 includes maintenance metadata; old v1 bundles remain accepted under their
+original schema rules. Unknown future schemas fail until explicitly supported.
+
+## Maintenance
+
+[PR02 workflow](docs/MAINTENANCE.md): freeze/drain → preview → live transactional
+recompute/apply → post-export/check → explicit resume. Apply takes a stable repair
+ID and current freeze identity, never a list of target balances. It keeps the
+workspace FROZEN, records every account's before/after values, advances versions
+and projection epoch atomically, and verifies the result independently. Same-ID
+recovery never applies twice; failed/unknown COMMIT uses the original repair ID.
+Nonzero reservations and source/intent errors block application. No candidate tables.
+
+The maintenance credential has projection/metadata authority, not financial-history,
+reservation, DDL or owner authority. All cooperating writers must take the shared
+barrier; raw privileged SQL remains outside that protocol. Database freeze does
+not establish that external payments stopped.
 
 ## Evidence and boundaries
+
+[R2-PR02 verification](evidence/R2-PR02/2026-10-27/README.md) records **432 passing
+tests**: 189 unit, 41 reference, 202 real PostgreSQL integration. The 74 new cases
+cover format compatibility, maintenance, actual writer drain/identity races, stale
+preview mutation, SQL/COMMIT rollback and actual wire-level ambiguous repair recovery.
+The previous R2 and R1 records remain historical evidence.
 
 [R2-PR01 verification](evidence/R2-PR01/2026-10-27/README.md) records **358 passing
 tests**: 165 unit, 41 reference and 152 real PostgreSQL integration. The 121 new
@@ -124,9 +147,9 @@ provider, reversal, hold lifecycle, deployment or production-readiness claim.
 The [R2 task contract](docs/tasks/R2.md) and
 [five-item Chinese decision packet](docs/DECISION-PACKET-R2.md) were adopted with user amendments on 2026-10-27. They cover independent export/checking, writer-drained maintenance rebuild,
 and success-only full purchase reversal. B checks retained canonical requests, and repair recomputes in one exclusive
-transaction without candidate tables. [R2-PR01](docs/tasks/R2-PR01.md) is complete;
-maintenance freeze/rebuild/resume (PR02) and production reversal admission (PR03)
-remain later slices, followed by integrated fault evidence (PR04). Reference-model
+transaction without candidate tables. [R2-PR01](docs/tasks/R2-PR01.md) and
+[R2-PR02](docs/tasks/R2-PR02.md) are complete. Production reversal admission (PR03)
+and integrated fault evidence (PR04) remain later slices. Reference-model
 reversal tests do not mean production reversal is available.
 
 ## Continue here
@@ -143,5 +166,5 @@ reversal tests do not mean production reversal is available.
 The repository has local Git commits and no remote. The received R1 implementation
 is preserved in baseline `feb4588`; the PR04 extraction is the next independent
 commit. R2 adoption is separate documentation commit `328733b`, followed by a
-bounded R2-PR01 implementation commit. PR numbers identify
+bounded R2-PR01 implementation commit `a067785` and a separate PR02 maintenance commit. PR numbers identify
 work slices; no GitHub pull request, deployment or tracker update has been made.

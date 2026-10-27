@@ -32,18 +32,25 @@ class TestDatabase:
     app_password: str
     name: str
     reader_password: str
+    maintenance_password: str
 
     def connect(self, role: str = "app") -> psycopg.Connection:
-        if role not in {"app", "reader", "owner", "admin"}:
+        if role not in {"app", "reader", "maintenance", "owner", "admin"}:
             raise ValueError("unknown test connection role")
         conn = psycopg.connect(
             host="127.0.0.1",
             port=self.port,
             dbname=self.name,
-            user={"app": "ledger_app", "reader": "ledger_reader"}.get(role, "postgres"),
-            password={"app": self.app_password, "reader": self.reader_password}.get(
-                role, self.admin_password
-            ),
+            user={
+                "app": "ledger_app",
+                "reader": "ledger_reader",
+                "maintenance": "ledger_maintenance",
+            }.get(role, "postgres"),
+            password={
+                "app": self.app_password,
+                "reader": self.reader_password,
+                "maintenance": self.maintenance_password,
+            }.get(role, self.admin_password),
             autocommit=True,
             connect_timeout=2,
             options="-c timezone=UTC -c statement_timeout=10000 -c lock_timeout=5000",
@@ -59,6 +66,7 @@ def postgres_cluster():
     admin_password = secrets.token_urlsafe(24)
     app_password = secrets.token_urlsafe(24)
     reader_password = secrets.token_urlsafe(24)
+    maintenance_password = secrets.token_urlsafe(24)
     container_id = None
     try:
         docker("version", "--format", "{{.Server.Version}}")
@@ -98,7 +106,12 @@ def postgres_cluster():
             )
         )
         cluster = TestDatabase(
-            int(bindings[0]["HostPort"]), admin_password, app_password, "postgres", reader_password
+            int(bindings[0]["HostPort"]),
+            admin_password,
+            app_password,
+            "postgres",
+            reader_password,
+            maintenance_password,
         )
         deadline = time.monotonic() + 30
         while True:
@@ -127,6 +140,12 @@ def postgres_cluster():
                   NOCREATEROLE NOREPLICATION PASSWORD {}
             """).format(sql.Literal(reader_password))
             )
+            conn.execute(
+                sql.SQL("""
+                CREATE ROLE ledger_maintenance LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB
+                  NOCREATEROLE NOREPLICATION PASSWORD {}
+            """).format(sql.Literal(maintenance_password))
+            )
         yield cluster
     except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
         pytest.fail(
@@ -142,7 +161,12 @@ def db(postgres_cluster):
     cluster = postgres_cluster
     name = f"ledgerops_test_{uuid4().hex}"
     database = TestDatabase(
-        cluster.port, cluster.admin_password, cluster.app_password, name, cluster.reader_password
+        cluster.port,
+        cluster.admin_password,
+        cluster.app_password,
+        name,
+        cluster.reader_password,
+        cluster.maintenance_password,
     )
     with cluster.connect("admin") as admin:
         admin.execute(
@@ -150,7 +174,11 @@ def db(postgres_cluster):
         )
     try:
         with database.connect("admin") as admin:
-            assert apply_migrations(admin) == ["001_foundation.sql", "002_export_reader.sql"]
+            assert apply_migrations(admin) == [
+                "001_foundation.sql",
+                "002_export_reader.sql",
+                "003_projection_maintenance.sql",
+            ]
         yield database
     finally:
         with cluster.connect("admin") as admin:

@@ -4,11 +4,13 @@ import hashlib
 import json
 import os
 from copy import deepcopy
+from pathlib import Path
 from uuid import UUID
 
 import pytest
 
 from ledgerops import export
+from ledgerops.verification import verify_snapshot
 
 WORKSPACE = "10000000-0000-4000-8000-000000000001"
 ACCOUNT = "30000000-0000-4000-8000-000000000001"
@@ -297,3 +299,62 @@ def test_nonregular_member_is_rejected_without_waiting_for_a_writer(publish):
     os.mkfifo(directory / "data.json")
     with pytest.raises(export.ExportError, match="regular files"):
         export.load_export(directory)
+
+
+def test_frozen_pr01_bundle_loads_and_verifies_after_new_schema_support():
+    directory = (
+        Path(__file__).resolve().parents[2]
+        / "fixtures/golden/export_v1/90000000-0000-4000-8000-000000000001"
+    )
+    data = export.load_export(directory)
+    assert data["format_version"] == 1
+    assert data["schema_versions"] == ["001_foundation.sql", "002_export_reader.sql"]
+    assert [row["booked"] for row in data["balances"]] == ["100", "20", "80", "0"]
+    assert verify_snapshot(data).healthy
+
+
+@pytest.fixture
+def maintenance_snapshot(snapshot):
+    snapshot["format_version"] = 2
+    snapshot["schema_versions"].append("003_projection_maintenance.sql")
+    snapshot["workspace"].update(projection_epoch=1, current_freeze_id=None)
+    snapshot.update(maintenance_freezes=[], repairs=[], repair_rows=[])
+    return snapshot
+
+
+def test_format_two_publishes_maintenance_members_and_keeps_format_one_frozen(
+    tmp_path, maintenance_snapshot
+):
+    directory = export.publish_snapshot(
+        maintenance_snapshot, tmp_path, code_revision=REVISION, dirty=True
+    )
+    assert export.load_export(directory) == maintenance_snapshot
+    manifest = json.loads((directory / "manifest.json").read_text())
+    assert manifest["format_version"] == 2
+    assert manifest["row_counts"]["maintenance_freezes"] == 0
+    assert manifest["row_counts"]["repairs"] == 0
+    assert manifest["row_counts"]["repair_rows"] == 0
+    assert verify_snapshot(export.load_export(directory)).healthy
+
+
+@pytest.mark.parametrize("fault", ["schema", "missing-table", "bool-epoch", "future-format"])
+def test_format_two_dispatch_requires_complete_declared_contract(
+    tmp_path, maintenance_snapshot, fault
+):
+    if fault == "schema":
+        maintenance_snapshot["schema_versions"].pop()
+    elif fault == "missing-table":
+        del maintenance_snapshot["repairs"]
+    elif fault == "bool-epoch":
+        maintenance_snapshot["workspace"]["projection_epoch"] = True
+    else:
+        maintenance_snapshot["format_version"] = 3
+    with pytest.raises(export.ExportError):
+        export.publish_snapshot(maintenance_snapshot, tmp_path, code_revision=REVISION)
+    assert not list(tmp_path.iterdir())
+
+
+def test_version_one_cannot_silently_include_version_two_metadata(tmp_path, maintenance_snapshot):
+    maintenance_snapshot["format_version"] = 1
+    with pytest.raises(export.ExportError):
+        export.publish_snapshot(maintenance_snapshot, tmp_path, code_revision=REVISION)
