@@ -1,6 +1,6 @@
 # LedgerOps handoff
 
-Updated: 2026-10-25. Active scope: local LedgerOps through R1-PR04.
+Updated: 2026-10-27. Implemented through R1-PR04; active round is R2 planning only.
 
 ## Status
 
@@ -8,11 +8,15 @@ Updated: 2026-10-25. Active scope: local LedgerOps through R1-PR04.
 |---|---|
 | `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. No HTTP/authentication adapter. |
 | `verification` | Final PR04 run: 237 passed, zero failures/errors/skips (91 unit, 18 reference, 128 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See the separate evidence records. |
-| `personal_ownership` | Yi accepted four defaults by replying “沿用这组默认”. Independent explanation or modification has not been assessed. |
+| `personal_ownership` | Yi accepted four R1 defaults by replying “沿用这组默认”. Independent explanation or modification has not been assessed. R2 choices remain pending. |
+| `R2 planning` | Task contract and five-item Chinese packet prepared; no R2 source, test, migration or demo implementation. |
 
 The repository remains on local `main`, with baseline commit
 `feb458864c293d77c838913e720e878f09b96846` and a separate PR04 extraction commit.
-Use `git log --oneline` to locate that delivery and `git diff feb4588..HEAD` to review it.
+PR04 is `9add0b8fefd5fa7ad69abd842a02d5fa24baa046`; use
+`git diff feb4588..9add0b8` for the pure extraction, excluding later planning documents.
+This round adds a separate documentation commit, identifiable with
+`git log -1 --format=%H -- docs/tasks/R2.md`.
 No remote, deployment or tracker update is part of this delivery.
 Chronicle already has its own baseline `be5df9a`, created by parallel work; this
 session did not modify its code, index or in-flight review fixes.
@@ -104,11 +108,35 @@ are not internally retried. No automatic reconnection is performed; the caller o
 the connection. COMMIT connection loss remains outcome-unknown until resubmission
 resolves persisted identity. No finite fault suite proves every failure schedule.
 
-The source's next release is R2 independent checking/export, drained maintenance
-rebuild and success-only full reversal. A new task contract should make that slice
-concrete before coding. This round does not start R2. Full source-package release
-acceptance, a persistent local demo DB, HTTP/token verification and operational
-packaging must not be inferred merely from the current service test count.
+The next release is R2. The [task contract](docs/tasks/R2.md) and
+[five-item Chinese decision packet](docs/DECISION-PACKET-R2.md) are now prepared,
+**proposed and unapproved**. This round writes documents only and does not start R2
+implementation. User-supplied independent review accepted PR04 and reported its
+own successful 237-test/check/build rerun; it is reported review evidence, not a
+new run by this planning session.
+
+The packet recommends: separate fold and command-intent verification; one consistent
+versioned local JSON export; frozen candidate rebuild with atomic activation into the
+existing balance working table; retained 422 ALREADY_REVERSED for additional new
+attempts after success; original-merchant authorization for full reversal. These are
+recommendations, especially the new authorization policy, not adopted defaults.
+
+The contract covers success-only uniqueness and rejected→funding→new-success;
+shared admission/replay without a copied transaction; original-purchase-before-sorted-
+balances locking and the limits of its no-cycle argument; cooperative database drain
+without claiming external sends stopped. Rebuild blocks unsupported/nonzero reserves,
+keeps failed/old generations, validates current freeze/epoch/source and resumes only
+through an explicit action. R2 does not repair a wrong-owner business journal.
+
+Proposed delivery order is four local commits: PR01 independent model/export/check;
+PR02 freeze/generations/rebuild; PR03 shared admission/full reversal; PR04 integrated
+concurrency/mutation/fault evidence. Before coding, record the user's packet choices.
+Future evidence names Git base/delivery commits and, if needed, Git code blobs/trees;
+no new SHA-256 source inventory. Historical R1 inventories remain unchanged and export
+content hashes have a separate data-integrity purpose.
+
+Full source-package release acceptance, a persistent local demo DB, HTTP/token
+verification and operational packaging must not be inferred from the service test count.
 
 Retain later gates: R2 success-only reversal uniqueness with rejected attempts kept,
 maintenance freeze API, writer drain and full export/rebuild; R5 current evidence

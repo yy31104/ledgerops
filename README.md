@@ -91,6 +91,15 @@ Connection loss remains potentially ambiguous; never substitute a new identity.
 There is no automatic reconnect, durable client command store, HTTP authentication adapter,
 provider, reversal, hold lifecycle, deployment or production-readiness claim.
 
+## R2 planning
+
+The [R2 task contract](docs/tasks/R2.md) and
+[five-item Chinese decision packet](docs/DECISION-PACKET-R2.md) are proposed for
+review. They cover independent export/checking, writer-drained maintenance rebuild,
+and success-only full purchase reversal. **No R2 code is implemented or decision
+recorded as approved.** Confirm/change the packet before starting implementation.
+R2 is split into four local commits; verification will reference Git revisions.
+
 ## Continue here
 
 - [Current handoff](HANDOFF.md): implemented / verified / personal ownership.
@@ -104,5 +113,5 @@ provider, reversal, hold lifecycle, deployment or production-readiness claim.
 
 The repository has local Git commits and no remote. The received R1 implementation
 is preserved in baseline `feb4588`; the PR04 extraction is the next independent
-commit. PR numbers identify work slices; no GitHub pull request, deployment or
-tracker update has been made.
+commit. Subsequent R2 planning is a documentation-only commit. PR numbers identify
+work slices; no GitHub pull request, deployment or tracker update has been made.
