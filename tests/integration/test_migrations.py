@@ -9,7 +9,7 @@ pytestmark = pytest.mark.integration
 def test_migration_is_idempotent_and_owned_by_nonlogin_role(db):
     with db.connect("admin") as conn:
         assert apply_migrations(conn) == []
-        assert conn.execute("SELECT count(*) FROM ledger.schema_migration").fetchone() == (1,)
+        assert conn.execute("SELECT count(*) FROM ledger.schema_migration").fetchone() == (2,)
         owners = conn.execute("""
             SELECT DISTINCT pg_get_userbyid(relowner) FROM pg_class
             WHERE relnamespace = 'ledger'::regnamespace

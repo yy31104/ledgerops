@@ -4,6 +4,9 @@ A local laboratory for synthetic transaction integrity, replay and recovery.
 **R1-PR01 through R1-PR04 are implemented locally:** typed money/identity, PostgreSQL
 safeguards, an explicit-SQL purchase service, bounded transaction retries, and
 concurrency / response-loss recovery tests with independent financial checks.
+**R2-PR01 is also implemented locally:** a dedicated reader exports one consistent
+snapshot, and an offline verifier separately checks journal structure, projected
+balances and fidelity to retained purchase requests.
 All financial examples use synthetic PLN minor units.
 
 ## Run locally
@@ -26,7 +29,7 @@ localhost port, with random credentials and a fresh database per test. They remo
 their own resources afterward and never use an existing application database.
 Missing Docker fails the suite instead of skipping tests.
 
-Tests load current `src/` explicitly. The package check uses a non-editable install:
+Tests load current `src/` explicitly. The package check forces a fresh non-editable install:
 on this Mac, Python ignores hidden `.pth` files, making editable-only import checks
 unreliable. Build archives include migration SQL and exclude private reference docs.
 No persistent database or HTTP server is provisioned in these slices.
@@ -67,7 +70,32 @@ COMMIT before PostgreSQL receives it, withhold acknowledgement after it commits,
 and kill a committed worker before its business reply. Recovery returns or creates
 one effect according to committed state; no automatic reconnect is hidden in service.
 
+## Export and independent verification
+
+See [export/verify usage](docs/EXPORT-AND-VERIFY.md) for role setup, commands,
+report fields and the bounded bundle contract. Existing databases must provision
+`ledger_reader` before applying migration 002. Application grants and migration
+001 are unchanged.
+
+Export reads all workspace tables in one REPEATABLE READ READ ONLY transaction.
+A folds entries into balances; B decodes retained `operation.payload` and compares
+exact effects and saved results, without a hand-authored business manifest.
+A consistent transfer to the wrong merchant can pass A and fail B. A test-only
+manifest additionally detects a request itself captured with the wrong merchant.
+
+Reports disclose the legacy OPENING fixture's opaque funding intent. Nonzero
+reservations prohibit rebuild eligibility even when posted balances agree.
+Eligibility is a source-check result, not permission to mutate a live DB.
+Unknown future schemas fail until the reader supports their new relations.
+
 ## Evidence and boundaries
+
+[R2-PR01 verification](evidence/R2-PR01/2026-10-27/README.md) records **358 passing
+tests**: 165 unit, 41 reference and 152 real PostgreSQL integration. The 121 new
+cases include reader privileges, coherent concurrent exports, isolation mutation,
+offline corruption detection, bundle faults and a test-only reversal model.
+Source identity uses Git commits and trees.
+
 
 [PR03 verification](evidence/R1-PR03/2026-10-23/README.md) records **237 passing tests**,
 including 128 real PostgreSQL integration cases. The new cases force balance/identity
@@ -91,14 +119,15 @@ Connection loss remains potentially ambiguous; never substitute a new identity.
 There is no automatic reconnect, durable client command store, HTTP authentication adapter,
 provider, reversal, hold lifecycle, deployment or production-readiness claim.
 
-## R2 planning
+## R2 scope
 
 The [R2 task contract](docs/tasks/R2.md) and
 [five-item Chinese decision packet](docs/DECISION-PACKET-R2.md) were adopted with user amendments on 2026-10-27. They cover independent export/checking, writer-drained maintenance rebuild,
 and success-only full purchase reversal. B checks retained canonical requests, and repair recomputes in one exclusive
-transaction without candidate tables. The current authorized implementation slice
-is [R2-PR01](docs/tasks/R2-PR01.md); repair and reversal admission remain later slices.
-R2 is split into four local commits; verification will reference Git revisions.
+transaction without candidate tables. [R2-PR01](docs/tasks/R2-PR01.md) is complete;
+maintenance freeze/rebuild/resume (PR02) and production reversal admission (PR03)
+remain later slices, followed by integrated fault evidence (PR04). Reference-model
+reversal tests do not mean production reversal is available.
 
 ## Continue here
 
@@ -113,5 +142,6 @@ R2 is split into four local commits; verification will reference Git revisions.
 
 The repository has local Git commits and no remote. The received R1 implementation
 is preserved in baseline `feb4588`; the PR04 extraction is the next independent
-commit. Subsequent R2 planning is a documentation-only commit. PR numbers identify
+commit. R2 adoption is separate documentation commit `328733b`, followed by a
+bounded R2-PR01 implementation commit. PR numbers identify
 work slices; no GitHub pull request, deployment or tracker update has been made.

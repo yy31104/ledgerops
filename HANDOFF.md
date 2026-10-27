@@ -1,22 +1,23 @@
 # LedgerOps handoff
 
-Updated: 2026-10-27. Implemented through R1-PR04; R2 decisions adopted; active implementation target is R2-PR01.
+Updated: 2026-10-27. R1-PR04 and R2-PR01 complete locally; maintenance/reversal remain next slices.
 
 ## Status
 
 | Field | Current fact |
 |---|---|
-| `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. No HTTP/authentication adapter. |
-| `verification` | Final PR04 run: 237 passed, zero failures/errors/skips (91 unit, 18 reference, 128 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See the separate evidence records. |
+| `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. R2-PR01 adds reader privileges, consistent export, offline structure/A/B checks, CLI and a test-only command model. No production repair/reversal or HTTP/authentication adapter. |
+| `verification` | R2-PR01: 358 passed, zero failures/errors/skips (165 unit, 41 reference, 152 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See Git-linked R2 evidence and historical R1 records. |
 | `personal_ownership` | Yi accepted four R1 defaults by replying “沿用这组默认”. Independent explanation or modification has not been assessed. R2 decisions 2/4/5 accepted; 1/3 accepted with amendments. |
-| `R2 planning` | Decisions adopted: retained-payload intent, no candidate generations. Separate docs commit precedes R2-PR01 export/check implementation. |
+| `R2 planning` | Decisions adopted: retained-payload intent, no candidate generations. Docs commit 328733b precedes completed R2-PR01; PR02–04 remain next. |
 
 The repository remains on local `main`, with baseline commit
 `feb458864c293d77c838913e720e878f09b96846` and a separate PR04 extraction commit.
 PR04 is `9add0b8fefd5fa7ad69abd842a02d5fa24baa046`; use
 `git diff feb4588..9add0b8` for the pure extraction, excluding later planning documents.
-This round adds a separate documentation commit, identifiable with
-`git log -1 --format=%H -- docs/tasks/R2.md`.
+This round first adds adoption commit `328733b871e12c5e4b096efe2db0a25793266123`,
+then a separate R2-PR01 implementation commit, identifiable with
+`git log -1 --format=%H -- evidence/R2-PR01/2026-10-27/verification.json`.
 No remote, deployment or tracker update is part of this delivery.
 Chronicle already has its own baseline `be5df9a`, created by parallel work; this
 session did not modify its code, index or in-flight review fixes.
@@ -24,8 +25,9 @@ session did not modify its code, index or in-flight review fixes.
 ## Authority and implemented design
 
 The user authorized initial implementation, accepted [packet 1](docs/DECISION-PACKET-R1.md),
-then explicitly requested PR03 and supplied the Opus R1 review. This round follows
-the local-baseline and readability findings; optional demo and R2 work are separate. Older design-only and
+then explicitly requested PR03 and supplied the Opus R1 review. The baseline and
+readability findings were completed in PR04. This round follows the accepted R2
+packet, including the user's two amendments. Older design-only and
 initialization instructions describe historical work. [ADR 0002](docs/adr/0002-r1-foundation.md),
 [ADR 0003](docs/adr/0003-purchase-admission.md),
 [ADR 0004](docs/adr/0004-contention-and-recovery.md) and the
@@ -52,6 +54,16 @@ wrong through the trusted runtime credential; independent checks remain essentia
 The migration owner can alter guards and is outside those protections.
 
 ## Verification and reproducibility
+
+- [R2-PR01 evidence](evidence/R2-PR01/2026-10-27/README.md): 358 passing tests in
+  23.176 seconds; 121 new cases plus R1 regression. Actual reader-login tests verify
+  SELECT-only authority outside READ ONLY transactions. An observed writer commits
+  between table reads; REPEATABLE READ retains the old complete snapshot while a
+  READ COMMITTED mutation fails the same expected-state assertion. Actual
+  projection-only corruption fails A; consistent wrong-owner journal and projection
+  fail B. Offline tests exercise retained-payload corruption, file integrity,
+  byte/row limits and publication faults. Reversal-model tests are test-only.
+  R1 admission and schema 001 are unchanged; migration 002 adds the reader role.
 
 - [PR04 evidence](evidence/R1-PR04/2026-10-25/README.md): existing 237-test regression,
   with all tests unchanged. The 219-line orchestrator is now 63 lines with four
@@ -116,11 +128,19 @@ Decisions 2/4/5 remain consistent JSON snapshot export, retained 422 ALREADY_REV
 and original-merchant reversal authority. No repeated approval is required.
 
 The user authorized a separate documentation commit followed by
-[R2-PR01](docs/tasks/R2-PR01.md). PR01 delivers bounded consistent export and offline
+[R2-PR01](docs/tasks/R2-PR01.md). PR01 now delivers bounded consistent export and offline
 structure/projection/retained-request checks, plus an independent test command model.
 Maintenance freeze/apply/resume is PR02; production full reversal is PR03; integrated
 failure/uniqueness/drain evidence is PR04. This round does not claim all R2 complete.
 Git commit references replace new source SHA inventories; original evidence remains.
+
+Use [export/verify instructions](docs/EXPORT-AND-VERIFY.md). Before migrations,
+provision `ledger_reader` alongside the existing owner/app roles. The CLI uses
+LEDGEROPS_EXPORT_DSN only for export; verification is offline. Reports separate
+structure/A/B and reservation support. Nonzero reserves prevent rebuild eligibility.
+Opaque OPENING funding intent is disclosed. Captured purchase payloads are B's
+authority, not proof of original external intent. PR02 must recheck live sources
+under the exclusive barrier, never apply target balances from a preview file.
 
 Full source-package release acceptance, a persistent local demo DB, HTTP/token
 verification and operational packaging must not be inferred from the service test count.

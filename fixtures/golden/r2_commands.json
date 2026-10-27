@@ -1,0 +1,71 @@
+{
+  "fixture_id": "R2-full-reversal-rejected-then-funded-v1",
+  "purpose": "Hand-calculated test-only command corpus. Production verification uses retained operation.payload, not this file. OPENING and RESERVE are explicit fixture operations; no funding or reservation service is claimed.",
+  "workspace_id": "W",
+  "accounts": [
+    {"id": "CL", "owner_id": "SYSTEM", "class": "SYNTHETIC_CLEARING", "normal_side": "D", "currency": "PLN"},
+    {"id": "C", "owner_id": "CUSTOMER", "class": "CUSTOMER_LIABILITY", "normal_side": "C", "currency": "PLN"},
+    {"id": "M1", "owner_id": "MERCHANT-1", "class": "MERCHANT_LIABILITY", "normal_side": "C", "currency": "PLN"},
+    {"id": "M2", "owner_id": "MERCHANT-2", "class": "MERCHANT_LIABILITY", "normal_side": "C", "currency": "PLN"}
+  ],
+  "steps": [
+    {
+      "command": {"kind": "OPENING", "operation_id": "O0", "credit_account_id": "C", "amount_minor": 100},
+      "expected": {"http_status": 201, "code": "opening_posted", "replayed": false, "booked": {"CL": 100, "C": 100, "M1": 0, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 0, "M2": 0}, "operations": 1, "requests": 0, "journals": 1, "reversal_effects": {}}
+    },
+    {
+      "command": {"kind": "PURCHASE", "workspace_id": "W", "client_id": "C-CLIENT", "actor_id": "CUSTOMER", "key": "P1-KEY", "operation_id": "P1", "customer_account_id": "C", "merchant_account_id": "M1", "amount_minor": 80},
+      "expected": {"http_status": 201, "code": "purchase_posted", "replayed": false, "booked": {"CL": 100, "C": 20, "M1": 80, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 0, "M2": 0}, "operations": 2, "requests": 1, "journals": 2, "reversal_effects": {}}
+    },
+    {
+      "command": {"kind": "OPENING", "operation_id": "O1", "credit_account_id": "M1", "amount_minor": 60},
+      "expected": {"http_status": 201, "code": "opening_posted", "replayed": false, "booked": {"CL": 160, "C": 20, "M1": 140, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 0, "M2": 0}, "operations": 3, "requests": 1, "journals": 3, "reversal_effects": {}}
+    },
+    {
+      "command": {"kind": "RESERVE", "account_id": "M1", "reserved_minor": 100},
+      "expected": {"http_status": null, "code": null, "replayed": false, "booked": {"CL": 160, "C": 20, "M1": 140, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 3, "requests": 1, "journals": 3, "reversal_effects": {}}
+    },
+    {
+      "command": {"kind": "REVERSAL", "workspace_id": "W", "client_id": "M1-CLIENT", "actor_id": "MERCHANT-1", "key": "RA-KEY", "operation_id": "RA", "original_operation_id": "P1", "reason": "customer_refund"},
+      "expected": {"http_status": 422, "code": "INSUFFICIENT_AVAILABLE", "replayed": false, "booked": {"CL": 160, "C": 20, "M1": 140, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 4, "requests": 2, "journals": 3, "reversal_effects": {}}
+    },
+    {
+      "command": {"kind": "OPENING", "operation_id": "O2", "credit_account_id": "M1", "amount_minor": 40},
+      "expected": {"http_status": 201, "code": "opening_posted", "replayed": false, "booked": {"CL": 200, "C": 20, "M1": 180, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 5, "requests": 2, "journals": 4, "reversal_effects": {}}
+    },
+    {
+      "command": {"kind": "REVERSAL", "workspace_id": "W", "client_id": "M1-CLIENT", "actor_id": "MERCHANT-1", "key": "RA-KEY", "operation_id": "RA", "original_operation_id": "P1", "reason": "customer_refund"},
+      "expected": {"http_status": 422, "code": "INSUFFICIENT_AVAILABLE", "replayed": true, "booked": {"CL": 200, "C": 20, "M1": 180, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 5, "requests": 2, "journals": 4, "reversal_effects": {}}
+    },
+    {
+      "command": {"kind": "REVERSAL", "workspace_id": "W", "client_id": "M1-CLIENT", "actor_id": "MERCHANT-1", "key": "RB-KEY", "operation_id": "RB", "original_operation_id": "P1", "reason": "customer_refund"},
+      "expected": {"http_status": 201, "code": "purchase_reversed", "replayed": false, "booked": {"CL": 200, "C": 100, "M1": 100, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 6, "requests": 3, "journals": 5, "reversal_effects": {"P1": "RB"}}
+    },
+    {
+      "command": {"kind": "REVERSAL", "workspace_id": "W", "client_id": "M1-CLIENT", "actor_id": "MERCHANT-1", "key": "RC-KEY", "operation_id": "RC", "original_operation_id": "P1", "reason": "customer_refund"},
+      "expected": {"http_status": 422, "code": "ALREADY_REVERSED", "replayed": false, "booked": {"CL": 200, "C": 100, "M1": 100, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 7, "requests": 4, "journals": 5, "reversal_effects": {"P1": "RB"}}
+    },
+    {
+      "command": {"kind": "REVERSAL", "workspace_id": "W", "client_id": "M1-CLIENT", "actor_id": "MERCHANT-1", "key": "RA-NEW-KEY", "operation_id": "RA", "original_operation_id": "P1", "reason": "customer_refund"},
+      "expected": {"http_status": 422, "code": "INSUFFICIENT_AVAILABLE", "replayed": true, "booked": {"CL": 200, "C": 100, "M1": 100, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 7, "requests": 5, "journals": 5, "reversal_effects": {"P1": "RB"}}
+    },
+    {
+      "command": {"kind": "REVERSAL", "workspace_id": "W", "client_id": "M1-CLIENT", "actor_id": "MERCHANT-1", "key": "RB-NEW-KEY", "operation_id": "RB", "original_operation_id": "P1", "reason": "customer_refund"},
+      "expected": {"http_status": 201, "code": "purchase_reversed", "replayed": true, "booked": {"CL": 200, "C": 100, "M1": 100, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 7, "requests": 6, "journals": 5, "reversal_effects": {"P1": "RB"}}
+    },
+    {
+      "command": {"kind": "REVERSAL", "workspace_id": "W", "client_id": "M1-CLIENT", "actor_id": "MERCHANT-1", "key": "RC-NEW-KEY", "operation_id": "RC", "original_operation_id": "P1", "reason": "customer_refund"},
+      "expected": {"http_status": 422, "code": "ALREADY_REVERSED", "replayed": true, "booked": {"CL": 200, "C": 100, "M1": 100, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 7, "requests": 7, "journals": 5, "reversal_effects": {"P1": "RB"}}
+    },
+    {
+      "command": {"kind": "PURCHASE", "workspace_id": "W", "client_id": "C-CLIENT", "actor_id": "CUSTOMER", "key": "P1-NEW-KEY", "operation_id": "P1", "customer_account_id": "C", "merchant_account_id": "M1", "amount_minor": 80},
+      "expected": {"http_status": 201, "code": "purchase_posted", "replayed": true, "booked": {"CL": 200, "C": 100, "M1": 100, "M2": 0}, "reserved": {"CL": 0, "C": 0, "M1": 100, "M2": 0}, "operations": 7, "requests": 8, "journals": 5, "reversal_effects": {"P1": "RB"}}
+    }
+  ],
+  "expected_final_totals": {
+    "CL": {"debits": 200, "credits": 0, "booked": 200, "reserved": 0},
+    "C": {"debits": 80, "credits": 180, "booked": 100, "reserved": 0},
+    "M1": {"debits": 80, "credits": 180, "booked": 100, "reserved": 100},
+    "M2": {"debits": 0, "credits": 0, "booked": 0, "reserved": 0}
+  }
+}
