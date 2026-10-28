@@ -2,6 +2,22 @@
 
 Updated: 2026-10-28. R1/R2 and CLI demo accepted; local learning-page slice delivered.
 
+## Latest learning request: linear document
+
+The user found the interactive page hard to navigate and requested one document
+that can be read start to finish. Prefer a continuous Chinese worked example for
+this learner (basic Python, SQL/transactions/concurrency need connecting), with all
+results written out and no prerequisite browser actions. Deliverable:
+`output/pdf/LedgerOps-从零读懂账本.pdf`, with searchable source
+`docs/learning/LEDGEROPS-TUTORIAL.zh-CN.md` and a document-only render utility.
+It follows code a08f80c, ten chapters from100/80 accounting through SQL, explicit
+transactions, identity/replay, concurrency, reversal, A/B and maintenance, plus
+answered interview followups and a source map. Button/teaching-timeout details stay
+in the lab documentation so this book reads independently of the interface.
+Teaching/technical copy was independently reviewed; PDF is rendered and visually
+checked. This is documentation only: lab/runtime/migrations are unchanged, and no
+new financial-regression run or independent learner mastery is claimed.
+
 ## Concurrency learning slice
 
 The next user review accepts ac517e3 (595 rerun, browser purchase/409 checks,

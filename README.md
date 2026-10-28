@@ -11,6 +11,10 @@ preview drift, atomically recompute/audit balances and explicitly resume. Origin
 merchants can now submit full internal reversals with retained failures and one success.
 All financial examples use synthetic PLN minor units.
 
+第一次学习这个项目，可先顺读[中文教程PDF](output/pdf/LedgerOps-从零读懂账本.pdf)。
+它用同一笔100/80的例子，从SQL和Python事务讲到并发、冲正、核对、重建和面试追问，
+正文包含全部推演结果。[可搜索原文](docs/learning/LEDGEROPS-TUTORIAL.zh-CN.md)与PDF内容一致。
+
 ## Run locally
 
 Requires Python 3.12, [uv](https://docs.astral.sh/uv/), make and a running Docker engine.
