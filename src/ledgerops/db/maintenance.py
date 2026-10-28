@@ -11,6 +11,7 @@ from uuid import UUID
 
 from psycopg.pq import TransactionStatus
 from psycopg.rows import dict_row
+from psycopg.types.json import Jsonb
 
 from ledgerops.export import publish_snapshot, read_snapshot
 from ledgerops.verification import verify_snapshot
@@ -279,7 +280,7 @@ def apply_rebuild(conn, workspace_id, freeze_id, repair_id, actor_id, reason, pr
 
 
 def resume_workspace(conn, workspace_id, freeze_id, actor_id, reason):
-    """Explicit resume only after a fresh live source/projection check, still exclusively."""
+    """Require structure/A; retain B/reservation findings without using repair's gate."""
     _uuid(freeze_id), _uuid(actor_id), _reason(reason)
     with _transaction(conn, workspace_id) as (cur, workspace):
         retained = cur.execute(
@@ -294,12 +295,16 @@ def resume_workspace(conn, workspace_id, freeze_id, actor_id, reason):
             result = _metadata(retained)
         else:
             _current_freeze(workspace, freeze_id)
-            _require_source(verify_snapshot(read_snapshot(cur, workspace_id)), projected=True)
+            report = verify_snapshot(read_snapshot(cur, workspace_id))
+            if not report.structure_ok:
+                raise MaintenanceError("INVALID_SOURCE", report=report.as_dict())
+            if not report.projection_ok:
+                raise MaintenanceError("PROJECTION_DRIFT", report=report.as_dict())
             retained = cur.execute(
                 """UPDATE ledger.maintenance_freeze
-                   SET resumed_at=clock_timestamp(),resumed_by=%s,resume_reason=%s
+                   SET resumed_at=clock_timestamp(),resumed_by=%s,resume_reason=%s,resume_report=%s
                    WHERE workspace_id=%s AND freeze_id=%s RETURNING *""",
-                (actor_id, reason, workspace_id, freeze_id),
+                (actor_id, reason, Jsonb(report.as_dict()), workspace_id, freeze_id),
             ).fetchone()
             cur.execute(
                 "UPDATE ledger.workspace SET mode='NORMAL',current_freeze_id=NULL WHERE id=%s",

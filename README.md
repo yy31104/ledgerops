@@ -87,7 +87,7 @@ manifest additionally detects a request itself captured with the wrong merchant.
 Reports disclose the legacy OPENING fixture's opaque funding intent. Nonzero
 reservations prohibit rebuild eligibility even when posted balances agree.
 Eligibility is a source-check result, not permission to mutate a live DB.
-Format v2 includes maintenance metadata; old v1 bundles remain accepted under their
+Format v3 adds saved resume reports to v2 maintenance metadata; old v1/v2 bundles remain accepted under their
 original schema rules. Unknown future schemas fail until explicitly supported.
 
 ## Maintenance
@@ -98,7 +98,9 @@ ID and current freeze identity, never a list of target balances. It keeps the
 workspace FROZEN, records every account's before/after values, advances versions
 and projection epoch atomically, and verifies the result independently. Same-ID
 recovery never applies twice; failed/unknown COMMIT uses the original repair ID.
-Nonzero reservations and source/intent errors block application. No candidate tables.
+Nonzero reservations and source/intent errors block application. Resume gates only
+structure/A; full B/reservation findings are saved in its immutable resume report.
+No candidate tables.
 
 The maintenance credential has projection/metadata authority, not financial-history,
 reservation, DDL or owner authority. All cooperating writers must take the shared

@@ -14,6 +14,8 @@ CREATE ROLE ledger_maintenance LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
 \password ledger_maintenance
 ```
 
+迁移 004 追加恢复报告字段；已应用的 003 不改。
+
 角色没有 app/migrator 成员资格、历史账务写权限、DDL 或 reserved 写权限。
 它可以修改模式、余额投影和维护元数据，因此仍须通过 Python 流程正确操作。
 直接拿维护凭据执行任意 SQL 不会自动遵守屏障和核对规则。
@@ -92,7 +94,9 @@ PYTHONPATH=src uv run --locked python -m ledgerops.cli resume \
     --actor "$LEDGEROPS_ACTOR_ID" --reason "应用后核对通过"
 ```
 
-健康账本也可冻结、核对后直接恢复，无需做无意义的修复。恢复同样要求无非零预留。
+健康账本也可冻结、核对后直接恢复，无需做无意义的修复。恢复只要求结构正确与余额核对 A
+通过；B 不通过或有非零预留时，完整报告会写入不可再改的 `resume_report`，但不阻止恢复。
+这些问题仍须处理，恢复不会把它们改成通过。应用重建仍要求 B 通过且预留为零。
 服务能证明现场核对通过，不能证明操作人读过预览或另存了导出报告。
 
 ## 失败和重试
@@ -110,7 +114,8 @@ PYTHONPATH=src uv run --locked python -m ledgerops.cli resume \
 
 ## 旧包兼容与范围
 
-新数据库导出格式 v2（迁移 001/002/003），包含维护元数据。旧 v1 的 001/002 数据继续
+新数据库导出格式 v3（迁移 001–004），增加恢复核对报告。旧 v1（001/002）与 v2
+（001–003）数据继续
 按原规则加载、核对，冻结的 PR01 导出包有独立回归。未知新版本仍拒绝。
 源码命令自动记录 Git 版本与 dirty；安装包预览需显式 `--code-revision`，同导出命令。
 文件发布和防护沿用 PR01，不添加另一套文件协议。

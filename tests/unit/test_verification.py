@@ -495,3 +495,93 @@ def test_malformed_maintenance_history_blocks_repair(maintenance_snapshot, fault
     report = verify_snapshot(maintenance_snapshot)
     assert not report.structure_ok and not report.rebuild_eligible
     assert report.request_intent_ok
+
+
+@pytest.fixture
+def resume_review_snapshot(maintenance_snapshot):
+    maintenance_snapshot["format_version"] = 3
+    maintenance_snapshot["schema_versions"].append("004_resume_review.sql")
+    maintenance_snapshot["maintenance_freezes"][0]["resume_report"] = None
+    return maintenance_snapshot
+
+
+def close_with_report(snapshot, report):
+    snapshot["workspace"].update(mode="NORMAL", current_freeze_id=None)
+    snapshot["maintenance_freezes"][0].update(
+        resumed_at=TIME,
+        resumed_by="20000000-0000-4000-8000-000000000099",
+        resume_reason="structure and balances checked",
+        resume_report=report,
+    )
+
+
+@pytest.mark.parametrize("warning", ["wrong-owner", "reserved"])
+def test_resume_review_keeps_current_warnings_without_making_them_structural_errors(
+    resume_review_snapshot, warning
+):
+    snapshot = resume_review_snapshot
+    if warning == "wrong-owner":
+        snapshot["entries"][-1]["account_id"] = M2
+        snapshot["balances"][2].update(credits="0", booked="0")
+        snapshot["balances"][3].update(credits="80", booked="80")
+    else:
+        snapshot["balances"][1]["reserved"] = "1"
+    review = verify_snapshot(snapshot)
+    assert review.structure_ok and review.projection_ok
+    assert not review.rebuild_eligible
+    close_with_report(snapshot, review.as_dict())
+    current = verify_snapshot(snapshot)
+    assert current.structure_ok and current.projection_ok
+    expected = "WRONG_OWNER" if warning == "wrong-owner" else "UNSUPPORTED_RESERVATION"
+    assert expected in codes(current)
+    assert expected in {
+        issue["code"] for issue in snapshot["maintenance_freezes"][0]["resume_report"]["issues"]
+    }
+
+
+def test_saved_historical_resume_warnings_do_not_poison_a_current_healthy_snapshot(
+    resume_review_snapshot,
+):
+    snapshot = resume_review_snapshot
+    snapshot["balances"][1]["reserved"] = "1"
+    review = verify_snapshot(snapshot).as_dict()
+    assert not review["reservation_supported"]
+    snapshot["balances"][1]["reserved"] = "0"
+    close_with_report(snapshot, review)
+    current = verify_snapshot(snapshot)
+    assert current.healthy and current.rebuild_eligible and current.issues == ()
+    assert snapshot["maintenance_freezes"][0]["resume_report"] == review
+
+
+def test_legacy_closed_freeze_can_lack_a_report_after_schema_upgrade(resume_review_snapshot):
+    close_with_report(resume_review_snapshot, None)
+    assert verify_snapshot(resume_review_snapshot).healthy
+
+
+@pytest.mark.parametrize(
+    "fault",
+    ["not-object", "bool-flag", "failed-structure", "failed-projection", "derived", "issue"],
+)
+def test_invalid_saved_resume_report_is_a_structural_error(resume_review_snapshot, fault):
+    review = verify_snapshot(resume_review_snapshot).as_dict()
+    if fault == "not-object":
+        review = []
+    elif fault == "bool-flag":
+        review["structure_ok"] = 1
+    elif fault == "failed-structure":
+        review["structure_ok"] = False
+    elif fault == "failed-projection":
+        review["projection_ok"] = False
+    elif fault == "derived":
+        review["healthy"] = False
+    else:
+        review["issues"] = [{"code": "WRONG_OWNER"}]
+    close_with_report(resume_review_snapshot, review)
+    report = verify_snapshot(resume_review_snapshot)
+    assert not report.structure_ok and "INVALID_FREEZE" in codes(report)
+
+
+def test_open_freeze_cannot_already_have_a_saved_resume_report(resume_review_snapshot):
+    freeze = resume_review_snapshot["maintenance_freezes"][0]
+    freeze["resume_report"] = verify_snapshot(resume_review_snapshot).as_dict()
+    assert "INVALID_FREEZE" in codes(verify_snapshot(resume_review_snapshot))

@@ -358,3 +358,50 @@ def test_version_one_cannot_silently_include_version_two_metadata(tmp_path, main
     maintenance_snapshot["format_version"] = 1
     with pytest.raises(export.ExportError):
         export.publish_snapshot(maintenance_snapshot, tmp_path, code_revision=REVISION)
+
+
+def test_frozen_pr02_bundle_loads_and_verifies_after_resume_review_schema():
+    directory = (
+        Path(__file__).resolve().parents[2]
+        / "fixtures/golden/export_v2/90000000-0000-4000-8000-000000000002"
+    )
+    data = export.load_export(directory)
+    assert data["format_version"] == 2
+    assert data["schema_versions"][-1] == "003_projection_maintenance.sql"
+    assert "resume_report" not in data["maintenance_freezes"][0]
+    assert len(data["repair_rows"]) == 4
+    assert verify_snapshot(data).healthy
+
+
+def test_format_three_roundtrip_records_resume_review_without_reinterpreting_old_formats(
+    tmp_path, maintenance_snapshot
+):
+    maintenance_snapshot["format_version"] = 3
+    maintenance_snapshot["schema_versions"].append("004_resume_review.sql")
+    review = verify_snapshot(maintenance_snapshot).as_dict()
+    maintenance_snapshot["maintenance_freezes"] = [
+        {
+            "workspace_id": WORKSPACE,
+            "freeze_id": "80000000-0000-4000-8000-000000000003",
+            "actor_id": "20000000-0000-4000-8000-000000000099",
+            "reason": "inspect",
+            "frozen_at": "2026-10-28T10:00:00.000000Z",
+            "resumed_at": "2026-10-28T10:01:00.000000Z",
+            "resumed_by": "20000000-0000-4000-8000-000000000099",
+            "resume_reason": "continue",
+            "resume_report": review,
+        }
+    ]
+    directory = export.publish_snapshot(maintenance_snapshot, tmp_path, code_revision=REVISION)
+    loaded = export.load_export(directory)
+    assert loaded == maintenance_snapshot
+    assert loaded["maintenance_freezes"][0]["resume_report"] == review
+    assert verify_snapshot(loaded).healthy
+
+
+def test_format_two_cannot_silently_include_resume_report(tmp_path, maintenance_snapshot):
+    maintenance_snapshot["maintenance_freezes"] = [
+        {"workspace_id": WORKSPACE, "resume_report": None}
+    ]
+    with pytest.raises(export.ExportError, match="missing or unknown fields"):
+        export.publish_snapshot(maintenance_snapshot, tmp_path, code_revision=REVISION)

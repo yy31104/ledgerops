@@ -1,6 +1,6 @@
 # LedgerOps handoff
 
-Updated: 2026-10-27. R1-PR04 and R2-PR01/02 complete locally; production reversal remains next.
+Updated: 2026-10-28. R1-PR04 and R2-PR01/02 complete locally; production reversal remains next.
 
 ## Status
 
@@ -159,7 +159,11 @@ under the exclusive barrier; it never applies target balances from a preview fil
 and failure recovery. Preview ID is a caller-supplied audit reference, not an
 authenticated file receipt. No command proves a human read a report. Historical
 freeze/repair/resume replay returns saved metadata without acting on a new session.
-Application remains FROZEN; resume checks sources/projections/reservations again.
+Application remains FROZEN; resume checks structure/A again. The 2026-10-28 review
+corrects its earlier excessive gate: B failure and nonzero reserved are saved in
+resume_report but do not block reopening. Rebuild still requires B and zero reserves.
+Migration004/exportv3 persist that report while retaining v1/v2 bundle compatibility.
+This correction is committed separately before authorized PR03.
 No internal maintenance retry/reconnect: SQL failures propagate, and COMMIT loss
 requires reconnecting with original IDs. A healthy freeze may resume without repair.
 

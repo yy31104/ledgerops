@@ -9,6 +9,8 @@
 - The latest 2026-10-27 instruction adopts R2 decisions (1/3 amended, 2/4/5 as
   recommended): commit contract revisions separately, then implement R2-PR01. The subsequent independent review authorizes R2-PR02,
   preserving old exported format-v1 bundles while adding maintenance format v2.
+  The 2026-10-28 review authorizes separate resume-policy correction (structure/A
+  gates, B/reservation report retained), followed by R2-PR03 full reversal.
   Intent verification uses retained operation payloads; hand manifests are extra
   test oracles. Repair recomputes under an exclusive transaction, without candidates.
 - Work within the user's active scope. Complete routine reversible edits and

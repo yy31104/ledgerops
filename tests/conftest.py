@@ -178,6 +178,7 @@ def db(postgres_cluster):
                 "001_foundation.sql",
                 "002_export_reader.sql",
                 "003_projection_maintenance.sql",
+                "004_resume_review.sql",
             ]
         yield database
     finally:

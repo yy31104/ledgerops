@@ -120,7 +120,7 @@ def test_workspace_filter_covers_every_exported_relation(seeded_db, golden):
 def test_future_schema_is_not_silently_exported_without_its_new_relations(seeded_db, golden):
     with seeded_db.connect("owner") as owner:
         owner.execute(
-            "INSERT INTO ledger.schema_migration(version,sha256) VALUES ('004_future.sql','future')"
+            "INSERT INTO ledger.schema_migration(version,sha256) VALUES ('005_future.sql','future')"
         )
     with seeded_db.connect("reader") as reader:
         with pytest.raises(ExportError, match="Unsupported database schema"):

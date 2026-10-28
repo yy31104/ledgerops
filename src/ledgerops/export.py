@@ -24,8 +24,14 @@ MAX_MANIFEST_BYTES = 64 * 1024
 SCHEMA_VERSIONS_BY_FORMAT = {
     1: ("001_foundation.sql", "002_export_reader.sql"),
     2: ("001_foundation.sql", "002_export_reader.sql", "003_projection_maintenance.sql"),
+    3: (
+        "001_foundation.sql",
+        "002_export_reader.sql",
+        "003_projection_maintenance.sql",
+        "004_resume_review.sql",
+    ),
 }
-SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[2]
+SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[3]
 _BASE_TABLES = {
     "accounts": ("account", "workspace_id,id,owner_id,class,normal_side,currency,enabled", "id"),
     "balances": (
@@ -76,14 +82,28 @@ _MAINTENANCE_TABLES = {
         "repair_id,account_id",
     ),
 }
-_TABLES_BY_FORMAT = {1: _BASE_TABLES, 2: {**_BASE_TABLES, **_MAINTENANCE_TABLES}}
-_TABLES = _TABLES_BY_FORMAT[2]
+_REVIEW_TABLES = {
+    **_MAINTENANCE_TABLES,
+    "maintenance_freezes": (
+        "maintenance_freeze",
+        "workspace_id,freeze_id,actor_id,reason,frozen_at,resumed_at,resumed_by,"
+        "resume_reason,resume_report",
+        "freeze_id",
+    ),
+}
+_TABLES_BY_FORMAT = {
+    1: _BASE_TABLES,
+    2: {**_BASE_TABLES, **_MAINTENANCE_TABLES},
+    3: {**_BASE_TABLES, **_REVIEW_TABLES},
+}
+_TABLES = _TABLES_BY_FORMAT[3]
 _NULLABLE_FIELDS = frozenset(
     {
         "current_freeze_id",
         "resumed_at",
         "resumed_by",
         "resume_reason",
+        "resume_report",
         "before_debits",
         "before_credits",
         "before_reserved",
@@ -148,10 +168,13 @@ _ENUM_FIELDS = {
     "admission": {"ACCEPTED", "REJECTED"},
     "route_family": {"purchase:v1"},
 }
-_ROW_KEYS = {
-    name: frozenset(fields.split(",")) - {"payload"}
-    | ({"payload_hex"} if "payload" in fields.split(",") else set())
-    for name, (_, fields, _) in _TABLES.items()
+_ROW_KEYS_BY_FORMAT = {
+    version: {
+        name: frozenset(fields.split(",")) - {"payload"}
+        | ({"payload_hex"} if "payload" in fields.split(",") else set())
+        for name, (_, fields, _) in tables.items()
+    }
+    for version, tables in _TABLES_BY_FORMAT.items()
 }
 _SORT_KEYS = {
     "accounts": ("id",),
@@ -282,9 +305,9 @@ def _validate_field(key, value):
     elif key == "enabled":
         if type(value) is not bool:
             raise ExportError("Account enabled must be boolean")
-    elif key == "response_body":
+    elif key in {"response_body", "resume_report"}:
         if type(value) is not dict:
-            raise ExportError("Terminal response must be an object")
+            raise ExportError("Response/report must be an object")
     elif key in {"payload_hex", "payload_sha256"}:
         pattern = r"[0-9a-f]{64}" if key == "payload_sha256" else r"(?:[0-9a-f]{2})+"
         if type(value) is not str or not re.fullmatch(pattern, value):
@@ -331,7 +354,7 @@ def _validate_snapshot(data):
         raise ExportError("Snapshot has missing or unknown members")
     workspace = data["workspace"]
     workspace_fields = {"id", "currency", "schema_epoch", "mode"}
-    if version == 2:
+    if version >= 2:
         workspace_fields |= {"projection_epoch", "current_freeze_id"}
     if type(workspace) is not dict or workspace.keys() != workspace_fields:
         raise ExportError("Invalid workspace row")
@@ -355,7 +378,7 @@ def _validate_snapshot(data):
             raise ExportLimitExceeded("Table row limit exceeded")
         previous = None
         for row in rows:
-            if type(row) is not dict or row.keys() != _ROW_KEYS[table]:
+            if type(row) is not dict or row.keys() != _ROW_KEYS_BY_FORMAT[version][table]:
                 raise ExportError("Snapshot row has missing or unknown fields")
             if row["workspace_id"] != workspace["id"]:
                 raise ExportError("Cross-workspace snapshot row")
@@ -402,7 +425,7 @@ def read_snapshot(cur, workspace_id: str) -> dict:
     )
     if version is None:
         raise ExportError("Unsupported database schema: explicit reader update required")
-    if version == 2:
+    if version >= 2:
         workspace = cur.execute(
             "SELECT id,currency,schema_epoch,mode,projection_epoch,current_freeze_id "
             "FROM ledger.workspace WHERE id=%s",
@@ -439,6 +462,14 @@ def read_snapshot(cur, workspace_id: str) -> dict:
             ).fetchone()["estimated_bytes"]
             if size > MAX_BUNDLE_BYTES:
                 raise ExportLimitExceeded("Repair witness transfer byte limit exceeded")
+        elif name == "maintenance_freezes" and version >= 3:
+            size = cur.execute(
+                "SELECT coalesce(sum(octet_length(resume_report::text)), 0) AS estimated_bytes "
+                "FROM ledger.maintenance_freeze WHERE workspace_id=%s",
+                (workspace_id,),
+            ).fetchone()["estimated_bytes"]
+            if size > MAX_BUNDLE_BYTES:
+                raise ExportLimitExceeded("Resume report transfer byte limit exceeded")
         # Every interpolated identifier/clause is a module constant, never input.
         rows = cur.execute(
             f"SELECT {fields} FROM ledger.{table} WHERE workspace_id=%s "

@@ -552,6 +552,50 @@ def _reason(value):
         raise _Invalid("bounded nonempty maintenance reason required")
 
 
+def _resume_report(report):
+    """A saved review records warnings without imposing rebuild admission on resume."""
+    flags = (
+        "structure_ok",
+        "projection_ok",
+        "request_intent_ok",
+        "reservation_supported",
+        "healthy",
+        "rebuild_eligible",
+    )
+    if type(report) is not dict or report.keys() != {
+        *flags,
+        "issues",
+        "intent_scope",
+        "unverified_intent_kinds",
+    }:
+        raise _Invalid("invalid saved resume report fields")
+    if any(type(report[name]) is not bool for name in flags):
+        raise _Invalid("saved report flags must be booleans")
+    if not report["structure_ok"] or not report["projection_ok"]:
+        raise _Invalid("saved resume report must pass structure and projection checks")
+    if report["healthy"] != report["request_intent_ok"] or report["rebuild_eligible"] != (
+        report["request_intent_ok"] and report["reservation_supported"]
+    ):
+        raise _Invalid("saved resume report derived flags disagree")
+    for name in ("intent_scope", "unverified_intent_kinds"):
+        if type(report[name]) is not list or any(type(kind) is not str for kind in report[name]):
+            raise _Invalid("saved resume report coverage must be string lists")
+    issues = report["issues"]
+    if type(issues) is not list or len(issues) > 100_000:
+        raise _Invalid("invalid saved resume report issues")
+    for issue in issues:
+        if (
+            type(issue) is not dict
+            or issue.keys() != {"code", "object_id", "field", "expected", "actual"}
+            or any(type(issue[name]) is not str for name in ("code", "object_id", "field"))
+        ):
+            raise _Invalid("invalid saved resume issue")
+    try:
+        json.dumps(report, allow_nan=False)
+    except (TypeError, ValueError, RecursionError) as exc:
+        raise _Invalid("saved resume report is not finite JSON") from exc
+
+
 def _check_maintenance(check, snapshot, workspace, accounts):
     """Validate audit relations, not reinterpret historical financial intent."""
     workspace_id = workspace["id"]
@@ -569,12 +613,18 @@ def _check_maintenance(check, snapshot, workspace, accounts):
             resumed = (row["resumed_at"], row["resumed_by"], row["resume_reason"])
             if resumed == (None, None, None):
                 open_freezes.add(identifier)
+                if snapshot["format_version"] >= 3 and row["resume_report"] is not None:
+                    raise _Invalid("open freeze cannot contain a saved resume report")
             elif any(value is None for value in resumed):
                 raise _Invalid("partial freeze resume record")
             else:
                 _time(row["resumed_at"])
                 _uuid(row["resumed_by"])
                 _reason(row["resume_reason"])
+                # Legacy closed rows predate schema 004 and legitimately have no
+                # report. New transitions require a report through their DB guard.
+                if snapshot["format_version"] >= 3 and row["resume_report"] is not None:
+                    _resume_report(row["resume_report"])
         except (KeyError, TypeError, ValueError) as exc:
             check.issue("structure", "INVALID_FREEZE", identifier, "freeze", str(exc), None)
     current = workspace["current_freeze_id"]
@@ -704,9 +754,9 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         if (
             type(snapshot) is not dict
             or type(snapshot.get("format_version")) is not int
-            or snapshot["format_version"] not in (1, 2)
+            or snapshot["format_version"] not in (1, 2, 3)
         ):
-            raise _Invalid("snapshot version 1 or 2 required")
+            raise _Invalid("snapshot version 1, 2 or 3 required")
         workspace = snapshot["workspace"]
         if type(workspace) is not dict:
             raise _Invalid("workspace object required")
@@ -720,11 +770,13 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         _integer(workspace["schema_epoch"], 1)
         version = snapshot["format_version"]
         schemas = ["001_foundation.sql", "002_export_reader.sql"]
-        if version == 2:
+        if version >= 2:
             schemas.append("003_projection_maintenance.sql")
             _integer(workspace["projection_epoch"], 1)
             if workspace["current_freeze_id"] is not None:
                 _uuid(workspace["current_freeze_id"])
+        if version >= 3:
+            schemas.append("004_resume_review.sql")
         if (
             snapshot["schema_versions"] != schemas
             or type(snapshot["snapshot_witness"]) is not str
@@ -738,7 +790,7 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         return check.report()
     tables = {name: check.rows(snapshot, name, workspace_id) for name in _TABLES}
     accounts = _check_accounts(check, tables["accounts"])
-    if snapshot["format_version"] == 2:
+    if snapshot["format_version"] >= 2:
         _check_maintenance(check, snapshot, workspace, accounts)
     operations = _check_operations(check, tables["operations"])
     _, lines, totals, by_operation = _check_journals(
