@@ -13,6 +13,9 @@
   gates, B/reservation report retained), followed by R2-PR03 full reversal. Correction 3d4901f is committed; PR03
   is complete. The next independent review accepts it and authorizes PR04 integrated
   acceptance, documenting disabled-customer404 without changing that policy.
+  R2 is accepted at278b417. The next explicit instruction authorizes only a separate
+  make-demo slice and export-temp cleanup documentation; no production/migration
+  change or personal self-test exercises.
   Intent verification uses retained operation payloads; hand manifests are extra
   test oracles. Repair recomputes under an exclusive transaction, without candidates.
 - Work within the user's active scope. Complete routine reversible edits and

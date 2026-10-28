@@ -1,0 +1,43 @@
+{
+  "base_commit": "278b41721e8d8550b70398039800702da3a7a591",
+  "delivery_commit_locator": "git log -1 --format=%H -- evidence/DEMO/2026-10-28/verification.json",
+  "tested_git_trees": {
+    "src": "a2bc21c869039987b9c3ef5a715195a3b8082bf1",
+    "tests": "bbcab4f8929b388ffbb5681c60113633e6caacaf",
+    "fixtures": "ebbf4d68f8dbbb6a8cba7cc869267ca5576f64dd",
+    "reference": "2501704b96c4f44ca1bea5baac85694dfaad489b"
+  },
+  "package_tooling_git_blobs": {
+    "Makefile": "9c1652b31e0f0de34888a6a81b2f554c4e1a2172",
+    "pyproject.toml": "fea0a963748d15e1ee42251e0738b04f135e5912",
+    "uv.lock": "0b59163eae909ff66c313f7c7a48c854b737bb8e"
+  },
+  "test_command": "UV_CACHE_DIR=.cache/uv uv run --locked --offline python -m pytest -q --junitxml=evidence/DEMO/2026-10-28/pytest.xml",
+  "suite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "583",
+    "time": "46.845",
+    "timestamp": "2026-10-28T14:10:49.071812+01:00",
+    "hostname": "redacted-host"
+  },
+  "groups": {
+    "integration": 270,
+    "reference": 41,
+    "unit": 272
+  },
+  "new_make_target_smokes": 2,
+  "nested_story_is_explicit_and_not_separately_auto_discovered": true,
+  "actual_make_demo_completed_12_steps": true,
+  "docker_unavailable_exits_nonzero_explicitly": true,
+  "own_container_and_export_files_cleaned": true,
+  "production_or_migration_change": false,
+  "previous_tests_or_fixture_changes": false,
+  "self_test_questions_added": false,
+  "package_checks_and_build_passed": true,
+  "new_source_sha_inventory": false,
+  "personal_mastery_assessed": false,
+  "remaining_disposable_test_containers": []
+}

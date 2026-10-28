@@ -1,13 +1,14 @@
 # LedgerOps handoff
 
-Updated: 2026-10-28. R1 and bounded local R2 acceptance complete, through R2-PR04.
+Updated: 2026-10-28. R1/R2 local acceptance complete; separate make-demo slice delivered.
 
 ## Status
 
 | Field | Current fact |
 |---|---|
 | `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. R2-PR01 adds reader privileges, consistent export, offline structure/A/B checks, CLI and a test-only command model. R2-PR02 adds writer drain/freeze, preview, atomic live repair/audit/epoch, stable-ID recovery and explicit fresh-check resume. Separate resume correction3d4901f gates only structure/A and retains B/reserve reports. R2-PR03 adds original-merchant full reversal via shared admission/retry/replay and one success relation; exportv4 includes attempts/effects and keeps v1/v2/v3. PR04 adds integrated mixed schedules, mutations, actual exporter interruption and acceptance mapping without changing production bytes. No HTTP/authentication adapter. |
-| `verification` | R2-PR04: 581 passed, zero failures/errors/skips (272 unit, 41 reference, 268 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See Git-linked R2 evidence and historical R1 records. |
+| `verification` | Demo slice: 583 passed, zero failures/errors/skips (272 unit, 41 reference, 270 integration, including Docker-unavailable negative smoke). Actual make demo completed all12 stages and cleanup. R2 acceptance remains the historical581-case run. Ruff/package/build checks pass. |
+| `demo` | make demo reuses existing disposable PostgreSQL/roles/SQL fixtures and public service interfaces;12 short narrated steps end in offline healthy state. Both export files and own container are cleaned. No production behavior, migration or self-test question added. |
 | `personal_ownership` | Yi accepted four R1 defaults by replying “沿用这组默认”. Independent explanation or modification has not been assessed. R2 decisions 2/4/5 accepted; 1/3 accepted with amendments. |
 | `R2 planning` | Decisions adopted: retained-payload intent, no candidate generations. Docs commit 328733b precedes PR01 a067785; PR02 d825d41, correction3d4901f, PR03 82fa8ff and PR04 complete; R2 passes its bounded local acceptance. |
 
@@ -24,6 +25,8 @@ The resume-policy correction is separate commit `3d4901f`; PR03 is based on it a
 located with `git log -1 --format=%H -- evidence/R2-PR03/2026-10-28/verification.json`.
 PR04 is based on 82fa8ff; locate its containing delivery commit with
 `git log -1 --format=%H -- evidence/R2-PR04/2026-10-28/verification.json`.
+The separate demo commit is based on278b417; locate it with
+`git log -1 --format=%H -- evidence/DEMO/2026-10-28/verification.json`.
 No remote, deployment or tracker update is part of this delivery.
 Chronicle already has its own baseline `be5df9a`, created by parallel work; this
 session did not modify its code, index or in-flight review fixes.
@@ -37,7 +40,9 @@ packet, including the user's two amendments. The independent PR01 review then
 explicitly authorizes PR02 and requires old-export compatibility. Its next review
 authorizes the separate resume correction, then PR03. The following independent
 review accepts both commits and authorizes PR04 integrated acceptance; no new
-production behavior or demo exercise was requested. Older design-only and
+production behavior or demo exercise was requested in that acceptance slice. The
+next explicit instruction authorizes make demo only, preserving production behavior/
+migrations and excluding self-test questions. Older design-only and
 initialization instructions describe historical work. [ADR 0002](docs/adr/0002-r1-foundation.md),
 [ADR 0003](docs/adr/0003-purchase-admission.md),
 [ADR 0004](docs/adr/0004-contention-and-recovery.md) and the
@@ -82,6 +87,15 @@ funds is never re-evaluated against current balance. Authentication remains call
 responsibility. [Reversal usage](docs/REVERSAL.md) documents all boundaries.
 
 ## Verification and reproducibility
+
+- [Demo evidence](evidence/DEMO/2026-10-28/README.md): actual make demo prints12
+  checked story steps and cleanup after teardown. Complete regression583passes;
+  two new subprocess smokes exercise the public make target and Docker absence.
+  Positive smoke compares before/after container sets to preserve any outer test
+  cluster and checks temporary exports removed. The intentionally unavailable-Docker
+  case starts no PG server and must fail explicitly; it is included in270integration
+  cases, not another real-server experiment. Runtime/migrations/fixtures and all
+  previous tests remain identical to278b417.
 
 - [R2-PR04 acceptance](docs/R2-ACCEPTANCE.md) and
   [evidence](evidence/R2-PR04/2026-10-28/README.md): **581 passed** in44.625s,
@@ -230,7 +244,9 @@ it does not prove arbitrary SQL, future batches or all possible deadlocks absent
 Keep bounded retry/timeouts. A database freeze does not prove an external send stopped.
 No external provider or hold lifecycle was added. R3/provider work is not started;
 R5 current-evidence epoch and stale-approval rejection remain future requirements.
-Optional make demo and personal self-test exercises remain a separate choice.
+The separately authorized make demo is delivered; run it from the repository root.
+It uses a temporary database and exports, not a persistent demo environment. Personal
+self-test exercises remain unimplemented, as explicitly requested. No R3 work started.
 
 Present the next material decisions as one group of 3–5. Learning is tracked
 separately and does not limit already authorized AI implementation.

@@ -24,6 +24,7 @@ make test              # complete suite, including real PostgreSQL
 make test-unit         # domain and independent-reference tests; no Docker
 make test-integration  # actual PostgreSQL tests
 make build             # wheel and source distribution
+make demo              # complete narrated story in temporary PostgreSQL; auto cleanup
 ```
 
 Integration tests create one uniquely named disposable container on an ephemeral
@@ -35,6 +36,22 @@ Tests load current `src/` explicitly. The package check forces a fresh non-edita
 on this Mac, Python ignores hidden `.pth` files, making editable-only import checks
 unreliable. Build archives include migration SQL and exclude private reference docs.
 No persistent database or HTTP server is provisioned in these slices.
+
+## Narrated local demo
+
+Run `make demo` from this repository root. It starts its own temporary PostgreSQL,
+uses the frozen synthetic opening and existing service interfaces, then prints12
+short steps: purchase success/refusal, reversal success/duplicate422, deliberate
+projection drift, offline A failure, freeze/preview/rebuild/resume and final healthy
+verification. All amounts are minor units. Duplicate422 uses a new business ID;
+same-ID replay still returns its original result.
+
+The temporary database/container and export files are cleaned when the run ends;
+cleanup completion is printed only after fixture teardown succeeds. Docker absence
+fails clearly. Existing user databases/DSNs are not used. The script is a pytest
+fixture-backed demo (`tests/demo_story.py`), with normal subprocess smoke coverage,
+not a new production command or migration. See [the slice contract](docs/tasks/DEMO.md)
+and [actual output](evidence/DEMO/2026-10-28/demo.log).
 
 ## Purchase service
 
@@ -125,6 +142,10 @@ barrier; raw privileged SQL remains outside that protocol. Database freeze does
 not establish that external payments stopped.
 
 ## Evidence and boundaries
+
+[Demo verification](evidence/DEMO/2026-10-28/README.md): the actual narrated run
+completed successfully; **583 regression cases pass**, including the two new
+make-target/Docker-unavailable smokes. Production code and migrations are unchanged.
 
 [R2 integrated acceptance](docs/R2-ACCEPTANCE.md) maps every R2 requirement to exact
 tests and states the trust limits and reviewed disabled-customer404 boundary.

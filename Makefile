@@ -2,7 +2,7 @@ UV ?= uv
 UV_CACHE_DIR ?= $(CURDIR)/.cache/uv
 export UV_CACHE_DIR
 
-.PHONY: bootstrap check test test-unit test-integration build
+.PHONY: bootstrap check test test-unit test-integration build demo
 
 bootstrap:
 	$(UV) sync --locked
@@ -23,3 +23,7 @@ test-integration:
 
 build:
 	$(UV) build
+
+demo:
+	@$(UV) run --locked python -m pytest -q -s --no-header --tb=short tests/demo_story.py
+	@printf '%s\n' '演示完成，临时 PostgreSQL 和导出文件已清理。'
