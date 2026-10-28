@@ -10,7 +10,7 @@ from ledgerops.domain.money import (
     checked_total,
     parse_fee,
 )
-from ledgerops.domain.requests import PurchaseCommand, RequestKey
+from ledgerops.domain.requests import PurchaseCommand, RequestKey, ReversalCommand
 
 __all__ = [
     "MAX_AMOUNT_MINOR",
@@ -22,6 +22,7 @@ __all__ = [
     "OperationId",
     "PurchaseCommand",
     "RequestKey",
+    "ReversalCommand",
     "WorkspaceId",
     "checked_add",
     "checked_operation_total",

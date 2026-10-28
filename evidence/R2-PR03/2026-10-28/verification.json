@@ -1,0 +1,57 @@
+{
+  "base_commit": "3d4901f8629007e0ce0a57f15f6a0102f21a1b2c",
+  "delivery_commit_locator": "git log -1 --format=%H -- evidence/R2-PR03/2026-10-28/verification.json",
+  "tested_git_trees": {
+    "src": "a2bc21c869039987b9c3ef5a715195a3b8082bf1",
+    "tests": "c1c1f375394100281b7c30486a5a8be94edbf865",
+    "fixtures": "ebbf4d68f8dbbb6a8cba7cc869267ca5576f64dd",
+    "reference": "2501704b96c4f44ca1bea5baac85694dfaad489b"
+  },
+  "package_tooling_git_blobs": {
+    "Makefile": "9839cc7103e8d53e1a8d99381520af7c40a0a58b",
+    "pyproject.toml": "fea0a963748d15e1ee42251e0738b04f135e5912",
+    "uv.lock": "0b59163eae909ff66c313f7c7a48c854b737bb8e"
+  },
+  "test_command": "UV_CACHE_DIR=.cache/uv uv run --locked --offline python -m pytest -q --junitxml=evidence/R2-PR03/2026-10-28/pytest.xml",
+  "suite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "571",
+    "time": "39.585",
+    "timestamp": "2026-10-28T08:12:12.774085+01:00",
+    "hostname": "redacted-host"
+  },
+  "groups": {
+    "integration": 258,
+    "reference": 41,
+    "unit": 272
+  },
+  "new_tests": 123,
+  "new_pure_tests": 69,
+  "new_real_postgresql_tests": 54,
+  "first_full_run": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "1",
+    "skipped": "0",
+    "tests": "571",
+    "time": "39.385",
+    "timestamp": "2026-10-28T08:10:32.094513+01:00",
+    "hostname": "redacted-host"
+  },
+  "first_failure": "Old PR01 intent_scope expectation only PURCHASE, extended to explicit format4 PURCHASE/REVERSAL with empty reversal table assertions; no financial expectation relaxed.",
+  "package_checks_and_build_passed": true,
+  "new_export_format": 4,
+  "old_frozen_formats_accepted": [
+    1,
+    2,
+    3
+  ],
+  "separate_resume_policy_correction_commit": "3d4901f8629007e0ce0a57f15f6a0102f21a1b2c",
+  "new_source_sha_inventory": false,
+  "whole_R2_milestone_complete": false,
+  "personal_mastery_assessed": false,
+  "remaining_disposable_test_containers": []
+}

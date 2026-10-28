@@ -405,3 +405,41 @@ def test_format_two_cannot_silently_include_resume_report(tmp_path, maintenance_
     ]
     with pytest.raises(export.ExportError, match="missing or unknown fields"):
         export.publish_snapshot(maintenance_snapshot, tmp_path, code_revision=REVISION)
+
+
+def test_frozen_resume_review_bundle_loads_after_reversal_schema_support():
+    directory = (
+        Path(__file__).resolve().parents[2]
+        / "fixtures/golden/export_v3/90000000-0000-4000-8000-000000000003"
+    )
+    data = export.load_export(directory)
+    assert data["format_version"] == 3
+    assert data["schema_versions"][-1] == "004_resume_review.sql"
+    assert data["maintenance_freezes"][0]["resume_report"]["structure_ok"]
+    assert verify_snapshot(data).healthy
+
+
+def test_format_four_exports_both_reversal_relations(tmp_path, maintenance_snapshot):
+    maintenance_snapshot.update(format_version=4, reversal_attempts=[], reversal_effects=[])
+    maintenance_snapshot["schema_versions"] += ["004_resume_review.sql", "005_full_reversal.sql"]
+    directory = export.publish_snapshot(maintenance_snapshot, tmp_path, code_revision=REVISION)
+    loaded = export.load_export(directory)
+    assert loaded == maintenance_snapshot
+    manifest = json.loads((directory / "manifest.json").read_text())
+    assert manifest["row_counts"]["reversal_attempts"] == 0
+    assert manifest["row_counts"]["reversal_effects"] == 0
+    assert verify_snapshot(loaded).intent_scope == ("PURCHASE", "REVERSAL")
+
+
+@pytest.mark.parametrize("version", [1, 2, 3])
+@pytest.mark.parametrize("field,value", [("kind", "REVERSAL"), ("route_family", "reversal:v1")])
+def test_old_export_formats_cannot_silently_accept_new_reversal_enums(version, field, value):
+    with pytest.raises(export.ExportError, match="Unsupported export enum"):
+        export._validate_field(field, value, version=version)
+
+
+def test_format_four_requires_reversal_tables(tmp_path, maintenance_snapshot):
+    maintenance_snapshot["format_version"] = 4
+    maintenance_snapshot["schema_versions"] += ["004_resume_review.sql", "005_full_reversal.sql"]
+    with pytest.raises(export.ExportError, match="missing or unknown members"):
+        export.publish_snapshot(maintenance_snapshot, tmp_path, code_revision=REVISION)

@@ -585,3 +585,280 @@ def test_open_freeze_cannot_already_have_a_saved_resume_report(resume_review_sna
     freeze = resume_review_snapshot["maintenance_freezes"][0]
     freeze["resume_report"] = verify_snapshot(resume_review_snapshot).as_dict()
     assert "INVALID_FREEZE" in codes(verify_snapshot(resume_review_snapshot))
+
+
+REVERSAL = "40000000-0000-4000-8000-000000000003"
+J_REVERSAL = "50000000-0000-4000-8000-000000000003"
+
+
+def reversal_bytes(identifier=REVERSAL, original=PURCHASE, reason="refund"):
+    return (
+        b"ledgerops.reversal:v1\n"
+        + json.dumps(
+            {
+                "workspace_id": W,
+                "operation_id": identifier,
+                "original_operation_id": original,
+                "reason": reason,
+            },
+            separators=(",", ":"),
+        ).encode()
+    )
+
+
+@pytest.fixture
+def reversal_snapshot(snapshot):
+    snapshot.update(
+        format_version=4,
+        maintenance_freezes=[],
+        repairs=[],
+        repair_rows=[],
+        reversal_attempts=[
+            dict(workspace_id=W, operation_id=REVERSAL, original_operation_id=PURCHASE)
+        ],
+        reversal_effects=[
+            dict(workspace_id=W, original_operation_id=PURCHASE, reversal_operation_id=REVERSAL)
+        ],
+    )
+    snapshot["schema_versions"] += [
+        "003_projection_maintenance.sql",
+        "004_resume_review.sql",
+        "005_full_reversal.sql",
+    ]
+    snapshot["workspace"].update(projection_epoch=1, current_freeze_id=None)
+    body = {
+        "operation_id": REVERSAL,
+        "original_operation_id": PURCHASE,
+        "admission": "accepted",
+        "journal_id": J_REVERSAL,
+        "amount_minor": "80",
+        "currency": "PLN",
+        "effect": "purchase_reversed",
+        "contract_version": 1,
+    }
+    snapshot["operations"].append(
+        dict(
+            workspace_id=W,
+            operation_id=REVERSAL,
+            kind="REVERSAL",
+            **bytes_fields(reversal_bytes()),
+            admission="ACCEPTED",
+            http_status=201,
+            response_body=body,
+            created_at=TIME,
+        )
+    )
+    request = copy.deepcopy(snapshot["requests"][0])
+    request.update(
+        operation_id=REVERSAL,
+        route_family="reversal:v1",
+        key="refund-80",
+        **bytes_fields(reversal_bytes()),
+        response_body=body,
+    )
+    snapshot["requests"].append(request)
+    snapshot["journals"].append(
+        dict(
+            workspace_id=W,
+            journal_id=J_REVERSAL,
+            operation_id=REVERSAL,
+            kind="REVERSAL",
+            line_count=2,
+            total_minor="80",
+            recorded_at=TIME,
+        )
+    )
+    snapshot["entries"] += [
+        dict(
+            workspace_id=W,
+            journal_id=J_REVERSAL,
+            line_no=1,
+            account_id=M1,
+            side="D",
+            amount_minor="80",
+        ),
+        dict(
+            workspace_id=W,
+            journal_id=J_REVERSAL,
+            line_no=2,
+            account_id=CUSTOMER,
+            side="C",
+            amount_minor="80",
+        ),
+    ]
+    snapshot["balances"][1].update(credits="180", booked="100", version=3)
+    snapshot["balances"][2].update(debits="80", booked="0", version=2)
+    return snapshot
+
+
+def test_full_reversal_history_matches_original_request_and_independent_fold(reversal_snapshot):
+    report = verify_snapshot(reversal_snapshot)
+    assert report.healthy and report.rebuild_eligible and not report.issues
+    assert report.intent_scope == ("PURCHASE", "REVERSAL")
+    assert [row["booked"] for row in reversal_snapshot["balances"]] == ["100", "100", "0", "0"]
+
+
+@pytest.mark.parametrize("code", ["INSUFFICIENT_AVAILABLE", "LIMIT_EXCEEDED", "ALREADY_REVERSED"])
+def test_rejected_reversal_is_retained_without_redeciding_current_balance(reversal_snapshot, code):
+    operation = copy.deepcopy(reversal_snapshot["operations"][-1])
+    identifier = "40000000-0000-4000-8000-000000000004"
+    messages = {
+        "INSUFFICIENT_AVAILABLE": "Insufficient available balance",
+        "LIMIT_EXCEEDED": "Reversal would exceed ledger limits",
+        "ALREADY_REVERSED": "Purchase already reversed",
+    }
+    body = {
+        "error": {
+            "code": code,
+            "message": messages[code],
+            "retryable": False,
+            "operation_id": identifier,
+            "request_id": "70000000-0000-4000-8000-000000000004",
+        }
+    }
+    operation.update(
+        operation_id=identifier,
+        **bytes_fields(reversal_bytes(identifier)),
+        admission="REJECTED",
+        http_status=422,
+        response_body=body,
+    )
+    reversal_snapshot["operations"].append(operation)
+    request = copy.deepcopy(reversal_snapshot["requests"][-1])
+    request.update(
+        operation_id=identifier,
+        key="rejected-refund",
+        **bytes_fields(reversal_bytes(identifier)),
+        http_status=422,
+        response_body=body,
+    )
+    reversal_snapshot["requests"].append(request)
+    reversal_snapshot["reversal_attempts"].append(
+        dict(workspace_id=W, operation_id=identifier, original_operation_id=PURCHASE)
+    )
+    assert verify_snapshot(reversal_snapshot).healthy
+
+
+@pytest.mark.parametrize(
+    "fault",
+    [
+        "missing-attempt",
+        "wrong-attempt-original",
+        "missing-effect",
+        "wrong-effect-original",
+        "wrong-effect-reversal",
+        "duplicate-effect",
+        "wrong-merchant",
+        "wrong-amount",
+        "wrong-original-entries",
+        "original-not-purchase",
+        "invalid-reversal-bytes",
+        "wrong-response-original",
+        "bool-response-version",
+        "wrong-request-route",
+        "missing-request",
+        "orphan-attempt",
+        "orphan-effect",
+    ],
+)
+def test_reversal_defects_block_repair_even_if_projection_matches(reversal_snapshot, fault):
+    snapshot = reversal_snapshot
+    if fault == "missing-attempt":
+        snapshot["reversal_attempts"].clear()
+    elif fault == "wrong-attempt-original":
+        snapshot["reversal_attempts"][0]["original_operation_id"] = OPENING
+    elif fault == "missing-effect":
+        snapshot["reversal_effects"].clear()
+    elif fault == "wrong-effect-original":
+        snapshot["reversal_effects"][0]["original_operation_id"] = OPENING
+    elif fault == "wrong-effect-reversal":
+        snapshot["reversal_effects"][0]["reversal_operation_id"] = PURCHASE
+    elif fault == "duplicate-effect":
+        snapshot["reversal_effects"].append(copy.deepcopy(snapshot["reversal_effects"][0]))
+    elif fault == "wrong-merchant":
+        snapshot["entries"][-1]["account_id"] = M2
+        snapshot["balances"][1].update(credits="100", booked="20")
+        snapshot["balances"][3].update(credits="80", booked="80")
+    elif fault == "wrong-amount":
+        for row in snapshot["entries"][-2:]:
+            row["amount_minor"] = "79"
+        snapshot["journals"][-1]["total_minor"] = "79"
+        snapshot["balances"][1].update(credits="179", booked="99")
+        snapshot["balances"][2].update(debits="79", booked="1")
+    elif fault == "wrong-original-entries":
+        snapshot["entries"][3]["account_id"] = M2
+    elif fault == "original-not-purchase":
+        payload = reversal_bytes(original=OPENING)
+        for row in [snapshot["operations"][-1], snapshot["requests"][-1]]:
+            row.update(bytes_fields(payload))
+        snapshot["reversal_attempts"][0]["original_operation_id"] = OPENING
+    elif fault == "invalid-reversal-bytes":
+        for row in [snapshot["operations"][-1], snapshot["requests"][-1]]:
+            row.update(bytes_fields(reversal_bytes() + b" "))
+    elif fault == "wrong-response-original":
+        snapshot["operations"][-1]["response_body"]["original_operation_id"] = OPENING
+    elif fault == "bool-response-version":
+        snapshot["operations"][-1]["response_body"]["contract_version"] = True
+    elif fault == "wrong-request-route":
+        snapshot["requests"][-1]["route_family"] = "purchase:v1"
+    elif fault == "missing-request":
+        snapshot["requests"].pop()
+    elif fault == "orphan-attempt":
+        snapshot["reversal_attempts"].append(
+            dict(workspace_id=W, operation_id=OPENING, original_operation_id=PURCHASE)
+        )
+    else:
+        snapshot["reversal_effects"].append(
+            dict(workspace_id=W, original_operation_id=OPENING, reversal_operation_id=PURCHASE)
+        )
+    report = verify_snapshot(snapshot)
+    assert not report.healthy and not report.rebuild_eligible
+    if fault in {
+        "wrong-merchant",
+        "wrong-amount",
+        "missing-effect",
+        "invalid-reversal-bytes",
+        "missing-request",
+    }:
+        assert report.structure_ok and report.projection_ok
+        assert not report.request_intent_ok
+
+
+def test_reversal_reason_uses_fixed_ascii_escaped_canonical_json(reversal_snapshot):
+    payload = reversal_bytes(reason="退款：客户取消")
+    for row in [reversal_snapshot["operations"][-1], reversal_snapshot["requests"][-1]]:
+        row.update(bytes_fields(payload))
+    assert verify_snapshot(reversal_snapshot).healthy
+
+
+@pytest.mark.parametrize("reason", ["", "a" * 257, "\x00", "退" * 86, True])
+def test_invalid_reversal_reason_is_not_a_valid_retained_intent(reversal_snapshot, reason):
+    payload = reversal_bytes(reason=reason)
+    for row in [reversal_snapshot["operations"][-1], reversal_snapshot["requests"][-1]]:
+        row.update(bytes_fields(payload))
+    report = verify_snapshot(reversal_snapshot)
+    assert report.structure_ok and report.projection_ok
+    assert not report.request_intent_ok
+
+
+def test_already_reversed_rejection_requires_a_success_relation(reversal_snapshot):
+    snapshot = reversal_snapshot
+    body = {
+        "error": {
+            "code": "ALREADY_REVERSED",
+            "message": "Purchase already reversed",
+            "retryable": False,
+            "operation_id": REVERSAL,
+            "request_id": "70000000-0000-4000-8000-000000000003",
+        }
+    }
+    snapshot["operations"][-1].update(admission="REJECTED", http_status=422, response_body=body)
+    snapshot["requests"][-1].update(http_status=422, response_body=body)
+    snapshot["journals"].pop()
+    del snapshot["entries"][-2:]
+    snapshot["reversal_effects"].clear()
+    snapshot["balances"][1].update(credits="100", booked="20")
+    snapshot["balances"][2].update(debits="0", booked="80")
+    report = verify_snapshot(snapshot)
+    assert report.structure_ok and report.projection_ok
+    assert "INVALID_REJECTION" in codes(report) and not report.request_intent_ok

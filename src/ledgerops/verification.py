@@ -17,6 +17,7 @@ _MAX_AMOUNT = 9_000_000_000_000_000
 _MAX_TOTAL = 10**38 - 1
 _MAX_ROWS = 10_000
 _PREFIX = b"ledgerops.purchase:v1\n"
+_REVERSAL_PREFIX = b"ledgerops.reversal:v1\n"
 _TABLES = ("accounts", "balances", "operations", "requests", "journals", "entries")
 
 
@@ -172,11 +173,39 @@ def _purchase(raw, workspace, operation_id):
     return fields
 
 
+def _reversal(raw, workspace, operation_id):
+    if not raw.startswith(_REVERSAL_PREFIX):
+        raise _Invalid("unsupported reversal canonical prefix")
+    try:
+        fields = json.loads(raw[len(_REVERSAL_PREFIX) :], object_pairs_hook=_unique_json_object)
+    except (ValueError, UnicodeDecodeError, RecursionError) as exc:
+        raise _Invalid("invalid reversal JSON") from exc
+    names = ("workspace_id", "operation_id", "original_operation_id", "reason")
+    if type(fields) is not dict or set(fields) != set(names):
+        raise _Invalid("reversal fields differ from v1 contract")
+    for name in names[:3]:
+        _uuid(fields[name])
+    _reason(fields["reason"])
+    if (
+        fields["workspace_id"] != workspace
+        or fields["operation_id"] != operation_id
+        or fields["operation_id"] == fields["original_operation_id"]
+    ):
+        raise _Invalid("reversal identity mismatch")
+    canonical = _REVERSAL_PREFIX + json.dumps(
+        {name: fields[name] for name in names}, separators=(",", ":")
+    ).encode("utf-8")
+    if canonical != raw:
+        raise _Invalid("noncanonical reversal bytes")
+    return fields
+
+
 class _Check:
     def __init__(self):
         self.flags = dict(structure=True, projection=True, intent=True, reservation=True)
         self.issues = []
         self.unverified = set()
+        self.intent_scope = ("PURCHASE",)
 
     def issue(self, section, code, object_id, field, expected, actual):
         self.flags[section] = False
@@ -189,6 +218,7 @@ class _Check:
             self.flags["intent"],
             self.flags["reservation"],
             tuple(self.issues),
+            intent_scope=self.intent_scope,
             unverified_intent_kinds=tuple(sorted(self.unverified)),
         )
 
@@ -364,14 +394,15 @@ def _check_projections(check, rows, accounts, totals):
             check.flags["projection"] = False
 
 
-def _check_operations(check, rows):
+def _check_operations(check, rows, version):
     operations = check.index(rows, "operations", lambda r: _uuid(r["operation_id"]))
     for identifier, row in list(operations.items()):
         try:
             _payload(row)
             _time(row["created_at"])
-            if row["kind"] not in ("OPENING", "PURCHASE"):
-                raise _Invalid("unsupported operation kind in snapshot v1")
+            kinds = ("OPENING", "PURCHASE", "REVERSAL") if version >= 4 else ("OPENING", "PURCHASE")
+            if row["kind"] not in kinds:
+                raise _Invalid("unsupported operation kind for snapshot format")
             if (row["admission"], type(row["http_status"]), row["http_status"]) not in {
                 ("ACCEPTED", int, 201),
                 ("REJECTED", int, 422),
@@ -410,6 +441,8 @@ def _check_intent(check, workspace, accounts, operations, by_operation, lines):
                     sides,
                 )
             continue
+        if operation["kind"] == "REVERSAL":
+            continue  # The original purchase and success-only relation are checked together below.
         try:
             request = _purchase(_payload(operation), workspace, identifier)
             customer = accounts.get(request["customer_account_id"])
@@ -518,12 +551,13 @@ def _check_requests(check, rows, operations):
             _payload(row)
             key = row["key"]
             if (
-                row["route_family"] != "purchase:v1"
+                row["route_family"] not in {"purchase:v1", "reversal:v1"}
                 or type(key) is not str
                 or "\x00" in key
                 or not 1 <= len(key.encode("utf-8")) <= 128
                 or operation is None
-                or operation["kind"] != "PURCHASE"
+                or (operation["kind"], row["route_family"])
+                not in {("PURCHASE", "purchase:v1"), ("REVERSAL", "reversal:v1")}
             ):
                 raise _Invalid("invalid scoped request/operation reference")
             seen_operations.add(operation_id)
@@ -543,13 +577,209 @@ def _check_requests(check, rows, operations):
             )
             check.flags["intent"] = False
     for identifier, operation in operations.items():
-        if operation["kind"] == "PURCHASE" and identifier not in seen_operations:
+        if operation["kind"] in {"PURCHASE", "REVERSAL"} and identifier not in seen_operations:
             check.issue("intent", "MISSING_REQUEST", identifier, "request_result", "present", None)
 
 
 def _reason(value):
     if type(value) is not str or "\x00" in value or not 1 <= len(value.encode("utf-8")) <= 256:
         raise _Invalid("bounded nonempty maintenance reason required")
+
+
+def _original_purchase(workspace, original_id, accounts, operations, by_operation, lines):
+    original = operations.get(original_id)
+    if original is None or original["kind"] != "PURCHASE" or original["admission"] != "ACCEPTED":
+        raise _Invalid("reversal original must be an accepted purchase")
+    request = _purchase(_payload(original), workspace, original_id)
+    customer = accounts.get(request["customer_account_id"])
+    merchant = accounts.get(request["merchant_account_id"])
+    if (
+        customer is None
+        or merchant is None
+        or customer["class"] != "CUSTOMER_LIABILITY"
+        or merchant["class"] != "MERCHANT_LIABILITY"
+    ):
+        raise _Invalid("original purchase account classes invalid")
+    headers = by_operation.get(original_id, [])
+    if len(headers) != 1:
+        raise _Invalid("original purchase must have exactly one journal")
+    header = headers[0]
+    observed = [
+        (r["account_id"], r["side"], r["amount_minor"]) for r in lines[header["journal_id"]]
+    ]
+    expected = [
+        (request["customer_account_id"], "D", request["amount_minor"]),
+        (request["merchant_account_id"], "C", request["amount_minor"]),
+    ]
+    body = {
+        "operation_id": original_id,
+        "admission": "accepted",
+        "journal_id": header["journal_id"],
+        "amount_minor": request["amount_minor"],
+        "currency": "PLN",
+        "effect": "purchase_posted",
+        "contract_version": 1,
+    }
+    if sorted(observed) != sorted(expected) or not _same_json(original["response_body"], body):
+        raise _Invalid("original purchase effect/result disagrees with stored request")
+    return request
+
+
+def _check_reversal_rejection(check, identifier, operation, headers):
+    if headers:
+        check.issue("intent", "UNEXPECTED_EFFECT", identifier, "journal", None, len(headers))
+    messages = {
+        "INSUFFICIENT_AVAILABLE": "Insufficient available balance",
+        "LIMIT_EXCEEDED": "Reversal would exceed ledger limits",
+        "ALREADY_REVERSED": "Purchase already reversed",
+    }
+    error = operation["response_body"].get("error")
+    try:
+        if (
+            type(error) is not dict
+            or error.keys() != {"code", "message", "retryable", "operation_id", "request_id"}
+            or error["code"] not in messages
+            or error["message"] != messages[error["code"]]
+            or error["retryable"] is not False
+            or error["operation_id"] != identifier
+        ):
+            raise _Invalid("invalid stable reversal rejection")
+        _uuid(error["request_id"])
+        return error["code"]
+    except (KeyError, TypeError, ValueError) as exc:
+        check.issue("intent", "INVALID_REJECTION", identifier, "response_body", str(exc), error)
+        return None
+
+
+def _check_reversals(check, snapshot, workspace, accounts, operations, by_operation, lines):
+    attempts = check.index(
+        check.rows(snapshot, "reversal_attempts", workspace),
+        "reversal_attempts",
+        lambda row: _uuid(row["operation_id"]),
+    )
+    effects = check.index(
+        check.rows(snapshot, "reversal_effects", workspace),
+        "reversal_effects",
+        lambda row: _uuid(row["original_operation_id"]),
+    )
+    by_reversal = {}
+    for original_id, row in effects.items():
+        try:
+            reversal_id = _uuid(row["reversal_operation_id"])
+            reversal = operations.get(reversal_id)
+            original = operations.get(original_id)
+            attempt = attempts.get(reversal_id)
+            if (
+                reversal_id in by_reversal
+                or reversal is None
+                or reversal["kind"] != "REVERSAL"
+                or reversal["admission"] != "ACCEPTED"
+                or original is None
+                or original["kind"] != "PURCHASE"
+                or original["admission"] != "ACCEPTED"
+                or attempt is None
+                or attempt.get("original_operation_id") != original_id
+            ):
+                raise _Invalid("invalid or duplicate successful reversal relation")
+            by_reversal[reversal_id] = original_id
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue(
+                "structure", "INVALID_REVERSAL_RELATION", original_id, "effect", str(exc), row
+            )
+            check.flags["intent"] = False
+    for reversal_id, row in attempts.items():
+        try:
+            _uuid(row["original_operation_id"])
+            operation = operations.get(reversal_id)
+            if operation is None or operation["kind"] != "REVERSAL":
+                raise _Invalid("attempt must belong to a reversal operation")
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue(
+                "structure", "INVALID_REVERSAL_ATTEMPT", reversal_id, "attempt", str(exc), row
+            )
+            check.flags["intent"] = False
+    for identifier, operation in operations.items():
+        if operation["kind"] != "REVERSAL":
+            continue
+        try:
+            request = _reversal(_payload(operation), workspace, identifier)
+            original_id = request["original_operation_id"]
+            attempt = attempts.get(identifier)
+            if attempt is None or attempt.get("original_operation_id") != original_id:
+                raise _Invalid("saved reversal attempt disagrees with canonical original")
+            original = _original_purchase(
+                workspace, original_id, accounts, operations, by_operation, lines
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue(
+                "intent",
+                "INVALID_REVERSAL_ORIGINAL",
+                identifier,
+                "payload/original",
+                str(exc),
+                None,
+            )
+            continue
+        headers = by_operation.get(identifier, [])
+        if operation["admission"] == "REJECTED":
+            code = _check_reversal_rejection(check, identifier, operation, headers)
+            if identifier in by_reversal:
+                check.issue(
+                    "intent", "UNEXPECTED_EFFECT", identifier, "success_relation", None, True
+                )
+            if code == "ALREADY_REVERSED" and original_id not in effects:
+                check.issue(
+                    "intent", "INVALID_REJECTION", identifier, "success_relation", "present", None
+                )
+            continue
+        if by_reversal.get(identifier) != original_id:
+            check.issue(
+                "intent",
+                "MISSING_REVERSAL_EFFECT",
+                identifier,
+                "success_relation",
+                original_id,
+                None,
+            )
+        if len(headers) != 1:
+            check.issue("intent", "MISSING_EFFECT", identifier, "journal_count", 1, len(headers))
+            continue
+        header = headers[0]
+        expected_lines = [
+            (original["merchant_account_id"], "D", original["amount_minor"]),
+            (original["customer_account_id"], "C", original["amount_minor"]),
+        ]
+        actual_lines = [
+            (row["account_id"], row["side"], row["amount_minor"])
+            for row in lines[header["journal_id"]]
+        ]
+        if sorted(actual_lines) != sorted(expected_lines):
+            code = (
+                "WRONG_OWNER"
+                if sorted((r[0], r[1]) for r in actual_lines)
+                != sorted((r[0], r[1]) for r in expected_lines)
+                else "WRONG_AMOUNT"
+            )
+            check.issue("intent", code, identifier, "journal_entries", expected_lines, actual_lines)
+        expected_body = {
+            "operation_id": identifier,
+            "original_operation_id": original_id,
+            "admission": "accepted",
+            "journal_id": header["journal_id"],
+            "amount_minor": original["amount_minor"],
+            "currency": "PLN",
+            "effect": "purchase_reversed",
+            "contract_version": 1,
+        }
+        if not _same_json(operation["response_body"], expected_body):
+            check.issue(
+                "intent",
+                "INVALID_ACCEPTANCE",
+                identifier,
+                "response_body",
+                expected_body,
+                operation["response_body"],
+            )
 
 
 def _resume_report(report):
@@ -754,9 +984,9 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         if (
             type(snapshot) is not dict
             or type(snapshot.get("format_version")) is not int
-            or snapshot["format_version"] not in (1, 2, 3)
+            or snapshot["format_version"] not in (1, 2, 3, 4)
         ):
-            raise _Invalid("snapshot version 1, 2 or 3 required")
+            raise _Invalid("snapshot version 1, 2, 3 or 4 required")
         workspace = snapshot["workspace"]
         if type(workspace) is not dict:
             raise _Invalid("workspace object required")
@@ -777,6 +1007,8 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
                 _uuid(workspace["current_freeze_id"])
         if version >= 3:
             schemas.append("004_resume_review.sql")
+        if version >= 4:
+            schemas.append("005_full_reversal.sql")
         if (
             snapshot["schema_versions"] != schemas
             or type(snapshot["snapshot_witness"]) is not str
@@ -789,14 +1021,18 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         check.flags.update(projection=False, intent=False, reservation=False)
         return check.report()
     tables = {name: check.rows(snapshot, name, workspace_id) for name in _TABLES}
+    if version >= 4:
+        check.intent_scope = ("PURCHASE", "REVERSAL")
     accounts = _check_accounts(check, tables["accounts"])
     if snapshot["format_version"] >= 2:
         _check_maintenance(check, snapshot, workspace, accounts)
-    operations = _check_operations(check, tables["operations"])
+    operations = _check_operations(check, tables["operations"], version)
     _, lines, totals, by_operation = _check_journals(
         check, tables["journals"], tables["entries"], accounts, operations
     )
     _check_projections(check, tables["balances"], accounts, totals)
     _check_intent(check, workspace_id, accounts, operations, by_operation, lines)
+    if version >= 4:
+        _check_reversals(check, snapshot, workspace_id, accounts, operations, by_operation, lines)
     _check_requests(check, tables["requests"], operations)
     return check.report()

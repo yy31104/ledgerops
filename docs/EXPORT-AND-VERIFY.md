@@ -6,7 +6,7 @@
 
 ## 数据库权限
 
-导出使用独立的 `ledger_reader` 登录。它只有 CONNECT、schema USAGE 和八张指定表的
+导出使用独立的 `ledger_reader` 登录。它只有 CONNECT、schema USAGE 和显式列出的账务与维护表的
 SELECT 权限，不是所有者，也不属于应用或迁移角色。READ ONLY 事务是第二层边界，不能
 代替数据库权限。测试用真实 reader 凭据，在普通事务中验证写入、DDL、临时表与提权均失败。
 
@@ -84,7 +84,7 @@ R1 OPENING 是显式测试开户，payload 没有规范充值指令；核对检�
 并发，文件描述的是被固定的快照，不一定是文件发布时刻的最新状态。每张表单独开启查询
 快照会拼出从未存在过的状态；并发测试及隔离级别变异用例明确验证了这点。
 
-版本 1/2/3 都包含 `data.json` 与 `manifest.json`。UUID 是规范字符串，金额是十进制整数字符串，
+版本 1/2/3/4 都包含 `data.json` 与 `manifest.json`。UUID 是规范字符串，金额是十进制整数字符串，
 状态/版本/行号保留 JSON 整数类型，payload 字节无损十六进制编码。manifest 记录 Git
 版本、dirty、行数、字节数和数据摘要。数据摘要检查损坏，不是源码清单，也不是真实性签名。
 最多每表 10,000 行，完整包不超过 16 MiB；超过上限失败，不截断。
@@ -98,4 +98,5 @@ R1 OPENING 是显式测试开户，payload 没有规范充值指令；核对检�
 workspace 的 projection_epoch/current_freeze_id、冻结元数据、修复表头和完整审计行。
 新核对器仍接受已保存的 v1 文件，不通过替换 schema 列表来使旧证据失效。
 版本 3 对应 001–004，增加冻结记录的 resume_report；v1/v2 仍按原格式解读。
-新增冲正关系时须继续明确扩展契约；未知数据库版本直接失败，避免悄悄漏掉新表。
+版本 4 对应 001–005，增加 reversal_attempts 与 reversal_effects，B 同时核对购买和冲正。
+旧 v1/v2/v3 包保持原规则。未知数据库版本直接失败，避免悄悄漏掉新表。

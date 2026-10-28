@@ -4,10 +4,11 @@ A local laboratory for synthetic transaction integrity, replay and recovery.
 **R1-PR01 through R1-PR04 are implemented locally:** typed money/identity, PostgreSQL
 safeguards, an explicit-SQL purchase service, bounded transaction retries, and
 concurrency / response-loss recovery tests with independent financial checks.
-**R2-PR01 and PR02 are also implemented locally:** a dedicated reader exports one consistent
+**R2-PR01 through PR03 are also implemented locally:** a dedicated reader exports one consistent
 snapshot, and an offline verifier separately checks journal structure, projected
 balances and fidelity to retained purchase requests. Maintenance can drain writers,
-preview drift, atomically recompute/audit balances and explicitly resume.
+preview drift, atomically recompute/audit balances and explicitly resume. Original
+merchants can now submit full internal reversals with retained failures and one success.
 All financial examples use synthetic PLN minor units.
 
 ## Run locally
@@ -52,11 +53,27 @@ covers the stored operation, so knowing its ID cannot reveal another customer's 
 Insufficient available funds persists a stable rejection; new funding requires a
 new operation ID for a new decision. Success contains no mutable current balance.
 
-The PR04 extraction keeps the transaction orchestrator to 63 source lines: workspace
+The historical PR04 extraction reduced the purchase orchestrator to 63 source lines: workspace
 admission, request-key replay, business-ID replay and new purchase posting each have
 an explicit helper. Request/business claim order and the COMMIT boundary remain
 visible in the orchestrator. [PR04 evidence](evidence/R1-PR04/2026-10-25/README.md)
-compares this extraction to the committed R1 baseline without changing tests.
+compares that extraction to the committed R1 baseline without changing tests.
+PR03 now shares one transaction orchestrator and retry boundary between purchase
+and reversal; request-before-business ordering and the COMMIT boundary remain visible.
+
+## Full reversal
+
+`ledgerops.db.admission.submit_reversal` accepts a typed `ReversalCommand` with
+new operation ID, original purchase ID and exact reason. Only the original merchant
+actor can reverse an eligible accepted purchase. Amount/accounts come from verified
+original records. [Usage and contract](docs/REVERSAL.md).
+
+Reversal takes the original row lock before sorted balance locks and adds a new
+merchant-debit/customer-credit journal. Original purchase rows stay immutable.
+Rejected attempts survive; only success occupies the unique original→reversal relation.
+Funding does not change a retained refusal: use a new business ID for a new decision.
+Already reversed under a fresh ID is a retained422 ALREADY_REVERSED. Replay uses the
+same shared admission paths and original result, without another financial effect.
 
 ## Retry and recovery
 
@@ -87,8 +104,8 @@ manifest additionally detects a request itself captured with the wrong merchant.
 Reports disclose the legacy OPENING fixture's opaque funding intent. Nonzero
 reservations prohibit rebuild eligibility even when posted balances agree.
 Eligibility is a source-check result, not permission to mutate a live DB.
-Format v3 adds saved resume reports to v2 maintenance metadata; old v1/v2 bundles remain accepted under their
-original schema rules. Unknown future schemas fail until explicitly supported.
+Format v4 adds reversal attempts/effects to the saved resume reports and maintenance
+metadata. Old v1/v2/v3 bundles remain accepted under their original schema rules. Unknown future schemas fail until explicitly supported.
 
 ## Maintenance
 
@@ -108,6 +125,18 @@ barrier; raw privileged SQL remains outside that protocol. Database freeze does
 not establish that external payments stopped.
 
 ## Evidence and boundaries
+
+[R2-PR03 verification](evidence/R2-PR03/2026-10-28/README.md) records **571 passing
+cases**: 272 unit, 41 reference, 258 real PostgreSQL integration. 123 new cases cover
+full-reversal requests, independent original/effect checks, the literal failed→funded
+trace, merchant authorization, observed identity/original/balance waits, deferred DB
+bindings, eight SQL failure stages and both actual COMMIT-loss outcomes. A reversal
+history also passes export/repair/resume without changing its original purchase.
+The first full run's obsolete intent-scope assertion and corrected rerun are retained.
+
+[Resume correction](evidence/R2-RESUME/2026-10-28/README.md) is separate commit
+`3d4901f`, with 448 passing tests. It permits resume with B/reserve warnings while
+persisting the report and leaving the stricter repair admission unchanged.
 
 [R2-PR02 verification](evidence/R2-PR02/2026-10-27/README.md) records **432 passing
 tests**: 189 unit, 41 reference, 202 real PostgreSQL integration. The 74 new cases
@@ -142,7 +171,7 @@ Replay consistency checks do not re-audit every historical entry or projection.
 These bounded schedules and fault locations do not exhaust every possible failure.
 Connection loss remains potentially ambiguous; never substitute a new identity.
 There is no automatic reconnect, durable client command store, HTTP authentication adapter,
-provider, reversal, hold lifecycle, deployment or production-readiness claim.
+external provider, partial reversal, hold lifecycle, deployment or production-readiness claim.
 
 ## R2 scope
 
@@ -150,9 +179,9 @@ The [R2 task contract](docs/tasks/R2.md) and
 [five-item Chinese decision packet](docs/DECISION-PACKET-R2.md) were adopted with user amendments on 2026-10-27. They cover independent export/checking, writer-drained maintenance rebuild,
 and success-only full purchase reversal. B checks retained canonical requests, and repair recomputes in one exclusive
 transaction without candidate tables. [R2-PR01](docs/tasks/R2-PR01.md) and
-[R2-PR02](docs/tasks/R2-PR02.md) are complete. Production reversal admission (PR03)
-and integrated fault evidence (PR04) remain later slices. Reference-model
-reversal tests do not mean production reversal is available.
+[R2-PR02](docs/tasks/R2-PR02.md) plus resume correction `3d4901f` and
+[R2-PR03](docs/tasks/R2-PR03.md) are complete. PR04 integrated acceptance remains a
+later slice; this does not claim the whole R2 milestone complete.
 
 ## Continue here
 
@@ -168,5 +197,5 @@ reversal tests do not mean production reversal is available.
 The repository has local Git commits and no remote. The received R1 implementation
 is preserved in baseline `feb4588`; the PR04 extraction is the next independent
 commit. R2 adoption is separate documentation commit `328733b`, followed by a
-bounded R2-PR01 implementation commit `a067785` and a separate PR02 maintenance commit. PR numbers identify
+bounded PR01 `a067785`, PR02 `d825d41`, resume correction `3d4901f` and PR03 commits. PR numbers identify
 work slices; no GitHub pull request, deployment or tracker update has been made.

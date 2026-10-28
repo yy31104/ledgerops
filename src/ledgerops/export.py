@@ -30,8 +30,15 @@ SCHEMA_VERSIONS_BY_FORMAT = {
         "003_projection_maintenance.sql",
         "004_resume_review.sql",
     ),
+    4: (
+        "001_foundation.sql",
+        "002_export_reader.sql",
+        "003_projection_maintenance.sql",
+        "004_resume_review.sql",
+        "005_full_reversal.sql",
+    ),
 }
-SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[3]
+SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[4]
 _BASE_TABLES = {
     "accounts": ("account", "workspace_id,id,owner_id,class,normal_side,currency,enabled", "id"),
     "balances": (
@@ -91,12 +98,25 @@ _REVIEW_TABLES = {
         "freeze_id",
     ),
 }
+_REVERSAL_TABLES = {
+    "reversal_attempts": (
+        "reversal_attempt",
+        "workspace_id,operation_id,original_operation_id",
+        "operation_id",
+    ),
+    "reversal_effects": (
+        "purchase_reversal_effect",
+        "workspace_id,original_operation_id,reversal_operation_id",
+        "original_operation_id",
+    ),
+}
 _TABLES_BY_FORMAT = {
     1: _BASE_TABLES,
     2: {**_BASE_TABLES, **_MAINTENANCE_TABLES},
     3: {**_BASE_TABLES, **_REVIEW_TABLES},
+    4: {**_BASE_TABLES, **_REVIEW_TABLES, **_REVERSAL_TABLES},
 }
-_TABLES = _TABLES_BY_FORMAT[3]
+_TABLES = _TABLES_BY_FORMAT[4]
 _NULLABLE_FIELDS = frozenset(
     {
         "current_freeze_id",
@@ -144,6 +164,8 @@ _UUID_FIELDS = frozenset(
         "resumed_by",
         "repair_id",
         "preview_export_id",
+        "original_operation_id",
+        "reversal_operation_id",
     }
 )
 _INT_FIELDS = {
@@ -186,6 +208,8 @@ _SORT_KEYS = {
     "maintenance_freezes": ("freeze_id",),
     "repairs": ("repair_id",),
     "repair_rows": ("repair_id", "account_id"),
+    "reversal_attempts": ("operation_id",),
+    "reversal_effects": ("original_operation_id",),
 }
 _DATA_KEYS_BY_FORMAT = {
     version: frozenset(
@@ -277,7 +301,7 @@ def _normal_row(row):
     return result
 
 
-def _validate_field(key, value):
+def _validate_field(key, value, *, version):
     if value is None and key in _NULLABLE_FIELDS:
         return
     if key in _UUID_FIELDS:
@@ -300,7 +324,12 @@ def _validate_field(key, value):
         if type(value) is not int or value not in {201, 422}:
             raise ExportError("Invalid terminal result status")
     elif key in _ENUM_FIELDS:
-        if type(value) is not str or value not in _ENUM_FIELDS[key]:
+        allowed = _ENUM_FIELDS[key]
+        if version >= 4 and key == "kind":
+            allowed = allowed | {"REVERSAL"}
+        elif version >= 4 and key == "route_family":
+            allowed = allowed | {"reversal:v1"}
+        if type(value) is not str or value not in allowed:
             raise ExportError("Unsupported export enum")
     elif key == "enabled":
         if type(value) is not bool:
@@ -359,7 +388,7 @@ def _validate_snapshot(data):
     if type(workspace) is not dict or workspace.keys() != workspace_fields:
         raise ExportError("Invalid workspace row")
     for field, value in workspace.items():
-        _validate_field(field, value)
+        _validate_field(field, value, version=version)
     if data["schema_versions"] != list(SCHEMA_VERSIONS_BY_FORMAT[version]):
         raise ExportError("Unsupported database schema: explicit reader update required")
     if type(data["snapshot_witness"]) is not str or not re.fullmatch(
@@ -383,7 +412,7 @@ def _validate_snapshot(data):
             if row["workspace_id"] != workspace["id"]:
                 raise ExportError("Cross-workspace snapshot row")
             for field, value in row.items():
-                _validate_field(field, value)
+                _validate_field(field, value, version=version)
             identity = tuple(row[field] for field in _SORT_KEYS[table])
             if previous is not None and previous >= identity:
                 raise ExportError("Rows must have unique sorted identities")

@@ -1,15 +1,15 @@
 # LedgerOps handoff
 
-Updated: 2026-10-28. R1-PR04 and R2-PR01/02 complete locally; production reversal remains next.
+Updated: 2026-10-28. R1-PR04 and R2-PR01–03 complete locally; PR04 integrated acceptance remains next.
 
 ## Status
 
 | Field | Current fact |
 |---|---|
-| `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. R2-PR01 adds reader privileges, consistent export, offline structure/A/B checks, CLI and a test-only command model. R2-PR02 adds writer drain/freeze, preview, atomic live repair/audit/epoch, stable-ID recovery and explicit fresh-check resume. Format v2 includes maintenance; v1 remains accepted. No production reversal or HTTP/authentication adapter. |
-| `verification` | R2-PR02: 432 passed, zero failures/errors/skips (189 unit, 41 reference, 202 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See Git-linked R2 evidence and historical R1 records. |
+| `implementation` | PR01 foundation plus PR02 Python purchase admission: authorization, workspace barrier, scoped identity claims, sorted balance locks, journal/projection writes, retained accepted/rejected results and replay. PR03 adds three-attempt whole-transaction retry and contention/transport recovery experiments. PR04 extracts four admission steps without behavior/test changes. R2-PR01 adds reader privileges, consistent export, offline structure/A/B checks, CLI and a test-only command model. R2-PR02 adds writer drain/freeze, preview, atomic live repair/audit/epoch, stable-ID recovery and explicit fresh-check resume. Separate resume correction3d4901f gates only structure/A and retains B/reserve reports. R2-PR03 adds original-merchant full reversal via shared admission/retry/replay and one success relation; exportv4 includes attempts/effects and keeps v1/v2/v3. No HTTP/authentication adapter. |
+| `verification` | R2-PR03: 571 passed, zero failures/errors/skips (272 unit, 41 reference, 258 real PostgreSQL integration). Ruff, installed-package/SQL-resource check and wheel/sdist build passed. See Git-linked R2 evidence and historical R1 records. |
 | `personal_ownership` | Yi accepted four R1 defaults by replying “沿用这组默认”. Independent explanation or modification has not been assessed. R2 decisions 2/4/5 accepted; 1/3 accepted with amendments. |
-| `R2 planning` | Decisions adopted: retained-payload intent, no candidate generations. Docs commit 328733b precedes PR01 a067785; PR02 now complete; PR03/04 remain next. |
+| `R2 planning` | Decisions adopted: retained-payload intent, no candidate generations. Docs commit 328733b precedes PR01 a067785; PR02 d825d41, correction3d4901f and PR03 complete; PR04 remains next. |
 
 The repository remains on local `main`, with baseline commit
 `feb458864c293d77c838913e720e878f09b96846` and a separate PR04 extraction commit.
@@ -20,6 +20,8 @@ then a separate R2-PR01 implementation commit, identifiable with
 `git log -1 --format=%H -- evidence/R2-PR01/2026-10-27/verification.json`.
 The next separate PR02 commit is based on a067785 and is located by
 `git log -1 --format=%H -- evidence/R2-PR02/2026-10-27/verification.json`.
+The resume-policy correction is separate commit `3d4901f`; PR03 is based on it and
+located with `git log -1 --format=%H -- evidence/R2-PR03/2026-10-28/verification.json`.
 No remote, deployment or tracker update is part of this delivery.
 Chronicle already has its own baseline `be5df9a`, created by parallel work; this
 session did not modify its code, index or in-flight review fixes.
@@ -30,7 +32,8 @@ The user authorized initial implementation, accepted [packet 1](docs/DECISION-PA
 then explicitly requested PR03 and supplied the Opus R1 review. The baseline and
 readability findings were completed in PR04. This round follows the accepted R2
 packet, including the user's two amendments. The independent PR01 review then
-explicitly authorizes PR02 and requires old-export compatibility. Older design-only and
+explicitly authorizes PR02 and requires old-export compatibility. Its next review
+authorizes the separate resume correction, then PR03. Older design-only and
 initialization instructions describe historical work. [ADR 0002](docs/adr/0002-r1-foundation.md),
 [ADR 0003](docs/adr/0003-purchase-admission.md),
 [ADR 0004](docs/adr/0004-contention-and-recovery.md) and the
@@ -56,7 +59,40 @@ of line ownership/projection correctness. Database-valid writes can still be bus
 wrong through the trusted runtime credential; independent checks remain essential.
 The migration owner can alter guards and is outside those protections.
 
+## Reversal implementation
+
+`submit_reversal` uses the same Principal, transaction orchestrator, request/business
+claims, replay paths and bounded retry as purchase. Reversal has its own typed command
+and route. Preclaim merchant authorization reads immutable original data without a
+row lock; a new reversal then locks the original accepted purchase FOR UPDATE before
+sorted balance rows. Validate original canonical purchase, accounts, exact journal
+lines and response. Post new merchantD/customerC journal, retain every rejected
+attempt, and insert unique purchase_reversal_effect only on success. Old purchase
+stays accepted and unchanged. ALREADY_REVERSED is retained422; identity409 is not.
+
+SQL005 enforces attempt/success type/scope bindings, success-only uniqueness and
+accepted/rejected journal/relation final-state checks. Python and independent B
+check exact business intent. Unexpected success23505 propagates and rolls back.
+Stored ALREADY replay must find a committed success relation; historical insufficient
+funds is never re-evaluated against current balance. Authentication remains caller's
+responsibility. [Reversal usage](docs/REVERSAL.md) documents all boundaries.
+
 ## Verification and reproducibility
+
+- [PR03 evidence](evidence/R2-PR03/2026-10-28/README.md): 571 passing tests in
+  39.585 seconds; 123 new cases relative to the correction. All R1 financial tests
+  unchanged. New service/core/schema tests verify the frozen trace, refused→funded→
+  new-success transition, original merchant authority, no owner leakage on replay/
+  cross-kind conflict, original-row immutability, original-before-sorted-balance
+  locks and actual single-effect races. Eight SQL stages roll back, unexpected23505
+  propagates, whole-transaction retry stays bounded, both wire COMMIT outcomes
+  recover by original identity. All old frozen export formats pass new source and
+  installed CLI. First full run failed only old PURCHASE-only capability assertion;
+  corrected format4 assertion also checks empty reversal tables, then full run passes.
+- [Separate resume correction](evidence/R2-RESUME/2026-10-28/README.md), 3d4901f:
+  448 passed. Actual reserved and WRONG_OWNER cases resume with unchanged financial
+  rows and immutable reports; repair still refuses. This supersedes the earlier
+  PR02 resume restriction, not the historical evidence bytes below.
 
 - [R2-PR02 evidence](evidence/R2-PR02/2026-10-27/README.md): 432 passing tests,
   including 50 new real PostgreSQL maintenance/CLI cases and 24 new pure format/
@@ -144,7 +180,8 @@ The user authorized a separate documentation commit followed by
 [R2-PR01](docs/tasks/R2-PR01.md). PR01 now delivers bounded consistent export and offline
 structure/projection/retained-request checks, plus an independent test command model.
 Maintenance freeze/apply/resume is now delivered in [PR02](docs/tasks/R2-PR02.md);
-production full reversal remains PR03, integrated acceptance remains PR04. This does
+production full reversal is delivered in [PR03](docs/tasks/R2-PR03.md), integrated
+acceptance remains PR04. This does
 not claim all R2 complete.
 Git commit references replace new source SHA inventories; original evidence remains.
 
@@ -163,7 +200,7 @@ Application remains FROZEN; resume checks structure/A again. The 2026-10-28 revi
 corrects its earlier excessive gate: B failure and nonzero reserved are saved in
 resume_report but do not block reopening. Rebuild still requires B and zero reserves.
 Migration004/exportv3 persist that report while retaining v1/v2 bundle compatibility.
-This correction is committed separately before authorized PR03.
+This correction is committed separately as 3d4901f before PR03.
 No internal maintenance retry/reconnect: SQL failures propagate, and COMMIT loss
 requires reconnecting with original IDs. A healthy freeze may resume without repair.
 
@@ -173,7 +210,9 @@ verification and operational packaging must not be inferred from the service tes
 Retain later gates: R2 success-only reversal uniqueness with rejected attempts kept,
 integrated purchase/reversal/maintenance fault evidence; R5 current evidence
 epoch and racing stale-approval rejection. A database freeze does not prove an
-external send stopped. No reversal/provider/hold lifecycle was added.
+external send stopped. Full internal purchase reversal is available; no external provider or hold lifecycle
+was added. PR04 must still assess integrated concurrent purchase/reversal/maintenance
+schedules and the complete R2 acceptance contract.
 
 Present the next material decisions as one group of 3–5. Learning is tracked
 separately and does not limit already authorized AI implementation.
