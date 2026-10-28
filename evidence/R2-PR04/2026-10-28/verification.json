@@ -1,0 +1,46 @@
+{
+  "base_commit": "82fa8ffef3ae0c2cfe5fd5883c58ab9a73cc4595",
+  "delivery_commit_locator": "git log -1 --format=%H -- evidence/R2-PR04/2026-10-28/verification.json",
+  "tested_git_trees": {
+    "src": "a2bc21c869039987b9c3ef5a715195a3b8082bf1",
+    "tests": "6f0bdff51645bd01298d1c658372320684f021a1",
+    "fixtures": "ebbf4d68f8dbbb6a8cba7cc869267ca5576f64dd",
+    "reference": "2501704b96c4f44ca1bea5baac85694dfaad489b"
+  },
+  "unchanged_package_tooling_git_blobs": {
+    "Makefile": "9839cc7103e8d53e1a8d99381520af7c40a0a58b",
+    "pyproject.toml": "fea0a963748d15e1ee42251e0738b04f135e5912",
+    "uv.lock": "0b59163eae909ff66c313f7c7a48c854b737bb8e"
+  },
+  "test_command": "UV_CACHE_DIR=.cache/uv uv run --locked --offline python -m pytest -q --junitxml=evidence/R2-PR04/2026-10-28/pytest.xml",
+  "suite": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "581",
+    "time": "44.625",
+    "timestamp": "2026-10-28T11:05:05.820831+01:00",
+    "hostname": "redacted-host"
+  },
+  "groups": {
+    "integration": 268,
+    "reference": 41,
+    "unit": 272
+  },
+  "new_real_postgresql_test_cases": 10,
+  "new_case_breakdown": {
+    "mixed_schedules": 4,
+    "targeted_mutations": 3,
+    "actual_export_process_interruptions": 2,
+    "reviewed_disabled_customer_boundary": 1
+  },
+  "production_or_migration_change": false,
+  "previously_tracked_tests_changed": false,
+  "package_checks_build_and_old_format_cli_passed": true,
+  "R2_accepted_within_declared_local_scope": true,
+  "production_deployment_or_personal_mastery_claim": false,
+  "demo_or_selftest_exercises_added": false,
+  "new_source_sha_inventory": false,
+  "remaining_disposable_test_containers": []
+}

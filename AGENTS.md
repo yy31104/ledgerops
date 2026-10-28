@@ -11,7 +11,8 @@
   preserving old exported format-v1 bundles while adding maintenance format v2.
   The 2026-10-28 review authorizes separate resume-policy correction (structure/A
   gates, B/reservation report retained), followed by R2-PR03 full reversal. Correction 3d4901f is committed; PR03
-  is the current bounded local slice. Keep PR04 integrated acceptance separate.
+  is complete. The next independent review accepts it and authorizes PR04 integrated
+  acceptance, documenting disabled-customer404 without changing that policy.
   Intent verification uses retained operation payloads; hand manifests are extra
   test oracles. Repair recomputes under an exclusive transaction, without candidates.
 - Work within the user's active scope. Complete routine reversible edits and

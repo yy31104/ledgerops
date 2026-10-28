@@ -4,7 +4,7 @@ A local laboratory for synthetic transaction integrity, replay and recovery.
 **R1-PR01 through R1-PR04 are implemented locally:** typed money/identity, PostgreSQL
 safeguards, an explicit-SQL purchase service, bounded transaction retries, and
 concurrency / response-loss recovery tests with independent financial checks.
-**R2-PR01 through PR03 are also implemented locally:** a dedicated reader exports one consistent
+**R2 is complete within the declared local scope:** a dedicated reader exports one consistent
 snapshot, and an offline verifier separately checks journal structure, projected
 balances and fidelity to retained purchase requests. Maintenance can drain writers,
 preview drift, atomically recompute/audit balances and explicitly resume. Original
@@ -126,6 +126,15 @@ not establish that external payments stopped.
 
 ## Evidence and boundaries
 
+[R2 integrated acceptance](docs/R2-ACCEPTANCE.md) maps every R2 requirement to exact
+tests and states the trust limits and reviewed disabled-customer404 boundary.
+[PR04 evidence](evidence/R2-PR04/2026-10-28/README.md): **581 passed**, zero failures/
+errors/skips (272 unit, 41 reference, 268 real PostgreSQL). Four mixed schedules,
+three targeted mutations, two actual exporter interruptions and one explicit
+review-boundary case close the final gaps. Production/migration/reference/fixture
+bytes are unchanged from PR03. Package checks and disposable-database setup pass;
+this is not production deployment or proof of every possible failure schedule.
+
 [R2-PR03 verification](evidence/R2-PR03/2026-10-28/README.md) records **571 passing
 cases**: 272 unit, 41 reference, 258 real PostgreSQL integration. 123 new cases cover
 full-reversal requests, independent original/effect checks, the literal failed→funded
@@ -180,8 +189,9 @@ The [R2 task contract](docs/tasks/R2.md) and
 and success-only full purchase reversal. B checks retained canonical requests, and repair recomputes in one exclusive
 transaction without candidate tables. [R2-PR01](docs/tasks/R2-PR01.md) and
 [R2-PR02](docs/tasks/R2-PR02.md) plus resume correction `3d4901f` and
-[R2-PR03](docs/tasks/R2-PR03.md) are complete. PR04 integrated acceptance remains a
-later slice; this does not claim the whole R2 milestone complete.
+[R2-PR03](docs/tasks/R2-PR03.md) and [PR04 integrated acceptance](docs/tasks/R2-PR04.md)
+are complete. R2 acceptance covers the bounded local ledger core. Persistent demo,
+HTTP authentication, external providers and later-stage work remain outside scope.
 
 ## Continue here
 
@@ -197,5 +207,6 @@ later slice; this does not claim the whole R2 milestone complete.
 The repository has local Git commits and no remote. The received R1 implementation
 is preserved in baseline `feb4588`; the PR04 extraction is the next independent
 commit. R2 adoption is separate documentation commit `328733b`, followed by a
-bounded PR01 `a067785`, PR02 `d825d41`, resume correction `3d4901f` and PR03 commits. PR numbers identify
+bounded PR01 `a067785`, PR02 `d825d41`, resume correction `3d4901f`, PR03 `82fa8ff`
+and a separate PR04 acceptance commit. PR numbers identify
 work slices; no GitHub pull request, deployment or tracker update has been made.
