@@ -67,7 +67,7 @@
         },
         {
           "heading": "锁住后才判断可用余额",
-          "body": "事务先通过工作区共享屏障，再依次认领请求键与业务 ID，最后按账户 UUID 排序锁余额行。READ COMMITTED 下，等待行锁结束后读到该行的当前值，再判断 booked − reserved 是否足够。本页没有并发压测按钮；可以在真实 SQL 中找到锁语句。",
+          "body": "事务先通过工作区共享屏障，再依次认领请求键与业务 ID，最后按账户 UUID 排序锁余额行。READ COMMITTED 下，等待行锁结束后读到该行的当前值，再判断 booked − reserved 是否足够。本课按顺序执行；可以在真实 SQL 中找到锁语句，也可展开并发面板观察实际竞争。并发单步演示不是容量压测。",
           "enforcement": "Python 规定加锁顺序与业务判断；数据库行锁串行化对同一余额的修改，余额 CHECK 拦截透支。",
           "source": "src/ledgerops/db/admission.py · _open_admission / _submit_once / _lock_balances / _transfer_rejection"
         }
@@ -275,7 +275,7 @@
           "heading": "这不是普通用户可以使用的业务能力",
           "body": "本按钮是实验专用的故障注入，使用临时库所有者连接。它不经过购买入口，也不能据此声称普通商户可以修改任意余额。真实风险还包括具有写权限的应用代码写错，因此独立核对不能由权限控制完全替代。",
           "enforcement": "实验适配器限制在本次临时数据库；生产核心的 app / reader / maintenance 角色按各自权限运行。",
-          "source": "tests/demo_story.py · test_demo_story；src/ledgerops/db/sql/001_foundation.sql"
+          "source": "lab/session.py · LabSession._drift；src/ledgerops/db/sql/001_foundation.sql"
         }
       ],
       "details": [
@@ -398,7 +398,7 @@
           "purchase",
           "resume"
         ],
-        "focus": "先看共享和排他锁使用的同一个工作区键，再看 mode 在锁之后读取 / 写入。执行过程页展示本次真实 SQL；本切片不制造并发等待。",
+        "focus": "先看共享和排他锁使用的同一个工作区键，再看 mode 在锁之后读取 / 写入。执行过程页展示本次真实 SQL；要看真实共享屏障等待，请展开另设的并发单步面板。",
         "interview": [
           {
             "title": "冻结与停机的区别",
@@ -584,7 +584,7 @@
       "details": [
         {
           "summary": "这个演示还不能证明什么？",
-          "body": "它不证明生产认证、支付渠道可靠性、多区域一致性、容灾切换或容量指标。本切片不主动制造并发、死锁或丢失响应；原身份重放展示恢复机制，但不能伪称浏览器刚才真的经历了网络故障。并发与重试的更多性质由已有集成测试覆盖。"
+          "body": "它不证明生产认证、支付渠道可靠性、多区域一致性、容灾切换或容量指标。十二步导览本身按顺序执行；另设并发面板主动制造并观测两种锁等待，但不主动制造死锁或丢失响应。原身份重放展示恢复机制，不能伪称浏览器刚才真的经历了网络故障。更多重试和故障性质由已有集成测试覆盖。"
         },
         {
           "summary": "往代码里深入的阅读顺序",
@@ -634,7 +634,7 @@
     {
       "term": "行锁与隔离级别",
       "en": "FOR UPDATE / READ COMMITTED",
-      "body": "行锁让同一余额行的竞争修改等待；READ COMMITTED 不代表完全串行执行。项目在持有余额行锁后进行判断，并统一账户加锁顺序。本页不主动制造并发，只展示实际采集到的 SQL。",
+      "body": "行锁让同一余额行的竞争修改等待；READ COMMITTED 不代表完全串行执行。项目在持有余额行锁后进行判断，并统一账户加锁顺序。十二步导览展示实际SQL；另设并发面板用独立连接观测真实等待关系。",
       "source": "src/ledgerops/db/admission.py · _lock_balances"
     },
     {

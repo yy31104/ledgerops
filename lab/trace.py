@@ -48,7 +48,17 @@ def _source():
             path = Path(frame.f_code.co_filename).resolve()
             if path.is_relative_to(_ROOT):
                 relative = path.relative_to(_ROOT).as_posix()
-                if relative != "lab/trace.py" and source is None:
+                dependency = any(part in {".venv", "site-packages"} for part in path.parts)
+                teaching_wrapper = (
+                    relative == "lab/concurrency.py"
+                    and frame.f_code.co_qualname == "_DemoCursor.execute"
+                )
+                if (
+                    relative != "lab/trace.py"
+                    and not dependency
+                    and not teaching_wrapper
+                    and source is None
+                ):
                     source = {
                         "path": relative,
                         "function": frame.f_code.co_name,

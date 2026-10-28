@@ -13,6 +13,7 @@ from pathlib import Path
 from threading import RLock
 from uuid import uuid4
 
+from lab.concurrency import ConcurrentDemo, DemoError
 from ledgerops.db.admission import AdmissionError
 from ledgerops.db.maintenance import (
     MaintenanceError,
@@ -74,6 +75,7 @@ class LabSession:
         self.artifact_root = Path(artifact_root)
         self.code_revision, self.dirty = code_revision, dirty
         self.lock = RLock()
+        self.concurrency = None
         self._reset()
 
     @property
@@ -81,6 +83,8 @@ class LabSession:
         return self.golden["workspace"]["id"]
 
     def _reset(self):
+        self.close()
+        self.concurrency = None
         # Composite identities permit a fresh workspace without deleting history.
         self.golden = deepcopy(self._base)
         workspace = str(uuid4())
@@ -151,6 +155,7 @@ class LabSession:
                     "code_revision": self.code_revision,
                     "dirty": self.dirty,
                 },
+                concurrency=self._concurrency_state(),
             )
             return snapshot
 
@@ -164,6 +169,11 @@ class LabSession:
     def act(self, action, body=None):
         body = {} if body is None else body
         with self.lock:
+            if action.startswith("concurrency_"):
+                return self._concurrent_action(action, body)
+            concurrent = self._concurrency_state()
+            if concurrent and concurrent["status"] == "active" and action != "reset":
+                raise LabError("CONCURRENCY_ACTIVE", "先放行或清理并发场景，再操作单步课程。", 409)
             guided = action == "next"
             if guided:
                 if self.customized or self.guide_index == len(_STEPS):
@@ -240,6 +250,89 @@ class LabSession:
             elif action not in {"verify", "preview", "reset"}:
                 self.customized = True
             return self.state()
+
+    def _concurrent_action(self, action, body):
+        try:
+            if action == "concurrency_start":
+                kind = body.get("scenario")
+                if kind not in {"purchase_race", "freeze_drain"}:
+                    raise LabError("UNKNOWN_SCENARIO", "请选择一个并发场景。")
+                self._reset()
+                self._opening()
+                self.customized = True
+                self.concurrency = ConcurrentDemo(
+                    self.db,
+                    self.golden,
+                    self.artifact_root,
+                    self.code_revision,
+                    self.dirty,
+                    kind=kind,
+                )
+                self.concurrency.advance()
+            elif action == "concurrency_advance":
+                if self.concurrency is None:
+                    raise LabError("SCENARIO_REQUIRED", "先启动并发场景。", 409)
+                self.concurrency.advance()
+            elif action == "concurrency_reset":
+                self.close()
+            else:
+                raise LabError("UNKNOWN_ACTION", "没有这个并发操作。")
+        except DemoError as exc:
+            raise LabError(exc.code, exc.message, 409) from exc
+        return self.state()
+
+    def _concurrency_state(self):
+        if self.concurrency is None:
+            return None
+        state = self.concurrency.state()
+        status = (
+            "failed"
+            if state["error"]
+            else "completed"
+            if state["complete"]
+            else "cancelled"
+            if state["closed"]
+            else "active"
+        )
+        labels = {
+            "blocker": "教学阻塞者",
+            "purchase_a": "购买 A",
+            "purchase_b": "购买 B",
+            "freeze": "冻结",
+            "after_freeze": "冻结后的新购买",
+        }
+        next_label = {
+            1: "启动购买 B 并观测等待"
+            if state["kind"] == "purchase_race"
+            else "启动冻结并观测等待",
+            2: "释放余额行锁，让事务继续",
+            3: "提交冻结后的新购买，验证 503",
+        }.get(state["stage"], "场景已结束")
+        if state["final"]:
+            snapshot = state["final"]["snapshot"]
+            accounts = {a["id"]: a["label"] for a in self.golden["accounts"]}
+            for row in snapshot["accounts"]:
+                row["label"] = accounts[row["id"]]
+            for row in snapshot["balances"]:
+                row["label"] = accounts[row["account_id"]]
+                row["available"] = str(int(row["booked"]) - int(row["reserved"]))
+        if state["observation"]:
+            state["observation"]["at"] = state["observation"]["observed_at"]
+        return {
+            **state,
+            "status": status,
+            "next_label": next_label if status == "active" else "场景已结束",
+            "can_advance": status == "active",
+            "actors": [
+                {**a, "label": labels[a["name"]], "done": a["status"] == "finished"}
+                for a in state["workers"]
+            ],
+        }
+
+    def close(self):
+        with self.lock:
+            if self.concurrency is not None:
+                self.concurrency.close()
 
     def _event(self, action, before, result, status, **details):
         after = self._snapshot()

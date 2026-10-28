@@ -16,6 +16,7 @@ ASSETS = {
     "/style.css": ("style.css", "text/css; charset=utf-8"),
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
     "/lessons.json": ("lessons.json", "application/json; charset=utf-8"),
+    "/concurrency-lessons.json": ("concurrency-lessons.json", "application/json; charset=utf-8"),
 }
 SOURCES = {
     "purchase": ("src/ledgerops/db/admission.py", "_submit_once"),
@@ -29,6 +30,7 @@ SOURCES = {
     "verify": ("src/ledgerops/verification.py", "verify_snapshot"),
     "export": ("src/ledgerops/export.py", "capture_snapshot"),
     "schema": ("src/ledgerops/db/sql/001_foundation.sql", None),
+    "concurrent": ("lab/concurrency.py", "ConcurrentDemo"),
 }
 ACTIONS = {
     "next",
@@ -47,6 +49,9 @@ ACTIONS = {
     "resume",
     "reset",
     "shutdown",
+    "concurrency_start",
+    "concurrency_advance",
+    "concurrency_reset",
 }
 
 
@@ -59,7 +64,9 @@ def source_excerpt(key):
     first, last = 1, len(text.splitlines())
     if function:
         node = next(
-            n for n in ast.parse(text).body if isinstance(n, ast.FunctionDef) and n.name == function
+            n
+            for n in ast.parse(text).body
+            if isinstance(n, (ast.FunctionDef, ast.ClassDef)) and n.name == function
         )
         first, last = node.lineno, node.end_lineno
     return {
@@ -82,6 +89,12 @@ class LabServer(ThreadingHTTPServer):
 
     def state(self):
         return {**self.session.state(), "token": self.token}
+
+    def server_close(self):
+        try:
+            super().server_close()
+        finally:
+            self.session.close()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -150,7 +163,13 @@ class Handler(BaseHTTPRequestHandler):
             if not 0 < length <= 4096 or self.headers.get("Content-Type") != "application/json":
                 raise LabError("INVALID_INPUT", "需要不超过4KB的JSON请求。")
             body = json.loads(self.rfile.read(length))
-            if not isinstance(body, dict) or body.keys() - {"action", "amount_minor", "merchant"}:
+            if not isinstance(body, dict) or body.keys() - {
+                "action",
+                "amount_minor",
+                "merchant",
+                "scenario",
+                "reason",
+            }:
                 raise LabError("INVALID_INPUT", "请求字段不符合学习工具约定。")
             action = body.get("action")
             if not isinstance(action, str) or action not in ACTIONS:

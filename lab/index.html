@@ -32,6 +32,21 @@
     <section class="balances" aria-label="数据库当前余额" id="balance-panels"></section>
     <div class="balance-footnote"><span>所有金额均为最小货币单位（PLN 的分 / grosz），例如 100 = 1.00 PLN。</span><button class="inline-button" id="show-accounts" type="button">查看全部账户 ↗</button></div>
 
+    <details class="concurrency-card" id="concurrency-panel">
+      <summary class="concurrency-heading"><div><p class="eyebrow">下一课 · 真实锁等待</p><h2 id="concurrency-title">并发单步：让两个事务同时发生，再亲手放行</h2></div><span class="subtle-tag" id="concurrency-status">点击展开</span></summary>
+      <div class="concurrency-body">
+      <p class="concurrency-intro" id="concurrency-intro">选择场景后，实验会使用真实连接制造可观测的等待。页面只显示 PostgreSQL 实际报告的阻塞关系，不预画等待箭头。</p>
+      <div class="concurrency-controls"><div class="field"><label for="concurrency-scenario">并发场景</label><select id="concurrency-scenario"><option value="purchase_race">两笔80，竞争余额100</option><option value="freeze_drain">购买未结束，冻结先等待</option></select></div><button class="button primary" id="concurrency-start" type="button" disabled>启动场景</button><button class="button primary" id="concurrency-advance" type="button" disabled>放行一步</button><button class="button secondary" id="concurrency-reset" type="button" disabled>清理场景</button></div>
+      <p class="protocol-note" id="concurrency-lifecycle">刷新页面、重置实验或清理场景会结束本场景未完成的事务与连接。不会用刷新假装继续已经失去控制的调度。</p>
+      <div class="concurrency-stage" id="concurrency-stage" role="status" aria-live="polite"></div>
+      <div id="concurrency-observation"></div>
+      <div id="concurrency-actors"></div>
+      <div id="concurrency-history"></div>
+      <div id="concurrency-final"></div>
+      <details class="concurrency-reading" id="concurrency-reading"><summary>读懂这个场景：代码、规则与面试深挖</summary><div id="concurrency-explanation"></div></details>
+      </div>
+    </details>
+
     <div class="learning-layout">
       <section class="experiment-column" aria-label="实验操作与数据库证据">
         <section class="lesson-card" aria-labelledby="lesson-title">

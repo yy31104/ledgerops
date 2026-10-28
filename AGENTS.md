@@ -22,6 +22,11 @@
   Keep it outside src and all distribution archives; no runtime dependencies,
   production/migration changes or personal quizzes. Concurrent single-stepping is
   explicitly deferred to the next slice. See docs/tasks/LAB.md.
+  The next review accepts ac517e3 and now authorizes that concurrency slice:
+  two real-observed single-step scenarios, transaction-frame/source corrections,
+  owned connection cleanup on refresh/reset/exit, no production/migration changes.
+  See docs/tasks/LAB-CONCURRENCY.md. Keep the live learning page stable while
+  developing; integrate only after verification and restart the service at cutover.
   Intent verification uses retained operation payloads; hand manifests are extra
   test oracles. Repair recomputes under an exclusive transaction, without candidates.
 - Work within the user's active scope. Complete routine reversible edits and

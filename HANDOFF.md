@@ -2,6 +2,40 @@
 
 Updated: 2026-10-28. R1/R2 and CLI demo accepted; local learning-page slice delivered.
 
+## Concurrency learning slice
+
+The next user review accepts ac517e3 (595 rerun, browser purchase/409 checks,
+43 source references verified) and authorizes two single-step concurrency scenarios
+plus two source corrections. See [contract and full teaching copy](docs/tasks/LAB-CONCURRENCY.md).
+Production src/migrations and frozen fixtures/reference remain unchanged.
+
+The new expandable panel beneath balances starts a fresh synthetic workspace:
+purchase A waits on the teaching balance blocker; the next step starts purchase B
+or freeze, and must observe a real lock dependency before returning. Release then
+gives201/422, or201+FROZEN followed by a separately requested503 with no new claims.
+Each scenario exports actual final data and verifies it offline. Wait rows/edges,
+timestamps and queries come from pg_stat_activity/pg_blocking_pids scoped to its PIDs.
+Client SQL traces retain genuine running commands and corrected project with-line
+locations. Lesson6 now points to LabSession._drift, and old serial-only copy distinguishes
+the original twelve steps from the new concurrency panel.
+
+Human pauses use explicit extra SQL to extend only worker connection timeouts to
+ten minutes; a five-minute whole-scenario watchdog cancels the experiment first.
+Original5s/10s settings still execute and are visible before these lab-only commands.
+Normal ordering never depends on timeout or sleep. Cleanup cancels/joins dependants
+B/freeze before A, then rolls back the teaching blocker and closes all owned workers
+and observer. Refresh performs a token-authenticated cleanup POST after loading state;
+reset/replacement/server close/watchdog also clean up. Committed work is never undone
+by closing a connection. The normal12-step guide remains available after reset.
+
+Local verification and commit identity are recorded in
+[new evidence](evidence/LAB-CONCURRENCY/2026-10-28/README.md). This slice does not
+establish production authentication, external-payment stoppage, arbitrary-schedule
+deadlock freedom, production capacity or personal mastery. No push or tracker update.
+Complete regression609passes (272unit/41reference/296integration), Ruff/install/build
+and source-package exclusion checks pass. The live ac517e3 service was still empty
+at cutover; the new service starts with an empty workspace, not a pre-run scenario.
+
 ## Local learning page
 
 The latest user instruction authorizes `make lab`: a disposable real PostgreSQL

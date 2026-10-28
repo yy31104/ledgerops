@@ -18,6 +18,7 @@
   const chapters = [ ["01", "看懂一笔账", [1, 2]], ["02", "拒绝与身份", [3]], ["03", "冲正与历史", [4, 5]], ["04", "找到错误", [6, 7]], ["05", "安全修复", [8, 9, 10, 11, 12]] ];
   let state = null;
   let content = null;
+  let concurrencyContent = null;
   let readingNumber = 1;
   let selectedEventId = null;
   let busy = false;
@@ -517,7 +518,7 @@
       details.open = wide || boundary || index === 0;
       const summary = node("summary");
       append(summary, node("span", String(entry.index ?? index + 1).padStart(2, "0"), "trace-index"), node("span", sql.replace(/\s+/g, " "), "trace-sql-title"));
-      const duration = typeof entry.duration_ms === "number" ? `${entry.duration_ms.toFixed(2)} ms` : entry.duration_ms !== undefined ? `${entry.duration_ms} ms` : "—";
+      const duration = typeof entry.duration_ms === "number" ? `${entry.duration_ms.toFixed(2)} ms` : entry.status === "running" ? "尚未返回" : "—";
       summary.append(node("span", duration, "trace-duration"));
       details.append(summary);
       details.append(node("pre", sql, "trace-sql"));
@@ -571,13 +572,164 @@
   function setBusy(value) {
     busy = value;
     const unavailable = !state || busy || ended;
-    document.querySelectorAll("[data-action], #purchase-form button, #reset, #shutdown").forEach((button) => { button.disabled = unavailable; });
-    $("execute-next").disabled = unavailable || state?.guide?.index >= 12 || state?.guide?.customized || auto;
-    $("auto-demo").disabled = ended || !state || (!auto && (busy || state.guide.index >= 12 || state.guide.customized));
+    const concurrent = state?.concurrency?.status === "active";
+    document.querySelectorAll("[data-action], #purchase-form button").forEach((button) => { button.disabled = unavailable || concurrent; });
+    document.querySelectorAll("#reset, #shutdown").forEach((button) => { button.disabled = unavailable; });
+    $("execute-next").disabled = unavailable || concurrent || state?.guide?.index >= 12 || state?.guide?.customized || auto;
+    $("auto-demo").disabled = ended || concurrent || !state || (!auto && (busy || state.guide.index >= 12 || state.guide.customized));
     $("auto-demo").textContent = auto ? "Ⅱ 暂停自动演示" : "▷ 自动演示";
     if (state) $("next-label").textContent = busy ? "正在执行…" : state.guide.index >= 12 ? "十二步已完成" : "执行这一步";
     $("purchase-form").setAttribute("aria-busy", String(busy));
     $("execute-next").setAttribute("aria-busy", String(busy));
+    $("concurrency-scenario").disabled = unavailable || concurrent;
+    $("concurrency-start").disabled = unavailable || concurrent;
+    $("concurrency-advance").disabled = unavailable || !concurrent || !state?.concurrency?.can_advance;
+    $("concurrency-reset").disabled = unavailable || !state?.concurrency || state.concurrency.status === "cancelled";
+    $("concurrency-advance").textContent = busy ? "正在观测…" : state?.concurrency?.next_label || "放行一步";
+    $("concurrency-advance").setAttribute("aria-busy", String(busy));
+  }
+
+  function observedRows(observation) {
+    return Array.isArray(observation?.rows) ? observation.rows : [];
+  }
+
+  function renderObservation(parent, observation, actors = []) {
+    const rows = observedRows(observation);
+    if (!rows.length) {
+      if (observation) {
+        append(parent, node("p", `观测时间：${observation.at || observation.observed_at || "未提供"}`, "table-note"));
+        empty(parent, "这份观测未返回参与者记录", "观察范围仅为本场景PID；已经关闭的连接不再出现在活动记录里。请结合连接状态和历史观测阅读，不补画等待关系。");
+      } else {
+        empty(parent, "还没有这一阶段的等待观测", "启动场景后，独立连接才会读取 pg_stat_activity 与 pg_blocking_pids。这里不会预填等待关系。");
+      }
+      return;
+    }
+    const labels = new Map(actors.map((actor) => [Number(actor.pid), actor.label || actor.name || `PID ${actor.pid}`]));
+    parent.append(node("p", `观测时间：${observation.at || observation.observed_at || "服务端未提供时间戳"}。这是一次数据库快照，不把历史关系称作此刻仍然存在。`, "table-note"));
+    parent.append(table(["参与者 / PID", "会话状态", "等待类型", "等待事件", "数据库报告的阻塞者"], rows.map((row) => [
+      `${labels.get(Number(row.pid)) || "观察到的会话"} · ${row.pid}`,
+      row.state || "—", row.wait_event_type || "无", row.wait_event || "无",
+      Array.isArray(row.blocking_pids) && row.blocking_pids.length ? row.blocking_pids.join(", ") : "无"
+    ])));
+    const edges = node("div", undefined, "wait-edges");
+    let count = 0;
+    rows.forEach((row) => {
+      (row.blocking_pids || []).forEach((pid) => {
+        count += 1;
+        edges.append(node("p", `${labels.get(Number(row.pid)) || "会话"}（PID ${row.pid}） → ${labels.get(Number(pid)) || "会话"}（PID ${pid}）：等待它释放锁。`, "wait-edge"));
+      });
+      const query = node("div");
+      append(query, node("p", `PostgreSQL 报告状态：${row.state || "—"}；idle in transaction 时，下方是最近一条语句。`, "table-note"), node("pre", row.query || "未返回 SQL 文本", "trace-sql"));
+      parent.append(disclosure(`PID ${row.pid} · 查看观测到的 SQL`, query));
+    });
+    if (!count) edges.append(node("p", "这一份观测没有报告阻塞边；这本身不证明业务成功或所有事务已经结束。", "table-note"));
+    parent.prepend(edges);
+  }
+
+  function renderConcurrency() {
+    const demo = state?.concurrency;
+    const kind = demo?.kind || $("concurrency-scenario").value;
+    const material = concurrencyContent?.scenarios?.[kind];
+    const selectedMaterial = concurrencyContent?.scenarios?.[$("concurrency-scenario").value];
+    if (demo?.status === "active") $("concurrency-scenario").value = kind;
+    const statuses = { active: "正在单步推进", completed: "场景完成", failed: "场景失败", cancelled: "场景已清理" };
+    $("concurrency-status").textContent = demo ? statuses[demo.status] || demo.status || "状态未提供" : "点击展开 · 尚未启动";
+    $("concurrency-intro").textContent = (demo?.status === "active" ? material : selectedMaterial)?.summary || "选择场景，启动真实数据库事务，再按一次按钮推进一个可观测阶段。";
+    $("concurrency-lifecycle").textContent = concurrencyContent?.cleanup_note || "刷新、重置和清理会结束未完成的实验事务与连接；已经提交的业务不会因此撤销。";
+    const stage = $("concurrency-stage");
+    clear(stage);
+    if (demo) {
+      append(stage, node("strong", `${material?.title || kind} · 实际阶段 ${demo.stage ?? "—"}`), node("p", demo.message || demo.stage_label || demo.next_label || statuses[demo.status] || "请查看下方实际记录。"));
+      if (demo.error) stage.append(node("p", typeof demo.error === "string" ? demo.error : json(demo.error), "concurrency-error"));
+      stage.append(node("p", concurrencyContent?.watchdog_note || "超时只用于失败保护，推进依据是真实数据库关系。", "protocol-note"));
+    } else {
+      stage.append(node("p", "启动会创建新的场景工作区并记入合成资金100，不复用当前余额做预设结果。已有已提交历史不会被删除。"));
+    }
+    const observation = $("concurrency-observation");
+    clear(observation);
+    if (demo) {
+      observation.append(node("h3", "数据库刚才观察到了什么"));
+      renderObservation(observation, demo.observation, demo.actors || []);
+      observation.append(node("p", concurrencyContent?.observation_note || "等待关系只以数据库报告为准。", "table-note"));
+    }
+    const participants = $("concurrency-actors");
+    clear(participants);
+    if (demo?.actors?.length) {
+      participants.append(node("h3", "各连接的实际 SQL 与返回结果"));
+      participants.append(node("p", concurrencyContent?.trace_note || "这里仅显示客户端实际发出的 SQL。", "table-note"));
+      demo.actors.forEach((actor) => {
+        const card = node("div", undefined, "concurrency-actor");
+        const title = actor.label || actor.name || "参与者";
+        const status = actor.http_status ?? actor.result?.http_status;
+        const actualRole = actor.trace?.find((entry) => entry.role)?.role;
+        const header = node("div", undefined, "section-heading");
+        const actorStatus = { holding: "持锁中", waiting: "等待锁", running: "执行中", finished: "已结束" }[actor.status] || actor.status || "未结束";
+        append(header, node("h4", `${title} · PID ${actor.pid ?? "—"}`), node("span", status ? `${status}` : actor.done ? "任务已结束" : `任务：${actorStatus}`, "subtle-tag"));
+        append(card, header, node("p", `连接别名：${actor.role || "未提供"}；SQL记录中的实际角色：${actualRole || "尚未采集"}；连接${actor.connection_closed ? "已关闭" : "未关闭"}。`, "source-path"));
+        if (actor.error) card.append(node("pre", typeof actor.error === "string" ? actor.error : json(actor.error), "json-block"));
+        if (actor.result) card.append(disclosure("实际返回结果", node("pre", json(actor.result), "json-block")));
+        card.append(disclosure(`展开 ${title} 的真实 SQL`, traceContent({ id: `PID ${actor.pid ?? "—"}`, title, role: actualRole || actor.role, trace: actor.trace || [] })));
+        participants.append(card);
+      });
+    }
+    const history = $("concurrency-history");
+    clear(history);
+    if (demo?.history?.length) {
+      const body = node("div");
+      demo.history.forEach((entry, index) => {
+        const item = node("div");
+        renderObservation(item, entry.observation || entry, demo.actors || []);
+        body.append(disclosure(`第 ${index + 1} 份实际观测 · ${entry.at || entry.observed_at || entry.observation?.at || entry.observation?.observed_at || "查看时间戳"}`, item));
+      });
+      history.append(disclosure(`回看阶段观测 · ${demo.history.length} 份`, body));
+    }
+    const final = $("concurrency-final");
+    clear(final);
+    if (demo?.final) {
+      final.append(node("h3", "最终余额与独立核对"));
+      const snapshot = demo.final.snapshot;
+      if (snapshot) {
+        final.append(node("p", `最终工作区模式：${snapshot.workspace?.mode || "未提供"}。这份快照包含实际提交的记录。`, "table-note"));
+        final.append(table(["账户", "账面余额", "预留", "可用", "版本"], (snapshot.balances || []).map((balance) => [
+          names[balance.label] || balance.label || accountLabel(balance.account_id), money(balance.booked), money(balance.reserved), money(balance.available), balance.version ?? "—"
+        ]), [1, 2, 3, 4]));
+      }
+      renderReport(final, { report: demo.final.report }, "本场景的独立核对报告");
+      final.append(disclosure("最终快照与核对原始数据", node("pre", json(demo.final), "json-block")));
+    }
+    const explanation = $("concurrency-explanation");
+    clear(explanation);
+    const reading = demo?.status === "active" ? material : selectedMaterial;
+    if (reading) {
+      append(explanation, node("h3", reading.title), node("p", reading.observe, "lead"));
+      reading.sections.forEach((section) => {
+        append(explanation, node("h4", section.heading), node("p", section.body), node("p", `为什么这样安排：${section.why}`));
+        const detail = node("div");
+        append(detail, node("p", section.enforcement), node("p", section.source, "source-path"));
+        explanation.append(disclosure("由谁保证 · 对应代码", detail));
+      });
+      reading.interview.forEach((item) => explanation.append(disclosure(`面试深挖 · ${item.title}`, item.body)));
+      explanation.append(node("p", concurrencyContent.scope, "protocol-note"));
+      const codeBody = node("div");
+      const codeDetails = disclosure("查看实际并发调度器源码 · 只读", codeBody);
+      let loaded = false;
+      codeDetails.addEventListener("toggle", async () => {
+        if (!codeDetails.open || loaded) return;
+        loaded = true;
+        codeBody.textContent = "正在读取当前仓库的实际源码…";
+        try {
+          const response = await fetch("/api/source?key=concurrent", { cache: "no-store" });
+          if (!response.ok) throw new Error("读取并发调度器源码失败");
+          const source = await response.json();
+          clear(codeBody);
+          append(codeBody, node("p", `${source.path}:${source.start_line} · ${source.title}`, "source-path"), node("pre", String(source.text).split("\n").map((line, index) => `${String(Number(source.start_line) + index).padStart(4, " ")}  ${line}`).join("\n"), "source-box"));
+        } catch (error) {
+          codeBody.textContent = error.message;
+          loaded = false;
+        }
+      });
+      explanation.append(codeDetails);
+    }
   }
 
   function render() {
@@ -585,7 +737,7 @@
     $("workspace-mode").textContent = `模式 ${state.workspace?.mode || "—"}`;
     $("projection-epoch").textContent = `投影代次 ${state.workspace?.projection_epoch ?? "—"}`;
     $("evidence-count").textContent = `${state.journals.length} 张分录 · ${state.operations.length} 笔业务`;
-    renderNavigation(); renderBalances(); renderGuide(); renderResult(); renderJournals(); renderOperations(); renderVerification(); renderAccounts(); renderHistory(); renderReading();
+    renderNavigation(); renderBalances(); renderGuide(); renderResult(); renderJournals(); renderOperations(); renderVerification(); renderAccounts(); renderHistory(); renderReading(); renderConcurrency();
     setBusy(busy);
   }
 
@@ -606,6 +758,7 @@
       const previousCount = state.guide.index;
       if (data.state) state = data.state;
       else if (data.workspace && data.guide) state = data;
+      if (actionName.startsWith("concurrency_")) $("concurrency-panel").open = true;
       if (actionName === "reset" && response.ok) {
         readingNumber = 1; selectedEventId = null; auto = false;
         $("free-lab").open = false;
@@ -668,6 +821,10 @@
   $("execute-next").addEventListener("click", () => action("next"));
   $("reset").addEventListener("click", () => { auto = false; action("reset"); });
   $("shutdown").addEventListener("click", () => { auto = false; action("shutdown"); });
+  $("concurrency-start").addEventListener("click", () => { auto = false; action("concurrency_start", { scenario: $("concurrency-scenario").value }); });
+  $("concurrency-advance").addEventListener("click", () => action("concurrency_advance"));
+  $("concurrency-reset").addEventListener("click", () => action("concurrency_reset", { reason: "learner" }));
+  $("concurrency-scenario").addEventListener("change", () => renderConcurrency());
   $("auto-demo").addEventListener("click", async () => {
     if (auto) { auto = false; setBusy(busy); return; }
     auto = true; setBusy(false);
@@ -695,7 +852,7 @@
 
   async function start() {
     setBusy(true);
-    const results = await Promise.allSettled([fetch("/api/state", { cache: "no-store" }).then(async (response) => { if (!response.ok) throw new Error("读取实验状态失败"); return response.json(); }), fetch("/lessons.json", { cache: "no-store" }).then(async (response) => { if (!response.ok) throw new Error("读取课程内容失败"); return response.json(); })]);
+    const results = await Promise.allSettled([fetch("/api/state", { cache: "no-store" }).then(async (response) => { if (!response.ok) throw new Error("读取实验状态失败"); return response.json(); }), fetch("/lessons.json", { cache: "no-store" }).then(async (response) => { if (!response.ok) throw new Error("读取课程内容失败"); return response.json(); }), fetch("/concurrency-lessons.json", { cache: "no-store" }).then(async (response) => { if (!response.ok) throw new Error("读取并发讲解失败"); return response.json(); })]);
     const failed = results.find((result) => result.status === "rejected");
     if (failed) {
       notice(`无法初始化学习工作台：${failed.reason.message}。请确认 make lab 仍在运行，然后刷新。`, true);
@@ -703,7 +860,13 @@
       $("lesson-title").textContent = "实验室尚未连接";
       setBusy(false); return;
     }
-    state = results[0].value; content = results[1].value;
+    state = results[0].value; content = results[1].value; concurrencyContent = results[2].value;
+    if (state.concurrency?.status === "active") {
+      setBusy(false);
+      const cleaned = await action("concurrency_reset", { reason: "refresh" });
+      if (!cleaned) return;
+      notice("页面重新载入，未完成的并发场景已清理。已经提交的结果仍保留；重新启动可创建新的场景工作区。");
+    }
     selectedEventId = state.last_event?.id ?? null;
     readingNumber = Math.min(Math.max(state.guide.index, 1), 12);
     renderGlossary(); render(); setBusy(false);
