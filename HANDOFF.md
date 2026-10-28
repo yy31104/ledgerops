@@ -1,6 +1,36 @@
 # LedgerOps handoff
 
-Updated: 2026-10-28. R1/R2 local acceptance complete; separate make-demo slice delivered.
+Updated: 2026-10-28. R1/R2 and CLI demo accepted; local learning-page slice delivered.
+
+## Local learning page
+
+The latest user instruction authorizes `make lab`: a disposable real PostgreSQL
+session and loopback-only standard-library HTTP/static page under `lab/`, outside
+src, wheel and sdist. No production code, migrations, runtime dependencies, Chronicle
+or tracker changes. This supersedes the earlier CLI-demo-only scope for this slice.
+
+The page provides12 guided actions, freeplay purchase/replay/same-key changed-content
+conflict/reversal/maintenance, real balances and table-level before/after highlights,
+actual client SQL/transaction/error/retry records and current allowlisted code excerpts.
+Explanations cover accounting, identity, transaction/lock boundaries, A/B checks,
+projection repair and interview tradeoffs. All12 lessons and19 glossary entries are
+copied into [the task contract](docs/tasks/LAB.md) for independent wording review.
+Fixed fixture identities are not a production authentication flow. Concurrency
+single-step visualization is explicitly deferred; no personal quiz was added.
+
+`make lab` prints its own ephemeral URL. The page end button or Ctrl-C triggers
+fixture cleanup; closing the browser tab leaves the session running. Reset creates
+a fresh workspace, not a permanent database. Tracing excludes UI refresh queries and
+does not expand trigger internals or claim observed lock waits. The local wrapper's
+protected psycopg hook is covered by real-server tests at the locked version.
+
+Verification:595 passing tests (272 unit,41 reference,282 integration); HTTP smokes
+complete all12 actions, verify replay409/422 behavior and confirm both shutdown and
+Ctrl-C cleanup preserve pre-existing containers. Actual SQL tests include statement
+failure, deferred COMMIT failure and40001 retry. Ruff/install/build and archive
+exclusion checks pass. Browser automation was disabled by Work settings, so visual
+layout and browser interaction are not independently verified in this delivery.
+See [evidence](evidence/LAB/2026-10-28/README.md). Learning mastery remains unassessed.
 
 ## Status
 
@@ -231,8 +261,9 @@ This correction is committed separately as 3d4901f before PR03.
 No internal maintenance retry/reconnect: SQL failures propagate, and COMMIT loss
 requires reconnecting with original IDs. A healthy freeze may resume without repair.
 
-Full source-package release acceptance, a persistent local demo DB, HTTP/token
-verification and operational packaging must not be inferred from the service test count.
+Full source-package release acceptance, a persistent local demo DB, production
+HTTP/token authentication and operational packaging must not be inferred from the
+service test count. The separate local teaching wrapper above is a different boundary.
 
 R2's success-only uniqueness, retained failed attempts and integrated schedules are
 verified within the current contract. See the matrix for exact evidence/limits.

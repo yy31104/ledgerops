@@ -20,6 +20,7 @@ packages = ["src/ledgerops"]
 
 [tool.hatch.build.targets.sdist]
 include = ["/src", "/tests", "/reference", "/fixtures", "/README.md", "/pyproject.toml", "/uv.lock", "/Makefile", "/.python-version"]
+exclude = ["/tests/lab_story.py", "/tests/integration/test_lab.py", "/tests/integration/test_lab_trace.py"]
 
 [tool.ruff]
 target-version = "py312"

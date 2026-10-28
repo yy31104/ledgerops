@@ -1,0 +1,39 @@
+{
+  "base_commit": "60c4f2f51e097e263754c9f1980febfbf6595351",
+  "scope": "local teaching adapter, actual disposable PostgreSQL, no core/migration changes",
+  "complete_regression": {
+    "tests": "595",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "time": "56.090"
+  },
+  "counts": {
+    "unit": 272,
+    "reference": 41,
+    "integration": 282
+  },
+  "followup_http_tests": 6,
+  "checks": [
+    "ruff check/format",
+    "fresh noneditable install and SQL resources",
+    "wheel/sdist build",
+    "no lab implementation/assets/tests in wheel/sdist",
+    "node --check",
+    "static assets/source/control IDs",
+    "git diff --check"
+  ],
+  "runtime": {
+    "Python": "3.12.13",
+    "PostgreSQL": "18.6 / 180006",
+    "psycopg": "3.3.6",
+    "pytest": "9.1.1",
+    "ruff": "0.16.9"
+  },
+  "visual_browser_validation": {
+    "performed": false,
+    "reason": "Local browser use is disabled in Work settings"
+  },
+  "concurrency_visualization": "deferred",
+  "personal_mastery": "not assessed"
+}

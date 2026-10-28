@@ -25,6 +25,7 @@ make test-unit         # domain and independent-reference tests; no Docker
 make test-integration  # actual PostgreSQL tests
 make build             # wheel and source distribution
 make demo              # complete narrated story in temporary PostgreSQL; auto cleanup
+make lab               # interactive local learning page; Ctrl-C / end button cleans up
 ```
 
 Integration tests create one uniquely named disposable container on an ephemeral
@@ -35,7 +36,30 @@ Missing Docker fails the suite instead of skipping tests.
 Tests load current `src/` explicitly. The package check forces a fresh non-editable install:
 on this Mac, Python ignores hidden `.pth` files, making editable-only import checks
 unreliable. Build archives include migration SQL and exclude private reference docs.
-No persistent database or HTTP server is provisioned in these slices.
+No persistent database is provisioned. The optional source-checkout learning lab
+below runs a temporary loopback teaching adapter; the production package has no HTTP API.
+
+## 交互式学习工作台
+
+在仓库根目录运行 `make lab`，打开终端打印的 `http://127.0.0.1:端口/`。
+页面左侧是12步导览，每次点“执行这一步”只执行一步；右侧可以切换
+“这一步 / 执行过程 / 代码与面试”。先读解释，再操作，再查看余额、分录、
+业务身份和原始返回结果，最后对照当前仓库里的函数。
+
+“执行过程”记录这次调用实际发出的客户端 SQL、参数、事务命令、SQLSTATE
+和重试次数，排除页面刷新的查询。它不展开数据库触发器内部语句，也不代表
+已经观测到锁等待。自动提交的单条故障注入不会凭空补上BEGIN/COMMIT。
+自由实验支持更换金额和商户、原身份重放、原键改金额409、新业务重复冲正422、
+漂移与维护；自由写操作后请重置再按标准导览学习。重放的是最近一次提交的购买，
+包括已保存的拒绝；冲正针对最近一次成功购买。
+
+所有操作只连接本次新建的临时 PostgreSQL，不接受浏览器传入DSN或任意SQL。
+身份来自固定的合成夹具，**不是登录认证**。页面只监听127.0.0.1，不进入wheel或
+源码发行包，不加运行时依赖，生产代码和迁移保持原样。结束时使用“结束并清理”
+或终端Ctrl-C；关闭浏览器标签页不会停止服务。重置创建新的工作区，清空页面进度；
+退出才删除整个临时数据库和导出文件。Docker不可用会明确失败。
+并发单步放行演示属于下一切片，本页不把串行点击称为并发验证。
+完整范围、解释文案和验证记录见 [学习工作台任务](docs/tasks/LAB.md)。
 
 ## Narrated local demo
 

@@ -16,6 +16,12 @@
   R2 is accepted at278b417. The next explicit instruction authorizes only a separate
   make-demo slice and export-temp cleanup documentation; no production/migration
   change or personal self-test exercises.
+  The latest learning-tool instruction authorizes a separate make-lab slice:
+  loopback-only stdlib HTTP + static teaching page, disposable fixtures only,
+  actual client SQL tracing and before/after records, 12 guided stages and freeplay.
+  Keep it outside src and all distribution archives; no runtime dependencies,
+  production/migration changes or personal quizzes. Concurrent single-stepping is
+  explicitly deferred to the next slice. See docs/tasks/LAB.md.
   Intent verification uses retained operation payloads; hand manifests are extra
   test oracles. Repair recomputes under an exclusive transaction, without candidates.
 - Work within the user's active scope. Complete routine reversible edits and
