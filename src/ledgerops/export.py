@@ -10,6 +10,7 @@ import json
 import os
 import re
 import stat
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -851,7 +852,7 @@ def _unique_object(pairs):
     return result
 
 
-def _read_json(directory_fd, name, maximum):
+def _read_bytes(directory_fd, name, maximum):
     # Nonblocking open also lets us reject a FIFO/device before any read can wait.
     descriptor = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory_fd)
     with os.fdopen(descriptor, "rb") as file:
@@ -860,6 +861,10 @@ def _read_json(directory_fd, name, maximum):
         raw = file.read(maximum + 1)
         if len(raw) > maximum:
             raise ExportLimitExceeded("Bundle member byte limit exceeded")
+    return raw
+
+
+def _parse_json(raw):
     try:
 
         def reject_constant(_):
@@ -868,7 +873,88 @@ def _read_json(directory_fd, name, maximum):
         parsed = json.loads(raw, object_pairs_hook=_unique_object, parse_constant=reject_constant)
     except (ValueError, UnicodeDecodeError, RecursionError) as exc:
         raise ExportError("Invalid bundle JSON") from exc
-    return raw, parsed
+    return parsed
+
+
+@dataclass(frozen=True, slots=True)
+class LoadedExport:
+    """Exact validated bytes from one read; decoded views cannot mutate the pin."""
+
+    manifest_bytes: bytes
+    data_bytes: bytes
+
+    def __post_init__(self):
+        _validate_export_bytes(self.manifest_bytes, self.data_bytes)
+
+    @property
+    def snapshot(self) -> dict:
+        return json.loads(self.data_bytes)
+
+    @property
+    def manifest(self) -> dict:
+        return json.loads(self.manifest_bytes)
+
+
+def _validate_export_bytes(manifest_raw, raw):
+    if type(manifest_raw) is not bytes or type(raw) is not bytes:
+        raise ExportError("Exact immutable export bytes required")
+    if (
+        not 0 < len(manifest_raw) <= MAX_MANIFEST_BYTES
+        or len(raw) + len(manifest_raw) > MAX_BUNDLE_BYTES
+    ):
+        raise ExportLimitExceeded("Complete bundle byte limit exceeded")
+    manifest = _parse_json(manifest_raw)
+    if type(manifest) is not dict or manifest.keys() != _MANIFEST_KEYS:
+        raise ExportError("Manifest has missing or unknown fields")
+    if (
+        type(manifest["format_version"]) is not int
+        or manifest["format_version"] not in _TABLES_BY_FORMAT
+    ):
+        raise ExportError("Unsupported manifest format")
+    _uuid(manifest["export_id"])
+    _uuid(manifest["workspace_id"])
+    if type(manifest["code_revision"]) is not str or not re.fullmatch(
+        r"[0-9a-f]{40}", manifest["code_revision"]
+    ):
+        raise ExportError("Invalid code revision")
+    if type(manifest["dirty"]) is not bool:
+        raise ExportError("Invalid dirty flag")
+    if (
+        type(manifest["data_bytes"]) is not int
+        or not 0 < manifest["data_bytes"] <= MAX_BUNDLE_BYTES
+    ):
+        raise ExportLimitExceeded("Invalid declared bundle size")
+    if type(manifest["data_sha256"]) is not str or not re.fullmatch(
+        r"[0-9a-f]{64}", manifest["data_sha256"]
+    ):
+        raise ExportError("Invalid data digest")
+    if (
+        len(raw) != manifest["data_bytes"]
+        or hashlib.sha256(raw).hexdigest() != manifest["data_sha256"]
+    ):
+        raise ExportError("Bundle data size/digest mismatch")
+    data = _parse_json(raw)
+    _validate_snapshot(data)
+    if data["format_version"] != manifest["format_version"]:
+        raise ExportError("Manifest format does not match snapshot")
+    if data["workspace"]["id"] != manifest["workspace_id"]:
+        raise ExportError("Manifest workspace does not match snapshot")
+    counts = manifest["row_counts"]
+    if (
+        type(counts) is not dict
+        or counts.keys() != {"workspace", *_TABLES_BY_FORMAT[data["format_version"]]}
+        or any(
+            type(value) is not int or not 0 <= value <= MAX_ROWS_PER_TABLE
+            for value in counts.values()
+        )
+        or counts != _row_counts(data)
+    ):
+        raise ExportError("Declared row counts do not match snapshot")
+
+
+def validate_export_bytes(manifest_bytes: bytes, data_bytes: bytes) -> LoadedExport:
+    """Validate exact pinned object bytes with the same complete contract as filesystem loads."""
+    return LoadedExport(manifest_bytes, data_bytes)
 
 
 def _load_directory(path, *, expected_id):
@@ -876,63 +962,17 @@ def _load_directory(path, *, expected_id):
     try:
         if set(os.listdir(descriptor)) != {"manifest.json", "data.json"}:
             raise ExportError("Bundle has missing or unexpected files")
-        manifest_raw, manifest = _read_json(descriptor, "manifest.json", MAX_MANIFEST_BYTES)
-        if type(manifest) is not dict or manifest.keys() != _MANIFEST_KEYS:
-            raise ExportError("Manifest has missing or unknown fields")
-        if (
-            type(manifest["format_version"]) is not int
-            or manifest["format_version"] not in _TABLES_BY_FORMAT
-        ):
-            raise ExportError("Unsupported manifest format")
-        _uuid(manifest["export_id"])
-        _uuid(manifest["workspace_id"])
-        if manifest["export_id"] != expected_id:
+        manifest_raw = _read_bytes(descriptor, "manifest.json", MAX_MANIFEST_BYTES)
+        raw = _read_bytes(descriptor, "data.json", MAX_BUNDLE_BYTES)
+        bundle = validate_export_bytes(manifest_raw, raw)
+        if bundle.manifest["export_id"] != expected_id:
             raise ExportError("Export UUID does not match directory")
-        if type(manifest["code_revision"]) is not str or not re.fullmatch(
-            r"[0-9a-f]{40}", manifest["code_revision"]
-        ):
-            raise ExportError("Invalid code revision")
-        if type(manifest["dirty"]) is not bool:
-            raise ExportError("Invalid dirty flag")
-        if (
-            type(manifest["data_bytes"]) is not int
-            or not 0 < manifest["data_bytes"] <= MAX_BUNDLE_BYTES
-        ):
-            raise ExportLimitExceeded("Invalid declared bundle size")
-        if type(manifest["data_sha256"]) is not str or not re.fullmatch(
-            r"[0-9a-f]{64}", manifest["data_sha256"]
-        ):
-            raise ExportError("Invalid data digest")
-        raw, data = _read_json(descriptor, "data.json", MAX_BUNDLE_BYTES)
-        if len(raw) + len(manifest_raw) > MAX_BUNDLE_BYTES:
-            raise ExportLimitExceeded("Complete bundle byte limit exceeded")
-        if (
-            len(raw) != manifest["data_bytes"]
-            or hashlib.sha256(raw).hexdigest() != manifest["data_sha256"]
-        ):
-            raise ExportError("Bundle data size/digest mismatch")
-        _validate_snapshot(data)
-        if data["format_version"] != manifest["format_version"]:
-            raise ExportError("Manifest format does not match snapshot")
-        if data["workspace"]["id"] != manifest["workspace_id"]:
-            raise ExportError("Manifest workspace does not match snapshot")
-        counts = manifest["row_counts"]
-        if (
-            type(counts) is not dict
-            or counts.keys() != {"workspace", *_TABLES_BY_FORMAT[data["format_version"]]}
-            or any(
-                type(value) is not int or not 0 <= value <= MAX_ROWS_PER_TABLE
-                for value in counts.values()
-            )
-            or counts != _row_counts(data)
-        ):
-            raise ExportError("Declared row counts do not match snapshot")
-        return data
+        return bundle
     finally:
         os.close(descriptor)
 
 
-def load_export(path: Path) -> dict:
+def load_export_bundle(path: Path) -> LoadedExport:
     """Load only a completed, bounded, exact-version bundle; never follows member symlinks."""
     path = Path(path)
     _uuid(path.name)  # A temporary directory can never be a completed export identity.
@@ -940,3 +980,8 @@ def load_export(path: Path) -> dict:
         return _load_directory(path, expected_id=path.name)
     except OSError as exc:
         raise ExportError("Cannot read complete export bundle") from exc
+
+
+def load_export(path: Path) -> dict:
+    """Compatibility decoded view of the exact validated export bytes."""
+    return load_export_bundle(path).snapshot

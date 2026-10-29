@@ -43,6 +43,12 @@ limits: docs/R3-ACCEPTANCE.md. R3 is complete within its documented synthetic/lo
 contract; real bank finality, old-backup missing-history recovery and production
 activation are not claimed. Next: R4 settlement evidence, exact matching and atomic
 immutable publication; then R5/service/ops and R6. Broad user request remains active.
+R4-PR01 now implements independent persistent provider settlement statements, pinned export
+bytes, exact matching and complete-group partition interfaces. Full1267tests pass200.58s;
+Ruff124files, wheel/sdist and fresh installed APIs pass. Evidence:
+evidence/R4-PR01/2026-10-29/verification.json. Unassigned provider effects explicitly prevent
+reconciled=true; parent verifies claimed worker matches against original source facts.
+R4-PR02 durable registry/publication and bounded process execution are next.
 Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
 production activation and personal ownership remain separate.
 
