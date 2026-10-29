@@ -68,7 +68,14 @@ Full1397tests pass327.51s; Ruff148files/JSsyntax/build/freshinstalledassets pass
 ActualPGwireunknownCOMMIT andinflightSIGTERMdrain pass. Browserautomation isdisabled
 byWorksettings, so visual/browserinteractionisnotverified. See docs/HTTP-SERVICE.md
 and evidence/R5-PR02/2026-10-29/verification.json.
-Next typedLOCAL_BLOCKER maker/checker action, actualbackup/restore, thenR6/Linuxops.
+R5-PR03 now implements typedLOCAL_BLOCKER maker/checker reprocessing, currentR4
+source/epoch/target/grants/generation/expiry binding, one atomicfinancialeffect plus
+immutableexactincidentdispositions andattempts, actualHTTP controls withcanonical
+proposal bytes, andv9/reportv3 independentaudits. Final1462tests pass363.92s;
+Ruff156files/build/freshinstalledAPIs/010SQL/assets pass. Reference17hashes and
+SQL001–009/lab/tutorial/frozenfixtures remain unchanged. BrowservisualQA remains
+unverified. See docs/OPERATOR-ACTIONS.md and evidence/R5-PR03/2026-10-29.
+Next integrateactualbackup/restore, thenR6 andLinux/streamingcapacity acceptance.
 Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
 production activation and personal ownership remain separate.
 

@@ -43,6 +43,7 @@ class VerificationReport:
     intent_scope: tuple[str, ...] = ("PURCHASE",)
     unverified_intent_kinds: tuple[str, ...] = ()
     external_evidence: dict | None = None
+    operator_actions: dict | None = None
 
     @property
     def healthy(self) -> bool:
@@ -70,6 +71,10 @@ class VerificationReport:
             del result["external_evidence"]
         else:
             result["report_version"] = 2
+        if self.operator_actions is None:
+            del result["operator_actions"]
+        else:
+            result["report_version"] = 3
         result.update(healthy=self.healthy, rebuild_eligible=self.rebuild_eligible)
         return result
 
@@ -223,6 +228,7 @@ class _Check:
         self.unverified = set()
         self.intent_scope = ("PURCHASE",)
         self.external_evidence = None
+        self.operator_actions = None
 
     def issue(self, section, code, object_id, field, expected, actual):
         self.flags[section] = False
@@ -238,6 +244,7 @@ class _Check:
             intent_scope=self.intent_scope,
             unverified_intent_kinds=tuple(sorted(self.unverified)),
             external_evidence=self.external_evidence,
+            operator_actions=self.operator_actions,
         )
 
     def rows(self, snapshot, table, workspace):
@@ -1319,6 +1326,27 @@ def _external_report(value):
         raise _Invalid("external evidence report counts/coverage disagree")
 
 
+def _operator_report(value):
+    if type(value) is not dict or value.keys() != {
+        "historical_authorization",
+        "maker_checker_separation",
+        "proposal_count",
+        "approval_count",
+        "execution_count",
+        "disposition_count",
+    }:
+        raise _Invalid("invalid operator audit report fields")
+    if (
+        value["historical_authorization"] != "NOT_VERIFIED_NO_AUTH_HISTORY"
+        or value["maker_checker_separation"] != "DISTINCT_OPAQUE_ACTOR_IDS_CHECKED"
+    ):
+        raise _Invalid("unsupported operator authorization claim")
+    for name in ("proposal_count", "approval_count", "execution_count", "disposition_count"):
+        _integer(value[name], 0, _MAX_ROWS)
+    if not value["execution_count"] <= value["approval_count"] <= value["proposal_count"]:
+        raise _Invalid("operator audit coverage counts disagree")
+
+
 def _resume_report(report):
     """A saved review records warnings without imposing rebuild admission on resume."""
     flags = (
@@ -1334,11 +1362,14 @@ def _resume_report(report):
     expected_keys = {*flags, "issues", "intent_scope", "unverified_intent_kinds"}
     consistent = True
     if "report_version" in report:
-        if type(report["report_version"]) is not int or report["report_version"] != 2:
+        if type(report["report_version"]) is not int or report["report_version"] not in (2, 3):
             raise _Invalid("unsupported saved report version")
         expected_keys |= {"report_version", "external_evidence"}
         _external_report(report.get("external_evidence"))
         consistent = report["external_evidence"]["external_consistency_ok"]
+        if report["report_version"] == 3:
+            expected_keys.add("operator_actions")
+            _operator_report(report.get("operator_actions"))
     if report.keys() != expected_keys:
         raise _Invalid("invalid saved resume report fields")
     if any(type(report[name]) is not bool for name in flags):
@@ -1537,9 +1568,9 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         if (
             type(snapshot) is not dict
             or type(snapshot.get("format_version")) is not int
-            or snapshot["format_version"] not in (1, 2, 3, 4, 5, 6, 7, 8)
+            or snapshot["format_version"] not in (1, 2, 3, 4, 5, 6, 7, 8, 9)
         ):
-            raise _Invalid("snapshot version 1 through 8 required")
+            raise _Invalid("snapshot version 1 through 9 required")
         workspace = snapshot["workspace"]
         if type(workspace) is not dict:
             raise _Invalid("workspace object required")
@@ -1570,6 +1601,8 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
             schemas.append("008_reconciliation_publication.sql")
         if version >= 8:
             schemas.append("009_authentication.sql")
+        if version >= 9:
+            schemas.append("010_operator_actions.sql")
         if (
             snapshot["schema_versions"] != schemas
             or type(snapshot["snapshot_witness"]) is not str

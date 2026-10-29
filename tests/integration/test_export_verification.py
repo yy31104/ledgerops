@@ -41,7 +41,7 @@ def test_real_reader_exports_and_verifies_service_without_a_manual_manifest(
     report = verify_snapshot(snapshot)
     assert report.structure_ok and report.projection_ok and report.request_intent_ok
     assert report.healthy and report.rebuild_eligible
-    assert snapshot["format_version"] == 8
+    assert snapshot["format_version"] == 9
     assert snapshot["reversal_attempts"] == snapshot["reversal_effects"] == []
     assert all(
         snapshot[key] == []
@@ -56,6 +56,7 @@ def test_real_reader_exports_and_verifies_service_without_a_manual_manifest(
     assert report.intent_scope == ("PURCHASE", "REVERSAL", "PAYOUT")
     assert report.unverified_intent_kinds == (
         "OPENING",
+        "OPERATOR_HISTORICAL_AUTHORIZATION",
         "PAYOUT_EXTERNAL_EFFECT",
         "PAYOUT_PROVIDER_AUTHENTICITY",
     )

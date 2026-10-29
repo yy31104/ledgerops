@@ -31,8 +31,9 @@ class ObservationResult:
 def blocking_incidents(cur, workspace, payout_id):
     """Direct or cross-scope collision evidence; never lock or update another payout."""
     return cur.execute(
-        "SELECT category,code FROM ledger.payout_incident WHERE workspace_id=%s AND payout_id=%s "
-        "UNION SELECT i.category,i.code FROM ledger.payout_incident i JOIN "
+        "SELECT category,code FROM ledger.unresolved_payout_incident "
+        "WHERE workspace_id=%s AND payout_id=%s "
+        "UNION SELECT i.category,i.code FROM ledger.unresolved_payout_incident i JOIN "
         "ledger.provider_observation o "
         "ON o.observation_id=i.related_observation_id WHERE o.workspace_id=%s AND o.payout_id=%s "
         "ORDER BY category,code LIMIT 32",

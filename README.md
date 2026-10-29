@@ -1,6 +1,8 @@
 # LedgerOps
 
-A local laboratory for synthetic transaction integrity, replay and recovery.
+A PostgreSQL ledger service for auditable transaction integrity, replay and recovery.
+All payment-provider execution remains synthetic; real bank finality and remote activation
+are outside the current local delivery.
 **R1-PR01 through R1-PR04 are implemented locally:** typed money/identity, PostgreSQL
 safeguards, an explicit-SQL purchase service, bounded transaction retries, and
 concurrency / response-loss recovery tests with independent financial checks.
@@ -10,6 +12,13 @@ balances and fidelity to retained purchase requests. Maintenance can drain write
 preview drift, atomically recompute/audit balances and explicitly resume. Original
 merchants can now submit full internal reversals with retained failures and one success.
 All financial examples use synthetic PLN minor units.
+
+R3 adds persistent payout instructions, holds, authenticated observations and crash
+recovery. R4 pins independent settlement evidence and publishes complete reconciliation
+runs. R5 adds current scoped credentials, a real Gunicorn HTTP process and typed
+maker/checker reprocessing. See [HTTP service](docs/HTTP-SERVICE.md),
+[authentication](docs/AUTHENTICATION.md), [operator actions](docs/OPERATOR-ACTIONS.md)
+and [remaining delivery](docs/tasks/DELIVERY.md) for the tested boundaries.
 
 第一次学习这个项目，可先顺读[中文教程PDF](output/pdf/LedgerOps-从零读懂账本.pdf)。
 它用同一笔100/80的例子，从SQL和Python事务讲到并发、冲正、核对、重建和面试追问，
@@ -40,8 +49,9 @@ Missing Docker fails the suite instead of skipping tests.
 Tests load current `src/` explicitly. The package check forces a fresh non-editable install:
 on this Mac, Python ignores hidden `.pth` files, making editable-only import checks
 unreliable. Build archives include migration SQL and exclude private reference docs.
-No persistent database is provisioned. The optional source-checkout learning lab
-below runs a temporary loopback teaching adapter; the production package has no HTTP API.
+Tests and the optional source-checkout learning lab provision only temporary databases.
+The installed `python -m ledgerops.service` is a separate authenticated HTTP service;
+it requires explicit database/identity/TLS configuration and defaults to writes disabled.
 
 ## 交互式学习工作台
 

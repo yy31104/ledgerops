@@ -46,6 +46,20 @@ def operation_case(cur, workspace, operation_id):
         "ORDER BY created_at DESC,incident_id DESC LIMIT 33",
         (workspace, operation_id),
     ).fetchall()
+    # Registry references are navigation aids, not verification of object bytes.
+    current = cur.execute(
+        "SELECT c.run_id,c.provider_namespace,c.business_date,c.evidence_epoch,"
+        "r.result_sha256,g.evidence_epoch AS workspace_evidence_epoch "
+        "FROM ledger.recon_current c JOIN ledger.recon_run r USING(workspace_id,run_id) "
+        "JOIN ledger.recon_registry_guard g USING(workspace_id) "
+        "WHERE c.workspace_id=%s AND c.provider_namespace=%s "
+        "ORDER BY c.business_date DESC LIMIT 21",
+        (workspace, None if payout is None else payout["provider_namespace"]),
+    ).fetchall()
+    for reference in current:
+        reference["business_date"] = reference["business_date"].isoformat()
+        for field in ("evidence_epoch", "workspace_evidence_epoch"):
+            reference[field] = str(reference[field])
     return {
         "operation": operation,
         "entries": entries,
@@ -54,6 +68,8 @@ def operation_case(cur, workspace, operation_id):
         "observations_have_more": len(observations) > 20,
         "recent_incidents": incidents[:32],
         "incidents_have_more": len(incidents) > 32,
+        "current_reconciliation_references": current[:20],
+        "reconciliations_have_more": len(current) > 20,
         "limits": {"entries": 100, "observations": 20, "incidents": 32},
         "evidence_boundary": (
             "Stored hashes and references; no provider authenticity or whole-history assertion"

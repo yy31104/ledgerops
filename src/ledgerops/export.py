@@ -46,7 +46,8 @@ SCHEMA_VERSIONS_BY_FORMAT[5] = (
 SCHEMA_VERSIONS_BY_FORMAT[6] = (*SCHEMA_VERSIONS_BY_FORMAT[5], "007_payout_resolution.sql")
 SCHEMA_VERSIONS_BY_FORMAT[7] = (*SCHEMA_VERSIONS_BY_FORMAT[6], "008_reconciliation_publication.sql")
 SCHEMA_VERSIONS_BY_FORMAT[8] = (*SCHEMA_VERSIONS_BY_FORMAT[7], "009_authentication.sql")
-SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[8]
+SCHEMA_VERSIONS_BY_FORMAT[9] = (*SCHEMA_VERSIONS_BY_FORMAT[8], "010_operator_actions.sql")
+SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[9]
 _BASE_TABLES = {
     "accounts": ("account", "workspace_id,id,owner_id,class,normal_side,currency,enabled", "id"),
     "balances": (
@@ -212,10 +213,47 @@ _TABLES_BY_FORMAT = {
 # snapshot retains v6 row shapes while explicitly recording the new schema.
 _TABLES_BY_FORMAT[7] = _TABLES_BY_FORMAT[6]
 _TABLES_BY_FORMAT[8] = _TABLES_BY_FORMAT[7]
-_TABLES = _TABLES_BY_FORMAT[8]
-_BINARY_FIELDS = {"payload", "provider_request", "response_payload", "envelope", "raw_payload"}
+_OPERATOR_TABLES = {
+    "operator_actions": (
+        "operator_action",
+        "workspace_id,action_id,action_type,payout_id,observation_id,evidence_run_id,"
+        "intent,intent_sha256,proposal,proposal_sha256,maker_actor_id,maker_client_id,"
+        "maker_membership_version,maker_client_version,auth_generation,expires_at,created_at",
+        "action_id",
+    ),
+    "operator_approvals": (
+        "operator_approval",
+        "workspace_id,action_id,proposal_sha256,checker_actor_id,checker_client_id,"
+        "checker_membership_version,checker_client_version,approved_at",
+        "action_id",
+    ),
+    "operator_executions": (
+        "operator_execution",
+        "workspace_id,action_id,execution_id,proposal_sha256,executor_actor_id,executor_client_id,"
+        "observation_id,state,journal_id,http_status,response_body,executed_at",
+        "action_id",
+    ),
+    "payout_incident_resolutions": (
+        "payout_incident_resolution",
+        "workspace_id,incident_id,payout_id,action_id,observation_id,resolved_at",
+        "incident_id",
+    ),
+}
+_TABLES_BY_FORMAT[9] = {**_TABLES_BY_FORMAT[8], **_OPERATOR_TABLES}
+_TABLES = _TABLES_BY_FORMAT[9]
+_BINARY_FIELDS = {
+    "payload",
+    "provider_request",
+    "response_payload",
+    "envelope",
+    "raw_payload",
+    "intent",
+    "proposal",
+}
 _DIGEST_FIELDS = {
     "payload_sha256",
+    "intent_sha256",
+    "proposal_sha256",
     "provider_request_sha256",
     "envelope_sha256",
     "raw_sha256",
@@ -225,6 +263,7 @@ _TABLE_NULLABLE_FIELDS = {
     "observation_receipts": {"transport_attempt_id"},
     "payout_incidents": {"observation_id", "related_observation_id", "related_payload_sha256"},
     "payout_resolutions": {"journal_id"},
+    "operator_executions": {"journal_id"},
 }
 _NULLABLE_FIELDS = frozenset(
     {
@@ -295,9 +334,23 @@ _UUID_FIELDS = frozenset(
         "incident_id",
         "related_observation_id",
         "transport_attempt_id",
+        "action_id",
+        "evidence_run_id",
+        "maker_actor_id",
+        "maker_client_id",
+        "checker_actor_id",
+        "checker_client_id",
+        "executor_actor_id",
+        "executor_client_id",
+        "execution_id",
+        "auth_generation",
     }
 )
 _INT_FIELDS = {
+    "maker_membership_version": (1, 2**63 - 1),
+    "maker_client_version": (1, 2**63 - 1),
+    "checker_membership_version": (1, 2**63 - 1),
+    "checker_client_version": (1, 2**63 - 1),
     "schema_epoch": (1, 2**63 - 1),
     "projection_epoch": (1, 2**63 - 1),
     "old_epoch": (1, 2**63 - 2),
@@ -315,6 +368,7 @@ _INT_FIELDS = {
     "source_sequence": (0, 2**63 - 1),
 }
 _ENUM_FIELDS = {
+    "action_type": {"REPROCESS_TERMINAL_LOCAL_BLOCKER"},
     "currency": {"PLN"},
     "mode": {"NORMAL", "FROZEN", "RESTORE"},
     "class": {"SYNTHETIC_CLEARING", "CUSTOMER_LIABILITY", "MERCHANT_LIABILITY"},
@@ -370,6 +424,10 @@ _SORT_KEYS = {
     "payout_incidents": ("incident_id",),
     "payout_resolutions": ("payout_id",),
     "related_incidents": ("incident_id", "observation_id"),
+    "operator_actions": ("action_id",),
+    "operator_approvals": ("action_id",),
+    "operator_executions": ("action_id",),
+    "payout_incident_resolutions": ("incident_id",),
 }
 _DATA_KEYS_BY_FORMAT = {
     version: frozenset(
@@ -492,6 +550,9 @@ def _validate_field(key, value, *, version, table=None):
         low, high = _INT_FIELDS[key]
         if type(value) is not int or not low <= value <= high:
             raise ExportError("Invalid integer field")
+    elif key == "http_status" and table == "operator_executions":
+        if type(value) is not int or value != 200:
+            raise ExportError("Invalid operator execution status")
     elif key == "http_status":
         if type(value) is not int or value not in ({201, 202, 422} if version >= 5 else {201, 422}):
             raise ExportError("Invalid terminal result status")
@@ -531,6 +592,8 @@ def _validate_field(key, value, *, version, table=None):
             raise ExportError("Response/report must be an object")
     elif key in _DIGEST_FIELDS | {
         "payload_hex",
+        "intent_hex",
+        "proposal_hex",
         "payload_sha256",
         "provider_request_hex",
         "provider_request_sha256",
@@ -585,6 +648,9 @@ def _validate_field(key, value, *, version, table=None):
         "finished_at",
         "received_at",
         "resolved_at",
+        "expires_at",
+        "approved_at",
+        "executed_at",
     }:
         try:
             if type(value) is not str or not re.fullmatch(
@@ -720,6 +786,23 @@ def read_snapshot(cur, workspace_id: str) -> dict:
             ).fetchone()["estimated_bytes"]
             if size > MAX_BUNDLE_BYTES:
                 raise ExportLimitExceeded("Payload transfer byte limit exceeded")
+        elif name == "operator_actions":
+            size = cur.execute(
+                "SELECT coalesce(sum(2::numeric * "
+                "(octet_length(intent) + octet_length(proposal))),0) "
+                "AS estimated_bytes FROM ledger.operator_action WHERE workspace_id=%s",
+                (workspace_id,),
+            ).fetchone()["estimated_bytes"]
+            if size > MAX_BUNDLE_BYTES:
+                raise ExportLimitExceeded("Operator audit transfer byte limit exceeded")
+        elif name == "operator_executions":
+            size = cur.execute(
+                "SELECT coalesce(sum(octet_length(response_body::text)),0) AS estimated_bytes "
+                "FROM ledger.operator_execution WHERE workspace_id=%s",
+                (workspace_id,),
+            ).fetchone()["estimated_bytes"]
+            if size > MAX_BUNDLE_BYTES:
+                raise ExportLimitExceeded("Operator result transfer byte limit exceeded")
         elif name == "repairs":
             size = cur.execute(
                 "SELECT coalesce(sum(octet_length(source_witness)), 0) AS estimated_bytes "

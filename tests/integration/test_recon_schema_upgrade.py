@@ -15,7 +15,7 @@ from tests.integration.helpers import post_fixture, seed_accounts
 pytestmark = pytest.mark.integration
 
 
-def test_upgrade_preserves_v6_bytes_and_money_while_new_exports_declare_v8(
+def test_upgrade_preserves_v6_bytes_and_money_while_new_exports_declare_v9(
     postgres_cluster, golden, tmp_path, monkeypatch
 ):
     old = tmp_path / "old-resources"
@@ -49,10 +49,11 @@ def test_upgrade_preserves_v6_bytes_and_money_while_new_exports_declare_v8(
             assert migrations.apply_migrations(conn) == [
                 "008_reconciliation_publication.sql",
                 "009_authentication.sql",
+                "010_operator_actions.sql",
             ]
         with db.connect("reader") as conn:
             after = capture_snapshot(conn, golden["workspace"]["id"])
-        assert after["format_version"] == 8 and verify_snapshot(after).healthy
+        assert after["format_version"] == 9 and verify_snapshot(after).healthy
         for key in before.keys() - {"format_version", "schema_versions", "snapshot_witness"}:
             assert before[key] == after[key], key
         assert original == {name: (legacy / name).read_bytes() for name in original}

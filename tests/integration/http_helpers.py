@@ -44,6 +44,7 @@ class ProcessService:
             "LEDGEROPS_API_WRITES_ENABLED": "true",
             **overrides,
         }
+        self.environment = env
         self.process = subprocess.Popen(
             [sys.executable, "-m", "ledgerops.service"],
             cwd=ROOT,
@@ -111,7 +112,8 @@ class ProcessService:
                 deadline = time.monotonic() + 3
                 while conn.execute(
                     "SELECT count(*) FROM pg_stat_activity WHERE datname=%s "
-                    "AND application_name IN ('ledgerops-api','ledgerops-callback')",
+                    "AND application_name IN ('ledgerops-api','ledgerops-callback',"
+                    "'ledgerops-operator')",
                     (self.db.name,),
                 ).fetchone() != (0,):
                     assert time.monotonic() < deadline, (

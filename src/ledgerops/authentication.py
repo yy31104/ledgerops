@@ -469,6 +469,18 @@ class AuthenticatedCredential:
             "decided_at": row["decided_at"],
         }
 
+    def identity_view(self, cur):
+        """Metadata only, inside a current-auth snapshot; never a permission substitute."""
+        self._check(cur, None)
+        row = _current(cur, self._digest)
+        return {
+            "workspace_id": str(self.principal.workspace_id),
+            "actor_id": str(self.principal.actor_id),
+            "client_id": str(self.principal.client_id),
+            "scopes": sorted(set(row["credential_scopes"]) & set(row["membership_scopes"])),
+            "expires_at": row["expires_at"].isoformat(),
+        }
+
 
 def authenticate(conn, token):
     """Locate immutable identity only. Current permission is rechecked in the actual operation."""
@@ -487,9 +499,13 @@ def authorized_snapshot(conn, credential, required_scope):
 
     Session locks have explicit finally cleanup. READ ONLY requires no UPDATE grant
     on credential tables. Expiry is evaluated at the authoritative DB decision time.
+    None is reserved for current public identity metadata; financial routes pass
+    their fixed scope and authorization_guard rejects a missing scope.
     """
     _idle(conn)
-    if type(credential) is not AuthenticatedCredential or required_scope not in SCOPES:
+    if type(credential) is not AuthenticatedCredential or (
+        required_scope is not None and required_scope not in SCOPES
+    ):
         raise ValueError("Authenticated credential and fixed read scope required")
     key = _auth_key(credential.principal.workspace_id.value)
     locked = False

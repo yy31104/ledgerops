@@ -37,6 +37,7 @@ class TestDatabase:
     reconciler_password: str
     service_password: str
     auth_admin_password: str
+    operator_password: str
 
     def connect(self, role: str = "app") -> psycopg.Connection:
         if role not in {
@@ -47,6 +48,7 @@ class TestDatabase:
             "reconciler",
             "service",
             "auth_admin",
+            "operator",
             "owner",
             "admin",
         }:
@@ -63,6 +65,7 @@ class TestDatabase:
                 "reconciler": "ledger_reconciler",
                 "service": "ledger_service",
                 "auth_admin": "ledger_identity_admin",
+                "operator": "ledger_action_operator",
             }.get(role, "postgres"),
             password={
                 "app": self.app_password,
@@ -72,6 +75,7 @@ class TestDatabase:
                 "reconciler": self.reconciler_password,
                 "service": self.service_password,
                 "auth_admin": self.auth_admin_password,
+                "operator": self.operator_password,
             }.get(role, self.admin_password),
             autocommit=True,
             connect_timeout=2,
@@ -93,6 +97,7 @@ def postgres_cluster():
     reconciler_password = secrets.token_urlsafe(24)
     service_password = secrets.token_urlsafe(24)
     auth_admin_password = secrets.token_urlsafe(24)
+    operator_password = secrets.token_urlsafe(24)
     container_id = None
     try:
         docker("version", "--format", "{{.Server.Version}}")
@@ -142,6 +147,7 @@ def postgres_cluster():
             reconciler_password,
             service_password,
             auth_admin_password,
+            operator_password,
         )
         deadline = time.monotonic() + 30
         while True:
@@ -190,9 +196,12 @@ def postgres_cluster():
             )
             conn.execute("CREATE ROLE ledger_auth_reader NOLOGIN NOSUPERUSER NOBYPASSRLS")
             conn.execute("CREATE ROLE ledger_auth_admin NOLOGIN NOSUPERUSER NOBYPASSRLS")
+            conn.execute("CREATE ROLE ledger_operator NOLOGIN NOSUPERUSER NOBYPASSRLS")
+            conn.execute("GRANT ledger_worker,ledger_reader,ledger_auth_reader TO ledger_operator")
             for role_name, password in (
                 ("ledger_service", service_password),
                 ("ledger_identity_admin", auth_admin_password),
+                ("ledger_action_operator", operator_password),
             ):
                 conn.execute(
                     sql.SQL(
@@ -202,6 +211,7 @@ def postgres_cluster():
                 )
             conn.execute("GRANT ledger_app,ledger_reader,ledger_auth_reader TO ledger_service")
             conn.execute("GRANT ledger_auth_admin TO ledger_identity_admin")
+            conn.execute("GRANT ledger_operator TO ledger_action_operator")
         yield cluster
     except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
         pytest.fail(
@@ -227,6 +237,7 @@ def db(postgres_cluster):
         cluster.reconciler_password,
         cluster.service_password,
         cluster.auth_admin_password,
+        cluster.operator_password,
     )
     with cluster.connect("admin") as admin:
         admin.execute(
@@ -244,6 +255,7 @@ def db(postgres_cluster):
                 "007_payout_resolution.sql",
                 "008_reconciliation_publication.sql",
                 "009_authentication.sql",
+                "010_operator_actions.sql",
             ]
         yield database
     finally:

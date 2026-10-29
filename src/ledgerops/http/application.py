@@ -32,6 +32,8 @@ from ledgerops.domain import (
 from ledgerops.http.assets import Asset, asset_for
 from ledgerops.http.callbacks import CallbackUnavailable, authentic, receive
 from ledgerops.http.callbacks import connect as callback_connection
+from ledgerops.http.operators import connect as operator_connection
+from ledgerops.http.operators import invoke as operator_request
 from ledgerops.http.queries import metrics, operation_case, operation_receipt
 
 MAX_BODY = 16384
@@ -230,6 +232,15 @@ class Application:
                     "route": route,
                     "status": status,
                     "elapsed_ms": round((time.monotonic() - started) * 1000),
+                    **{
+                        name: str(result[name])
+                        for name in ("operation_id", "action_id", "execution_id", "observation_id")
+                        if not static
+                        and name in result
+                        and re.fullmatch(
+                            "[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", str(result[name])
+                        )
+                    },
                 },
                 separators=(",", ":"),
             ),
@@ -253,10 +264,30 @@ class Application:
                 if self.config.callback_trust is not None:
                     with callback_connection(self.config):
                         pass
-            except (psycopg.Error, HTTPError, CallbackUnavailable):
+                if self.config.operator_trust is not None:
+                    with operator_connection(self.config):
+                        pass
+            except (psycopg.Error, HTTPError, CallbackUnavailable, AdmissionError):
                 return 503, {"ready": False}, "ready"
             ready = not self.config.restore_mode and self.config.writes_enabled
             return (200 if ready else 503), {"ready": ready}, "ready"
+        if path == "/v1/operator/actions" or path.startswith("/v1/operator/actions/"):
+            if self.config.operator_trust is None:
+                raise HTTPError(404, "NOT_FOUND")
+            if environ.get("QUERY_STRING"):
+                raise HTTPError(400, "QUERY_UNSUPPORTED")
+            if method not in {"GET", "POST"}:
+                raise HTTPError(405, "METHOD_NOT_ALLOWED")
+            if method == "POST" and (self.config.restore_mode or not self.config.writes_enabled):
+                raise HTTPError(503, "PHYSICAL_RESTORE_OR_WRITES_DISABLED")
+            return operator_request(
+                self.config,
+                environ,
+                path,
+                method,
+                body(environ) if method == "POST" else None,
+                identity,
+            )
         if method == "POST" and path.startswith("/v1/provider/callbacks/"):
             parts = path.removeprefix("/v1/provider/callbacks/").split("/")
             if self.config.callback_trust is None or len(parts) != 2:
@@ -317,17 +348,15 @@ class Application:
             conn = self.connect()
             try:
                 credential = self.credential(conn, environ)
-                with authorized_snapshot(conn, credential, "accounts:read") as cur:
+                with authorized_snapshot(
+                    conn, credential, None if path == "/v1/me" else "accounts:read"
+                ) as cur:
                     if path == "/v1/me":
-                        return (
-                            200,
-                            {
-                                "workspace_id": str(credential.principal.workspace_id),
-                                "actor_id": str(credential.principal.actor_id),
-                                "client_id": str(credential.principal.client_id),
-                            },
-                            "identity",
+                        metadata = credential.identity_view(cur)
+                        metadata["operator_controls_available"] = (
+                            self.config.operator_trust is not None
                         )
+                        return 200, metadata, "identity"
                     query = parse_qs(environ.get("QUERY_STRING", ""), strict_parsing=True)
                     if query.keys() - {"after"} or any(len(v) != 1 for v in query.values()):
                         raise HTTPError(400, "INVALID_PAGINATION")

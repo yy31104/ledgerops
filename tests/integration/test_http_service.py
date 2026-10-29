@@ -71,6 +71,11 @@ def test_actual_server_authenticated_purchase_replay_and_conflict(service, seede
     )
     assert retained_rows(seeded_db) == before
     assert issued.token not in service.logs()
+    events = [json.loads(line) for line in service.stdout.read_text().splitlines()]
+    assert any(
+        event.get("route") == "purchase" and event.get("operation_id") == request["operation_id"]
+        for event in events
+    )
 
 
 @pytest.mark.parametrize(

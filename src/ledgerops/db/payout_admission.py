@@ -294,6 +294,12 @@ def payout_state_rows(cur, principal, payout_id):
         "ORDER BY received_at DESC,observation_id DESC LIMIT 5",
         (principal.workspace_id.value, payout_id.value),
     ).fetchall()
+    dispositions = cur.execute(
+        "SELECT incident_id,action_id,observation_id,resolved_at FROM "
+        "ledger.payout_incident_resolution WHERE workspace_id=%s AND payout_id=%s "
+        "ORDER BY resolved_at DESC,incident_id DESC LIMIT 33",
+        (principal.workspace_id.value, payout_id.value),
+    ).fetchall()
     resolution = cur.execute(
         "SELECT state,observation_id,journal_id FROM ledger.payout_resolution "
         "WHERE workspace_id=%s AND payout_id=%s",
@@ -312,6 +318,16 @@ def payout_state_rows(cur, principal, payout_id):
         "attempts": row["attempts"],
         "next_due_at": row["next_due_at"].isoformat(),
         "incidents": [dict(incident) for incident in incidents],
+        "incident_resolutions": [
+            {
+                "incident_id": str(item["incident_id"]),
+                "action_id": str(item["action_id"]),
+                "observation_id": str(item["observation_id"]),
+                "resolved_at": item["resolved_at"].isoformat(),
+            }
+            for item in dispositions[:32]
+        ],
+        "incident_resolutions_have_more": len(dispositions) > 32,
         "recent_observations": [
             {
                 "observation_id": str(observation["observation_id"]),

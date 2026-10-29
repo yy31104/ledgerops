@@ -54,3 +54,24 @@ def test_policy_file_is_owner_only_and_explicit_version(tmp_path):
     path.write_text(json.dumps({"version": True, "workspaces": []}))
     with pytest.raises(ValueError):
         ServiceConfig.from_env({**BASE, "LEDGEROPS_PAYOUT_POLICY_FILE": str(path)})
+
+
+@pytest.mark.parametrize(
+    "missing",
+    [
+        "LEDGEROPS_OPERATOR_DSN",
+        "LEDGEROPS_OPERATOR_OBJECTS",
+        "LEDGEROPS_OPERATOR_NAMESPACE",
+        "LEDGEROPS_OPERATOR_KEYS_FILE",
+    ],
+)
+def test_operator_capability_never_starts_with_partial_configuration(tmp_path, missing):
+    values = {
+        "LEDGEROPS_OPERATOR_DSN": BASE["LEDGEROPS_SERVICE_DSN"],
+        "LEDGEROPS_OPERATOR_OBJECTS": str(tmp_path),
+        "LEDGEROPS_OPERATOR_NAMESPACE": "10000000-0000-0000-0000-000000000001",
+        "LEDGEROPS_OPERATOR_KEYS_FILE": str(tmp_path / "keys.json"),
+    }
+    del values[missing]
+    with pytest.raises(ValueError, match="COMPLETE_OPERATOR_CONFIGURATION_REQUIRED"):
+        ServiceConfig.from_env({**BASE, **values})

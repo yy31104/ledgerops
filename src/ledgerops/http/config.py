@@ -122,6 +122,10 @@ class ServiceConfig:
     callback_dsn: str | None = field(default=None, repr=False)
     callback_trust: ProviderTrust | None = field(default=None, repr=False)
 
+    operator_dsn: str | None = field(default=None, repr=False)
+    operator_objects: Path | None = field(default=None, repr=False)
+    operator_trust: ProviderTrust | None = field(default=None, repr=False)
+
     @classmethod
     def from_env(cls, env=None):
         env = os.environ if env is None else env
@@ -175,6 +179,27 @@ class ServiceConfig:
             callback_trust = ProviderTrust(
                 ProviderNamespaceId.parse(env[names[1]]), _read_keys(Path(env[names[2]]))
             )
+        operator_names = (
+            "LEDGEROPS_OPERATOR_DSN",
+            "LEDGEROPS_OPERATOR_OBJECTS",
+            "LEDGEROPS_OPERATOR_NAMESPACE",
+            "LEDGEROPS_OPERATOR_KEYS_FILE",
+        )
+        operator_dsn = operator_objects = operator_trust = None
+        if any(env.get(name) for name in operator_names):
+            if not all(env.get(name) for name in operator_names):
+                raise ConfigurationError("COMPLETE_OPERATOR_CONFIGURATION_REQUIRED")
+            operator_dsn = env[operator_names[0]]
+            if not 1 <= len(operator_dsn) <= 16384:
+                raise ConfigurationError("OPERATOR_CONFIGURATION_INVALID")
+            conninfo_to_dict(operator_dsn)
+            operator_objects = Path(env[operator_names[1]])
+            if not operator_objects.is_dir() or operator_objects.is_symlink():
+                raise ConfigurationError("EXISTING_OPERATOR_OBJECT_STORE_REQUIRED")
+            operator_trust = ProviderTrust(
+                ProviderNamespaceId.parse(env[operator_names[2]]),
+                _read_keys(Path(env[operator_names[3]])),
+            )
         return cls(
             dsn,
             hosts,
@@ -191,4 +216,7 @@ class ServiceConfig:
             ),
             callback_dsn,
             callback_trust,
+            operator_dsn,
+            operator_objects,
+            operator_trust,
         )

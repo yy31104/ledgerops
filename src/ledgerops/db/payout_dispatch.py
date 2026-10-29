@@ -213,9 +213,9 @@ def due_payouts(conn, *, clock=utc_now, limit=100, provider_namespace=None):
         "WHERE w.mode='NORMAL' AND i.next_due_at<=%s "
         "AND (%s::uuid IS NULL OR p.provider_namespace=%s::uuid) "
         "AND i.state IN ('READY','IN_FLIGHT','OBSERVING') "
-        "AND NOT EXISTS (SELECT 1 FROM ledger.payout_incident incident "
+        "AND NOT EXISTS (SELECT 1 FROM ledger.unresolved_payout_incident incident "
         "WHERE incident.workspace_id=i.workspace_id AND incident.payout_id=i.payout_id) "
-        "AND NOT EXISTS (SELECT 1 FROM ledger.payout_incident incident "
+        "AND NOT EXISTS (SELECT 1 FROM ledger.unresolved_payout_incident incident "
         "JOIN ledger.provider_observation o ON o.observation_id=incident.related_observation_id "
         "WHERE o.workspace_id=i.workspace_id AND o.payout_id=i.payout_id) ORDER BY "
         "i.next_due_at,i.workspace_id,i.payout_id LIMIT %s",

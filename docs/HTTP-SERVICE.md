@@ -2,11 +2,11 @@
 
 服务入口是`python -m ledgerops.service`（或`make service`），由锁定的Gunicorn26.2.0运行。
 `lab/`仍是独立学习工具；真实服务不会创建测试身份、重置账本或自动运行演示。
-本页描述当前本地已验证接口，Linux部署/审批/实际恢复在后续切片分别验收。
+本页描述当前本地接口；受控审批见[操作契约](OPERATOR-ACTIONS.md)，Linux部署/实际恢复另行验收。
 
 ## 配置与启动
 
-先用管理员建立数据库/角色并执行迁移009，按AUTHENTICATION.md签发当前身份凭据。
+先用管理员建立数据库/角色并执行迁移010，按AUTHENTICATION.md签发当前身份凭据。
 服务登录账号须继承ledger_app/ledger_reader/ledger_auth_reader，禁止超级用户、migrator、
 auth_admin或worker成员。每次数据库连接验证角色和本地SQL迁移版本/摘要，错误配置不就绪。
 
@@ -23,6 +23,7 @@ auth_admin或worker成员。每次数据库连接验证角色和本地SQL迁移�
 | LEDGEROPS_API_WRITES_ENABLED | false；必须显式true且恢复模式false才能写入 |
 | LEDGEROPS_PAYOUT_POLICY_FILE | 可选，所有者私有常规JSON文件；缺失时拒绝新的提现入口 |
 | LEDGEROPS_CALLBACK_DSN/NAMESPACE/KEYS_FILE | 可选、三项须完整；单独worker账号和签名信任，未配置则无回调入口 |
+| LEDGEROPS_OPERATOR_DSN/OBJECTS/NAMESPACE/KEYS_FILE | 可选、四项须完整；独立operator账号/对象存储/签名信任，未配置则无运维入口 |
 
 production的业务页面/API必须经HTTPS访问。Gunicorn只接受配置过的代理IP提供的
 X-Forwarded-Proto:https；普通客户端自报头不能授权身份或TLS。不要将后端明文端口暴露公网。
@@ -53,10 +54,11 @@ fixed_fee_minor、dispatch_ttl_seconds、beneficiary_owners（beneficiary UUID�
 | POST /v1/payouts | payout:write，政策匹配后202受理/冻结资金；202不是支付成功 |
 | GET /v1/payouts/UUID | payout:read，原商户归属检查和单快照当前状态/证据引用 |
 | GET /v1/operations/UUID | operations:read，仅本client提交过的业务原回执；GET200内保留原http_status |
-| GET /v1/me | accounts:read，当前Principal的公开身份编号 |
+| GET /v1/me | 当前有效凭据；仅公开身份、有效scope、期限和是否启用运维面板，不要求账户读取权限 |
 | GET /v1/accounts?after=UUID | accounts:read，仅actor自有账户；每页100、明确next_after |
 | GET /v1/investigation/operations/UUID | evidence:read，工作区内调查；原请求摘要/分录/hold/最近证据引用 |
 | GET /v1/metrics | evidence:read，工作区未决数量/年龄、BLOCKED派发记录和隔离数量 |
+| /v1/operator/actions及子路由 | 独立配置才启用；proposal/approval/execute各有固定scope，见操作契约 |
 
 调查记录最多100条分录；观察20条、事件32条，明确have_more，不能把“最近”说成全历史。
 金融金额、版本、处理尝试数和外部来源序号用字符串传输，避免浏览器浮点整数精度丢失。数量/行号/HTTP状态为小整数。
@@ -78,9 +80,12 @@ fixed_fee_minor、dispatch_ttl_seconds、beneficiary_owners（beneficiary UUID�
 
 ## 调查台
 
-根路径`/`提供捆绑的只读调查台：连接身份、账户、按业务UUID调查和未决状态查询。
+根路径`/`提供捆绑的调查台：连接身份、账户、按业务UUID调查和未决状态查询。
+当前结算run/epoch引用来自同一授权快照，最多20条，明确have_more；它们不证明对象文件已经核验。
+独立运维实例还提供提案→另一人核对精确原文→执行面板，只有配置和当前scope均允许才启用控件。
 凭据只存页面内存，输入框在连接时清空；退出/刷新/离开页面后清除。异步会话代次阻止退出后旧响应
 重新显示数据。界面只用textContent，不执行记录中的HTML；没有外部脚本、浏览器持久存储或操作回调。
+原文`proposal_json`以字符串保留canonical字节，浏览器SHA-256核验后绑定其摘要，避免大整数重算漂移。
 静态资源仅三个固定路径，拒绝任意文件读取。CSP、自身来源、nosniff和no-store作为默认响应头。
 本次实际浏览器自动化被Work设置关闭；真实HTTP资产/API和node语法检查通过，视觉/交互需后续实际浏览器验收。
 
@@ -91,7 +96,8 @@ fixed_fee_minor、dispatch_ttl_seconds、beneficiary_owners（beneficiary UUID�
 SIGTERM停止接新请求并允许有界在途链结束。启动时输出真实worker初始化事件供运行监控。
 源代码不会用每请求无限线程、无界连接池或进程内后台支付任务。
 
-JSON请求日志只写服务器request ID、固定route/status与耗时；关闭原始access log，HTTP解析警告/异常
+JSON请求日志写服务器request ID、固定route/status与耗时，以及成功结果中经过UUID格式校验的
+operation/action/execution/observation关联编号；不写任意正文/路径。关闭原始access log，HTTP解析警告/异常
 使用固定事件，避免头、URL查询、DSN、payload和密钥泄露。解析器在进入应用前的400/431可能是服务器标准错误页。
 指标取当前授权工作区数据库，数量不会把多个worker的内存计数冒充全局统计。
 当前工作区导出/证据容量边界仍按R4文档执行；本片没有生产吞吐、HA或任意容量保证。

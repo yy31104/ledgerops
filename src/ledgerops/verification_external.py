@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+from ledgerops.verification_operator import verify_operator_records
+
 _TERMINAL = {"SUCCEEDED", "FAILED", "CLOSED_ABSENT"}
 _CHANNELS = {"PUT", "LOOKUP", "CLOSE", "CALLBACK", "HISTORY"}
 _MAX_ROWS = 10000
@@ -168,7 +170,7 @@ class ExternalFacts:
     contradictions: set
 
 
-def _incidents(check, snapshot, workspace, payouts, observations):
+def _incidents(check, snapshot, workspace, payouts, observations, resolved_ids=frozenset()):
     rows = check.index(
         check.rows(snapshot, "payout_incidents", workspace),
         "payout_incidents",
@@ -227,6 +229,8 @@ def _incidents(check, snapshot, workspace, payouts, observations):
                 _hex(digest, digest=True)
             if category == "EVIDENCE_LIMIT":
                 _require(digest is not None, "evidence limit must retain incoming digest")
+            if identifier in resolved_ids and category == "LOCAL_BLOCKER":
+                continue
             affected.add(payout)
             if category == "PROVIDER_CONTRADICTION":
                 contradictions.add(payout)
@@ -438,10 +442,12 @@ def verify_external_records(check, snapshot, workspace, payouts):
             )
             check.flags["intent"] = False
             del observations[identifier]
-    incident_payouts, blocked, contradictions = _incidents(
-        check, snapshot, workspace, payouts, observations
-    )
-    contradictions |= _conflicts(check, observations, incident_payouts)
+    if snapshot["format_version"] < 9:
+        # Preserve the historical report ordering and capability for v6-v8.
+        incident_payouts, blocked, contradictions = _incidents(
+            check, snapshot, workspace, payouts, observations
+        )
+        contradictions |= _conflicts(check, observations, incident_payouts)
     quarantine_count = _receipts_and_quarantine(check, snapshot, workspace, payouts, observations)
     resolutions = check.index(
         check.rows(snapshot, "payout_resolutions", workspace),
@@ -471,6 +477,14 @@ def verify_external_records(check, snapshot, workspace, payouts):
             )
             check.flags["intent"] = False
             del resolutions[payout]
+    if snapshot["format_version"] >= 9:
+        resolved_ids = verify_operator_records(
+            check, snapshot, workspace, payouts, observations, resolutions
+        )
+        incident_payouts, blocked, contradictions = _incidents(
+            check, snapshot, workspace, payouts, observations, resolved_ids
+        )
+        contradictions |= _conflicts(check, observations, incident_payouts)
     terminal_payouts = {
         row["payout_id"]
         for row in observations.values()

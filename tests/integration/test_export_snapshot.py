@@ -221,10 +221,11 @@ def test_cli_exports_with_reader_then_verifies_offline_and_masks_connection_deta
     assert report["healthy"] and report["request_intent_ok"]
     assert report["unverified_intent_kinds"] == [
         "OPENING",
+        "OPERATOR_HISTORICAL_AUTHORIZATION",
         "PAYOUT_EXTERNAL_EFFECT",
         "PAYOUT_PROVIDER_AUTHENTICITY",
     ]
-    assert report["report_version"] == 2
+    assert report["report_version"] == 3
     assert report["external_evidence"]["signature_authenticity"] == "NOT_VERIFIED_NO_TRUST_KEYS"
     secret = "do-not-print-this-password"
     failed = subprocess.run(
