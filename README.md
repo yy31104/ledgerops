@@ -15,10 +15,14 @@ All financial examples use synthetic PLN minor units.
 
 R3 adds persistent payout instructions, holds, authenticated observations and crash
 recovery. R4 pins independent settlement evidence and publishes complete reconciliation
-runs. R5 adds current scoped credentials, a real Gunicorn HTTP process and typed
-maker/checker reprocessing. See [HTTP service](docs/HTTP-SERVICE.md),
+runs. R5 adds current scoped credentials, a real Gunicorn HTTP process, typed
+maker/checker reprocessing and actual closed-database restore. R6 adds immutable
+selected evidence with an independent stdlib reader. Large sources use bounded
+format10 with complete audit and maintenance checks. See the
+[delivery and running guide](docs/RELEASE-READINESS.md), [Linux runtime](ops/linux/README.md),
+[HTTP service](docs/HTTP-SERVICE.md),
 [authentication](docs/AUTHENTICATION.md), [operator actions](docs/OPERATOR-ACTIONS.md)
-and [remaining delivery](docs/tasks/DELIVERY.md) for the tested boundaries.
+and [delivery scope](docs/tasks/DELIVERY.md) for the tested boundaries.
 
 第一次学习这个项目，可先顺读[中文教程PDF](output/pdf/LedgerOps-从零读懂账本.pdf)。
 它用同一笔100/80的例子，从SQL和Python事务讲到并发、冲正、核对、重建和面试追问，

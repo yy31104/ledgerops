@@ -1,0 +1,253 @@
+x-runtime: &runtime
+  image: ${LEDGEROPS_IMAGE:-ledgerops-local:development}
+  user: "10001:10001"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ["/tmp:rw,nosuid,nodev,noexec,size=32m,uid=10001,gid=10001,mode=0700"]
+  cpus: 0.50
+  mem_limit: 192m
+  pids_limit: 64
+  init: true
+  stop_grace_period: 50s
+  logging: &logging
+    driver: json-file
+    options: {max-size: "5m", max-file: "2"}
+  labels: {io.ledgerops.scope: local-linux-stack}
+
+x-volume: &volume
+  labels: {io.ledgerops.scope: local-linux-stack}
+
+services:
+  init:
+    <<: *runtime
+    user: "0:0"
+    profiles: [admin]
+    command: [init]
+    network_mode: none
+    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
+    environment:
+      LEDGEROPS_PROXY_IP: ${LEDGEROPS_PROXY_IP:-172.30.88.2}
+    volumes:
+      - api-secrets:/volumes/api
+      - worker-secrets:/volumes/worker
+      - provider-secrets:/volumes/provider
+      - operator-secrets:/volumes/operator
+      - bootstrap-secrets:/volumes/bootstrap
+      - backup-secrets:/volumes/backup
+      - reconciler-secrets:/volumes/reconciler
+      - operator-scratch:/volumes/operator-scratch
+      - bootstrap-scratch:/volumes/bootstrap-scratch
+      - backup-scratch:/volumes/backup-scratch
+      - reconciler-scratch:/volumes/reconciler-scratch
+      - evidence-inputs:/volumes/evidence-inputs
+      - postgres-secrets:/volumes/postgres
+      - postgres-data:/volumes/postgres-data
+      - provider-data:/volumes/provider-data
+      - objects:/volumes/objects
+      - backups:/volumes/backups
+      - caddy-data:/volumes/caddy
+
+  postgres:
+    image: postgres@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+    user: "999:999"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/postgres-secret/password
+      PGDATA: /var/lib/postgresql/18/docker
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256
+    command: [postgres, -c, max_connections=40, -c, shared_buffers=32MB, -c, max_wal_size=128MB]
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=32m,uid=999,gid=999,mode=0700
+      - /var/run/postgresql:rw,nosuid,nodev,noexec,size=8m,uid=999,gid=999,mode=0755
+    cpus: 1.0
+    mem_limit: 256m
+    pids_limit: 128
+    stop_grace_period: 50s
+    networks: [private]
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - postgres-secrets:/run/postgres-secret:ro
+    healthcheck:
+      test: [CMD, pg_isready, -U, postgres, -h, "127.0.0.1"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+      start_period: 10s
+    logging: *logging
+    labels: {io.ledgerops.scope: local-linux-stack}
+
+  bootstrap:
+    <<: *runtime
+    mem_limit: 512m
+    profiles: [admin]
+    command: [bootstrap, provision]
+    networks: [private]
+    volumes:
+      - bootstrap-secrets:/run/ledgerops
+      - bootstrap-secrets:/run/bootstrap
+      - bootstrap-scratch:/var/lib/ledgerops-scratch
+      - evidence-inputs:/var/lib/ledgerops-inputs
+      - objects:/var/lib/ledgerops-objects
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  api:
+    <<: *runtime
+    command: [service]
+    environment:
+      LEDGEROPS_RESTORE_MODE: ${LEDGEROPS_RESTORE_MODE:-true}
+      LEDGEROPS_API_WRITES_ENABLED: ${LEDGEROPS_API_WRITES_ENABLED:-false}
+    volumes: ["api-secrets:/run/ledgerops:ro"]
+    networks: [private]
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import http.client; c=http.client.HTTPConnection('127.0.0.1',8080,timeout=2); c.request('GET','/health/live'); assert c.getresponse().status==200"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  operator:
+    <<: *runtime
+    mem_limit: 512m
+    cpus: 1.0
+    profiles: [operator]
+    command: [operator]
+    environment:
+      LEDGEROPS_RESTORE_MODE: ${LEDGEROPS_RESTORE_MODE:-true}
+      LEDGEROPS_API_WRITES_ENABLED: ${LEDGEROPS_API_WRITES_ENABLED:-false}
+    volumes:
+      - operator-secrets:/run/ledgerops:ro
+      - objects:/var/lib/ledgerops-objects:ro
+      - operator-scratch:/var/lib/ledgerops-scratch
+    networks: [private]
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  provider:
+    <<: *runtime
+    command: [provider]
+    volumes:
+      - provider-secrets:/run/ledgerops:ro
+      - provider-data:/var/lib/ledgerops-provider
+    networks: [private]
+
+  worker:
+    <<: *runtime
+    profiles: [dispatch]
+    command: [worker]
+    environment:
+      LEDGEROPS_RESTORE_MODE: ${LEDGEROPS_RESTORE_MODE:-true}
+      LEDGEROPS_DISPATCH_ENABLED: ${LEDGEROPS_DISPATCH_ENABLED:-false}
+    network_mode: service:provider
+    volumes: ["worker-secrets:/run/ledgerops:ro"]
+    depends_on:
+      provider: {condition: service_started}
+      postgres: {condition: service_healthy}
+
+  backup:
+    <<: *runtime
+    mem_limit: 768m
+    cpus: 1.0
+    image: ${LEDGEROPS_ADMIN_IMAGE:-ledgerops-local-admin:development}
+    profiles: [admin]
+    command: [backup]
+    network_mode: service:provider
+    volumes:
+      - backup-secrets:/run/ledgerops:ro
+      - objects:/var/lib/ledgerops-objects
+      - backups:/var/lib/ledgerops-backups
+      - backup-scratch:/var/lib/ledgerops-scratch
+    depends_on:
+      provider: {condition: service_started}
+      postgres: {condition: service_healthy}
+
+  reconciler:
+    <<: *runtime
+    profiles: [admin]
+    mem_limit: 512m
+    cpus: 1.0
+    command: [reconciler, --help]
+    networks: [private]
+    volumes:
+      - reconciler-secrets:/run/ledgerops:ro
+      - objects:/var/lib/ledgerops-objects
+      - evidence-inputs:/var/lib/ledgerops-inputs:ro
+      - reconciler-scratch:/var/lib/ledgerops-scratch
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  capacity:
+    <<: *runtime
+    profiles: [acceptance]
+    mem_limit: 512m
+    cpus: 1.0
+    network_mode: service:provider
+    volumes:
+      - bootstrap-secrets:/run/ledgerops:ro
+      - bootstrap-secrets:/run/bootstrap:ro
+      - bootstrap-scratch:/var/lib/ledgerops-scratch
+      - evidence-inputs:/var/lib/ledgerops-inputs
+    depends_on:
+      postgres: {condition: service_healthy}
+      provider: {condition: service_started}
+
+  proxy:
+    image: ${LEDGEROPS_PROXY_IMAGE:-ledgerops-local-proxy:development}
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:rw,nosuid,nodev,noexec,size=16m,uid=10001,gid=10001,mode=0700"]
+    environment: {HOME: /tmp, XDG_DATA_HOME: /data, XDG_CONFIG_HOME: /tmp}
+    command: [caddy, run, --config, /etc/caddy/Caddyfile, --adapter, caddyfile]
+    cpus: 0.25
+    mem_limit: 96m
+    pids_limit: 64
+    stop_grace_period: 15s
+    volumes:
+      - caddy-data:/data
+    ports:
+      - "127.0.0.1:${LEDGEROPS_HTTPS_PORT:-8443}:8443"
+      - "127.0.0.1:${LEDGEROPS_OPERATOR_PORT:-9443}:9443"
+    networks:
+      private:
+        ipv4_address: ${LEDGEROPS_PROXY_IP:-172.30.88.2}
+      ingress: {}
+    depends_on: [api]
+    logging: *logging
+    labels: {io.ledgerops.scope: local-linux-stack}
+
+networks:
+  ingress:
+    labels: {io.ledgerops.scope: local-linux-stack}
+  private:
+    internal: true
+    ipam:
+      config:
+        - subnet: "${LEDGEROPS_SUBNET:-172.30.88.0/24}"
+          ip_range: "${LEDGEROPS_DYNAMIC_RANGE:-172.30.88.128/25}"
+    labels: {io.ledgerops.scope: local-linux-stack}
+
+volumes:
+  api-secrets: *volume
+  worker-secrets: *volume
+  provider-secrets: *volume
+  operator-secrets: *volume
+  bootstrap-secrets: *volume
+  backup-secrets: *volume
+  postgres-secrets: *volume
+  postgres-data: *volume
+  provider-data: *volume
+  objects: *volume
+  backups: *volume
+  caddy-data: *volume
+  reconciler-secrets: *volume
+  operator-scratch: *volume
+  bootstrap-scratch: *volume
+  backup-scratch: *volume
+  reconciler-scratch: *volume
+  evidence-inputs: *volume

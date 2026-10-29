@@ -1,7 +1,7 @@
 UV ?= uv
 UV_CACHE_DIR ?= $(CURDIR)/.cache/uv
 export UV_CACHE_DIR
-CHECK_DIRS := src tests reference $(wildcard lab) $(wildcard provider_sim)
+CHECK_DIRS := src tests reference $(wildcard lab) $(wildcard provider_sim) $(wildcard ops)
 
 .PHONY: bootstrap check test test-unit test-integration test-provider build demo lab benchmark service
 

@@ -1,6 +1,6 @@
 # LedgerOps handoff
 
-Updated: 2026-10-28. R1/R2 and CLI demo accepted; local learning-page slice delivered.
+Updated: 2026-10-29. R1–R5 implemented locally; final R6/capacity/Linux integration underway.
 
 ## Current authorization: remaining releases and deployable service
 
@@ -84,8 +84,13 @@ inventingidentity ordispatching. Originalfreeze linkagepersists. Full1504tests p
 build/freshinstalledCLI pass. No001–010/reference/lab/tutorial/fixturechanges.
 See docs/BACKUP-RESTORE.md and evidence/R5-PR04/2026-10-29.
 R5 is complete initslocal syntheticcontract; serviceavailabilityRTO, off-host
-backup, realbank andcloudactivation are notclaimed. R6 andLinux/streamingcapacity
-acceptance remainactive; finaldeliveryregression willinclude theadditionalcase.
+backup, realbank andcloudactivation are notclaimed. R6 selected immutable exchanges,
+complete format10 export/verification/R4 authority and large-workspace maintenance
+are implemented. Linux nonroot/TLS/isolated-role deployment and nine acceptance
+groups passed in a preliminary dirty-source image. Final full regression and a
+fresh clean-commit image acceptance remain in progress; do not cite the preliminary
+image as the final release. See docs/RELEASE-READINESS.md and the bounded CAPACITY/R6
+task contracts. The final suite includes the additional R5 parent-fsync case.
 Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
 production activation and personal ownership remain separate.
 
@@ -169,7 +174,7 @@ exclusion checks pass. Browser automation was disabled by Work settings, so visu
 layout and browser interaction are not independently verified in this delivery.
 See [evidence](evidence/LAB/2026-10-28/README.md). Learning mastery remains unassessed.
 
-## Status
+## Historical R1/R2 status (later delivery above supersedes this scope)
 
 | Field | Current fact |
 |---|---|
