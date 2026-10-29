@@ -148,7 +148,8 @@ def _payload(row):
         type(encoded) is not str
         or not encoded
         or len(encoded) > 32 * 1024 * 1024
-        or re.fullmatch(r"(?:[0-9a-f]{2})+", encoded) is None
+        or len(encoded) % 2 != 0
+        or re.fullmatch(r"[0-9a-f]+", encoded) is None
         or type(digest) is not str
         or re.fullmatch(r"[0-9a-f]{64}", digest) is None
     ):
@@ -882,7 +883,8 @@ def _provider_instruction(row, request):
     encoded, digest = row["provider_request_hex"], row["provider_request_sha256"]
     if (
         type(encoded) is not str
-        or not re.fullmatch(r"(?:[0-9a-f]{2})+", encoded)
+        or len(encoded) % 2 != 0
+        or not re.fullmatch(r"[0-9a-f]+", encoded)
         or len(encoded) > 65536
         or type(digest) is not str
         or not re.fullmatch(r"[0-9a-f]{64}", digest)
@@ -976,7 +978,8 @@ def _payout_transport(check, snapshot, workspace, payouts, facts=None):
             payload = row["response_payload_hex"]
             if payload is not None and (
                 type(payload) is not str
-                or not re.fullmatch(r"(?:[0-9a-f]{2})*", payload)
+                or len(payload) % 2 != 0
+                or not re.fullmatch(r"[0-9a-f]*", payload)
                 or len(payload) > 131072
             ):
                 raise _Invalid("invalid bounded transport bytes")
@@ -1347,8 +1350,157 @@ def _operator_report(value):
         raise _Invalid("operator audit coverage counts disagree")
 
 
+def _resume_report_v4(report):
+    """Recognize only the complete bounded barrier-review capability used by maintenance."""
+    flags = {
+        "structure_ok",
+        "projection_ok",
+        "request_intent_ok",
+        "reservation_supported",
+        "healthy",
+        "rebuild_eligible",
+        "verification_complete",
+        "issues_truncated",
+    }
+    expected = flags | {
+        "report_version",
+        "format_version",
+        "verification_engine",
+        "capture_context",
+        "unverified_scopes",
+        "unverified_scope_count",
+        "issues",
+        "issue_count",
+        "intent_scope",
+        "unverified_intent_kinds",
+        "external_evidence",
+        "source_export_id",
+        "source_manifest_sha256",
+        "source_content_sha256",
+        "limits",
+    }
+    if report.keys() != expected:
+        raise _Invalid("invalid saved v4 review fields")
+    if (
+        type(report["report_version"]) is not int
+        or report["report_version"] != 4
+        or type(report["format_version"]) is not int
+        or report["format_version"] != 10
+        or report["verification_engine"] != "SQLITE_BOUNDED_SEMANTIC_CLOSURES_V1"
+        or report["capture_context"] != "EXCLUSIVE_WORKSPACE_BARRIER_READ_COMMITTED_V1"
+    ):
+        raise _Invalid("unsupported saved v4 review capability")
+    if any(type(report[name]) is not bool for name in flags):
+        raise _Invalid("saved v4 flags must be booleans")
+    if not all(report[name] for name in ("structure_ok", "projection_ok", "verification_complete")):
+        raise _Invalid("saved v4 review requires complete structure and projection checks")
+    if report["unverified_scopes"] != [] or type(report["unverified_scopes"]) is not list:
+        raise _Invalid("complete saved v4 review cannot omit semantic scopes")
+    if type(report["unverified_scope_count"]) is not int or report["unverified_scope_count"] != 0:
+        raise _Invalid("complete saved v4 review cannot omit semantic scopes")
+    expected_limits = {
+        "source_bytes": 268435456,
+        "source_rows": 1000000,
+        "scratch_sqlite_bytes": 536870912,
+        "sqlite_cache_bytes": 2097152,
+        "semantic_closure_bytes": 16777216,
+    }
+    if (
+        type(report["limits"]) is not dict
+        or report["limits"].keys() != expected_limits.keys()
+        or any(
+            type(report["limits"][name]) is not int or report["limits"][name] != value
+            for name, value in expected_limits.items()
+        )
+    ):
+        raise _Invalid("unsupported saved v4 review limits")
+    external = report["external_evidence"]
+    external_keys = {
+        "external_consistency_ok",
+        "accepted_payout_count",
+        "resolved_payout_count",
+        "payouts_resolved",
+        "signature_authenticity",
+        "independent_provider_history",
+    }
+    if type(external) is not dict or external.keys() != external_keys:
+        raise _Invalid("invalid saved v4 external review fields")
+    if (
+        type(external["external_consistency_ok"]) is not bool
+        or type(external["payouts_resolved"]) is not bool
+        or external["signature_authenticity"] != "NOT_VERIFIED_NO_TRUST_KEYS"
+        or external["independent_provider_history"] != "NOT_PROVIDED"
+    ):
+        raise _Invalid("unsupported saved v4 external authenticity claim")
+    accepted = _integer(external["accepted_payout_count"], 0, 1000000)
+    resolved = _integer(external["resolved_payout_count"], 0, accepted)
+    if external["payouts_resolved"] != (accepted == resolved):
+        raise _Invalid("saved v4 external counts disagree")
+    if report["healthy"] != (
+        report["request_intent_ok"] and external["external_consistency_ok"]
+    ) or report["rebuild_eligible"] != (
+        report["request_intent_ok"] and report["reservation_supported"]
+    ):
+        raise _Invalid("saved v4 derived flags disagree")
+    if report["intent_scope"] != ["PURCHASE", "REVERSAL", "PAYOUT"]:
+        raise _Invalid("unsupported saved v4 intent coverage")
+    kinds = report["unverified_intent_kinds"]
+    required = {
+        "PAYOUT_PROVIDER_AUTHENTICITY",
+        "PAYOUT_EXTERNAL_EFFECT",
+        "OPERATOR_HISTORICAL_AUTHORIZATION",
+    }
+    if (
+        type(kinds) is not list
+        or any(type(kind) is not str for kind in kinds)
+        or kinds != sorted(set(kinds))
+        or not required <= set(kinds)
+        or set(kinds) - required - {"OPENING"}
+    ):
+        raise _Invalid("unsupported saved v4 unverified claims")
+    for name in ("source_manifest_sha256", "source_content_sha256"):
+        value = report[name]
+        if name == "source_manifest_sha256" and value is None:
+            continue
+        if type(value) is not str or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+            raise _Invalid("invalid saved v4 source reference")
+    if report["source_export_id"] is None:
+        if report["source_manifest_sha256"] is not None:
+            raise _Invalid("private capture cannot claim a published source manifest")
+    else:
+        _uuid(report["source_export_id"])
+        if report["source_manifest_sha256"] is None:
+            raise _Invalid("published capture requires a source manifest")
+    issues = report["issues"]
+    if type(issues) is not list or len(issues) > 1000:
+        raise _Invalid("invalid saved v4 issue list")
+    count = _integer(report["issue_count"], len(issues))
+    if len(issues) != min(count, 1000) or report["issues_truncated"] != (count > 1000):
+        raise _Invalid("saved v4 issue count disagrees")
+    for issue in issues:
+        if (
+            type(issue) is not dict
+            or issue.keys() != {"code", "object_id", "field", "expected", "actual"}
+            or any(type(issue[name]) is not str for name in ("code", "object_id", "field"))
+        ):
+            raise _Invalid("invalid saved v4 issue")
+    try:
+        encoded = json.dumps(report, allow_nan=False).encode("utf-8")
+        if len(encoded) > 4194304:
+            raise ValueError("saved v4 review byte limit")
+    except (TypeError, ValueError, UnicodeError, RecursionError) as exc:
+        raise _Invalid("saved v4 review is not bounded finite JSON") from exc
+
+
 def _resume_report(report):
     """A saved review records warnings without imposing rebuild admission on resume."""
+    if (
+        type(report) is dict
+        and type(report.get("report_version")) is int
+        and report["report_version"] == 4
+    ):
+        _resume_report_v4(report)
+        return
     flags = (
         "structure_ok",
         "projection_ok",

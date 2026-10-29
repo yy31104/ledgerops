@@ -74,7 +74,8 @@ def _json(row, name, maximum):
     _require(
         type(encoded) is str
         and 0 < len(encoded) <= 2 * maximum
-        and re.fullmatch(r"(?:[0-9a-f]{2})+", encoded),
+        and len(encoded) % 2 == 0
+        and re.fullmatch(r"[0-9a-f]+", encoded),
         "bounded canonical hex bytes required",
     )
     raw = bytes.fromhex(encoded)

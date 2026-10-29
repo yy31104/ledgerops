@@ -58,8 +58,11 @@ def _time(value):
 
 
 def _hex(value, *, maximum=65536, digest=False):
-    pattern = r"[0-9a-f]{64}" if digest else r"(?:[0-9a-f]{2})*"
-    _require(type(value) is str and re.fullmatch(pattern, value) is not None, "hex bytes required")
+    pattern = r"[0-9a-f]{64}" if digest else r"[0-9a-f]*"
+    _require(
+        type(value) is str and len(value) % 2 == 0 and re.fullmatch(pattern, value) is not None,
+        "hex bytes required",
+    )
     _require(len(value) <= maximum * 2, "evidence byte limit exceeded")
     return bytes.fromhex(value)
 

@@ -15,6 +15,7 @@ import pytest
 from psycopg import errors
 from psycopg.pq import TransactionStatus
 
+from ledgerops import maintenance_snapshot
 from ledgerops.db import maintenance
 from ledgerops.db.admission import submit_reversal
 from ledgerops.db.maintenance import MaintenanceError
@@ -252,10 +253,10 @@ def test_omitting_live_intent_check_mutant_can_launder_projection_but_independen
     before = reversal_state(seeded_db)
     assert_intent_gate(_outcome(apply))
     assert reversal_state(seeded_db) == before
-    original_checker = maintenance.verify_snapshot
+    original_checker = maintenance_snapshot.verify_snapshot
     with monkeypatch.context() as patch:
         patch.setattr(
-            maintenance,
+            maintenance_snapshot,
             "verify_snapshot",
             lambda snapshot: replace(original_checker(snapshot), request_intent_ok=True),
         )

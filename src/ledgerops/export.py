@@ -604,11 +604,11 @@ def _validate_field(key, value, *, version, table=None):
         pattern = (
             r"[0-9a-f]{64}"
             if key.endswith("sha256")
-            else r"(?:[0-9a-f]{2})*"
+            else r"[0-9a-f]*"
             if key in {"response_payload_hex", "raw_payload_hex"}
-            else r"(?:[0-9a-f]{2})+"
+            else r"[0-9a-f]+"
         )
-        if type(value) is not str or not re.fullmatch(pattern, value):
+        if type(value) is not str or len(value) % 2 != 0 or not re.fullmatch(pattern, value):
             raise ExportError("Invalid hexadecimal payload field")
         limit = 2 * 32768 if key == "provider_request_hex" else 2 * 65536
         if (

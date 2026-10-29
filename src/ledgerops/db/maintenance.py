@@ -5,7 +5,7 @@ connection. Advisory barriers do not constrain raw owner SQL or stop external se
 Preview files are evidence: application computes all target balances from live entries.
 """
 
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -13,8 +13,7 @@ from psycopg.pq import TransactionStatus
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
-from ledgerops.export import publish_snapshot, read_snapshot
-from ledgerops.verification import verify_snapshot
+from ledgerops.maintenance_snapshot import assess_current
 
 _MAX_VERSION = 2**63 - 1
 _MAX_TOTAL = 10**38 - 1
@@ -193,16 +192,26 @@ def _targets(cur, workspace_id, snapshot):
 def preview_rebuild(conn, workspace_id, freeze_id, output_root, *, code_revision, dirty=False):
     """Capture frozen evidence/differences; publication is outside the DB transaction."""
     _uuid(freeze_id)
-    with _transaction(conn, workspace_id) as (cur, workspace):
-        _current_freeze(workspace, freeze_id)
-        snapshot = read_snapshot(cur, workspace_id)
-        report = verify_snapshot(snapshot)
-        changes = _targets(cur, workspace_id, snapshot) if report.rebuild_eligible else []
-    destination = publish_snapshot(snapshot, output_root, code_revision=code_revision, dirty=dirty)
-    return {"export_path": str(destination), "report": report.as_dict(), "changes": changes}
+    with ExitStack() as resources:
+        with _transaction(conn, workspace_id) as (cur, workspace):
+            _current_freeze(workspace, freeze_id)
+            assessment = resources.enter_context(assess_current(cur, workspace_id))
+            changes = (
+                _targets(cur, workspace_id, assessment.projection_input())
+                if assessment.report.rebuild_eligible
+                else []
+            )
+        destination = assessment.publish(output_root, code_revision=code_revision, dirty=dirty)
+        return {
+            "export_path": str(destination),
+            "report": assessment.report.as_dict(),
+            "changes": changes,
+        }
 
 
 def _require_source(report, *, projected=False):
+    if getattr(report, "verification_complete", True) is not True:
+        raise MaintenanceError("VERIFICATION_INCOMPLETE", report=report.as_dict())
     if not report.structure_ok or not report.request_intent_ok:
         raise MaintenanceError("INVALID_SOURCE", report=report.as_dict())
     if not report.reservation_supported:
@@ -276,8 +285,9 @@ def apply_rebuild(conn, workspace_id, freeze_id, repair_id, actor_id, reason, pr
                 raise MaintenanceError("IDENTITY_CONFLICT")
         else:
             _current_freeze(workspace, freeze_id)
-            snapshot = read_snapshot(cur, workspace_id)
-            _require_source(verify_snapshot(snapshot))
+            with assess_current(cur, workspace_id) as assessment:
+                _require_source(assessment.report)
+                snapshot = assessment.projection_input()
             epoch = workspace["projection_epoch"]
             if epoch >= _MAX_VERSION:
                 raise MaintenanceError("LIMIT_EXCEEDED")
@@ -314,7 +324,8 @@ def apply_rebuild(conn, workspace_id, freeze_id, repair_id, actor_id, reason, pr
                 "UPDATE ledger.workspace SET projection_epoch=%s WHERE id=%s",
                 (epoch + 1, workspace_id),
             )
-            _require_source(verify_snapshot(read_snapshot(cur, workspace_id)), projected=True)
+            with assess_current(cur, workspace_id) as assessment:
+                _require_source(assessment.report, projected=True)
             result = _metadata(retained)
     return result
 
@@ -335,7 +346,10 @@ def resume_workspace(conn, workspace_id, freeze_id, actor_id, reason):
             result = _metadata(retained)
         else:
             _current_freeze(workspace, freeze_id)
-            report = verify_snapshot(read_snapshot(cur, workspace_id))
+            with assess_current(cur, workspace_id) as assessment:
+                report = assessment.report
+            if getattr(report, "verification_complete", True) is not True:
+                raise MaintenanceError("VERIFICATION_INCOMPLETE", report=report.as_dict())
             if not report.structure_ok:
                 raise MaintenanceError("INVALID_SOURCE", report=report.as_dict())
             if not report.projection_ok:

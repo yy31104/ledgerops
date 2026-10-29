@@ -1,0 +1,60 @@
+{
+  "base_commit": "5a9e71088e44dc948ccbbe26dadd59b04ec7f68e",
+  "source_binding": "Use git log -1 --format=%H -- evidence/CAPACITY/2026-10-29/verification.json for the containing capacity commit. Integrated delivery source and regression are recorded under evidence/DELIVERY/2026-10-29.",
+  "scope": "Complete bounded financial format10, independent disk verifier, full-source R4/action authority, and exclusive-barrier maintenance integration; historical formats and SQL001–010 unchanged.",
+  "focused_checks": [
+    {
+      "tests": 38,
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 65.68,
+      "artifact": "focused.xml",
+      "scope": "Actual PostgreSQL export/verify/CLI/reconciliation/response-loss cases"
+    },
+    {
+      "tests": 68,
+      "passed": 68,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 91.38,
+      "artifact": "integration-merge.xml",
+      "scope": "Merged maintenance/report/context/payload and R6 pin-scope cases; shared integrated tree"
+    },
+    {
+      "tests": 3,
+      "passed": 3,
+      "scope": "Existing R2 fault mutations adapted only to relocated independent checker seam; assertions unchanged"
+    }
+  ],
+  "independent_comparison": {
+    "cases_legacy_unhealthy": 3768,
+    "false_healthy": 0,
+    "unexpected_exceptions": 0,
+    "artifact": "differential-summary.json",
+    "limit": "Finite differential sample, not proof of universal equivalence."
+  },
+  "memory_observation": {
+    "artifact": "rss-comparison.json",
+    "same_input_bytes": 16979821,
+    "before_peak_rss_bytes": 565936128,
+    "after_peak_rss_bytes": 48840704,
+    "identical_report": true,
+    "scope": "Same complete source, isolated Python3.12.14 on macOS. Constant-space hex validation replaces repeated grouped regex; no general SLO claim."
+  },
+  "verified_behaviors": [
+    "Complete RR snapshot, named cursor batches, all26 financial tables, no LIMIT truncation; exact legacy row equality and concurrent-commit capture.",
+    "More than10000 request keys and129 real64KiB quarantines across two payouts; complete independent global folds, FK/type bindings and request checks.",
+    "Malformed payload cannot hide its journal structure; valid-FK payout under wrong operation kind fails global checks.",
+    "Missing/altered chunks, unsupported semantics, source/row/closure/scratch limits, incomplete capture and SQLite resource failures cannot report healthy.",
+    "R4 RUN pins every original chunk; action reconstructs and independently verifies full source and recomputes compact facts; unknown COMMIT retries preserve stable run identity.",
+    "Maintenance retains exclusive READ COMMITTED capture context, performs fresh SQL recomputation and independent after-check in one transaction, retains hold/journal history and stable audit IDs.",
+    "Non-RR maintenance preview is explicitly marked and rejected by R4/R6; unknown capture contexts and malformed saved reportv4 fail closed."
+  ],
+  "boundaries": [
+    "Source256MiB/1Mrows, row4MiB, SQLite main index512MiB plus temporary storage, semantic closure16MiB, compact matcher16MiB; limits reject rather than truncate.",
+    "Stream matcher supports one worker only; historical1/2/4 benchmarks do not apply.",
+    "Offline health does not authenticate external finality, HMAC, historical operator permission or original request truth.",
+    "No push, tracker/Vault/Chronicle/lab/tutorial changes."
+  ]
+}

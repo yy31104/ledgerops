@@ -78,6 +78,7 @@ def _connect(role):
 
 def _input_arguments(command):
     command.add_argument("--ledger-export", type=Path, required=True)
+    command.add_argument("--source-format", choices=("legacy", "stream10"), default="legacy")
     command.add_argument("--statement", type=Path, required=True)
     command.add_argument("--namespace", required=True)
     command.add_argument("--keys-file", type=Path, required=True)
@@ -174,18 +175,36 @@ def main(argv=None):
         trust = StatementTrust(args.namespace, _read_keys(args.keys_file))
         statement = _statement_bytes(args.statement)
         if args.command == "match":
-            report = reconcile_bundle(
-                args.ledger_export,
-                statement,
-                trust=trust,
-                code_revision=revision,
-                dirty=dirty,
-            )
+            if args.source_format == "stream10":
+                from ledgerops.reconciliation import _corrupt
+                from ledgerops.stream_reconciliation import match_prepared, prepare_stream_inputs
+
+                try:
+                    source = prepare_stream_inputs(
+                        args.ledger_export,
+                        statement,
+                        trust=trust,
+                        code_revision=revision,
+                        dirty=dirty,
+                    )
+                    report = match_prepared(source.prepared)
+                except CorruptInput as exc:
+                    report = _corrupt(str(exc))
+            else:
+                report = reconcile_bundle(
+                    args.ledger_export, statement, trust=trust, code_revision=revision, dirty=dirty
+                )
             _print(report)
             return 2 if not report["usable"] else 0 if report["reconciled"] else 1
         from ledgerops.reconciliation.runner import run_reconciliation
 
-        store, bundle = ObjectStore(args.objects), load_export_bundle(args.ledger_export)
+        store = ObjectStore(args.objects)
+        bundle = load_export_bundle(args.ledger_export) if args.source_format == "legacy" else None
+        if args.source_format == "stream10":
+            from ledgerops.stream_reconciliation import run_stream_reconciliation
+
+            run_reconciliation = run_stream_reconciliation
+            bundle = args.ledger_export
         with _connect("ledger_reconciler") as conn, _interrupt_on_termination():
             result = run_reconciliation(
                 conn,

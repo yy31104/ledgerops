@@ -318,11 +318,39 @@ def _transfer_pin(cur, workspace, pin_id, digest, run_id):
 
 def _input_refs(manifest):
     try:
-        refs = {
-            name: manifest["inputs"][name]
-            for name in ("ledger_manifest", "ledger_data", "statement")
-        }
+        names = ("ledger_manifest", "ledger_data", "statement")
+        kind, version = manifest.get("source_kind"), manifest.get("manifest_version")
+        if (
+            kind not in (None, "FINANCIAL_STREAM10_COMPACT_V1")
+            or type(version) is not int
+            or version != (1 if kind is None else 2)
+        ):
+            raise ValueError("unsupported source kind/version")
+        if kind == "FINANCIAL_STREAM10_COMPACT_V1":
+            chunks = manifest["source_chunks"]
+            if manifest.get("manifest_version") != 2 or type(chunks) is not list:
+                raise ValueError("invalid stream input manifest")
+            extra = []
+            total = 0
+            for ordinal, chunk in enumerate(chunks):
+                name = f"stream_chunk_{ordinal:06d}"
+                if (
+                    chunk["name"] != name
+                    or type(chunk["bytes"]) is not int
+                    or not 1 <= chunk["bytes"] <= 4194304
+                ):
+                    raise ValueError("invalid stream chunk reference")
+                if manifest["inputs"][name] != {"sha256": chunk["sha256"], "bytes": chunk["bytes"]}:
+                    raise ValueError("stream chunk binding mismatch")
+                extra.append(name)
+                total += chunk["bytes"]
+            names = (*names, *extra)
+            if set(manifest["inputs"]) != set(names) or total > 268435456:
+                raise ValueError("stream input coverage mismatch")
+        refs = {name: manifest["inputs"][name] for name in names}
         for ref in refs.values():
+            if type(ref) is not dict or set(ref) != {"sha256", "bytes"}:
+                raise ValueError("invalid input reference")
             _hash(ref["sha256"])
             if type(ref["bytes"]) is not int or not 1 <= ref["bytes"] <= MAX_OBJECT_BYTES:
                 raise ValueError("invalid input size")
@@ -810,13 +838,14 @@ def pin_run(
             _pin(cur, workspace, row["object_sha256"], "READER", reader_id, run_id)
     # Pins are now durable even if this process dies while reading. Failure
     # retains them for explicit release; age alone is never deletion authority.
-    objects = {
-        row["object_sha256"]: store.read(workspace, row["object_sha256"], row["byte_length"])
-        for row in references
-    }
-    if run["result_sha256"] not in objects:
+    artifact_raw = None
+    for row in references:
+        raw = store.read(workspace, row["object_sha256"], row["byte_length"])
+        if row["object_sha256"] == run["result_sha256"]:
+            artifact_raw = raw
+    if artifact_raw is None:
         raise PublicationError("RUN_REFERENCE_MISSING")
-    artifact = _strict_json(objects[run["result_sha256"]])
+    artifact = _strict_json(artifact_raw)
     if (
         artifact.get("run_id") != str(run_id)
         or artifact.get("input_manifest_sha256") != run["manifest_sha256"]

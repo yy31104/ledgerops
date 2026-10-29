@@ -93,8 +93,11 @@ def main(argv=None):
     export.add_argument("--output-root", type=Path, required=True)
     export.add_argument("--code-revision", help="full Git hash when running an installed package")
     export.add_argument("--dirty", action="store_true", help="mark an explicit revision as dirty")
+    export.add_argument("--format", choices=("legacy", "stream10"), default="legacy")
     verify = commands.add_parser("verify", help="verify a completed bundle without database access")
     verify.add_argument("path", type=Path)
+    verify.add_argument("--format", choices=("legacy", "stream10"), default="legacy")
+    verify.add_argument("--scratch-root", type=Path, help="private disk scratch for stream10")
     for name in ("freeze", "preview-rebuild", "apply-rebuild", "resume"):
         command = commands.add_parser(
             name, help="explicit local maintenance using its dedicated login"
@@ -114,6 +117,14 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == "verify":
+            if args.format == "stream10":
+                from ledgerops.stream_verification import verify_stream
+
+                report = verify_stream(args.path, scratch_root=args.scratch_root)
+                print(json.dumps(report, ensure_ascii=False, sort_keys=True, allow_nan=False))
+                return 0 if report["healthy"] else 1
+            if args.scratch_root is not None:
+                raise ExportError("Scratch root is only supported for stream10")
             report = verify_snapshot(load_export(args.path))
             print(json.dumps(report.as_dict(), ensure_ascii=False, sort_keys=True, allow_nan=False))
             return 0 if report.healthy else 1
@@ -126,8 +137,13 @@ def main(argv=None):
         if not dsn:
             raise ExportError("LEDGEROPS_EXPORT_DSN is required")
         revision, dirty = _code_version(args)
+        producer = export_workspace
+        if args.format == "stream10":
+            from ledgerops.stream_export import export_stream
+
+            producer = export_stream
         with psycopg.connect(dsn, autocommit=True) as conn:
-            destination = export_workspace(
+            destination = producer(
                 conn, args.workspace, args.output_root, code_revision=revision, dirty=dirty
             )
         print(json.dumps({"export_path": str(destination)}, sort_keys=True))
@@ -135,7 +151,7 @@ def main(argv=None):
     except MaintenanceError as exc:
         print(json.dumps({"error": exc.code, "report": exc.report}), file=sys.stderr)
         return 2
-    except (ExportError, psycopg.Error, OSError) as exc:
+    except (ExportError, ValueError, MemoryError, RecursionError, psycopg.Error, OSError) as exc:
         # Connection exceptions may contain environment/host details; never print
         # their raw contents or a credential-bearing DSN into an evidence log.
         print(

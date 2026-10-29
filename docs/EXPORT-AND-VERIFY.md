@@ -129,3 +129,14 @@ v9 输出 report v3 的 `operator_actions` 计数与能力披露，并支持在�
 报告明确给出 `historical_authorization=NOT_VERIFIED_NO_AUTH_HISTORY`，支付商 HMAC 真实性仍未验证。
 失败的非财务 operator_attempt 保留在受控 action history 中，不进入财务交换包。
 旧 v1–v8 的字段、报告版本和各自能力保持不变；换成 v9 的 schema 列表不能为旧文件补出新证据。
+
+## 大型来源：显式 format10
+
+默认仍导出原格式；超过旧的每表10,000行或16MiB限制时，使用 `export --format stream10`，
+并用 `verify --format stream10` 核对。format10在一个RR只读事务中完整读取所有允许的财务表，
+使用有界游标、分块文件和完整清单；独立核对器将全部记录索引到磁盘SQLite，不截断来源。
+新report v4明确报告是否完成全部核验；超限、缺块、空间耗尽或无法核验的语义闭包不能返回健康。
+旧格式1–9的字节和能力不变。命令、容量边界和独立读入方式见[STREAM10](STREAM10.md)。
+
+维护的大型预览另有明确的 `EXCLUSIVE_WORKSPACE_BARRIER_READ_COMMITTED_V1` 捕获标记，
+它是在排空写入后的排他事务中取得，不能冒充公共RR证据；当前R4/R6入口拒绝该上下文。
