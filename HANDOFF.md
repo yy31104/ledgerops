@@ -34,11 +34,17 @@ Exportv6/reportv2 distinguishes internal consistency, unresolved work and unveri
 external authenticity; v1–v5 remain supported. Authorized status returns bounded
 observation/resolution references from a single RR snapshot. Full1020tests pass in
 107.09s; Ruff105files/build/fresh installedwheel pass. Evidence:
-evidence/R3-PR03/2026-10-29/verification.json. Next: PR04 bounded worker process,
-actual SIGKILL/provider-ahead recovery and named semantic mutation matrix. Continue
-R4–R6/service operations under existing authorization; this is not production
-activation or the completion of the broad request. Reference/tracker/Vault/lab stay
-untouched. Implementation, verified behavior and personal ownership remain separate.
+evidence/R3-PR03/2026-10-29/verification.json. R3-PR04 completes the bounded worker process, external physical restore/dispatch
+flags, actual SIGKILL/provider-ahead recovery, held-funds repair/recovery, real lock
+schedules and named semantic mutations. Full1114tests pass in188.67s; Ruff111files,
+wheel/sdist and fresh installedworker pass. No migration001–007 changes inPR04.
+Evidence: evidence/R3-PR04/2026-10-29/verification.json; consolidated scope and
+limits: docs/R3-ACCEPTANCE.md. R3 is complete within its documented synthetic/local
+contract; real bank finality, old-backup missing-history recovery and production
+activation are not claimed. Next: R4 settlement evidence, exact matching and atomic
+immutable publication; then R5/service/ops and R6. Broad user request remains active.
+Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
+production activation and personal ownership remain separate.
 
 ## Latest learning request: linear document
 
