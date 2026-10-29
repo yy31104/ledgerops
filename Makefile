@@ -3,7 +3,7 @@ UV_CACHE_DIR ?= $(CURDIR)/.cache/uv
 export UV_CACHE_DIR
 CHECK_DIRS := src tests reference $(wildcard lab) $(wildcard provider_sim)
 
-.PHONY: bootstrap check test test-unit test-integration test-provider build demo lab
+.PHONY: bootstrap check test test-unit test-integration test-provider build demo lab benchmark
 
 bootstrap:
 	$(UV) sync --locked
@@ -35,3 +35,6 @@ demo:
 lab:
 	@$(UV) run --locked python -m pytest -q -s --no-header --tb=short tests/lab_story.py
 	@printf '%s\n' '学习工具已退出，临时 PostgreSQL 和导出文件已清理。'
+
+benchmark:
+	$(UV) run --locked python -m pytest -q -s --no-header --tb=short tests/benchmark_story.py

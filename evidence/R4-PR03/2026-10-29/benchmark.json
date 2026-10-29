@@ -1,0 +1,1124 @@
+{
+  "cases": [
+    {
+      "case": "small",
+      "completion": {
+        "published": true,
+        "result_sha256": "fc7eae0ce29a369ece402124730a95834c3623a561ef08b178ca84fda241e45a",
+        "run_id": "ab37cf0f-6041-497d-a8c1-711bde788ae8",
+        "semantic_sha256": "ac8fcd26cf7c5366812db0a284c1b0f6e4dcf0fb8632d4bb671e2f31fb874a1f"
+      },
+      "metrics": {
+        "accepted_partition_bytes": 56056,
+        "children_reaped": true,
+        "completion_seconds": 0.022324500023387372,
+        "elapsed_seconds": 0.3144561250228435,
+        "input_bytes": 267475,
+        "largest_worker_max_rss_bytes": 39600128,
+        "parent_process_lifetime_max_rss_bytes": 53460992,
+        "partition_metrics": [
+          {
+            "compute_seconds": 0.00014625000767409801,
+            "partition_id": 0,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00012108299415558577,
+            "partition_id": 1,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00010258296970278025,
+            "partition_id": 2,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00022579100914299488,
+            "partition_id": 3,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 4.62500611320138e-05,
+            "partition_id": 4,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.0001283750170841813,
+            "partition_id": 5,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 9.829096961766481e-05,
+            "partition_id": 6,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00011470809113234282,
+            "partition_id": 7,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00014366605319082737,
+            "partition_id": 8,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00011687492951750755,
+            "partition_id": 9,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00014791707508265972,
+            "partition_id": 10,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00012191699352115393,
+            "partition_id": 11,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 5.633290857076645e-05,
+            "partition_id": 12,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00015074992552399635,
+            "partition_id": 13,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 0.00012087507639080286,
+            "partition_id": 14,
+            "worker_pid": 54997
+          },
+          {
+            "compute_seconds": 6.0458085499703884e-05,
+            "partition_id": 15,
+            "worker_pid": 54997
+          }
+        ],
+        "partitions": 16,
+        "pool_seconds": 0.2520950000034645,
+        "pool_timeout_seconds": 120,
+        "prepare_seconds": 0.007398540969006717,
+        "prepared_pickle_bytes": 182721,
+        "result_ipc_bytes": 52527,
+        "worker_max_rss_bytes": {
+          "54997": 39600128
+        },
+        "worker_pids": [
+          54997
+        ],
+        "workers": 1
+      },
+      "payouts": 16,
+      "remaining_temp_files": 0,
+      "retained_object_bytes": 336506,
+      "skew": false,
+      "source_bytes": 267475,
+      "status": "COMPLETE",
+      "wall_seconds": 0.3498478749534115,
+      "workers": 1
+    },
+    {
+      "case": "small",
+      "completion": {
+        "published": true,
+        "result_sha256": "fba88b0545159928026c95d1303e4a098458b6e31d55e1af49874dbb259b9887",
+        "run_id": "8d881bfb-8bc3-4842-96fc-ec44e0560ab1",
+        "semantic_sha256": "ac8fcd26cf7c5366812db0a284c1b0f6e4dcf0fb8632d4bb671e2f31fb874a1f"
+      },
+      "metrics": {
+        "accepted_partition_bytes": 56056,
+        "children_reaped": true,
+        "completion_seconds": 0.02256266598124057,
+        "elapsed_seconds": 0.4398426250554621,
+        "input_bytes": 267475,
+        "largest_worker_max_rss_bytes": 39567360,
+        "parent_process_lifetime_max_rss_bytes": 53968896,
+        "partition_metrics": [
+          {
+            "compute_seconds": 0.00026416697073727846,
+            "partition_id": 0,
+            "worker_pid": 54999
+          },
+          {
+            "compute_seconds": 0.00011462508700788021,
+            "partition_id": 1,
+            "worker_pid": 55001
+          },
+          {
+            "compute_seconds": 0.0001340840244665742,
+            "partition_id": 2,
+            "worker_pid": 55001
+          },
+          {
+            "compute_seconds": 0.00020404206588864326,
+            "partition_id": 3,
+            "worker_pid": 54999
+          },
+          {
+            "compute_seconds": 5.5416952818632126e-05,
+            "partition_id": 4,
+            "worker_pid": 55001
+          },
+          {
+            "compute_seconds": 0.00013395899441093206,
+            "partition_id": 5,
+            "worker_pid": 54999
+          },
+          {
+            "compute_seconds": 0.00014525000005960464,
+            "partition_id": 6,
+            "worker_pid": 55001
+          },
+          {
+            "compute_seconds": 0.000179499969817698,
+            "partition_id": 7,
+            "worker_pid": 54999
+          },
+          {
+            "compute_seconds": 0.00021312502212822437,
+            "partition_id": 8,
+            "worker_pid": 55001
+          },
+          {
+            "compute_seconds": 0.0001344579504802823,
+            "partition_id": 9,
+            "worker_pid": 54999
+          },
+          {
+            "compute_seconds": 0.00017370795831084251,
+            "partition_id": 10,
+            "worker_pid": 55001
+          },
+          {
+            "compute_seconds": 0.00010599999222904444,
+            "partition_id": 11,
+            "worker_pid": 54999
+          },
+          {
+            "compute_seconds": 6.070802919566631e-05,
+            "partition_id": 12,
+            "worker_pid": 55001
+          },
+          {
+            "compute_seconds": 0.00018275005277246237,
+            "partition_id": 13,
+            "worker_pid": 54999
+          },
+          {
+            "compute_seconds": 0.00013112497981637716,
+            "partition_id": 14,
+            "worker_pid": 55001
+          },
+          {
+            "compute_seconds": 7.720896974205971e-05,
+            "partition_id": 15,
+            "worker_pid": 54999
+          }
+        ],
+        "partitions": 16,
+        "pool_seconds": 0.38247508299537003,
+        "pool_timeout_seconds": 120,
+        "prepare_seconds": 0.00698166701477021,
+        "prepared_pickle_bytes": 182721,
+        "result_ipc_bytes": 52554,
+        "worker_max_rss_bytes": {
+          "54999": 39567360,
+          "55001": 39223296
+        },
+        "worker_pids": [
+          54999,
+          55001
+        ],
+        "workers": 2
+      },
+      "payouts": 16,
+      "remaining_temp_files": 0,
+      "retained_object_bytes": 336506,
+      "skew": false,
+      "source_bytes": 267475,
+      "status": "COMPLETE",
+      "wall_seconds": 0.4728465829975903,
+      "workers": 2
+    },
+    {
+      "case": "small",
+      "completion": {
+        "published": true,
+        "result_sha256": "4a270a53def97631a9bc20b44894298f211364798b97c4f217e26b5d7fc9b96a",
+        "run_id": "d759aae1-2369-4d1d-8c21-d6f856d21314",
+        "semantic_sha256": "ac8fcd26cf7c5366812db0a284c1b0f6e4dcf0fb8632d4bb671e2f31fb874a1f"
+      },
+      "metrics": {
+        "accepted_partition_bytes": 56056,
+        "children_reaped": true,
+        "completion_seconds": 0.030157541041262448,
+        "elapsed_seconds": 0.6017177910543978,
+        "input_bytes": 267475,
+        "largest_worker_max_rss_bytes": 39682048,
+        "parent_process_lifetime_max_rss_bytes": 53968896,
+        "partition_metrics": [
+          {
+            "compute_seconds": 0.00024508393835276365,
+            "partition_id": 0,
+            "worker_pid": 55011
+          },
+          {
+            "compute_seconds": 0.00021766708232462406,
+            "partition_id": 1,
+            "worker_pid": 55020
+          },
+          {
+            "compute_seconds": 0.00012900005094707012,
+            "partition_id": 2,
+            "worker_pid": 55026
+          },
+          {
+            "compute_seconds": 0.00018629094120115042,
+            "partition_id": 3,
+            "worker_pid": 55027
+          },
+          {
+            "compute_seconds": 5.3416937589645386e-05,
+            "partition_id": 4,
+            "worker_pid": 55026
+          },
+          {
+            "compute_seconds": 0.00014074996579438448,
+            "partition_id": 5,
+            "worker_pid": 55027
+          },
+          {
+            "compute_seconds": 0.00011545803863555193,
+            "partition_id": 6,
+            "worker_pid": 55011
+          },
+          {
+            "compute_seconds": 0.0001736249541863799,
+            "partition_id": 7,
+            "worker_pid": 55020
+          },
+          {
+            "compute_seconds": 0.000272250035777688,
+            "partition_id": 8,
+            "worker_pid": 55026
+          },
+          {
+            "compute_seconds": 0.00012820796109735966,
+            "partition_id": 9,
+            "worker_pid": 55011
+          },
+          {
+            "compute_seconds": 0.00019449996761977673,
+            "partition_id": 10,
+            "worker_pid": 55020
+          },
+          {
+            "compute_seconds": 0.00017066695727407932,
+            "partition_id": 11,
+            "worker_pid": 55027
+          },
+          {
+            "compute_seconds": 5.766598042100668e-05,
+            "partition_id": 12,
+            "worker_pid": 55011
+          },
+          {
+            "compute_seconds": 0.00015158392488956451,
+            "partition_id": 13,
+            "worker_pid": 55020
+          },
+          {
+            "compute_seconds": 0.00012541702017188072,
+            "partition_id": 14,
+            "worker_pid": 55026
+          },
+          {
+            "compute_seconds": 6.65419502183795e-05,
+            "partition_id": 15,
+            "worker_pid": 55011
+          }
+        ],
+        "partitions": 16,
+        "pool_seconds": 0.5325738340616226,
+        "pool_timeout_seconds": 120,
+        "prepare_seconds": 0.006874582963064313,
+        "prepared_pickle_bytes": 182721,
+        "result_ipc_bytes": 52610,
+        "worker_max_rss_bytes": {
+          "55011": 39452672,
+          "55020": 39682048,
+          "55026": 39469056,
+          "55027": 39288832
+        },
+        "worker_pids": [
+          55011,
+          55020,
+          55026,
+          55027
+        ],
+        "workers": 4
+      },
+      "payouts": 16,
+      "remaining_temp_files": 0,
+      "retained_object_bytes": 336506,
+      "skew": false,
+      "source_bytes": 267475,
+      "status": "COMPLETE",
+      "wall_seconds": 0.6446969580138102,
+      "workers": 4
+    },
+    {
+      "case": "balanced",
+      "completion": {
+        "published": true,
+        "result_sha256": "0cf63a41ab7988ad1aa46966c03b193015df74f0296f5e3a719939f83cf50aef",
+        "run_id": "401a3741-0c45-427f-a7d9-a1d3a04ee9d4",
+        "semantic_sha256": "db737fbeba51f6a65e691775a2567548dd854af3d14b0c6ccb63ab64c8f7e28b"
+      },
+      "metrics": {
+        "accepted_partition_bytes": 791886,
+        "children_reaped": true,
+        "completion_seconds": 0.07384370896033943,
+        "elapsed_seconds": 1.152402332983911,
+        "input_bytes": 4239948,
+        "largest_worker_max_rss_bytes": 53411840,
+        "parent_process_lifetime_max_rss_bytes": 133414912,
+        "partition_metrics": [
+          {
+            "compute_seconds": 0.0007917500333860517,
+            "partition_id": 0,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0013657079543918371,
+            "partition_id": 1,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0008965840097516775,
+            "partition_id": 2,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0010394580895081162,
+            "partition_id": 3,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0008656670106574893,
+            "partition_id": 4,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0009489170042797923,
+            "partition_id": 5,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0009387499885633588,
+            "partition_id": 6,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0006536250002682209,
+            "partition_id": 7,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0010339579312130809,
+            "partition_id": 8,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0008474999340251088,
+            "partition_id": 9,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0008431249298155308,
+            "partition_id": 10,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0006906250491738319,
+            "partition_id": 11,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0007670000195503235,
+            "partition_id": 12,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0008902500849217176,
+            "partition_id": 13,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0006954999407753348,
+            "partition_id": 14,
+            "worker_pid": 55035
+          },
+          {
+            "compute_seconds": 0.0007819579914212227,
+            "partition_id": 15,
+            "worker_pid": 55035
+          }
+        ],
+        "partitions": 16,
+        "pool_seconds": 0.8680831249803305,
+        "pool_timeout_seconds": 120,
+        "prepare_seconds": 0.11011337500531226,
+        "prepared_pickle_bytes": 2875566,
+        "result_ipc_bytes": 788346,
+        "worker_max_rss_bytes": {
+          "55035": 53411840
+        },
+        "worker_pids": [
+          55035
+        ],
+        "workers": 1
+      },
+      "payouts": 256,
+      "remaining_temp_files": 0,
+      "retained_object_bytes": 5190496,
+      "skew": false,
+      "source_bytes": 4239948,
+      "status": "COMPLETE",
+      "wall_seconds": 1.231921625090763,
+      "workers": 1
+    },
+    {
+      "case": "balanced",
+      "completion": {
+        "published": true,
+        "result_sha256": "fe296cfc3216dc048c6ff5d3e9706daabfbef00e9625f0c6d25e27bbf0b5320d",
+        "run_id": "3a251e44-d022-46de-9b68-1f356fd61b95",
+        "semantic_sha256": "db737fbeba51f6a65e691775a2567548dd854af3d14b0c6ccb63ab64c8f7e28b"
+      },
+      "metrics": {
+        "accepted_partition_bytes": 791886,
+        "children_reaped": true,
+        "completion_seconds": 0.07614891696721315,
+        "elapsed_seconds": 1.084205999970436,
+        "input_bytes": 4239948,
+        "largest_worker_max_rss_bytes": 53985280,
+        "parent_process_lifetime_max_rss_bytes": 163135488,
+        "partition_metrics": [
+          {
+            "compute_seconds": 0.0011507919989526272,
+            "partition_id": 0,
+            "worker_pid": 55043
+          },
+          {
+            "compute_seconds": 0.0012062080204486847,
+            "partition_id": 1,
+            "worker_pid": 55043
+          },
+          {
+            "compute_seconds": 0.0009393340442329645,
+            "partition_id": 2,
+            "worker_pid": 55047
+          },
+          {
+            "compute_seconds": 0.0010427499655634165,
+            "partition_id": 3,
+            "worker_pid": 55047
+          },
+          {
+            "compute_seconds": 0.0009105000644922256,
+            "partition_id": 4,
+            "worker_pid": 55043
+          },
+          {
+            "compute_seconds": 0.0009933749679476023,
+            "partition_id": 5,
+            "worker_pid": 55047
+          },
+          {
+            "compute_seconds": 0.0009348749881610274,
+            "partition_id": 6,
+            "worker_pid": 55043
+          },
+          {
+            "compute_seconds": 0.0007668329635635018,
+            "partition_id": 7,
+            "worker_pid": 55047
+          },
+          {
+            "compute_seconds": 0.00127166707534343,
+            "partition_id": 8,
+            "worker_pid": 55043
+          },
+          {
+            "compute_seconds": 0.0009358749957755208,
+            "partition_id": 9,
+            "worker_pid": 55047
+          },
+          {
+            "compute_seconds": 0.0009776660008355975,
+            "partition_id": 10,
+            "worker_pid": 55043
+          },
+          {
+            "compute_seconds": 0.000699999975040555,
+            "partition_id": 11,
+            "worker_pid": 55047
+          },
+          {
+            "compute_seconds": 0.0007267500041052699,
+            "partition_id": 12,
+            "worker_pid": 55043
+          },
+          {
+            "compute_seconds": 0.0009812909411266446,
+            "partition_id": 13,
+            "worker_pid": 55047
+          },
+          {
+            "compute_seconds": 0.000738083035685122,
+            "partition_id": 14,
+            "worker_pid": 55043
+          },
+          {
+            "compute_seconds": 0.0008154159877449274,
+            "partition_id": 15,
+            "worker_pid": 55047
+          }
+        ],
+        "partitions": 16,
+        "pool_seconds": 0.8040526669938117,
+        "pool_timeout_seconds": 120,
+        "prepare_seconds": 0.10930408292915672,
+        "prepared_pickle_bytes": 2875566,
+        "result_ipc_bytes": 788370,
+        "worker_max_rss_bytes": {
+          "55043": 53985280,
+          "55047": 51806208
+        },
+        "worker_pids": [
+          55043,
+          55047
+        ],
+        "workers": 2
+      },
+      "payouts": 256,
+      "remaining_temp_files": 0,
+      "retained_object_bytes": 5190496,
+      "skew": false,
+      "source_bytes": 4239948,
+      "status": "COMPLETE",
+      "wall_seconds": 1.1845549999270588,
+      "workers": 2
+    },
+    {
+      "case": "balanced",
+      "completion": {
+        "published": true,
+        "result_sha256": "3ebdf8c174a76772d32d19f924b2a10a33fc1676cae576f5bc516fa41168692b",
+        "run_id": "d3f3ff7d-3852-4328-88c5-5007f7d77ec3",
+        "semantic_sha256": "db737fbeba51f6a65e691775a2567548dd854af3d14b0c6ccb63ab64c8f7e28b"
+      },
+      "metrics": {
+        "accepted_partition_bytes": 791886,
+        "children_reaped": true,
+        "completion_seconds": 0.06453020905610174,
+        "elapsed_seconds": 1.3523551661055535,
+        "input_bytes": 4239948,
+        "largest_worker_max_rss_bytes": 53477376,
+        "parent_process_lifetime_max_rss_bytes": 179781632,
+        "partition_metrics": [
+          {
+            "compute_seconds": 0.0014830840518698096,
+            "partition_id": 0,
+            "worker_pid": 55052
+          },
+          {
+            "compute_seconds": 0.0015696249902248383,
+            "partition_id": 1,
+            "worker_pid": 55060
+          },
+          {
+            "compute_seconds": 0.0013334170216694474,
+            "partition_id": 2,
+            "worker_pid": 55062
+          },
+          {
+            "compute_seconds": 0.0009857499971985817,
+            "partition_id": 3,
+            "worker_pid": 55062
+          },
+          {
+            "compute_seconds": 0.0011134999804198742,
+            "partition_id": 4,
+            "worker_pid": 55052
+          },
+          {
+            "compute_seconds": 0.001169124967418611,
+            "partition_id": 5,
+            "worker_pid": 55060
+          },
+          {
+            "compute_seconds": 0.0015172919956967235,
+            "partition_id": 6,
+            "worker_pid": 55063
+          },
+          {
+            "compute_seconds": 0.0007476250175386667,
+            "partition_id": 7,
+            "worker_pid": 55052
+          },
+          {
+            "compute_seconds": 0.0012090420350432396,
+            "partition_id": 8,
+            "worker_pid": 55062
+          },
+          {
+            "compute_seconds": 0.0010522089432924986,
+            "partition_id": 9,
+            "worker_pid": 55052
+          },
+          {
+            "compute_seconds": 0.0010813749395310879,
+            "partition_id": 10,
+            "worker_pid": 55060
+          },
+          {
+            "compute_seconds": 0.0007867499953135848,
+            "partition_id": 11,
+            "worker_pid": 55063
+          },
+          {
+            "compute_seconds": 0.0009473750833421946,
+            "partition_id": 12,
+            "worker_pid": 55052
+          },
+          {
+            "compute_seconds": 0.001060207956470549,
+            "partition_id": 13,
+            "worker_pid": 55060
+          },
+          {
+            "compute_seconds": 0.0007242090068757534,
+            "partition_id": 14,
+            "worker_pid": 55062
+          },
+          {
+            "compute_seconds": 0.000814375001937151,
+            "partition_id": 15,
+            "worker_pid": 55052
+          }
+        ],
+        "partitions": 16,
+        "pool_seconds": 1.090599959017709,
+        "pool_timeout_seconds": 120,
+        "prepare_seconds": 0.10846841603051871,
+        "prepared_pickle_bytes": 2875566,
+        "result_ipc_bytes": 788427,
+        "worker_max_rss_bytes": {
+          "55052": 53477376,
+          "55060": 52117504,
+          "55062": 53051392,
+          "55063": 53084160
+        },
+        "worker_pids": [
+          55052,
+          55060,
+          55062,
+          55063
+        ],
+        "workers": 4
+      },
+      "payouts": 256,
+      "remaining_temp_files": 0,
+      "retained_object_bytes": 5190496,
+      "skew": false,
+      "source_bytes": 4239948,
+      "status": "COMPLETE",
+      "wall_seconds": 1.4362263339571655,
+      "workers": 4
+    },
+    {
+      "case": "skew",
+      "completion": {
+        "published": true,
+        "result_sha256": "23c21d8fd8be4a5ef3adda4370d009bd6b8f8dbda2d9819a03bb960bb909c925",
+        "run_id": "3b4115b9-63c6-4b10-aa82-683577f9a9d4",
+        "semantic_sha256": "02c7b105801f048991162c5deecb8720da866e8c0033a394b552935a6dc12897"
+      },
+      "metrics": {
+        "accepted_partition_bytes": 1655728,
+        "children_reaped": true,
+        "completion_seconds": 0.1571841660188511,
+        "elapsed_seconds": 2.1306264580925927,
+        "input_bytes": 11446758,
+        "largest_worker_max_rss_bytes": 73875456,
+        "parent_process_lifetime_max_rss_bytes": 266534912,
+        "partition_metrics": [
+          {
+            "compute_seconds": 0.001028291997499764,
+            "partition_id": 0,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.001796542084775865,
+            "partition_id": 1,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0013476669555529952,
+            "partition_id": 2,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.00986674998421222,
+            "partition_id": 3,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.001371458056382835,
+            "partition_id": 4,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0011507499730214477,
+            "partition_id": 5,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0012676659971475601,
+            "partition_id": 6,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0012942500179633498,
+            "partition_id": 7,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0014047919539734721,
+            "partition_id": 8,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0014033749466761947,
+            "partition_id": 9,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0014514579670503736,
+            "partition_id": 10,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0012862919829785824,
+            "partition_id": 11,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.001411292003467679,
+            "partition_id": 12,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0012166670057922602,
+            "partition_id": 13,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.001005082973279059,
+            "partition_id": 14,
+            "worker_pid": 55074
+          },
+          {
+            "compute_seconds": 0.0011913329362869263,
+            "partition_id": 15,
+            "worker_pid": 55074
+          }
+        ],
+        "partitions": 16,
+        "pool_seconds": 1.4968499999959022,
+        "pool_timeout_seconds": 120,
+        "prepare_seconds": 0.2948427500668913,
+        "prepared_pickle_bytes": 7391239,
+        "result_ipc_bytes": 1652181,
+        "worker_max_rss_bytes": {
+          "55074": 73875456
+        },
+        "worker_pids": [
+          55074
+        ],
+        "workers": 1
+      },
+      "payouts": 768,
+      "remaining_temp_files": 0,
+      "retained_object_bytes": 13284317,
+      "skew": true,
+      "source_bytes": 11446758,
+      "status": "COMPLETE",
+      "wall_seconds": 2.2851445409469306,
+      "workers": 1
+    },
+    {
+      "case": "skew",
+      "completion": {
+        "published": true,
+        "result_sha256": "4b96c4fee8217fa1326b832d5d1d38e24ad3174c21098cfc6c2681b1fe700f48",
+        "run_id": "a87571fe-2c6d-49fd-a47f-713b9089fb25",
+        "semantic_sha256": "02c7b105801f048991162c5deecb8720da866e8c0033a394b552935a6dc12897"
+      },
+      "metrics": {
+        "accepted_partition_bytes": 1655728,
+        "children_reaped": true,
+        "completion_seconds": 0.13691491703502834,
+        "elapsed_seconds": 2.1161248750286177,
+        "input_bytes": 11446758,
+        "largest_worker_max_rss_bytes": 75743232,
+        "parent_process_lifetime_max_rss_bytes": 266534912,
+        "partition_metrics": [
+          {
+            "compute_seconds": 0.0017115839291363955,
+            "partition_id": 0,
+            "worker_pid": 55106
+          },
+          {
+            "compute_seconds": 0.001454374985769391,
+            "partition_id": 1,
+            "worker_pid": 55106
+          },
+          {
+            "compute_seconds": 0.0019526659743860364,
+            "partition_id": 2,
+            "worker_pid": 55124
+          },
+          {
+            "compute_seconds": 0.01008700008969754,
+            "partition_id": 3,
+            "worker_pid": 55106
+          },
+          {
+            "compute_seconds": 0.0014560830313712358,
+            "partition_id": 4,
+            "worker_pid": 55124
+          },
+          {
+            "compute_seconds": 0.00131612503901124,
+            "partition_id": 5,
+            "worker_pid": 55106
+          },
+          {
+            "compute_seconds": 0.001246624975465238,
+            "partition_id": 6,
+            "worker_pid": 55124
+          },
+          {
+            "compute_seconds": 0.0012715000193566084,
+            "partition_id": 7,
+            "worker_pid": 55106
+          },
+          {
+            "compute_seconds": 0.0014338750625029206,
+            "partition_id": 8,
+            "worker_pid": 55124
+          },
+          {
+            "compute_seconds": 0.0014094999060034752,
+            "partition_id": 9,
+            "worker_pid": 55106
+          },
+          {
+            "compute_seconds": 0.0014677500585094094,
+            "partition_id": 10,
+            "worker_pid": 55124
+          },
+          {
+            "compute_seconds": 0.0012285420671105385,
+            "partition_id": 11,
+            "worker_pid": 55106
+          },
+          {
+            "compute_seconds": 0.001449250034056604,
+            "partition_id": 12,
+            "worker_pid": 55124
+          },
+          {
+            "compute_seconds": 0.0011548340553417802,
+            "partition_id": 13,
+            "worker_pid": 55106
+          },
+          {
+            "compute_seconds": 0.0010548749705776572,
+            "partition_id": 14,
+            "worker_pid": 55124
+          },
+          {
+            "compute_seconds": 0.001146333059296012,
+            "partition_id": 15,
+            "worker_pid": 55106
+          }
+        ],
+        "partitions": 16,
+        "pool_seconds": 1.5166309580672532,
+        "pool_timeout_seconds": 120,
+        "prepare_seconds": 0.28324595803860575,
+        "prepared_pickle_bytes": 7391239,
+        "result_ipc_bytes": 1652208,
+        "worker_max_rss_bytes": {
+          "55106": 75743232,
+          "55124": 73400320
+        },
+        "worker_pids": [
+          55106,
+          55124
+        ],
+        "workers": 2
+      },
+      "payouts": 768,
+      "remaining_temp_files": 0,
+      "retained_object_bytes": 13284317,
+      "skew": true,
+      "source_bytes": 11446758,
+      "status": "COMPLETE",
+      "wall_seconds": 2.2586439999286085,
+      "workers": 2
+    },
+    {
+      "case": "skew",
+      "completion": {
+        "published": true,
+        "result_sha256": "4e6abb7ffa886d5a61800ee3629bda769766ea4b52a4b1c3762beb0aec36b4e9",
+        "run_id": "9227234c-11b5-48c9-b819-5495f9eb9ee4",
+        "semantic_sha256": "02c7b105801f048991162c5deecb8720da866e8c0033a394b552935a6dc12897"
+      },
+      "metrics": {
+        "accepted_partition_bytes": 1655728,
+        "children_reaped": true,
+        "completion_seconds": 0.16494987509213388,
+        "elapsed_seconds": 2.3039772920310497,
+        "input_bytes": 11446758,
+        "largest_worker_max_rss_bytes": 75481088,
+        "parent_process_lifetime_max_rss_bytes": 266534912,
+        "partition_metrics": [
+          {
+            "compute_seconds": 0.0017180839786306024,
+            "partition_id": 0,
+            "worker_pid": 55151
+          },
+          {
+            "compute_seconds": 0.0015963750192895532,
+            "partition_id": 1,
+            "worker_pid": 55152
+          },
+          {
+            "compute_seconds": 0.0014189579524099827,
+            "partition_id": 2,
+            "worker_pid": 55153
+          },
+          {
+            "compute_seconds": 0.009266291977837682,
+            "partition_id": 3,
+            "worker_pid": 55153
+          },
+          {
+            "compute_seconds": 0.0013689580373466015,
+            "partition_id": 4,
+            "worker_pid": 55151
+          },
+          {
+            "compute_seconds": 0.0013032499700784683,
+            "partition_id": 5,
+            "worker_pid": 55152
+          },
+          {
+            "compute_seconds": 0.0012913329992443323,
+            "partition_id": 6,
+            "worker_pid": 55154
+          },
+          {
+            "compute_seconds": 0.0014328749384731054,
+            "partition_id": 7,
+            "worker_pid": 55151
+          },
+          {
+            "compute_seconds": 0.0014523750869557261,
+            "partition_id": 8,
+            "worker_pid": 55153
+          },
+          {
+            "compute_seconds": 0.0013723749434575438,
+            "partition_id": 9,
+            "worker_pid": 55151
+          },
+          {
+            "compute_seconds": 0.0015098750591278076,
+            "partition_id": 10,
+            "worker_pid": 55152
+          },
+          {
+            "compute_seconds": 0.0014402089873328805,
+            "partition_id": 11,
+            "worker_pid": 55154
+          },
+          {
+            "compute_seconds": 0.0015434579690918326,
+            "partition_id": 12,
+            "worker_pid": 55151
+          },
+          {
+            "compute_seconds": 0.0012737499782815576,
+            "partition_id": 13,
+            "worker_pid": 55152
+          },
+          {
+            "compute_seconds": 0.0010323750320822,
+            "partition_id": 14,
+            "worker_pid": 55153
+          },
+          {
+            "compute_seconds": 0.0011718330206349492,
+            "partition_id": 15,
+            "worker_pid": 55151
+          }
+        ],
+        "partitions": 16,
+        "pool_seconds": 1.6701943749794737,
+        "pool_timeout_seconds": 120,
+        "prepare_seconds": 0.2971350000007078,
+        "prepared_pickle_bytes": 7391239,
+        "result_ipc_bytes": 1652268,
+        "worker_max_rss_bytes": {
+          "55151": 73596928,
+          "55152": 75481088,
+          "55153": 74203136,
+          "55154": 73465856
+        },
+        "worker_pids": [
+          55151,
+          55152,
+          55153,
+          55154
+        ],
+        "workers": 4
+      },
+      "payouts": 768,
+      "remaining_temp_files": 0,
+      "retained_object_bytes": 13284317,
+      "skew": true,
+      "source_bytes": 11446758,
+      "status": "COMPLETE",
+      "wall_seconds": 2.444637165986933,
+      "workers": 4
+    }
+  ],
+  "code_revision": "dac08ff31adcb16ea6c1b5ee97a936f1789064a2",
+  "dirty": true,
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "python": "3.12.14",
+  "rss_scope": "Parent lifetime peak and each worker peak are separate; not a simultaneous aggregate",
+  "scope": "Generated offline evidence through real PG publication; not financial admission throughput",
+  "version": 1
+}

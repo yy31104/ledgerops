@@ -52,7 +52,10 @@ R4-PR02 now adds immutable object registry/pins, complete-run CAS publication an
 bounded1/2/4 spawned processes with failure cleanup. Full1325tests pass354.11s;
 Ruff131files/build/fresh installed APIs pass. Exportv7 declares008 while preserving
 oldv1–v6 bytes/capabilities. Evidence: evidence/R4-PR02/2026-10-29/verification.json.
-Next is R4-PR03 actual measurements and acceptance, followed by R5/R6/service/ops.
+R4-PR03 now completes actual1/2/4 measurements on16/256/768 payouts, identical
+source/plan percase, stable semanticdigests and ownedcleanup. No general speedup:
+singleprocess remains default. See docs/R4-ACCEPTANCE.md and evidence/R4-PR03.
+R4 is complete within bounded local evidence scope; R5/R6/service/ops remain active.
 Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
 production activation and personal ownership remain separate.
 
