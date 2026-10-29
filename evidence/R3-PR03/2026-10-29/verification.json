@@ -1,0 +1,51 @@
+{
+  "base_commit": "ca68c496d0d6029cda517139307cef5ec95b4692",
+  "scope": "R3-PR03 authenticated observations and one local terminal financial effect",
+  "python": "3.12.14",
+  "postgres": "18.6 (Debian 18.6-1.pgdg13+2)",
+  "postgres_image": "postgres@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722",
+  "sqlite": "3.53.1",
+  "psycopg": "3.3.6",
+  "pytest": "9.1.1",
+  "ruff": "0.16.9",
+  "full_test_command": "UV_NO_SYNC=1 PYTHONPYCACHEPREFIX=/private/tmp/ledgerops-r3-pycache UV_PROJECT_ENVIRONMENT=/private/tmp/ledgerops-r3-runtime UV_CACHE_DIR=/private/tmp/ledgerops-r3-uv /private/tmp/ledgerops-r3-runtime/bin/python -m pytest -o cache_dir=/private/tmp/ledgerops-r3-pytest-cache --tb=short",
+  "full_result": {
+    "passed": 1020,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 107.09
+  },
+  "checks": {
+    "ruff": "src/tests/reference/lab/provider_sim check and105-file format pass",
+    "build": "wheel+sdist passed",
+    "install": "actual rebuilt wheel reinstalled outside source; module path/resolution API/007 SQL checked",
+    "protected_paths": "001–006, docs/reference, fixtures, reference, lab and tutorial unchanged"
+  },
+  "prior_results": [
+    "Focused tests found a missing exception binding in local-blocker branch; fixed and exercised.",
+    "Focused147pass/3fail: test helper missing import and formerly forbidden worker state transition now intentionally permitted; revised permission negative case still tests forbidden gross updates.",
+    "First whole run1019pass/1fail in106.57s: old CLI assertion still expected v5 external-result boundary. Second1019pass/1fail in104.84s: root supplied new boundary values in wrong alphabetical order. Fixed the explicit v6 assertion; final frozen1020-case run passed.",
+    "An overbroad ruff format . check included pre-existing markdown snippets outside Makefile CHECK_DIRS; these learning/reference-adjacent documents were not reformatted. Canonical source check105files passes."
+  ],
+  "critical_scenarios": [
+    "Literal success18/0/18 andclearing38; negative release80/0/80 withoutjournal; immutable202 replay",
+    "Duplicate channels/outerJSON formatting and compatible old/new evidence retain one effect",
+    "Signed event ID/sequence collisions and contradictory oldterminal facts persist incidents",
+    "Cross-workspace collisions do not write frozen peer financial rows; redacted relateddiagnostics visible",
+    "Invalid evidence cannot stop valid payout even at quarantinecapacity; authenticated capacity stops honestly",
+    "EightSQL/COMMIT stage failures and actual before/afterCOMMIT transportloss preserve atomic resolution",
+    "Concurrent real PostgreSQL resolutions, oldworker delayedresponse, ACCEPTED observationfailure onlyLOOKUP",
+    "Local projection/capacity blockers retain evidence andhold; disabledmerchant terminalstillapplies",
+    "Independent stdlib-only v6 verifier detects missingterminal application, badhold/owner/amount/sequence; v1–v5 remainverifiable",
+    "Authorization and bounded statusreferences; real concurrentterminalCOMMIT cannotmix status/evidence snapshots"
+  ],
+  "cleanup": "All own final-suite containers/processes cleaned; pre-existing ledgerops-r1-tests-f1cd1d08c45b preserved",
+  "limits": [
+    "No worker process or whole external-success/ledger-SIGKILL story until PR04.",
+    "Offline report does not verify HMAC without trust keys and does not assert independent external effect.",
+    "Workspace freeze stabilizes local journal/hold source, not global cross-workspace evidence; maintenance diagnostic reads are not a global RR snapshot.",
+    "Namespace lock serializes authenticated comparison; finite tested schedules do not prove unlimited capacity or arbitrary deadlock freedom.",
+    "Local blockers are sticky; repair does not automatically authorize reprocessing. Controlled actions follow in R5.",
+    "Synthetic loopback provider, no real banking, cloud deployment or personal mastery claim; R4–R6 remain active work."
+  ]
+}

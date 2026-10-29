@@ -278,7 +278,7 @@ def test_transport_failures_keep_hold_and_store_transport_fact(seeded_db, golden
 
 
 @pytest.mark.parametrize("provider_has_success", [False, True])
-def test_real_provider_cutoff_closure_observes_tombstone_or_existing_success_without_releasing_hold(
+def test_real_provider_cutoff_closure_resolves_tombstone_or_existing_success(
     seeded_db, golden, tmp_path, provider_has_success
 ):
     command = setup_payout(seeded_db, golden)
@@ -288,19 +288,24 @@ def test_real_provider_cutoff_closure_observes_tombstone_or_existing_success_wit
         with seeded_db.connect("worker") as conn:
             client = ProviderHTTPClient(provider.ready["url"], TOKEN)
             if provider_has_success:
-                result = run(conn, command, client, NOW)
-                assert result.observation.state == "SUCCEEDED"
+                # The provider is ahead of local processing; no local resolver
+                # has consumed the hold before the cutoff recovery call.
+                with seeded_db.connect("reader") as reader:
+                    key, raw = reader.execute(
+                        "SELECT provider_key,provider_request FROM ledger.payout"
+                    ).fetchone()
+                assert client.put(key, raw).http_status == 200
+                assert money(seeded_db, golden)[:3] == (80, 62, 18)
             result = run(conn, command, client, NOW + timedelta(seconds=61))
             assert result.claim.action == "CLOSE"
-            assert result.observation.state == (
-                "SUCCEEDED" if provider_has_success else "CLOSED_ABSENT"
-            )
+            expected = "SUCCEEDED" if provider_has_success else "CLOSED_ABSENT"
+            assert result.observation.state == expected
             assert len(effect_rows(provider.path)) == int(provider_has_success)
-            # PR02 retains authenticated transport evidence, but financial terminal
-            # effects are deliberately deferred to the PR03 resolver.
-            assert money(seeded_db, golden)[:3] == (80, 62, 18)
+            assert money(seeded_db, golden)[:3] == (
+                (18, 0, 18) if provider_has_success else (80, 0, 80)
+            )
             late = client.put(result.claim.provider_key, result.claim.request_bytes)
-            assert json.loads(json.loads(late.body)["payload"])["state"] == result.observation.state
+            assert json.loads(json.loads(late.body)["payload"])["state"] == expected
             assert len(effect_rows(provider.path)) == int(provider_has_success)
     finally:
         provider.stop()

@@ -14,10 +14,10 @@ pytestmark = pytest.mark.integration
 @pytest.mark.parametrize(
     "role,statement",
     [
-        ("worker", "UPDATE ledger.account_balance SET reserved=0"),
+        ("worker", "UPDATE ledger.account_balance SET normal_side=normal_side"),
         ("worker", "UPDATE ledger.operation SET payload=payload"),
         ("worker", "INSERT INTO ledger.reservation SELECT * FROM ledger.reservation"),
-        ("worker", "UPDATE ledger.reservation SET state='HELD'"),
+        ("worker", "UPDATE ledger.reservation SET gross_minor=gross_minor"),
         ("worker", "DELETE FROM ledger.transport_attempt"),
         ("app", "UPDATE ledger.payout SET knowledge='UNKNOWN',version=version+1"),
         ("app", "UPDATE ledger.dispatch_intent SET state='OBSERVING'"),

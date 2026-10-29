@@ -193,6 +193,7 @@ def db(postgres_cluster):
                 "004_resume_review.sql",
                 "005_full_reversal.sql",
                 "006_payout_admission.sql",
+                "007_payout_resolution.sql",
             ]
         yield database
     finally:

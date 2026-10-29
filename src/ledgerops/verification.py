@@ -13,6 +13,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from uuid import UUID
 
+from ledgerops.verification_external import verify_external_records
+
 _MAX_AMOUNT = 9_000_000_000_000_000
 _MAX_TOTAL = 10**38 - 1
 _MAX_ROWS = 10_000
@@ -40,11 +42,19 @@ class VerificationReport:
     issues: tuple[VerificationIssue, ...]
     intent_scope: tuple[str, ...] = ("PURCHASE",)
     unverified_intent_kinds: tuple[str, ...] = ()
+    external_evidence: dict | None = None
 
     @property
     def healthy(self) -> bool:
         """Posted structure, projection and supported stored-request intent agree."""
-        return self.structure_ok and self.projection_ok and self.request_intent_ok
+        return (
+            self.structure_ok
+            and self.projection_ok
+            and self.request_intent_ok
+            and (
+                self.external_evidence is None or self.external_evidence["external_consistency_ok"]
+            )
+        )
 
     @property
     def rebuild_eligible(self) -> bool:
@@ -56,6 +66,10 @@ class VerificationReport:
         result["issues"] = [asdict(issue) for issue in self.issues]
         result["intent_scope"] = list(self.intent_scope)
         result["unverified_intent_kinds"] = list(self.unverified_intent_kinds)
+        if self.external_evidence is None:
+            del result["external_evidence"]
+        else:
+            result["report_version"] = 2
         result.update(healthy=self.healthy, rebuild_eligible=self.rebuild_eligible)
         return result
 
@@ -208,6 +222,7 @@ class _Check:
         self.issues = []
         self.unverified = set()
         self.intent_scope = ("PURCHASE",)
+        self.external_evidence = None
 
     def issue(self, section, code, object_id, field, expected, actual):
         self.flags[section] = False
@@ -222,6 +237,7 @@ class _Check:
             tuple(self.issues),
             intent_scope=self.intent_scope,
             unverified_intent_kinds=tuple(sorted(self.unverified)),
+            external_evidence=self.external_evidence,
         )
 
     def rows(self, snapshot, table, workspace):
@@ -910,7 +926,7 @@ def _payout_rejection(operation):
     _uuid(error["request_id"])
 
 
-def _payout_transport(check, snapshot, workspace, payouts):
+def _payout_transport(check, snapshot, workspace, payouts, facts=None):
     intents = check.index(
         check.rows(snapshot, "dispatch_intents", workspace),
         "dispatch_intents",
@@ -973,9 +989,10 @@ def _payout_transport(check, snapshot, workspace, payouts):
                 raise _Invalid("intent payout is missing")
             count = _integer(row["attempts"])
             _time(row["next_due_at"])
-            if row["state"] not in {"READY", "IN_FLIGHT", "OBSERVING"} or row[
-                "next_action"
-            ] not in {
+            states = {"READY", "IN_FLIGHT", "OBSERVING"}
+            if facts is not None:
+                states |= {"DONE", "BLOCKED"}
+            if row["state"] not in states or row["next_action"] not in {
                 "PUT",
                 "LOOKUP",
                 "CLOSE",
@@ -984,20 +1001,29 @@ def _payout_transport(check, snapshot, workspace, payouts):
             if count != len(by_payout[identifier]):
                 raise _Invalid("attempt counter differs from retained history")
             if count == 0:
-                if (
-                    row["state"] != "READY"
-                    or row["next_action"] != "PUT"
-                    or row["last_attempt_id"] is not None
-                ):
+                if row["last_attempt_id"] is not None:
+                    raise _Invalid("no-attempt history cannot name an attempt")
+                if facts is None and (row["state"] != "READY" or row["next_action"] != "PUT"):
                     raise _Invalid("initial intent state differs from no-attempt history")
-                if payouts[identifier]["knowledge"] != "NOT_SENT":
+                if facts is None and payouts[identifier]["knowledge"] != "NOT_SENT":
                     raise _Invalid("unsent payout has unknown knowledge")
             else:
                 last = _uuid(row["last_attempt_id"])
                 if last not in by_payout[identifier] or row["state"] == "READY":
                     raise _Invalid("current claim is missing or not owned by payout")
-                if payouts[identifier]["knowledge"] != "UNKNOWN":
+                if (facts is None and payouts[identifier]["knowledge"] != "UNKNOWN") or (
+                    facts is not None and payouts[identifier]["knowledge"] == "NOT_SENT"
+                ):
                     raise _Invalid("claimed payout cannot claim to be unsent")
+            if facts is not None:
+                if row["state"] == "READY" and (count != 0 or row["next_action"] != "PUT"):
+                    raise _Invalid("ready intent must be initial unsent work")
+                if row["state"] == "READY" and payouts[identifier]["knowledge"] != "NOT_SENT":
+                    raise _Invalid("ready intent cannot ignore applied provider knowledge")
+                if (row["state"] == "DONE") != (identifier in facts.resolutions):
+                    raise _Invalid("done intent must have exactly one terminal resolution")
+                if row["state"] == "BLOCKED" and identifier not in facts.incidents:
+                    raise _Invalid("blocked intent lacks a retained incident")
         except (KeyError, TypeError, ValueError) as exc:
             check.issue(
                 "structure", "INVALID_DISPATCH_INTENT", identifier, "intent", str(exc), None
@@ -1005,8 +1031,33 @@ def _payout_transport(check, snapshot, workspace, payouts):
     return intents
 
 
-def _check_payouts(check, snapshot, workspace, accounts, operations, by_operation):
-    """Fold immutable HELD history and check local intent, not external finality."""
+def _payout_effect(check, identifier, request, resolution, headers, lines, accounts):
+    if resolution is None or resolution["state"] != "SUCCEEDED":
+        if headers:
+            raise _Invalid("unresolved/negative payout must not have a financial journal")
+        return
+    if len(headers) != 1 or headers[0]["journal_id"] != resolution["journal_id"]:
+        raise _Invalid("successful payout must bind exactly one terminal journal")
+    clearing = [key for key, row in accounts.items() if row["class"] == "SYNTHETIC_CLEARING"]
+    if len(clearing) != 1:
+        raise _Invalid("one clearing account is required by payout contract")
+    gross = str(int(request["principal_minor"]) + int(request["fee_minor"]))
+    expected = [(request["merchant_account_id"], "D", gross), (clearing[0], "C", gross)]
+    actual = [
+        (row["account_id"], row["side"], row["amount_minor"])
+        for row in lines[headers[0]["journal_id"]]
+    ]
+    if sorted(actual) != sorted(expected):
+        code = (
+            "WRONG_OWNER"
+            if sorted(row[:2] for row in actual) != sorted(row[:2] for row in expected)
+            else "WRONG_AMOUNT"
+        )
+        check.issue("intent", code, identifier, "payout_journal", expected, actual)
+
+
+def _check_payouts(check, snapshot, workspace, accounts, operations, by_operation, lines):
+    """Fold immutable hold history and bind local effects to captured intent."""
     payouts = check.index(
         check.rows(snapshot, "payouts", workspace),
         "payouts",
@@ -1025,15 +1076,56 @@ def _check_payouts(check, snapshot, workspace, accounts, operations, by_operatio
     history_by_payout = defaultdict(list)
     for identity in events:
         history_by_payout[identity[0]].append(identity)
-    intents = _payout_transport(check, snapshot, workspace, payouts)
+    facts = (
+        verify_external_records(check, snapshot, workspace, payouts)
+        if snapshot["format_version"] >= 6
+        else None
+    )
+    applied_sources = (
+        set()
+        if facts is None
+        else {
+            (row["payout_id"], row["state"], row["source_sequence"])
+            for row in facts.observations.values()
+            if row["kind"] == "execution"
+        }
+    )
+    accepted_sources = {identity for identity, state, _ in applied_sources if state == "ACCEPTED"}
+    intents = _payout_transport(check, snapshot, workspace, payouts, facts)
     held = defaultdict(int)
     for identifier, row in payouts.items():
         try:
             op = operations.get(identifier)
             if op is None or op["kind"] != "PAYOUT" or op["admission"] != "ACCEPTED":
                 raise _Invalid("payout must bind an accepted payout operation")
-            if row["knowledge"] not in {"NOT_SENT", "UNKNOWN"}:
+            knowledge = {"NOT_SENT", "UNKNOWN"}
+            if facts is not None:
+                knowledge |= {"ACCEPTED", "SUCCEEDED", "FAILED", "CLOSED_ABSENT"}
+            if row["knowledge"] not in knowledge:
                 raise _Invalid("external finality is unsupported in v5")
+            if facts is not None:
+                sequence = _integer(row["source_sequence"])
+                matching = (identifier, row["knowledge"], sequence) in applied_sources
+                if (sequence > 0 and not matching) or (
+                    row["knowledge"] not in {"NOT_SENT", "UNKNOWN"} and sequence == 0
+                ):
+                    raise _Invalid("current knowledge lacks a compatible source observation")
+                resolution = facts.resolutions.get(identifier)
+                if resolution is not None and resolution["state"] != row["knowledge"]:
+                    raise _Invalid("terminal knowledge differs from committed resolution")
+                if resolution is None and row["knowledge"] in {
+                    "SUCCEEDED",
+                    "FAILED",
+                    "CLOSED_ABSENT",
+                }:
+                    raise _Invalid("terminal knowledge lacks financial resolution")
+                if (
+                    resolution is None
+                    and identifier not in facts.incidents
+                    and identifier in accepted_sources
+                    and row["knowledge"] != "ACCEPTED"
+                ):
+                    raise _Invalid("accepted observation has not advanced local knowledge")
             _integer(row["version"], 1)
             for name in ("merchant_account_id", "beneficiary_id", "provider_namespace"):
                 _uuid(row[name])
@@ -1058,21 +1150,37 @@ def _check_payouts(check, snapshot, workspace, accounts, operations, by_operatio
                 payout is None
                 or account not in accounts
                 or accounts[account]["class"] != "MERCHANT_LIABILITY"
-                or reservation["state"] != "HELD"
                 or type(reservation["version"]) is not int
-                or reservation["version"] != 1
                 or account != payout["merchant_account_id"]
                 or reservation["gross_minor"] != payout["gross_minor"]
             ):
                 raise _Invalid("hold identity, state or amount differs from payout")
-            history = history_by_payout[identifier]
-            if history != [(identifier, 1)]:
-                raise _Invalid("v5 hold requires exactly one initial HELD event")
+            history = sorted(history_by_payout[identifier])
+            resolution = None if facts is None else facts.resolutions.get(identifier)
+            expected_history = [(identifier, 1)] + (
+                [(identifier, 2)] if resolution is not None else []
+            )
+            if history != expected_history:
+                raise _Invalid("hold requires one initial and at most one terminal event")
             event = events[(identifier, 1)]
             if event["state"] != "HELD" or event["observation_id"] is not None:
                 raise _Invalid("invalid initial hold event")
             _time(event["recorded_at"])
-            held[account] += gross
+            if resolution is None:
+                if reservation["state"] != "HELD" or reservation["version"] != 1:
+                    raise _Invalid("unresolved hold must remain HELD at version1")
+                held[account] += gross
+            else:
+                event = events[(identifier, 2)]
+                state = "CONSUMED" if resolution["state"] == "SUCCEEDED" else "RELEASED"
+                if (
+                    reservation["state"] != state
+                    or reservation["version"] != 2
+                    or event["state"] != state
+                    or event["observation_id"] != resolution["observation_id"]
+                ):
+                    raise _Invalid("terminal hold differs from its resolution/observation")
+                _time(event["recorded_at"])
         except (KeyError, TypeError, ValueError) as exc:
             check.issue("structure", "INVALID_HOLD_HISTORY", identifier, "hold", str(exc), None)
             check.flags["reservation"] = False
@@ -1088,7 +1196,7 @@ def _check_payouts(check, snapshot, workspace, accounts, operations, by_operatio
             merchant = accounts.get(request["merchant_account_id"])
             if merchant is None or merchant["class"] != "MERCHANT_LIABILITY":
                 raise _Invalid("payout merchant account is missing or wrong class")
-            if by_operation.get(identifier):
+            if facts is None and by_operation.get(identifier):
                 check.issue(
                     "structure",
                     "INVALID_PAYOUT_EFFECT",
@@ -1101,6 +1209,8 @@ def _check_payouts(check, snapshot, workspace, accounts, operations, by_operatio
             if operation["admission"] == "REJECTED":
                 if any(identifier in table for table in (payouts, reservations, intents)):
                     raise _Invalid("rejected payout has a hold, instruction or intent")
+                if by_operation.get(identifier):
+                    raise _Invalid("rejected payout has a financial journal")
                 _payout_rejection(operation)
                 continue
             if any(identifier not in table for table in (payouts, reservations, intents)):
@@ -1144,9 +1254,69 @@ def _check_payouts(check, snapshot, workspace, accounts, operations, by_operatio
             }
             if not _same_json(operation["response_body"], expected_body):
                 raise _Invalid("payout acceptance differs from fixed instruction")
+            if facts is not None:
+                _payout_effect(
+                    check,
+                    identifier,
+                    request,
+                    facts.resolutions.get(identifier),
+                    by_operation.get(identifier, []),
+                    lines,
+                    accounts,
+                )
         except (KeyError, TypeError, ValueError) as exc:
             check.issue("intent", "INVALID_PAYOUT_INTENT", identifier, "payout", str(exc), None)
     return held
+
+
+def _external_report(value):
+    """Validate a saved v2 coverage report without reinterpreting old evidence."""
+    if type(value) is not dict or value.keys() != {
+        "signature_authenticity",
+        "independent_provider_history",
+        "external_consistency_ok",
+        "accepted_payout_count",
+        "resolved_payout_count",
+        "payouts_resolved",
+        "unresolved_payout_ids",
+        "incident_payout_ids",
+        "local_blocker_payout_ids",
+        "quarantine_count",
+        "retained_observation_count",
+    }:
+        raise _Invalid("invalid external evidence report fields")
+    if (
+        value["signature_authenticity"] != "NOT_VERIFIED_NO_TRUST_KEYS"
+        or value["independent_provider_history"] != "NOT_PROVIDED"
+        or type(value["external_consistency_ok"]) is not bool
+        or type(value["payouts_resolved"]) is not bool
+    ):
+        raise _Invalid("unsupported external evidence verification claim")
+    counts = {
+        name: _integer(value[name], 0, _MAX_ROWS)
+        for name in (
+            "accepted_payout_count",
+            "resolved_payout_count",
+            "quarantine_count",
+            "retained_observation_count",
+        )
+    }
+    for name in ("unresolved_payout_ids", "incident_payout_ids", "local_blocker_payout_ids"):
+        ids = value[name]
+        if type(ids) is not list or len(ids) > _MAX_ROWS:
+            raise _Invalid("bounded payout identity list required")
+        if [_uuid(item) for item in ids] != sorted(set(ids)):
+            raise _Invalid("external payout identities must be unique and sorted")
+    admitted, resolved = counts["accepted_payout_count"], counts["resolved_payout_count"]
+    if (
+        resolved > admitted
+        or len(value["unresolved_payout_ids"]) != admitted - resolved
+        or value["payouts_resolved"] != (admitted == resolved)
+        or len(value["incident_payout_ids"]) > admitted
+        or len(value["local_blocker_payout_ids"]) > admitted
+        or (not value["external_consistency_ok"] and not value["incident_payout_ids"])
+    ):
+        raise _Invalid("external evidence report counts/coverage disagree")
 
 
 def _resume_report(report):
@@ -1159,20 +1329,25 @@ def _resume_report(report):
         "healthy",
         "rebuild_eligible",
     )
-    if type(report) is not dict or report.keys() != {
-        *flags,
-        "issues",
-        "intent_scope",
-        "unverified_intent_kinds",
-    }:
+    if type(report) is not dict:
+        raise _Invalid("invalid saved resume report fields")
+    expected_keys = {*flags, "issues", "intent_scope", "unverified_intent_kinds"}
+    consistent = True
+    if "report_version" in report:
+        if type(report["report_version"]) is not int or report["report_version"] != 2:
+            raise _Invalid("unsupported saved report version")
+        expected_keys |= {"report_version", "external_evidence"}
+        _external_report(report.get("external_evidence"))
+        consistent = report["external_evidence"]["external_consistency_ok"]
+    if report.keys() != expected_keys:
         raise _Invalid("invalid saved resume report fields")
     if any(type(report[name]) is not bool for name in flags):
         raise _Invalid("saved report flags must be booleans")
     if not report["structure_ok"] or not report["projection_ok"]:
         raise _Invalid("saved resume report must pass structure and projection checks")
-    if report["healthy"] != report["request_intent_ok"] or report["rebuild_eligible"] != (
-        report["request_intent_ok"] and report["reservation_supported"]
-    ):
+    if report["healthy"] != (report["request_intent_ok"] and consistent) or report[
+        "rebuild_eligible"
+    ] != (report["request_intent_ok"] and report["reservation_supported"]):
         raise _Invalid("saved resume report derived flags disagree")
     for name in ("intent_scope", "unverified_intent_kinds"):
         if type(report[name]) is not list or any(type(kind) is not str for kind in report[name]):
@@ -1359,9 +1534,9 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         if (
             type(snapshot) is not dict
             or type(snapshot.get("format_version")) is not int
-            or snapshot["format_version"] not in (1, 2, 3, 4, 5)
+            or snapshot["format_version"] not in (1, 2, 3, 4, 5, 6)
         ):
-            raise _Invalid("snapshot version 1, 2, 3, 4 or 5 required")
+            raise _Invalid("snapshot version 1 through 6 required")
         workspace = snapshot["workspace"]
         if type(workspace) is not dict:
             raise _Invalid("workspace object required")
@@ -1386,6 +1561,8 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
             schemas.append("005_full_reversal.sql")
         if version >= 5:
             schemas.append("006_payout_admission.sql")
+        if version >= 6:
+            schemas.append("007_payout_resolution.sql")
         if (
             snapshot["schema_versions"] != schemas
             or type(snapshot["snapshot_witness"]) is not str
@@ -1402,7 +1579,10 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         check.intent_scope = ("PURCHASE", "REVERSAL")
     if version >= 5:
         check.intent_scope += ("PAYOUT",)
-        check.unverified.add("PAYOUT_EXTERNAL_RESULT")
+        if version == 5:
+            check.unverified.add("PAYOUT_EXTERNAL_RESULT")
+        else:
+            check.unverified.update({"PAYOUT_PROVIDER_AUTHENTICITY", "PAYOUT_EXTERNAL_EFFECT"})
     accounts = _check_accounts(check, tables["accounts"])
     if snapshot["format_version"] >= 2:
         _check_maintenance(check, snapshot, workspace, accounts)
@@ -1411,7 +1591,7 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         check, tables["journals"], tables["entries"], accounts, operations
     )
     held = (
-        _check_payouts(check, snapshot, workspace_id, accounts, operations, by_operation)
+        _check_payouts(check, snapshot, workspace_id, accounts, operations, by_operation, lines)
         if version >= 5
         else None
     )

@@ -42,7 +42,8 @@ SCHEMA_VERSIONS_BY_FORMAT[5] = (
     *SCHEMA_VERSIONS_BY_FORMAT[4],
     "006_payout_admission.sql",
 )
-SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[5]
+SCHEMA_VERSIONS_BY_FORMAT[6] = (*SCHEMA_VERSIONS_BY_FORMAT[5], "007_payout_resolution.sql")
+SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[6]
 _BASE_TABLES = {
     "accounts": ("account", "workspace_id,id,owner_id,class,normal_side,currency,enabled", "id"),
     "balances": (
@@ -152,15 +153,72 @@ _HOLD_REPAIR_TABLES = {
         "repair_id",
     ),
 }
+_EXTERNAL_TABLES = {
+    "provider_observations": (
+        "provider_observation",
+        "workspace_id,payout_id,observation_id,provider_namespace,event_id,kind,state,"
+        "source_sequence,key_id,signed_payload,signature,envelope,envelope_sha256,received_at",
+        "observation_id",
+    ),
+    "observation_receipts": (
+        "observation_receipt",
+        "workspace_id,receipt_id,payout_id,observation_id,channel,transport_attempt_id,received_at",
+        "receipt_id",
+    ),
+    "observation_quarantines": (
+        "observation_quarantine",
+        "workspace_id,quarantine_id,payout_id,channel,reason,raw_payload,raw_sha256,received_at",
+        "quarantine_id",
+    ),
+    "payout_incidents": (
+        "payout_incident",
+        "workspace_id,incident_id,payout_id,category,code,observation_id,related_observation_id,"
+        "related_payload_sha256,created_at",
+        "incident_id",
+    ),
+    "payout_resolutions": (
+        "payout_resolution",
+        "workspace_id,payout_id,observation_id,state,journal_id,resolved_at",
+        "payout_id",
+    ),
+    "related_incidents": (
+        "related_payout_incident",
+        "workspace_id,incident_id,payout_id,observation_id,code,related_payload_sha256,created_at",
+        "incident_id,observation_id",
+    ),
+}
+_PAYOUT_V6_TABLES = {
+    **_PAYOUT_TABLES,
+    "payouts": ("payout", _PAYOUT_TABLES["payouts"][1] + ",source_sequence", "operation_id"),
+}
 _TABLES_BY_FORMAT = {
     1: _BASE_TABLES,
     2: {**_BASE_TABLES, **_MAINTENANCE_TABLES},
     3: {**_BASE_TABLES, **_REVIEW_TABLES},
     4: {**_BASE_TABLES, **_REVIEW_TABLES, **_REVERSAL_TABLES},
     5: {**_BASE_TABLES, **_HOLD_REPAIR_TABLES, **_REVERSAL_TABLES, **_PAYOUT_TABLES},
+    6: {
+        **_BASE_TABLES,
+        **_HOLD_REPAIR_TABLES,
+        **_REVERSAL_TABLES,
+        **_PAYOUT_V6_TABLES,
+        **_EXTERNAL_TABLES,
+    },
 }
-_TABLES = _TABLES_BY_FORMAT[5]
-_BINARY_FIELDS = {"payload", "provider_request", "response_payload"}
+_TABLES = _TABLES_BY_FORMAT[6]
+_BINARY_FIELDS = {"payload", "provider_request", "response_payload", "envelope", "raw_payload"}
+_DIGEST_FIELDS = {
+    "payload_sha256",
+    "provider_request_sha256",
+    "envelope_sha256",
+    "raw_sha256",
+    "related_payload_sha256",
+}
+_TABLE_NULLABLE_FIELDS = {
+    "observation_receipts": {"transport_attempt_id"},
+    "payout_incidents": {"observation_id", "related_observation_id", "related_payload_sha256"},
+    "payout_resolutions": {"journal_id"},
+}
 _NULLABLE_FIELDS = frozenset(
     {
         "current_freeze_id",
@@ -224,6 +282,12 @@ _UUID_FIELDS = frozenset(
         "observation_id",
         "last_attempt_id",
         "attempt_id",
+        "event_id",
+        "receipt_id",
+        "quarantine_id",
+        "incident_id",
+        "related_observation_id",
+        "transport_attempt_id",
     }
 )
 _INT_FIELDS = {
@@ -241,6 +305,7 @@ _INT_FIELDS = {
     "fold_version": (1, 2),
     "event_no": (1, 2**63 - 1),
     "attempts": (0, 2**63 - 1),
+    "source_sequence": (0, 2**63 - 1),
 }
 _ENUM_FIELDS = {
     "currency": {"PLN"},
@@ -263,6 +328,8 @@ _ENUM_FIELDS = {
         "TRANSPORT_ERROR",
         "INVALID_RESPONSE",
     },
+    "channel": {"PUT", "LOOKUP", "CLOSE", "CALLBACK", "HISTORY"},
+    "category": {"PROVIDER_CONTRADICTION", "LOCAL_BLOCKER", "EVIDENCE_LIMIT"},
 }
 _ROW_KEYS_BY_FORMAT = {
     version: {
@@ -290,6 +357,12 @@ _SORT_KEYS = {
     "reservation_events": ("payout_id", "event_no"),
     "dispatch_intents": ("payout_id",),
     "transport_attempts": ("attempt_id",),
+    "provider_observations": ("observation_id",),
+    "observation_receipts": ("receipt_id",),
+    "observation_quarantines": ("quarantine_id",),
+    "payout_incidents": ("incident_id",),
+    "payout_resolutions": ("payout_id",),
+    "related_incidents": ("incident_id", "observation_id"),
 }
 _DATA_KEYS_BY_FORMAT = {
     version: frozenset(
@@ -353,8 +426,8 @@ def _normal_row(row):
     for key, value in row.items():
         if key in _BINARY_FIELDS:
             result[key + "_hex"] = None if value is None else bytes(value).hex()
-        elif key in {"payload_sha256", "provider_request_sha256"}:
-            result[key] = bytes(value).hex()
+        elif key in _DIGEST_FIELDS:
+            result[key] = None if value is None else bytes(value).hex()
         elif value is None and key in _NULLABLE_FIELDS:
             result[key] = None
         elif key in _MONEY_FIELDS:
@@ -382,6 +455,8 @@ def _normal_row(row):
 
 
 def _validate_field(key, value, *, version, table=None):
+    if value is None and key in _TABLE_NULLABLE_FIELDS.get(table, set()):
+        return
     if key == "http_status" and table == "transport_attempts":
         if value is not None and (type(value) is not int or not 100 <= value <= 599):
             raise ExportError("Invalid transport HTTP status")
@@ -415,14 +490,30 @@ def _validate_field(key, value, *, version, table=None):
             raise ExportError("Invalid terminal result status")
     elif key in _ENUM_FIELDS:
         allowed = _ENUM_FIELDS[key]
-        if version >= 4 and key == "kind":
+        if table == "provider_observations" and key == "kind":
+            allowed = {"lookup", "execution"}
+        if version >= 4 and key == "kind" and table != "provider_observations":
             allowed = allowed | {"REVERSAL"}
         elif version >= 4 and key == "route_family":
             allowed = allowed | {"reversal:v1"}
-        if version >= 5 and key == "kind":
+        if version >= 5 and key == "kind" and table != "provider_observations":
             allowed = allowed | {"PAYOUT"}
         elif version >= 5 and key == "route_family":
             allowed = allowed | {"payout:v1"}
+        if version >= 6 and key == "state":
+            allowed |= {
+                "ACCEPTED",
+                "SUCCEEDED",
+                "FAILED",
+                "CLOSED_ABSENT",
+                "NOT_FOUND",
+                "CONSUMED",
+                "RELEASED",
+                "DONE",
+                "BLOCKED",
+            }
+        elif version >= 6 and key == "knowledge":
+            allowed |= {"ACCEPTED", "SUCCEEDED", "FAILED", "CLOSED_ABSENT"}
         if type(value) is not str or value not in allowed:
             raise ExportError("Unsupported export enum")
     elif key == "enabled":
@@ -431,28 +522,43 @@ def _validate_field(key, value, *, version, table=None):
     elif key in {"response_body", "resume_report"}:
         if type(value) is not dict:
             raise ExportError("Response/report must be an object")
-    elif key in {
+    elif key in _DIGEST_FIELDS | {
         "payload_hex",
         "payload_sha256",
         "provider_request_hex",
         "provider_request_sha256",
         "response_payload_hex",
+        "envelope_hex",
+        "raw_payload_hex",
     }:
         pattern = (
             r"[0-9a-f]{64}"
             if key.endswith("sha256")
             else r"(?:[0-9a-f]{2})*"
-            if key == "response_payload_hex"
+            if key in {"response_payload_hex", "raw_payload_hex"}
             else r"(?:[0-9a-f]{2})+"
         )
         if type(value) is not str or not re.fullmatch(pattern, value):
             raise ExportError("Invalid hexadecimal payload field")
         limit = 2 * 32768 if key == "provider_request_hex" else 2 * 65536
-        if key in {"provider_request_hex", "response_payload_hex"} and len(value) > limit:
+        if (
+            key
+            in {"provider_request_hex", "response_payload_hex", "envelope_hex", "raw_payload_hex"}
+            and len(value) > limit
+        ):
             raise ExportLimitExceeded("Provider message limit exceeded")
     elif key == "provider_key":
         if type(value) is not str or not re.fullmatch(r"v1(?:\.[0-9a-f-]{36}){3}", value):
             raise ExportError("Invalid provider key")
+    elif key == "signature":
+        if type(value) is not str or not re.fullmatch(r"[0-9a-f]{64}", value):
+            raise ExportError("Invalid retained signature encoding")
+    elif key in {"key_id", "code"}:
+        if type(value) is not str or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", value):
+            raise ExportError("Invalid bounded evidence identifier")
+    elif key == "signed_payload":
+        if type(value) is not str or not 1 <= len(value.encode("utf-8")) <= 65536:
+            raise ExportLimitExceeded("Invalid signed payload size")
     elif key == "key":
         try:
             valid = type(value) is str and "\x00" not in value and 1 <= len(value.encode()) <= 128
@@ -470,6 +576,8 @@ def _validate_field(key, value, *, version, table=None):
         "next_due_at",
         "started_at",
         "finished_at",
+        "received_at",
+        "resolved_at",
     }:
         try:
             if type(value) is not str or not re.fullmatch(
@@ -630,6 +738,19 @@ def read_snapshot(cur, workspace_id: str) -> dict:
             ).fetchone()["estimated_bytes"]
             if size > MAX_BUNDLE_BYTES:
                 raise ExportLimitExceeded("Provider payload transfer byte limit exceeded")
+        elif name in {"provider_observations", "observation_quarantines"}:
+            expression = (
+                "2::numeric * octet_length(envelope) + octet_length(signed_payload)"
+                if name == "provider_observations"
+                else "2::numeric * octet_length(raw_payload)"
+            )
+            size = cur.execute(
+                f"SELECT coalesce(sum({expression}), 0) AS estimated_bytes "
+                f"FROM ledger.{table} WHERE workspace_id=%s",
+                (workspace_id,),
+            ).fetchone()["estimated_bytes"]
+            if size > MAX_BUNDLE_BYTES:
+                raise ExportLimitExceeded("Observation evidence transfer byte limit exceeded")
         # Every interpolated identifier/clause is a module constant, never input.
         rows = cur.execute(
             f"SELECT {fields} FROM ledger.{table} WHERE workspace_id=%s "

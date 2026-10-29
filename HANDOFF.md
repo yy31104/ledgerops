@@ -26,12 +26,19 @@ PostgreSQL18.6; Ruff/build/freshwheel installation pass. Evidence:
 evidence/R3-PR02/2026-10-29/verification.json. The locked runtime currently resides
 in /private/tmp/ledgerops-r3-runtime to avoid evicted iCloud caches; UV_NO_SYNC is used
 only after uv.lock install, and distribution installation was checked separately.
-Next: R3-PR03 authenticated observations and one financial terminalresolution,
-thenPR04 real crash/recovery matrix and a bounded worker process. PR02 contains
-no consume/release, no workerdaemon and no productionHTTP. Continue R4–R6/service
-operations under existingauthorization; do not call the provider/hold slice the
-completed userrequest or claimproductionreadiness. Reference/tracker/Vault/lab stay
-untouched. Implementation, verifiedbehavior and personalownership remain separate.
+R3-PR03 now implements authenticated observations, immutable evidence and one
+financial resolution: SUCCEEDED consumes62 and posts merchantD/clearingC; negative
+terminal evidence releases without a journal. Invalid evidence is bounded quarantine;
+conflicting authenticated facts and local settlement obstacles stop automation.
+Exportv6/reportv2 distinguishes internal consistency, unresolved work and unverified
+external authenticity; v1–v5 remain supported. Authorized status returns bounded
+observation/resolution references from a single RR snapshot. Full1020tests pass in
+107.09s; Ruff105files/build/fresh installedwheel pass. Evidence:
+evidence/R3-PR03/2026-10-29/verification.json. Next: PR04 bounded worker process,
+actual SIGKILL/provider-ahead recovery and named semantic mutation matrix. Continue
+R4–R6/service operations under existing authorization; this is not production
+activation or the completion of the broad request. Reference/tracker/Vault/lab stay
+untouched. Implementation, verified behavior and personal ownership remain separate.
 
 ## Latest learning request: linear document
 

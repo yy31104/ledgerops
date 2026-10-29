@@ -18,7 +18,7 @@ from ledgerops.db.payout_admission import (
     utc_instant,
     utc_now,
 )
-from ledgerops.domain import OperationId, WorkspaceId
+from ledgerops.domain import OperationId, ProviderNamespaceId, WorkspaceId
 from ledgerops.provider_client import TransportResponse
 from ledgerops.provider_protocol import InvalidObservation, ProviderTrust, verify_observation
 
@@ -40,6 +40,7 @@ class DispatchResult:
     outcome: str
     http_status: int | None
     observation: object | None
+    resolution: object | None = None
 
 
 def _identity(value, cls):
@@ -146,12 +147,20 @@ def claim_payout(conn, workspace, payout_id, *, clock=utc_now, lease_seconds=30)
             payout, intent = _lock_work(cur, workspace, payout_id)
             if payout is None:
                 return None
+            from ledgerops.db.payout_resolution import blocking_incidents
+
+            if intent["state"] in {"DONE", "BLOCKED"} or blocking_incidents(
+                cur, workspace, payout_id
+            ):
+                return None
             now = utc_instant(clock())
             if now < intent["next_due_at"]:
                 return None
             if payout["version"] >= 2**63 - 1 or intent["attempts"] >= 2**63 - 1:
                 raise RetrySameIdentity("dispatch_capacity_unavailable")
             action = "CLOSE" if now >= payout["dispatch_deadline"] else intent["next_action"]
+            if payout["knowledge"] == "ACCEPTED" and action != "CLOSE":
+                action = "LOOKUP"
             # A committed claim whose process disappeared must observe before resending.
             if intent["state"] == "IN_FLIGHT" and action != "CLOSE":
                 action = "LOOKUP"
@@ -164,7 +173,8 @@ def claim_payout(conn, workspace, payout_id, *, clock=utc_now, lease_seconds=30)
                 (workspace, attempt_id, payout_id, action, now),
             )
             cur.execute(
-                "UPDATE ledger.payout SET knowledge='UNKNOWN',version=version+1 WHERE "
+                "UPDATE ledger.payout SET knowledge=CASE WHEN knowledge='NOT_SENT' "
+                "THEN 'UNKNOWN' ELSE knowledge END,version=version+1 WHERE "
                 "workspace_id=%s AND operation_id=%s",
                 (workspace, payout_id),
             )
@@ -188,17 +198,28 @@ def claim_payout(conn, workspace, payout_id, *, clock=utc_now, lease_seconds=30)
     return _retry(conn, once)
 
 
-def due_payouts(conn, *, clock=utc_now, limit=100):
+def due_payouts(conn, *, clock=utc_now, limit=100, provider_namespace=None):
     """Bounded, unlocked discovery; claim rechecks every fact under the barrier."""
     _idle(conn)
     if type(limit) is not int or not 1 <= limit <= 1000:
         raise ValueError("candidate batch must contain 1 to1000 items")
+    namespace = (
+        None if provider_namespace is None else _identity(provider_namespace, ProviderNamespaceId)
+    )
     return conn.execute(
         "SELECT i.workspace_id,i.payout_id FROM ledger.dispatch_intent i JOIN ledger.workspace w "
-        "ON w.id=i.workspace_id "
-        "WHERE w.mode='NORMAL' AND i.next_due_at<=%s ORDER BY "
+        "ON w.id=i.workspace_id JOIN ledger.payout p "
+        "ON p.workspace_id=i.workspace_id AND p.operation_id=i.payout_id "
+        "WHERE w.mode='NORMAL' AND i.next_due_at<=%s "
+        "AND (%s::uuid IS NULL OR p.provider_namespace=%s::uuid) "
+        "AND i.state IN ('READY','IN_FLIGHT','OBSERVING') "
+        "AND NOT EXISTS (SELECT 1 FROM ledger.payout_incident incident "
+        "WHERE incident.workspace_id=i.workspace_id AND incident.payout_id=i.payout_id) "
+        "AND NOT EXISTS (SELECT 1 FROM ledger.payout_incident incident "
+        "JOIN ledger.provider_observation o ON o.observation_id=incident.related_observation_id "
+        "WHERE o.workspace_id=i.workspace_id AND o.payout_id=i.payout_id) ORDER BY "
         "i.next_due_at,i.workspace_id,i.payout_id LIMIT %s",
-        (utc_instant(clock()), limit),
+        (utc_instant(clock()), namespace, namespace, limit),
     ).fetchall()
 
 
@@ -266,6 +287,8 @@ def finish_claim(
                 delay = min(60, base_delay * factor)
                 if now >= payout["dispatch_deadline"]:
                     next_step = "CLOSE"
+                elif payout["knowledge"] == "ACCEPTED":
+                    next_step = "LOOKUP"
                 else:
                     next_step = next_action
                 cur.execute(
@@ -351,6 +374,20 @@ def dispatch_once(
         clock=clock,
         jitter=jitter,
     )
+    resolution = None
+    if response is not None:
+        from ledgerops.db.payout_resolution import receive_observation
+
+        resolution = receive_observation(
+            conn,
+            claim.workspace_id,
+            claim.payout_id,
+            response.body,
+            trust=trust,
+            channel=claim.action,
+            transport_attempt_id=claim.attempt_id,
+            clock=clock,
+        )
     return DispatchResult(
-        claim, outcome, None if response is None else response.http_status, observation
+        claim, outcome, None if response is None else response.http_status, observation, resolution
     )

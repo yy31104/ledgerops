@@ -255,10 +255,11 @@ def payout_state(conn, principal, payout_id):
         raise TypeError("payout state requires typed principal and operation ID")
     if not conn.autocommit or conn.info.transaction_status != TransactionStatus.IDLE:
         raise ValueError("payout state requires idle autocommit connection")
-    with conn.cursor(row_factory=dict_row) as cur:
+    with conn.transaction(), conn.cursor(row_factory=dict_row) as cur:
+        cur.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
         row = cur.execute(
             "SELECT p.operation_id,p.principal_minor,p.fee_minor,p.gross_minor,p.dispatch_deadline,"
-            "p.knowledge,r.state AS reservation_state,i.state AS "
+            "p.knowledge,p.source_sequence,r.state AS reservation_state,i.state AS "
             "dispatch_state,i.attempts,i.next_due_at "
             "FROM ledger.payout p JOIN ledger.account a ON a.workspace_id=p.workspace_id AND "
             "a.id=p.merchant_account_id "
@@ -269,8 +270,22 @@ def payout_state(conn, principal, payout_id):
             "WHERE p.workspace_id=%s AND p.operation_id=%s AND a.owner_id=%s",
             (principal.workspace_id.value, payout_id.value, principal.actor_id.value),
         ).fetchone()
-    if row is None:
-        raise NotAuthorized()
+        if row is None:
+            raise NotAuthorized()
+        from ledgerops.db.payout_resolution import blocking_incidents
+
+        incidents = blocking_incidents(cur, principal.workspace_id.value, payout_id.value)
+        observations = cur.execute(
+            "SELECT observation_id,kind,state,source_sequence FROM ledger.provider_observation "
+            "WHERE workspace_id=%s AND payout_id=%s "
+            "ORDER BY received_at DESC,observation_id DESC LIMIT 5",
+            (principal.workspace_id.value, payout_id.value),
+        ).fetchall()
+        resolution = cur.execute(
+            "SELECT state,observation_id,journal_id FROM ledger.payout_resolution "
+            "WHERE workspace_id=%s AND payout_id=%s",
+            (principal.workspace_id.value, payout_id.value),
+        ).fetchone()
     return {
         "payout_id": str(row["operation_id"]),
         "principal_minor": str(row["principal_minor"]),
@@ -278,8 +293,28 @@ def payout_state(conn, principal, payout_id):
         "gross_minor": str(row["gross_minor"]),
         "dispatch_deadline": deadline_text(row["dispatch_deadline"]),
         "knowledge": row["knowledge"],
+        "source_sequence": row["source_sequence"],
         "reservation_state": row["reservation_state"],
         "dispatch_state": row["dispatch_state"],
         "attempts": row["attempts"],
         "next_due_at": row["next_due_at"].isoformat(),
+        "incidents": [dict(incident) for incident in incidents],
+        "recent_observations": [
+            {
+                "observation_id": str(observation["observation_id"]),
+                "kind": observation["kind"],
+                "state": observation["state"],
+                "source_sequence": observation["source_sequence"],
+            }
+            for observation in observations
+        ],
+        "resolution": None
+        if resolution is None
+        else {
+            "state": resolution["state"],
+            "observation_id": str(resolution["observation_id"]),
+            "journal_id": None
+            if resolution["journal_id"] is None
+            else str(resolution["journal_id"]),
+        },
     }
