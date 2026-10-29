@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-29",
+  "scope": "Completed local LedgerOps R1–R6 plus bounded capacity and Linux service/operations delivery. No external deployment or real funds.",
+  "tested_source_commit": "6cff874b835d99c595b66ebf96dcd25c5d568abe",
+  "implementation_commits": {
+    "capacity": "cafc039b5f36ae2e4b3a7a95bf4ffe7fa3d80eab",
+    "r6": "e1236402050a948bd3c26d5433bdfde93f947e81",
+    "linux": "6cff874b835d99c595b66ebf96dcd25c5d568abe"
+  },
+  "record_commit": "Resolve with git log -1 --format=%H -- evidence/DELIVERY/2026-10-29/verification.json; this final record-only commit is not the image source.",
+  "full_regression": {
+    "passed": 1664,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 415.93,
+    "junit_seconds": 415.898,
+    "categories": {
+      "integration": 676,
+      "provider": 89,
+      "reference": 41,
+      "unit": 858
+    },
+    "r6_exchange_cases_in_full_suite": 61,
+    "command": "UV_NO_SYNC=1 PYTHONPYCACHEPREFIX=/private/tmp/ledgerops-r3-pycache UV_PROJECT_ENVIRONMENT=/private/tmp/ledgerops-r3-runtime UV_CACHE_DIR=/private/tmp/ledgerops-r3-uv /private/tmp/ledgerops-r3-runtime/bin/python -m pytest -o cache_dir=/private/tmp/ledgerops-r3-pytest-cache --tb=short --junitxml=/private/tmp/ledgerops-delivery-final.xml",
+    "source_note": "All final runtime and test edits were frozen before this run. Three local commits recorded the identical integrated files during the run; no runtime/test content changed.",
+    "preceding_failure": "1663 passed,1 failed because an existing R2 mutation monkeypatched a checker name moved to maintenance_snapshot; only that monkeypatch import/target changed, original assertions unchanged,3 focused mutations then final full passed."
+  },
+  "local_environment": {
+    "python": "3.12.14",
+    "postgres": "18.6",
+    "psycopg": "3.3.6",
+    "sqlite": "3.53.1",
+    "pytest": "9.1.1",
+    "ruff": "0.16.9"
+  },
+  "other_checks": {
+    "ruff": "check and format195files passed",
+    "javascript": "node --check src/ledgerops/http/static/console.js passed",
+    "package": "Final wheel/sdist built offline; wheel force-reinstalled outside checkout; APIs,10SQL resources,3staticassets and5CLI help commands passed. See package.json and install.json.",
+    "protected": "Existing17reference hashes verified; original SQL001–010/lab/tutorial/previousgoldens unchanged; newR6goldens only. No tracker/Vault/Chronicle changes. See protected.json.",
+    "review": "Independent source audit corrected malformed-payload closure omissions, wrong-kind child bindings and R6 pinned source scope.3768finite legacy-unhealthy probes had0falsehealthy/0exceptions after fixes; tests retained. Two independent read-only runbook reviews found no remaining command/activation mismatch."
+  },
+  "delivery_boundaries": [
+    "Linux single-host synthetic provider with specific persistent-key/tombstone/finality contract; no universal real-provider terminal semantics.",
+    "Offline full verification is bounded; excess source/row/closure/index/scratch use fails explicitly and does not certify arbitrary volume or throughput.",
+    "Same-database backup command archive is not independent durability; missing original admission/key/202 is RESTORE_GAP, not invented recovery. Restore keeps runtime CONNECT/writes/dispatch closed.",
+    "No realbank/IdP/cloud/domain/HA/off-host durability/RTO/SLO certification or live funds.",
+    "R6 is LedgerOps-side immutable exchange and independent compatibility reader; Chronicle application integration was not changed.",
+    "Browser automation is disabled in Work settings: HTTP/assets/JS verified, visual/browser interaction unverified.",
+    "Implementation, verified behavior, actual activation and personal mastery remain distinct."
+  ],
+  "linux_acceptance": {
+    "passed": true,
+    "groups": 9,
+    "seconds": 62.951,
+    "source_commit": "6cff874b835d99c595b66ebf96dcd25c5d568abe",
+    "source_dirty": false,
+    "image_ids": {
+      "administrator": "sha256:50f841db1ef1dce76155ab87f30b224fcecc8974c955ea75468cc9c827935ecb",
+      "proxy": "sha256:3b6bec07b51df8f3a4522fd1db08bfa7fbc9cd88088d1ce00d350bf9de3080ab",
+      "runtime": "sha256:770e60ded8e6c40301c12352c1ebf3b45fa634b4c0b558a248a6e401171fd896"
+    },
+    "artifact": "linux-acceptance.json",
+    "commands": "linux-commands.txt",
+    "provenance": "source-provenance.json",
+    "mode": "Installed wheel, clean Git archive, pinned images/dependencies; no host source mount, no preliminary or skip-backup flags.",
+    "artifact_metadata": "linux-artifacts.json"
+  },
+  "cleanup": {
+    "owned_containers_networks_expected_volumes_removed": true,
+    "expected_volume_count": 18,
+    "preexisting_learning_container_preserved_running": true,
+    "artifact": "cleanup.json",
+    "images": "Built local tagged images intentionally retained; no docker system prune."
+  }
+}

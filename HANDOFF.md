@@ -1,8 +1,27 @@
 # LedgerOps handoff
 
-Updated: 2026-10-29. R1–R5 implemented locally; final R6/capacity/Linux integration underway.
+Updated: 2026-10-29. LedgerOps R1–R6 and the local Linux delivery are complete within the documented scope.
 
-## Current authorization: remaining releases and deployable service
+## Final local delivery
+
+Tested source: `6cff874b835d99c595b66ebf96dcd25c5d568abe`. Capacity/maintenance is
+`cafc039`, selected evidence exchange is `e123640`, and the Linux stack is `6cff874`.
+Full regression: 1,664 passed, zero failures/errors/skips, 415.93s. A clean Git archive
+produced installed-wheel images with `dirty=false`; all nine Linux acceptance groups
+passed in62.951s, including actual scratch exhaustion, large-source maintenance and
+native backup/restore. Ruff195files, JSsyntax, package/freshinstall and17reference
+originals passed. Evidence: `evidence/DELIVERY/2026-10-29/verification.json`.
+
+Owned containers/networks/18volumes were removed; the existing learning container
+remains running. Local tagged images are retained. The final evidence commit changes
+only documentation/records, not the tested image source. No push, cloud deployment,
+real bank/funds, tracker/Vault/Chronicle/lab/tutorial changes. Browser visual/interaction
+QA remains unverified because Work settings disable browser automation. Read
+`docs/RELEASE-READINESS.md` for operation commands and precise activation boundaries.
+R6 is the LedgerOps-side protocol and standalone compatibility reader; Chronicle's
+application adapter is not claimed. Personal mastery remains unassessed.
+
+## Authorization and release history
 
 2026-10-29: The user explicitly requests completing the remaining LedgerOps roadmap
 and production-oriented service/operations engineering. Adopt R3 decisions1–4 as
@@ -86,11 +105,10 @@ See docs/BACKUP-RESTORE.md and evidence/R5-PR04/2026-10-29.
 R5 is complete initslocal syntheticcontract; serviceavailabilityRTO, off-host
 backup, realbank andcloudactivation are notclaimed. R6 selected immutable exchanges,
 complete format10 export/verification/R4 authority and large-workspace maintenance
-are implemented. Linux nonroot/TLS/isolated-role deployment and nine acceptance
-groups passed in a preliminary dirty-source image. Final full regression and a
-fresh clean-commit image acceptance remain in progress; do not cite the preliminary
-image as the final release. See docs/RELEASE-READINESS.md and the bounded CAPACITY/R6
-task contracts. The final suite includes the additional R5 parent-fsync case.
+are implemented. The preliminary dirty-source Linux rehearsal is superseded by the
+clean-commit nine-group acceptance and full regression recorded above. See
+docs/RELEASE-READINESS.md and the bounded CAPACITY/R6 task contracts. The final suite
+includes the additional R5 parent-fsync case.
 Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
 production activation and personal ownership remain separate.
 

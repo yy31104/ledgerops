@@ -1,0 +1,66 @@
+{
+  "captured_at": "2026-10-29T18:03:16.441761+00:00",
+  "cleanup_complete": true,
+  "expected_named_volume_count": 18,
+  "label_scope": {
+    "containers": [],
+    "networks": [],
+    "volumes": []
+  },
+  "name_scope": {
+    "containers": [],
+    "expected_volumes": [],
+    "networks": []
+  },
+  "preexisting_lab": {
+    "after": [
+      {
+        "Command": "\"docker-entrypoint.s\u2026\"",
+        "CreatedAt": "2026-10-28 19:17:42 +0100 CET",
+        "ID": "68cb86270073",
+        "Image": "5a5a84b19854",
+        "Labels": "desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/5432/tcp=127.0.0.1:,ledgerops.scope=disposable-test",
+        "LocalVolumes": "0",
+        "Mounts": "",
+        "Names": "ledgerops-r1-tests-f1cd1d08c45b",
+        "Networks": "bridge",
+        "Platform": {
+          "architecture": "arm64",
+          "os": "linux",
+          "variant": "v8"
+        },
+        "Ports": "127.0.0.1:62427->5432/tcp",
+        "RunningFor": "24 hours ago",
+        "Size": "20.5kB (virtual 505MB)",
+        "State": "running",
+        "Status": "Up 24 hours"
+      }
+    ],
+    "before": [
+      {
+        "Command": "\"docker-entrypoint.s\u2026\"",
+        "CreatedAt": "2026-10-28 19:17:42 +0100 CET",
+        "ID": "68cb86270073",
+        "Image": "5a5a84b19854",
+        "Labels": "desktop.docker.io/ports.scheme=v2,desktop.docker.io/ports/5432/tcp=127.0.0.1:,ledgerops.scope=disposable-test",
+        "LocalVolumes": "0",
+        "Mounts": "",
+        "Names": "ledgerops-r1-tests-f1cd1d08c45b",
+        "Networks": "bridge",
+        "Platform": {
+          "architecture": "arm64",
+          "os": "linux",
+          "variant": "v8"
+        },
+        "Ports": "127.0.0.1:62427->5432/tcp",
+        "RunningFor": "24 hours ago",
+        "Size": "20.5kB (virtual 505MB)",
+        "State": "running",
+        "Status": "Up 24 hours"
+      }
+    ],
+    "preserved_running": true
+  },
+  "project": "ledgerops-test-final-6cff874",
+  "schema_version": 1
+}
