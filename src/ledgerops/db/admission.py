@@ -393,7 +393,7 @@ def _finish_request(cur, scope, result):
         raise InvariantViolation("Request claim disappeared")
 
 
-def _open_admission(cur, principal, command):
+def _open_admission(cur, principal, command, authorization_guard=None):
     """Set options, enter the barrier, then apply the command's ownership policy."""
     workspace = command.workspace_id.value
     cur.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED READ WRITE")
@@ -408,6 +408,13 @@ def _open_admission(cur, principal, command):
         raise NotAuthorized()
     if ws["mode"] != "NORMAL":
         raise RetrySameIdentity("workspace_not_normal")
+    if authorization_guard is not None:
+        scopes = {
+            PurchaseCommand: "purchase:write",
+            ReversalCommand: "reversal:write",
+            PayoutCommand: "payout:write",
+        }
+        authorization_guard(cur, principal, scopes[type(command)])
     if type(command) is PurchaseCommand:
         _authorize_customer(cur, principal, command)
     elif type(command) is ReversalCommand:
@@ -667,6 +674,7 @@ def _submit_once(
     command_type,
     *,
     post_new=None,
+    authorization_guard=None,
 ) -> AdmissionResult:
     """One complete attempt; return only after COMMIT and deferred checks.
 
@@ -705,7 +713,7 @@ def _submit_once(
 
     try:
         with conn.transaction(), conn.cursor(row_factory=dict_row) as cur:
-            _open_admission(cur, principal, command)
+            _open_admission(cur, principal, command, authorization_guard)
 
             claimed_request = cur.execute(
                 """INSERT INTO ledger.request_result
@@ -767,13 +775,24 @@ def submit_purchase(
     principal: Principal,
     command: PurchaseCommand,
     request_key: RequestKey,
+    *,
+    authorization_guard=None,
 ) -> AdmissionResult:
     """Admit/replay a purchase; retry at most three whole definitely aborted transactions.
 
     Timeout/cancellation and integrity faults are not internally retried. Connection
     loss, including COMMIT, propagates: reconnect and resubmit the original identities.
     """
-    return _submit_with_retry(conn, principal, command, request_key, _submit_purchase_once)
+    submit_once = (
+        _submit_purchase_once
+        if authorization_guard is None
+        else (
+            lambda c, p, cmd, key: _submit_once(
+                c, p, cmd, key, PurchaseCommand, authorization_guard=authorization_guard
+            )
+        )
+    )
+    return _submit_with_retry(conn, principal, command, request_key, submit_once)
 
 
 def submit_reversal(
@@ -781,17 +800,34 @@ def submit_reversal(
     principal: Principal,
     command: ReversalCommand,
     request_key: RequestKey,
+    *,
+    authorization_guard=None,
 ) -> AdmissionResult:
     """Original merchant's full reversal through the same admission/retry boundaries."""
-    return _submit_with_retry(conn, principal, command, request_key, _submit_reversal_once)
+    submit_once = (
+        _submit_reversal_once
+        if authorization_guard is None
+        else (
+            lambda c, p, cmd, key: _submit_once(
+                c, p, cmd, key, ReversalCommand, authorization_guard=authorization_guard
+            )
+        )
+    )
+    return _submit_with_retry(conn, principal, command, request_key, submit_once)
 
 
-def submit_payout(conn, principal, command, request_key, *, policy, clock=None):
+def submit_payout(
+    conn, principal, command, request_key, *, policy, clock=None, authorization_guard=None
+):
     """Reserve funds and retain a 202 receipt; no external I/O or payout settlement."""
     from ledgerops.db.payout_admission import payout_submitter
 
     return _submit_with_retry(
-        conn, principal, command, request_key, payout_submitter(policy, clock)
+        conn,
+        principal,
+        command,
+        request_key,
+        payout_submitter(policy, clock, authorization_guard=authorization_guard),
     )
 
 

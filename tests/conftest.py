@@ -35,9 +35,21 @@ class TestDatabase:
     maintenance_password: str
     worker_password: str
     reconciler_password: str
+    service_password: str
+    auth_admin_password: str
 
     def connect(self, role: str = "app") -> psycopg.Connection:
-        if role not in {"app", "reader", "maintenance", "worker", "reconciler", "owner", "admin"}:
+        if role not in {
+            "app",
+            "reader",
+            "maintenance",
+            "worker",
+            "reconciler",
+            "service",
+            "auth_admin",
+            "owner",
+            "admin",
+        }:
             raise ValueError("unknown test connection role")
         conn = psycopg.connect(
             host="127.0.0.1",
@@ -49,6 +61,8 @@ class TestDatabase:
                 "maintenance": "ledger_maintenance",
                 "worker": "ledger_worker",
                 "reconciler": "ledger_reconciler",
+                "service": "ledger_service",
+                "auth_admin": "ledger_identity_admin",
             }.get(role, "postgres"),
             password={
                 "app": self.app_password,
@@ -56,6 +70,8 @@ class TestDatabase:
                 "maintenance": self.maintenance_password,
                 "worker": self.worker_password,
                 "reconciler": self.reconciler_password,
+                "service": self.service_password,
+                "auth_admin": self.auth_admin_password,
             }.get(role, self.admin_password),
             autocommit=True,
             connect_timeout=2,
@@ -75,6 +91,8 @@ def postgres_cluster():
     maintenance_password = secrets.token_urlsafe(24)
     worker_password = secrets.token_urlsafe(24)
     reconciler_password = secrets.token_urlsafe(24)
+    service_password = secrets.token_urlsafe(24)
+    auth_admin_password = secrets.token_urlsafe(24)
     container_id = None
     try:
         docker("version", "--format", "{{.Server.Version}}")
@@ -122,6 +140,8 @@ def postgres_cluster():
             maintenance_password,
             worker_password,
             reconciler_password,
+            service_password,
+            auth_admin_password,
         )
         deadline = time.monotonic() + 30
         while True:
@@ -168,6 +188,20 @@ def postgres_cluster():
                     "NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD {}"
                 ).format(sql.Literal(reconciler_password))
             )
+            conn.execute("CREATE ROLE ledger_auth_reader NOLOGIN NOSUPERUSER NOBYPASSRLS")
+            conn.execute("CREATE ROLE ledger_auth_admin NOLOGIN NOSUPERUSER NOBYPASSRLS")
+            for role_name, password in (
+                ("ledger_service", service_password),
+                ("ledger_identity_admin", auth_admin_password),
+            ):
+                conn.execute(
+                    sql.SQL(
+                        "CREATE ROLE {} LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCR"
+                        "EATEROLE NOREPLICATION PASSWORD {}"
+                    ).format(sql.Identifier(role_name), sql.Literal(password))
+                )
+            conn.execute("GRANT ledger_app,ledger_reader,ledger_auth_reader TO ledger_service")
+            conn.execute("GRANT ledger_auth_admin TO ledger_identity_admin")
         yield cluster
     except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
         pytest.fail(
@@ -191,6 +225,8 @@ def db(postgres_cluster):
         cluster.maintenance_password,
         cluster.worker_password,
         cluster.reconciler_password,
+        cluster.service_password,
+        cluster.auth_admin_password,
     )
     with cluster.connect("admin") as admin:
         admin.execute(
@@ -207,6 +243,7 @@ def db(postgres_cluster):
                 "006_payout_admission.sql",
                 "007_payout_resolution.sql",
                 "008_reconciliation_publication.sql",
+                "009_authentication.sql",
             ]
         yield database
     finally:

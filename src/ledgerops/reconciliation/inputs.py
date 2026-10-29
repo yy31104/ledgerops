@@ -79,8 +79,8 @@ class LedgerFacts:
 
 
 def collect_ledger(snapshot, issues):
-    if snapshot["format_version"] not in (6, 7):
-        raise CorruptInput("RECONCILIATION_REQUIRES_EXPORT_V6_OR_V7")
+    if snapshot["format_version"] not in (6, 7, 8):
+        raise CorruptInput("RECONCILIATION_REQUIRES_PAYOUT_EXPORT")
     workspace = snapshot["workspace"]["id"]
     accounts = {row["id"]: row for row in snapshot["accounts"]}
     operations = {row["operation_id"]: row for row in snapshot["operations"]}

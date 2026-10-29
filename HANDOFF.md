@@ -55,7 +55,13 @@ oldv1–v6 bytes/capabilities. Evidence: evidence/R4-PR02/2026-10-29/verificatio
 R4-PR03 now completes actual1/2/4 measurements on16/256/768 payouts, identical
 source/plan percase, stable semanticdigests and ownedcleanup. No general speedup:
 singleprocess remains default. See docs/R4-ACCEPTANCE.md and evidence/R4-PR03.
-R4 is complete within bounded local evidence scope; R5/R6/service/ops remain active.
+R4 is complete within bounded local evidence scope. R5-PR01 now adds256bitopaque
+credentials, currenttransactional permissionguards, fixedroutescopes, revocation
+ordering, read-before-RR sessionguards, identityadminCLI/protectedsecretoutput and
+auditedrestoreaccessgeneration invalidation. Full1359tests pass404.89s; Ruff138files,
+build/freshinstalled APIs/009SQL pass. Exportv8 excludes authdata andkeepsv1–v7.
+See docs/AUTHENTICATION.md and evidence/R5-PR01/2026-10-29/verification.json.
+Next actualHTTPservice/investigation, typedapproval, backup/restore, thenR6/Linuxops.
 Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
 production activation and personal ownership remain separate.
 

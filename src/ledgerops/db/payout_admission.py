@@ -160,7 +160,7 @@ def _insert_hold(cur, command, now, deadline):
     return AdmissionResult(202, accepted_body(command, deadline))
 
 
-def payout_submitter(policy, clock):
+def payout_submitter(policy, clock, *, authorization_guard=None):
     if type(policy) is not TrustedPayoutPolicy:
         raise TypeError("payout requires trusted policy configuration")
     clock = utc_now if clock is None else clock
@@ -186,7 +186,15 @@ def payout_submitter(policy, clock):
         return _finish_operation(cur, command, scope, result)
 
     def submit_once(conn, principal, command, request_key):
-        return _submit_once(conn, principal, command, request_key, PayoutCommand, post_new=post)
+        return _submit_once(
+            conn,
+            principal,
+            command,
+            request_key,
+            PayoutCommand,
+            post_new=post,
+            authorization_guard=authorization_guard,
+        )
 
     return submit_once
 

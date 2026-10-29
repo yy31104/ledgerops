@@ -1400,10 +1400,13 @@ def _check_maintenance(check, snapshot, workspace, accounts):
         except (KeyError, TypeError, ValueError) as exc:
             check.issue("structure", "INVALID_FREEZE", identifier, "freeze", str(exc), None)
     current = workspace["current_freeze_id"]
-    expected_open = {current} if workspace["mode"] == "FROZEN" and current else set()
+    # Auth-aware restores preserve an existing freeze without claiming it resumed.
+    preserves_freeze = snapshot["format_version"] >= 8 and workspace["mode"] == "RESTORE"
+    frozen = workspace["mode"] == "FROZEN" or preserves_freeze
+    expected_open = {current} if frozen and current else set()
     if (
         (workspace["mode"] == "FROZEN" and current is None)
-        or (workspace["mode"] != "FROZEN" and current is not None)
+        or (not frozen and current is not None)
         or open_freezes != expected_open
     ):
         check.issue(
@@ -1534,9 +1537,9 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         if (
             type(snapshot) is not dict
             or type(snapshot.get("format_version")) is not int
-            or snapshot["format_version"] not in (1, 2, 3, 4, 5, 6, 7)
+            or snapshot["format_version"] not in (1, 2, 3, 4, 5, 6, 7, 8)
         ):
-            raise _Invalid("snapshot version 1 through 7 required")
+            raise _Invalid("snapshot version 1 through 8 required")
         workspace = snapshot["workspace"]
         if type(workspace) is not dict:
             raise _Invalid("workspace object required")
@@ -1565,6 +1568,8 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
             schemas.append("007_payout_resolution.sql")
         if version >= 7:
             schemas.append("008_reconciliation_publication.sql")
+        if version >= 8:
+            schemas.append("009_authentication.sql")
         if (
             snapshot["schema_versions"] != schemas
             or type(snapshot["snapshot_witness"]) is not str
