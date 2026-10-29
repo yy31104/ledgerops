@@ -265,35 +265,40 @@ def payout_state(conn, principal, payout_id):
         raise ValueError("payout state requires idle autocommit connection")
     with conn.transaction(), conn.cursor(row_factory=dict_row) as cur:
         cur.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
-        row = cur.execute(
-            "SELECT p.operation_id,p.principal_minor,p.fee_minor,p.gross_minor,p.dispatch_deadline,"
-            "p.knowledge,p.source_sequence,r.state AS reservation_state,i.state AS "
-            "dispatch_state,i.attempts,i.next_due_at "
-            "FROM ledger.payout p JOIN ledger.account a ON a.workspace_id=p.workspace_id AND "
-            "a.id=p.merchant_account_id "
-            "JOIN ledger.reservation r ON r.workspace_id=p.workspace_id AND "
-            "r.payout_id=p.operation_id "
-            "JOIN ledger.dispatch_intent i ON i.workspace_id=p.workspace_id AND "
-            "i.payout_id=p.operation_id "
-            "WHERE p.workspace_id=%s AND p.operation_id=%s AND a.owner_id=%s",
-            (principal.workspace_id.value, payout_id.value, principal.actor_id.value),
-        ).fetchone()
-        if row is None:
-            raise NotAuthorized()
-        from ledgerops.db.payout_resolution import blocking_incidents
+        return payout_state_rows(cur, principal, payout_id)
 
-        incidents = blocking_incidents(cur, principal.workspace_id.value, payout_id.value)
-        observations = cur.execute(
-            "SELECT observation_id,kind,state,source_sequence FROM ledger.provider_observation "
-            "WHERE workspace_id=%s AND payout_id=%s "
-            "ORDER BY received_at DESC,observation_id DESC LIMIT 5",
-            (principal.workspace_id.value, payout_id.value),
-        ).fetchall()
-        resolution = cur.execute(
-            "SELECT state,observation_id,journal_id FROM ledger.payout_resolution "
-            "WHERE workspace_id=%s AND payout_id=%s",
-            (principal.workspace_id.value, payout_id.value),
-        ).fetchone()
+
+def payout_state_rows(cur, principal, payout_id):
+    """Read within a caller-owned coherent authorized snapshot; no transaction changes."""
+    row = cur.execute(
+        "SELECT p.operation_id,p.principal_minor,p.fee_minor,p.gross_minor,p.dispatch_deadline,"
+        "p.knowledge,p.source_sequence,r.state AS reservation_state,i.state AS "
+        "dispatch_state,i.attempts,i.next_due_at "
+        "FROM ledger.payout p JOIN ledger.account a ON a.workspace_id=p.workspace_id AND "
+        "a.id=p.merchant_account_id "
+        "JOIN ledger.reservation r ON r.workspace_id=p.workspace_id AND "
+        "r.payout_id=p.operation_id "
+        "JOIN ledger.dispatch_intent i ON i.workspace_id=p.workspace_id AND "
+        "i.payout_id=p.operation_id "
+        "WHERE p.workspace_id=%s AND p.operation_id=%s AND a.owner_id=%s",
+        (principal.workspace_id.value, payout_id.value, principal.actor_id.value),
+    ).fetchone()
+    if row is None:
+        raise NotAuthorized()
+    from ledgerops.db.payout_resolution import blocking_incidents
+
+    incidents = blocking_incidents(cur, principal.workspace_id.value, payout_id.value)
+    observations = cur.execute(
+        "SELECT observation_id,kind,state,source_sequence FROM ledger.provider_observation "
+        "WHERE workspace_id=%s AND payout_id=%s "
+        "ORDER BY received_at DESC,observation_id DESC LIMIT 5",
+        (principal.workspace_id.value, payout_id.value),
+    ).fetchall()
+    resolution = cur.execute(
+        "SELECT state,observation_id,journal_id FROM ledger.payout_resolution "
+        "WHERE workspace_id=%s AND payout_id=%s",
+        (principal.workspace_id.value, payout_id.value),
+    ).fetchone()
     return {
         "payout_id": str(row["operation_id"]),
         "principal_minor": str(row["principal_minor"]),

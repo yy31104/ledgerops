@@ -61,7 +61,14 @@ ordering, read-before-RR sessionguards, identityadminCLI/protectedsecretoutput a
 auditedrestoreaccessgeneration invalidation. Full1359tests pass404.89s; Ruff138files,
 build/freshinstalled APIs/009SQL pass. Exportv8 excludes authdata andkeepsv1–v7.
 See docs/AUTHENTICATION.md and evidence/R5-PR01/2026-10-29/verification.json.
-Next actualHTTPservice/investigation, typedapproval, backup/restore, thenR6/Linuxops.
+R5-PR02 now runs pinnedGunicorn26.2.0 withactualcredential-guarded purchase/reversal/
+payout/status, scopedinvestigation/clientreceipt, optionalpreauthenticatedcallback,
+resourcebounds andphysicalRESTOREgates. Readonlyconsole shipsinwheel, outside lab.
+Full1397tests pass327.51s; Ruff148files/JSsyntax/build/freshinstalledassets pass.
+ActualPGwireunknownCOMMIT andinflightSIGTERMdrain pass. Browserautomation isdisabled
+byWorksettings, so visual/browserinteractionisnotverified. See docs/HTTP-SERVICE.md
+and evidence/R5-PR02/2026-10-29/verification.json.
+Next typedLOCAL_BLOCKER maker/checker action, actualbackup/restore, thenR6/Linuxops.
 Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
 production activation and personal ownership remain separate.
 
