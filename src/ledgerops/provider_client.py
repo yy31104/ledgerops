@@ -68,6 +68,9 @@ class ProviderHTTPClient:
             raise ValueError("invalid retained provider key")
         if body is not None and (type(body) is not bytes or not 1 <= len(body) <= 32768):
             raise ValueError("invalid retained provider request bytes")
+        return self._request_path(method, f"/v1/executions/{key}{suffix}", body)
+
+    def _request_path(self, method, path, body=None):
         conn = http.client.HTTPConnection(self._host, self._port, timeout=self._timeout)
         expired = threading.Event()
         owned_socket = []
@@ -92,7 +95,7 @@ class ProviderHTTPClient:
                 raise TimeoutError("provider transport deadline expired")
             conn.request(
                 method,
-                f"/v1/executions/{key}{suffix}",
+                path,
                 body=body,
                 headers={
                     "Authorization": f"Bearer {self._token}",
@@ -128,3 +131,17 @@ class ProviderHTTPClient:
 
     def close(self, key, request_bytes):
         return self._request("POST", key, request_bytes, "/close-if-absent")
+
+    def history(self, *, after=0, watermark=None, limit=16):
+        if (
+            type(after) is not int
+            or after < 0
+            or type(limit) is not int
+            or not 1 <= limit <= 32
+            or (watermark is not None and (type(watermark) is not int or watermark < after))
+        ):
+            raise ValueError("invalid bounded history pagination")
+        query = f"after={after}&limit={limit}"
+        if watermark is not None:
+            query += f"&watermark={watermark}"
+        return self._request_path("GET", f"/v1/history?{query}")

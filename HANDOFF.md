@@ -75,7 +75,17 @@ proposal bytes, andv9/reportv3 independentaudits. Final1462tests pass363.92s;
 Ruff156files/build/freshinstalledAPIs/010SQL/assets pass. Reference17hashes and
 SQL001–009/lab/tutorial/frozenfixtures remain unchanged. BrowservisualQA remains
 unverified. See docs/OPERATOR-ACTIONS.md and evidence/R5-PR03/2026-10-29.
-Next integrateactualbackup/restore, thenR6 andLinux/streamingcapacity acceptance.
+R5-PR04 now usesactualsame-snapshot nativepg_dump, exactrequest/objectarchive and
+newDB-onlyrestore withCONNECTclosed beforeSQL, auditedcredential/generation
+invalidation andsignedfixed-watermarkHISTORY/LOOKUP-onlyrecovery. Provider-ahead
+retainedadmission settlesonce; missingadmission/key/202 returnsRESTORE_GAP without
+inventingidentity ordispatching. Originalfreeze linkagepersists. Full1504tests pass
+288.37s; oneadditionalpublished-artifactparentfsyncfault passes1.78s, Ruff162files/
+build/freshinstalledCLI pass. No001–010/reference/lab/tutorial/fixturechanges.
+See docs/BACKUP-RESTORE.md and evidence/R5-PR04/2026-10-29.
+R5 is complete initslocal syntheticcontract; serviceavailabilityRTO, off-host
+backup, realbank andcloudactivation are notclaimed. R6 andLinux/streamingcapacity
+acceptance remainactive; finaldeliveryregression willinclude theadditionalcase.
 Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
 production activation and personal ownership remain separate.
 

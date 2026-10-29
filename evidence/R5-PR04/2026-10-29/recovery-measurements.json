@@ -1,0 +1,363 @@
+[
+  {
+    "drill": "admission_retained_provider_ahead",
+    "observed_snapshot_age_seconds": 0.39318,
+    "rpo_missing_admissions": 0,
+    "rpo_missing_provider_effects_after_recovery": 0,
+    "backup": {
+      "backup_version": 1,
+      "backup_id": "a77f92cb-6310-44de-984d-806c11897156",
+      "snapshot_at": "2026-10-29T16:54:52.541658+00:00",
+      "published_at": "2026-10-29T16:54:52.652844+00:00",
+      "server_version_num": 180006,
+      "schema": [
+        [
+          "001_foundation.sql",
+          "ede8943c44f88fef3adc6d9e7af1659d05a7f125768ad52db603eec71b4a769c"
+        ],
+        [
+          "002_export_reader.sql",
+          "478b3691905c5ec8bdd89f4f5264d75eee71d312557d4d49975f001182771a04"
+        ],
+        [
+          "003_projection_maintenance.sql",
+          "f0a471355b5846a190579aeed5cd5679abdb58b9a972ca7d1ae713ed56f9fea9"
+        ],
+        [
+          "004_resume_review.sql",
+          "049374f698eff6d0c4e84d49e20913d55b86a8a32794b5df2ae8d50c92b1da0d"
+        ],
+        [
+          "005_full_reversal.sql",
+          "98adcdc7baba24acacb758f100d3269f3ee7643a7f593e4884de492c712d9527"
+        ],
+        [
+          "006_payout_admission.sql",
+          "51e8e01138db34c2ad3c3c34e143fccb48f25d0549584d16a9ccf3e02dd76b9b"
+        ],
+        [
+          "007_payout_resolution.sql",
+          "ee06891388bf2832424f4ef821842b3df2b9fbfead40cf88aae5579d1b90ea75"
+        ],
+        [
+          "008_reconciliation_publication.sql",
+          "823759ca500b4e078fe18d8c0a69803bae3e4210e2351f4dfcaf79b45cadff72"
+        ],
+        [
+          "009_authentication.sql",
+          "618f78466b858e6de3dcb7dc925e3d3bd333e899fb34300645a1258b6cb78658"
+        ],
+        [
+          "010_operator_actions.sql",
+          "6ee7f4baaf30c1d4664820a2bec75a61a6879cb1d646551007e6a4f940360dee"
+        ]
+      ],
+      "dump": {
+        "sha256": "2038c0c477d0b3b023f70a19205c50f5947ada80ed82fab6c42d03275e7b4d5f",
+        "bytes": 232802
+      },
+      "business_archive": {
+        "sha256": "b15a138eeaec4490552fe2198a6dd6f27a4827c07d70287134d6846fd43cea42",
+        "bytes": 7759
+      },
+      "objects": [
+        {
+          "workspace_id": "10000000-0000-4000-8000-000000000001",
+          "sha256": "722f9f5a7ab922c0ad710d37bc70530e720924ac9bfa499262e4e1d4ff6c1f4a",
+          "bytes": 24
+        }
+      ],
+      "namespace_completeness": "NOT_A_PROVIDER_SNAPSHOT",
+      "observed_backup_seconds": 0.11258099996484816
+    },
+    "restore": {
+      "restore_id": "18683909-983c-43f8-9560-449a16b1dbe0",
+      "backup_id": "a77f92cb-6310-44de-984d-806c11897156",
+      "database": "ledgerops_restore_4bbf30d4e176437ea8ce672a2b44e4a4",
+      "generation": {
+        "restore_id": "18683909-983c-43f8-9560-449a16b1dbe0",
+        "backup_id": "a77f92cb-6310-44de-984d-806c11897156",
+        "workspaces": [
+          {
+            "workspace_id": "10000000-0000-4000-8000-000000000001",
+            "generation": "45e19e6c-485a-4cfe-b9da-99c0898f2307",
+            "version": 2,
+            "revoked_count": 1,
+            "previous_mode": "NORMAL",
+            "previous_freeze_id": null
+          }
+        ]
+      },
+      "external_dispatch_enabled": false,
+      "runtime_connect_enabled": false,
+      "observed_restore_seconds": 0.16289149993099272,
+      "backup_snapshot_at": "2026-10-29T16:54:52.541658+00:00"
+    },
+    "recovery": {
+      "provider_namespace": "00000000-0000-4000-8000-000000000100",
+      "watermark": 1,
+      "history_events": 1,
+      "history_pages": 1,
+      "page_sha256": [
+        "f696dff204a8a8a2f13a5195dd8840a5c60006086e01aadfc1b560d23bb3b2cb"
+      ],
+      "external_puts": 0,
+      "runtime_connect_enabled": false,
+      "external_dispatch_enabled": false,
+      "status": "RECOVERED",
+      "gaps": [],
+      "results": [
+        {
+          "provider_key": "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003",
+          "channel": "HISTORY",
+          "status": "APPLIED",
+          "state": "SUCCEEDED",
+          "code": null
+        },
+        {
+          "provider_key": "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003",
+          "channel": "LOOKUP",
+          "status": "REPLAYED",
+          "state": "SUCCEEDED",
+          "code": null
+        }
+      ],
+      "observed_recovery_seconds": 0.03542425006162375
+    }
+  },
+  {
+    "drill": "admission_retained_provider_ahead_frozen",
+    "observed_snapshot_age_seconds": 0.434624,
+    "rpo_missing_admissions": 0,
+    "rpo_missing_provider_effects_after_recovery": 0,
+    "backup": {
+      "backup_version": 1,
+      "backup_id": "ee2086c3-f22e-4df8-9c4f-41d459312bf5",
+      "snapshot_at": "2026-10-29T16:54:53.705018+00:00",
+      "published_at": "2026-10-29T16:54:53.813599+00:00",
+      "server_version_num": 180006,
+      "schema": [
+        [
+          "001_foundation.sql",
+          "ede8943c44f88fef3adc6d9e7af1659d05a7f125768ad52db603eec71b4a769c"
+        ],
+        [
+          "002_export_reader.sql",
+          "478b3691905c5ec8bdd89f4f5264d75eee71d312557d4d49975f001182771a04"
+        ],
+        [
+          "003_projection_maintenance.sql",
+          "f0a471355b5846a190579aeed5cd5679abdb58b9a972ca7d1ae713ed56f9fea9"
+        ],
+        [
+          "004_resume_review.sql",
+          "049374f698eff6d0c4e84d49e20913d55b86a8a32794b5df2ae8d50c92b1da0d"
+        ],
+        [
+          "005_full_reversal.sql",
+          "98adcdc7baba24acacb758f100d3269f3ee7643a7f593e4884de492c712d9527"
+        ],
+        [
+          "006_payout_admission.sql",
+          "51e8e01138db34c2ad3c3c34e143fccb48f25d0549584d16a9ccf3e02dd76b9b"
+        ],
+        [
+          "007_payout_resolution.sql",
+          "ee06891388bf2832424f4ef821842b3df2b9fbfead40cf88aae5579d1b90ea75"
+        ],
+        [
+          "008_reconciliation_publication.sql",
+          "823759ca500b4e078fe18d8c0a69803bae3e4210e2351f4dfcaf79b45cadff72"
+        ],
+        [
+          "009_authentication.sql",
+          "618f78466b858e6de3dcb7dc925e3d3bd333e899fb34300645a1258b6cb78658"
+        ],
+        [
+          "010_operator_actions.sql",
+          "6ee7f4baaf30c1d4664820a2bec75a61a6879cb1d646551007e6a4f940360dee"
+        ]
+      ],
+      "dump": {
+        "sha256": "00ee6ef78dd0126bce38732a2194049ee960c903edae4aa1e9f58f5dae99c9c5",
+        "bytes": 232933
+      },
+      "business_archive": {
+        "sha256": "7fb6dc3f2e8a21591b88368b770596306e6aeb552df056e6dd9efa50dfda270e",
+        "bytes": 7758
+      },
+      "objects": [
+        {
+          "workspace_id": "10000000-0000-4000-8000-000000000001",
+          "sha256": "722f9f5a7ab922c0ad710d37bc70530e720924ac9bfa499262e4e1d4ff6c1f4a",
+          "bytes": 24
+        }
+      ],
+      "namespace_completeness": "NOT_A_PROVIDER_SNAPSHOT",
+      "observed_backup_seconds": 0.1103217500494793
+    },
+    "restore": {
+      "restore_id": "6d24a367-bfd7-4b90-9436-5f0945361f1b",
+      "backup_id": "ee2086c3-f22e-4df8-9c4f-41d459312bf5",
+      "database": "ledgerops_restore_c4bb6e9977d04415867e54529e194ef4",
+      "generation": {
+        "restore_id": "6d24a367-bfd7-4b90-9436-5f0945361f1b",
+        "backup_id": "ee2086c3-f22e-4df8-9c4f-41d459312bf5",
+        "workspaces": [
+          {
+            "workspace_id": "10000000-0000-4000-8000-000000000001",
+            "generation": "8d7ef47d-3035-40e1-9ac8-d46c524c2c90",
+            "version": 2,
+            "revoked_count": 1,
+            "previous_mode": "FROZEN",
+            "previous_freeze_id": "a4baf965-f93b-4050-bf33-9044652b60e3"
+          }
+        ]
+      },
+      "external_dispatch_enabled": false,
+      "runtime_connect_enabled": false,
+      "observed_restore_seconds": 0.1882162500405684,
+      "backup_snapshot_at": "2026-10-29T16:54:53.705018+00:00"
+    },
+    "recovery": {
+      "provider_namespace": "00000000-0000-4000-8000-000000000100",
+      "watermark": 1,
+      "history_events": 1,
+      "history_pages": 1,
+      "page_sha256": [
+        "65fe949986c3349b1bb1d32735a2baf643e0ed8b1cccb90a1d461fe5475ef89b"
+      ],
+      "external_puts": 0,
+      "runtime_connect_enabled": false,
+      "external_dispatch_enabled": false,
+      "status": "RECOVERED",
+      "gaps": [],
+      "results": [
+        {
+          "provider_key": "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003",
+          "channel": "HISTORY",
+          "status": "APPLIED",
+          "state": "SUCCEEDED",
+          "code": null
+        },
+        {
+          "provider_key": "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003",
+          "channel": "LOOKUP",
+          "status": "REPLAYED",
+          "state": "SUCCEEDED",
+          "code": null
+        }
+      ],
+      "observed_recovery_seconds": 0.038060666993260384
+    }
+  },
+  {
+    "drill": "backup_before_admission_missing_independent_archive",
+    "observed_snapshot_age_seconds": 0.323301,
+    "rpo_missing_admissions": 1,
+    "recovered": false,
+    "backup": {
+      "backup_version": 1,
+      "backup_id": "29201304-6fa8-409d-80ff-00b6d52fd660",
+      "snapshot_at": "2026-10-29T16:54:54.881255+00:00",
+      "published_at": "2026-10-29T16:54:54.996896+00:00",
+      "server_version_num": 180006,
+      "schema": [
+        [
+          "001_foundation.sql",
+          "ede8943c44f88fef3adc6d9e7af1659d05a7f125768ad52db603eec71b4a769c"
+        ],
+        [
+          "002_export_reader.sql",
+          "478b3691905c5ec8bdd89f4f5264d75eee71d312557d4d49975f001182771a04"
+        ],
+        [
+          "003_projection_maintenance.sql",
+          "f0a471355b5846a190579aeed5cd5679abdb58b9a972ca7d1ae713ed56f9fea9"
+        ],
+        [
+          "004_resume_review.sql",
+          "049374f698eff6d0c4e84d49e20913d55b86a8a32794b5df2ae8d50c92b1da0d"
+        ],
+        [
+          "005_full_reversal.sql",
+          "98adcdc7baba24acacb758f100d3269f3ee7643a7f593e4884de492c712d9527"
+        ],
+        [
+          "006_payout_admission.sql",
+          "51e8e01138db34c2ad3c3c34e143fccb48f25d0549584d16a9ccf3e02dd76b9b"
+        ],
+        [
+          "007_payout_resolution.sql",
+          "ee06891388bf2832424f4ef821842b3df2b9fbfead40cf88aae5579d1b90ea75"
+        ],
+        [
+          "008_reconciliation_publication.sql",
+          "823759ca500b4e078fe18d8c0a69803bae3e4210e2351f4dfcaf79b45cadff72"
+        ],
+        [
+          "009_authentication.sql",
+          "618f78466b858e6de3dcb7dc925e3d3bd333e899fb34300645a1258b6cb78658"
+        ],
+        [
+          "010_operator_actions.sql",
+          "6ee7f4baaf30c1d4664820a2bec75a61a6879cb1d646551007e6a4f940360dee"
+        ]
+      ],
+      "dump": {
+        "sha256": "ea576741acde49928e43a4803669aac4345cfafea9e34f4479ccb2d435203ff4",
+        "bytes": 230669
+      },
+      "business_archive": {
+        "sha256": "cf17fae86fadc7b912a6ffb0b377be95c4ef31ce2969ab7dfa1d0530e7fd86dd",
+        "bytes": 2910
+      },
+      "objects": [],
+      "namespace_completeness": "NOT_A_PROVIDER_SNAPSHOT",
+      "observed_backup_seconds": 0.11739929101895541
+    },
+    "restore": {
+      "restore_id": "5b74cb2d-5183-433b-b54f-c4d9f0ac42b0",
+      "backup_id": "29201304-6fa8-409d-80ff-00b6d52fd660",
+      "database": "ledgerops_restore_5c2bf3797f664eae83da613965ef7040",
+      "generation": {
+        "restore_id": "5b74cb2d-5183-433b-b54f-c4d9f0ac42b0",
+        "backup_id": "29201304-6fa8-409d-80ff-00b6d52fd660",
+        "workspaces": [
+          {
+            "workspace_id": "10000000-0000-4000-8000-000000000001",
+            "generation": "560d00ac-24d3-43ce-8eb3-b7908811d8c7",
+            "version": 2,
+            "revoked_count": 0,
+            "previous_mode": "NORMAL",
+            "previous_freeze_id": null
+          }
+        ]
+      },
+      "external_dispatch_enabled": false,
+      "runtime_connect_enabled": false,
+      "observed_restore_seconds": 0.16066487494390458,
+      "backup_snapshot_at": "2026-10-29T16:54:54.881255+00:00"
+    },
+    "recovery": {
+      "provider_namespace": "00000000-0000-4000-8000-000000000100",
+      "watermark": 1,
+      "history_events": 1,
+      "history_pages": 1,
+      "page_sha256": [
+        "af89e38daf9836da7a5eed30582065ddbcd6e01a29bd1930e1465ea58133b581"
+      ],
+      "external_puts": 0,
+      "runtime_connect_enabled": false,
+      "external_dispatch_enabled": false,
+      "status": "RESTORE_GAP",
+      "gaps": [
+        {
+          "provider_key": "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003",
+          "code": "MISSING_ADMISSION_KEY_AND_202"
+        }
+      ],
+      "observed_recovery_seconds": 0.0020337080350145698
+    }
+  }
+]
