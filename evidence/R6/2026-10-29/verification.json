@@ -1,0 +1,22 @@
+{
+  "base_commit": "5a9e71088e44dc948ccbbe26dadd59b04ec7f68e",
+  "source_binding": "Use git log -1 --format=%H -- evidence/R6/2026-10-29/verification.json for the containing exchange commit. Final combined regression is recorded in evidence/DELIVERY/2026-10-29.",
+  "scope": "LedgerOps-side selected synthetic read-only exchange v1.0/v1.1; standalone stdlib consumer, immutable golden artifacts and real full-source/R4 integration.",
+  "verification": "61 exchange/context/pin-scope test cases are part of the integrated final suite; see its JUnit results rather than treating this as a separate full run.",
+  "contracts": [
+    "Explicit payout/journal selection; no database credential, callback or operational write capability; raw provider request/envelope/auth records excluded.",
+    "Opaque canonical UUIDs and lossless decimal strings for money/sequences/versions; exactPLN_minor scale2.",
+    "DeterministicUUID5 identity bound to source, selection and records digest; changed arbitrary dataset identity is rejected.",
+    "Strict versions, units, fields, source scope, references, selected arithmetic and canonical byte digests; real isolated python -I -S with one copied consumer file.",
+    "v1.0 historical golden80/80 literals; v1.1 explicitly tagged complete format10 source and full-checker declaration, not a silently enlarged legacy schema.",
+    "PinnedR4 references bind exact supportedmanifest kind/version/workspace/namespace/window/date/rules/parser/statement and source revision/digests; recomputing hashes does not bypass scope.",
+    "Local record times never substitute for unknown external execution, COMMIT or snapshotclock; nonRR maintenance captures rejected.",
+    "Original exceptions and append-only dispositions retained; unhealthy complete sources remain declared unhealthy despite a self-consistent selected subset."
+  ],
+  "limits": [
+    "No Chronicle code or adapter changed; standalone compatibility protocol only.",
+    "Selected validation does not independently establish complete-ledger health, HMAC authenticity, historical grants or true original request intent.",
+    "Historical reader-pin references do not promise current pin retention/current publication.",
+    "No live API/funds/cloud activation."
+  ]
+}
