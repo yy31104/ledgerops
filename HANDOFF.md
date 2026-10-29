@@ -2,6 +2,22 @@
 
 Updated: 2026-10-28. R1/R2 and CLI demo accepted; local learning-page slice delivered.
 
+## Current authorization: remaining releases and deployable service
+
+2026-10-29: The user explicitly requests completing the remaining LedgerOps roadmap
+and production-oriented service/operations engineering. Adopt R3 decisions1–4 as
+proposed and5 with immutable dispatch deadline: before deadline retry the identical
+provider key/bytes; after deadline request closure, never release by time alone.
+The second review correction requires journal+active-hold projection rebuild under
+the exclusive barrier, retaining hold history and audited reserved before/after.
+Old export formats keep their old capability limits. See
+[adopted R3 contract](docs/tasks/R3.md) and [delivery scope](docs/tasks/DELIVERY.md).
+Commit adoption separately, then bounded implementation commits with real evidence.
+Continue R3→R4→R5→R6; do not treat the former document-only scope as the current limit.
+Keep reference originals, tracker, Vault, Chronicle and learning material unchanged.
+Everything remains local until an actual remote environment is explicitly authorized.
+Current implementation/verification remains R1/R2; planned capabilities are not completed.
+
 ## Latest learning request: linear document
 
 The user found the interactive page hard to navigate and requested one document
