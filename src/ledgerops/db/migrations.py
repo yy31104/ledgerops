@@ -27,7 +27,7 @@ def apply_migrations(conn: psycopg.Connection) -> list[str]:
         conn.execute(
             sql.SQL(
                 "GRANT CONNECT ON DATABASE {} TO ledger_app, ledger_reader, ledger_maintenance, "
-                "ledger_worker"
+                "ledger_worker, ledger_reconciler"
             ).format(sql.Identifier(database))
         )
         conn.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC")

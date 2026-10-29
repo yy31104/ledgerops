@@ -41,7 +41,7 @@ def test_active_hold_rebuild_repairs_projection_and_preserves_hold_history(
     freeze = _freeze(seeded_db, golden)
     preview = _preview(seeded_db, golden, freeze, tmp_path)
     snapshot = load_export(preview["export_path"])
-    assert snapshot["format_version"] == 6
+    assert snapshot["format_version"] == 7
     assert len(snapshot["reservation_events"]) == 1
     result = _apply(seeded_db, golden, freeze)
     assert (result["old_epoch"], result["new_epoch"]) == (1, 2)

@@ -87,5 +87,62 @@ HMAC证明签名配置一致，不证明支付商永不撒谎、数据库从未�
 两份独立存储导出不是分布式原子快照。当前边界为每账本表10000行、账本包16MiB；statement
 最多10000效果/成员、1000行、签名包16MiB。超限报错，吞吐与容量以实际测量为准。
 
-单次离线CLI输出不是R4完整发布协议。后续持久run、完整组分区、原子current指针与证据epoch
-由发布模块统一处理；不要把手工重定向的半个文件当成已发布的当前证据。
+## 发布、查询与恢复中断
+
+`match`仍是无需数据库的单次离线报告。`publish`使用迁移008的专用
+`ledger_reconciler`登录角色和独立对象目录；角色没有余额、分录、hold写权限。
+通过环境变量`LEDGEROPS_RECON_DSN`注入凭据，不把DSN放在命令行参数或Git中。
+
+```sh
+python -m ledgerops.recon_cli publish \
+  --ledger-export /absolute/path/exports/EXPORT_UUID \
+  --statement /absolute/path/statement.json \
+  --namespace "$PROVIDER_NAMESPACE" \
+  --keys-file /absolute/path/private/provider-keys.json \
+  --objects /absolute/path/evidence-objects \
+  --run-id "$RUN_UUID" --workers 2 --partitions 16 --timeout-seconds 300
+```
+
+先生成并保存本次run UUID。它标识一次固定输入和计划，和金融业务operation ID分开。
+相同run仅允许相同字节/版本/计划重试；不同输入必须新建run。`--workers`只允许1、2、4，
+分区计划不随进程数变化。工作进程不持有数据库连接或发布权限，只接收已经认证的事实和计划；
+父进程复核每份结果并发布。它们是同一操作系统用户下的可信代码，不是安全沙箱。
+
+`publish` exit0只说明本次完整发布协议完成，不表示报告没有差异。返回`published=false`
+表示本次run完整，但同scope的其他run先更新了current；不会偷偷重试覆盖它。完整对象固定保留，
+current按workspace/namespace/日期划分，workspace的evidence epoch在每次成功更新时递增。
+
+查询时改用专用`ledger_reader`连接（同名环境变量），按固定run读取，或显式选择当前scope：
+
+```sh
+python -m ledgerops.recon_cli read \
+  --objects /absolute/path/evidence-objects --workspace "$WORKSPACE_ID" --run-id "$RUN_UUID"
+
+python -m ledgerops.recon_cli read \
+  --objects /absolute/path/evidence-objects --workspace "$WORKSPACE_ID" \
+  --current --namespace "$PROVIDER_NAMESPACE" --date 2026-10-29
+```
+
+读者先持久固定run引用，再复核全部引用文件。`is_current_at_pin`、`evidence_epoch_at_pin`
+仅描述取得引用的那个时点；读取期间后来发布新报告不会改写已固定的内容。
+`published_epoch`是该run当初发布时的历史值，不是“永远有效”的证明。
+读取exit0/1分别表示报告范围内通过/存在差异；坏文件、未完成run、错误权限等返回exit2，
+不自动换一份报告掩盖问题。正常结束或读取失败会释放reader pin；stderr打印reader ID，
+进程或连接异常中断留下的pin可在确认读者停止后显式释放：
+
+```sh
+python -m ledgerops.recon_cli release-pin --workspace "$WORKSPACE_ID" --reader-id "$READER_UUID"
+```
+
+任何工作进程退出、超时或结果不完整都会终止本次工作进程组，尝试将run记为FAILED。
+数据库断线可能发生在COMMIT之后，此时`outcome_unknown=true`不等于回滚；按返回run ID
+重新读取状态，再用原始输入/计划恢复，不能凭错误响应换身份覆盖当前证据。
+SIGINT/SIGTERM会清理本次拥有的工作进程；强杀父进程不能保证执行清理，残留STAGING不作完整证据。
+
+文件先写入私有临时文件并fsync，再在registry锁下原子改名、同步目录、登记引用。
+这不是数据库与文件系统的分布式事务；注册前崩溃可能留下未引用文件。没有自动GC，
+也不能按文件年龄删除对象。备份须同时保留注册表、引用对象和密钥引用；清理未知文件前
+停止所有发布者，确认它既无持久引用也无pin。损坏对象应从经过核验的备份恢复，不能覆盖为新含义。
+
+迁移008后的金融导出是v7，保留v6的金融行结构；发布对象通过这里的固定run读取。
+原有v1–v6导出仍可核对，不能只把旧文件的版本号改为7。

@@ -41,7 +41,7 @@ def test_real_reader_exports_and_verifies_service_without_a_manual_manifest(
     report = verify_snapshot(snapshot)
     assert report.structure_ok and report.projection_ok and report.request_intent_ok
     assert report.healthy and report.rebuild_eligible
-    assert snapshot["format_version"] == 6
+    assert snapshot["format_version"] == 7
     assert snapshot["reversal_attempts"] == snapshot["reversal_effects"] == []
     assert all(
         snapshot[key] == []

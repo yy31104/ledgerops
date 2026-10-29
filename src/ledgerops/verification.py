@@ -1534,9 +1534,9 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         if (
             type(snapshot) is not dict
             or type(snapshot.get("format_version")) is not int
-            or snapshot["format_version"] not in (1, 2, 3, 4, 5, 6)
+            or snapshot["format_version"] not in (1, 2, 3, 4, 5, 6, 7)
         ):
-            raise _Invalid("snapshot version 1 through 6 required")
+            raise _Invalid("snapshot version 1 through 7 required")
         workspace = snapshot["workspace"]
         if type(workspace) is not dict:
             raise _Invalid("workspace object required")
@@ -1563,6 +1563,8 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
             schemas.append("006_payout_admission.sql")
         if version >= 6:
             schemas.append("007_payout_resolution.sql")
+        if version >= 7:
+            schemas.append("008_reconciliation_publication.sql")
         if (
             snapshot["schema_versions"] != schemas
             or type(snapshot["snapshot_witness"]) is not str

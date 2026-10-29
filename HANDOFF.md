@@ -48,7 +48,11 @@ bytes, exact matching and complete-group partition interfaces. Full1267tests pas
 Ruff124files, wheel/sdist and fresh installed APIs pass. Evidence:
 evidence/R4-PR01/2026-10-29/verification.json. Unassigned provider effects explicitly prevent
 reconciled=true; parent verifies claimed worker matches against original source facts.
-R4-PR02 durable registry/publication and bounded process execution are next.
+R4-PR02 now adds immutable object registry/pins, complete-run CAS publication and
+bounded1/2/4 spawned processes with failure cleanup. Full1325tests pass354.11s;
+Ruff131files/build/fresh installed APIs pass. Exportv7 declares008 while preserving
+oldv1–v6 bytes/capabilities. Evidence: evidence/R4-PR02/2026-10-29/verification.json.
+Next is R4-PR03 actual measurements and acceptance, followed by R5/R6/service/ops.
 Preserve references/tracker/Vault/Chronicle/lab/tutorial. Implementation, verification,
 production activation and personal ownership remain separate.
 

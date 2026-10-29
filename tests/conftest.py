@@ -34,9 +34,10 @@ class TestDatabase:
     reader_password: str
     maintenance_password: str
     worker_password: str
+    reconciler_password: str
 
     def connect(self, role: str = "app") -> psycopg.Connection:
-        if role not in {"app", "reader", "maintenance", "worker", "owner", "admin"}:
+        if role not in {"app", "reader", "maintenance", "worker", "reconciler", "owner", "admin"}:
             raise ValueError("unknown test connection role")
         conn = psycopg.connect(
             host="127.0.0.1",
@@ -47,12 +48,14 @@ class TestDatabase:
                 "reader": "ledger_reader",
                 "maintenance": "ledger_maintenance",
                 "worker": "ledger_worker",
+                "reconciler": "ledger_reconciler",
             }.get(role, "postgres"),
             password={
                 "app": self.app_password,
                 "reader": self.reader_password,
                 "maintenance": self.maintenance_password,
                 "worker": self.worker_password,
+                "reconciler": self.reconciler_password,
             }.get(role, self.admin_password),
             autocommit=True,
             connect_timeout=2,
@@ -71,6 +74,7 @@ def postgres_cluster():
     reader_password = secrets.token_urlsafe(24)
     maintenance_password = secrets.token_urlsafe(24)
     worker_password = secrets.token_urlsafe(24)
+    reconciler_password = secrets.token_urlsafe(24)
     container_id = None
     try:
         docker("version", "--format", "{{.Server.Version}}")
@@ -117,6 +121,7 @@ def postgres_cluster():
             reader_password,
             maintenance_password,
             worker_password,
+            reconciler_password,
         )
         deadline = time.monotonic() + 30
         while True:
@@ -157,6 +162,12 @@ def postgres_cluster():
                   NOCREATEROLE NOREPLICATION PASSWORD {}
             """).format(sql.Literal(worker_password))
             )
+            conn.execute(
+                sql.SQL(
+                    "CREATE ROLE ledger_reconciler LOGIN NOSUPERUSER NOBYPASSRLS "
+                    "NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD {}"
+                ).format(sql.Literal(reconciler_password))
+            )
         yield cluster
     except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
         pytest.fail(
@@ -179,6 +190,7 @@ def db(postgres_cluster):
         cluster.reader_password,
         cluster.maintenance_password,
         cluster.worker_password,
+        cluster.reconciler_password,
     )
     with cluster.connect("admin") as admin:
         admin.execute(
@@ -194,6 +206,7 @@ def db(postgres_cluster):
                 "005_full_reversal.sql",
                 "006_payout_admission.sql",
                 "007_payout_resolution.sql",
+                "008_reconciliation_publication.sql",
             ]
         yield database
     finally:

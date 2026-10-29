@@ -44,7 +44,8 @@ SCHEMA_VERSIONS_BY_FORMAT[5] = (
     "006_payout_admission.sql",
 )
 SCHEMA_VERSIONS_BY_FORMAT[6] = (*SCHEMA_VERSIONS_BY_FORMAT[5], "007_payout_resolution.sql")
-SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[6]
+SCHEMA_VERSIONS_BY_FORMAT[7] = (*SCHEMA_VERSIONS_BY_FORMAT[6], "008_reconciliation_publication.sql")
+SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[7]
 _BASE_TABLES = {
     "accounts": ("account", "workspace_id,id,owner_id,class,normal_side,currency,enabled", "id"),
     "balances": (
@@ -206,7 +207,10 @@ _TABLES_BY_FORMAT = {
         **_EXTERNAL_TABLES,
     },
 }
-_TABLES = _TABLES_BY_FORMAT[6]
+# Publication metadata lives in separate pinned evidence objects; the financial
+# snapshot retains v6 row shapes while explicitly recording the new schema.
+_TABLES_BY_FORMAT[7] = _TABLES_BY_FORMAT[6]
+_TABLES = _TABLES_BY_FORMAT[7]
 _BINARY_FIELDS = {"payload", "provider_request", "response_payload", "envelope", "raw_payload"}
 _DIGEST_FIELDS = {
     "payload_sha256",

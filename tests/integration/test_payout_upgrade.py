@@ -56,6 +56,7 @@ def test_upgrade_preserves_old_balances_or_refuses_unattributed_legacy_reserve(
                 assert migrations.apply_migrations(conn) == [
                     "006_payout_admission.sql",
                     "007_payout_resolution.sql",
+                    "008_reconciliation_publication.sql",
                 ]
                 assert conn.execute("SELECT count(*) FROM ledger.reservation_event").fetchone() == (
                     0,
