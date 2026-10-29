@@ -1,0 +1,61 @@
+{
+  "base_commit": "eacbad9cc1e70c4a1754b6355a35eb5def64018a",
+  "scope": "R3-PR01 independent provider only",
+  "python": "3.12.14",
+  "sqlite": "3.53.1",
+  "dependencies": {
+    "pytest": "9.1.1",
+    "pluggy": "1.7.0",
+    "iniconfig": "2.3.1",
+    "packaging": "26.3",
+    "pygments": "2.21.0",
+    "psycopg": "3.3.6",
+    "psycopg-binary": "3.3.6",
+    "ruff": "0.16.9"
+  },
+  "sqlite_diagnostics": {
+    "namespace": "00000000-0000-4000-8000-000000000001",
+    "sqlite_version": "3.53.1",
+    "journal_mode": "delete",
+    "synchronous": 2,
+    "foreign_keys": 1,
+    "busy_timeout_ms": 2000,
+    "executions": 0,
+    "events": 0,
+    "effects": 0,
+    "integrity_check": "ok"
+  },
+  "test_command": "PYTHONPYCACHEPREFIX=/private/tmp/ledgerops-r3-pycache UV_PROJECT_ENVIRONMENT=/private/tmp/ledgerops-r3-runtime /private/tmp/ledgerops-r3-runtime/bin/python -m pytest -c pyproject.toml --confcutdir=tests/unit -p no:cacheprovider tests/unit/test_provider_store.py tests/unit/test_provider_http_validation.py tests/provider -q",
+  "result": {
+    "passed": 85,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 9.16
+  },
+  "checks": {
+    "new_files_ruff_check": "passed",
+    "full_ruff_check": "passed",
+    "full_ruff_format": "82 files passed",
+    "complete_existing_regression": {
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 167.77
+    },
+    "package_build_and_install_verification": "wheel/sdist built; fresh wheel installed with locked runtime versions; imports, SQL001–005 resources and archive boundaries passed"
+  },
+  "environment_recovery": "Recreated exact uv.lock environment outside iCloud; requested OS hydration of source and Git files; all tracked sources became resident. UV_NO_SYNC avoids rebuilding from broken repository cache during smokes; separate clean wheel install verifies distribution. No application/test weakening or lock changes.",
+  "limitations": [
+    "synthetic loopback authority, not production ledger HTTP or bank adapter",
+    "real SIGKILL and restart, not power-loss/storage-destruction test",
+    "ledger payout/hold/dispatch/resolution not implemented in this slice",
+    "no R4/R5/R6 implementation or production readiness claimed"
+  ],
+  "full_test_command": "UV_NO_SYNC=1 PYTHONPYCACHEPREFIX=/private/tmp/ledgerops-r3-pycache UV_PROJECT_ENVIRONMENT=/private/tmp/ledgerops-r3-runtime UV_CACHE_DIR=/private/tmp/ledgerops-r3-uv /private/tmp/ledgerops-r3-runtime/bin/python -m pytest -o cache_dir=/private/tmp/ledgerops-r3-pytest-cache --tb=short",
+  "earlier_runs": [
+    "Initial complete run:687 passed/7 failed: five offline-build cache failures and two Git status timeouts during iCloud hydration.",
+    "A sandboxed run could not access Docker/loopback sockets and is not counted as financial verification.",
+    "A continued run was interrupted by session termination and its disposable container was cleaned explicitly."
+  ],
+  "cleanup": "Completed suite cleaned own subprocesses/containers; separately removed the interrupted-run test container and preserved pre-existing 2026-10-28 container."
+}

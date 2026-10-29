@@ -1,9 +1,9 @@
 UV ?= uv
 UV_CACHE_DIR ?= $(CURDIR)/.cache/uv
 export UV_CACHE_DIR
-CHECK_DIRS := src tests reference $(wildcard lab)
+CHECK_DIRS := src tests reference $(wildcard lab) $(wildcard provider_sim)
 
-.PHONY: bootstrap check test test-unit test-integration build demo lab
+.PHONY: bootstrap check test test-unit test-integration test-provider build demo lab
 
 bootstrap:
 	$(UV) sync --locked
@@ -21,6 +21,9 @@ test-unit:
 
 test-integration:
 	$(UV) run --locked python -m pytest tests/integration
+
+test-provider:
+	$(UV) run --locked python -m pytest tests/provider tests/unit/test_provider_store.py tests/unit/test_provider_http_validation.py
 
 build:
 	$(UV) build

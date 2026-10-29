@@ -19,7 +19,7 @@ dev = ["pytest==9.1.1", "ruff==0.16.9"]
 packages = ["src/ledgerops"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/src", "/tests", "/reference", "/fixtures", "/README.md", "/pyproject.toml", "/uv.lock", "/Makefile", "/.python-version"]
+include = ["/src", "/tests", "/reference", "/fixtures", "/provider_sim", "/README.md", "/pyproject.toml", "/uv.lock", "/Makefile", "/.python-version"]
 exclude = ["/tests/lab_story.py", "/tests/integration/test_lab*.py"]
 
 [tool.ruff]

@@ -16,7 +16,15 @@ Commit adoption separately, then bounded implementation commits with real eviden
 Continue R3→R4→R5→R6; do not treat the former document-only scope as the current limit.
 Keep reference originals, tracker, Vault, Chronicle and learning material unchanged.
 Everything remains local until an actual remote environment is explicitly authorized.
-Current implementation/verification remains R1/R2; planned capabilities are not completed.
+R3-PR01 independent provider is implemented under provider_sim.85specialized tests
+and the full694-test regression pass on Python3.12.14/SQLite3.53.1 with uv.lock
+versions. Ruff, wheel/sdist and separate fresh-installed-wheel checks pass.
+See evidence/R3-PR01/2026-10-29/verification.json, including environment failures
+before the successful run. iCloud source/Git hydration completed; the runtime
+uses a temporary environment to avoid evicted caches. No ledger source or old
+migration changed in PR01. Next: implement docs/tasks/R3-PR02.md without asking
+the same defaults again. R4–R6/service operations remain authorized and pending;
+do not claim R3 completion or production readiness from the provider-only slice.
 
 ## Latest learning request: linear document
 
