@@ -33,9 +33,10 @@ class TestDatabase:
     name: str
     reader_password: str
     maintenance_password: str
+    worker_password: str
 
     def connect(self, role: str = "app") -> psycopg.Connection:
-        if role not in {"app", "reader", "maintenance", "owner", "admin"}:
+        if role not in {"app", "reader", "maintenance", "worker", "owner", "admin"}:
             raise ValueError("unknown test connection role")
         conn = psycopg.connect(
             host="127.0.0.1",
@@ -45,11 +46,13 @@ class TestDatabase:
                 "app": "ledger_app",
                 "reader": "ledger_reader",
                 "maintenance": "ledger_maintenance",
+                "worker": "ledger_worker",
             }.get(role, "postgres"),
             password={
                 "app": self.app_password,
                 "reader": self.reader_password,
                 "maintenance": self.maintenance_password,
+                "worker": self.worker_password,
             }.get(role, self.admin_password),
             autocommit=True,
             connect_timeout=2,
@@ -67,6 +70,7 @@ def postgres_cluster():
     app_password = secrets.token_urlsafe(24)
     reader_password = secrets.token_urlsafe(24)
     maintenance_password = secrets.token_urlsafe(24)
+    worker_password = secrets.token_urlsafe(24)
     container_id = None
     try:
         docker("version", "--format", "{{.Server.Version}}")
@@ -112,6 +116,7 @@ def postgres_cluster():
             "postgres",
             reader_password,
             maintenance_password,
+            worker_password,
         )
         deadline = time.monotonic() + 30
         while True:
@@ -146,6 +151,12 @@ def postgres_cluster():
                   NOCREATEROLE NOREPLICATION PASSWORD {}
             """).format(sql.Literal(maintenance_password))
             )
+            conn.execute(
+                sql.SQL("""
+                CREATE ROLE ledger_worker LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB
+                  NOCREATEROLE NOREPLICATION PASSWORD {}
+            """).format(sql.Literal(worker_password))
+            )
         yield cluster
     except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
         pytest.fail(
@@ -167,6 +178,7 @@ def db(postgres_cluster):
         name,
         cluster.reader_password,
         cluster.maintenance_password,
+        cluster.worker_password,
     )
     with cluster.connect("admin") as admin:
         admin.execute(
@@ -180,6 +192,7 @@ def db(postgres_cluster):
                 "003_projection_maintenance.sql",
                 "004_resume_review.sql",
                 "005_full_reversal.sql",
+                "006_payout_admission.sql",
             ]
         yield database
     finally:

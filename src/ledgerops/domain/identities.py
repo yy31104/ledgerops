@@ -44,3 +44,11 @@ class AccountId(_UuidId):
 
 class OperationId(_UuidId):
     __slots__ = ()
+
+
+class BeneficiaryId(_UuidId):
+    __slots__ = ()
+
+
+class ProviderNamespaceId(_UuidId):
+    __slots__ = ()

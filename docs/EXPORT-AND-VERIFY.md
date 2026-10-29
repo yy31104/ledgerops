@@ -52,17 +52,17 @@ PYTHONPATH=src uv run --locked python -m ledgerops.cli verify "$LEDGEROPS_EXPORT
 不是工具自动证明了包的来源。DSN 不写入导出文件；命令错误只输出错误类别。
 
 退出码：`0` 表示账内结构/A/B 通过；`1` 表示检测到不一致；`2` 表示无法读取、导出失败
-或包格式无效。非零预留可能不影响账内 posted 核对，因此仍须检查报告的预留字段。
+或包格式无效。v1–v4 的非零预留不参与完整生命周期核对；v5 的 A 同时检查 reserved 是否等于活动 hold 之和。
 
 ## 报告能证明什么
 
 | 字段 | 含义 |
 |---|---|
 | `structure_ok` | 账户、分录表头、借贷、行数和关联满足已声明结构 |
-| `projection_ok`（A） | 从全部分录独立重算的余额与投影一致，含零活动账户 |
-| `request_intent_ok`（B） | 效果和保留结果符合记账前保存的规范购买请求 |
-| `reservation_supported` | 当前没有需要额外生命周期依据的非零预留 |
-| `healthy` | 结构、A、B 均通过，指账内 posted 一致性 |
+| `projection_ok`（A） | 从全部分录独立重算借贷合计；v5 另从不可变 hold 事件重算 reserved，含零活动账户 |
+| `request_intent_ok`（B） | 效果和保留结果符合保存的规范业务请求；v5 包含提现准入，外部终局另作边界披露 |
+| `reservation_supported` | v1–v4 要求无非零预留；v5 已支持 hold 历史，由结构检查验证其合法性 |
+| `healthy` | 结构、A、B 均通过；不代表外部付款已成功或支付商证据真实性已验证 |
 | `rebuild_eligible` | 结构、B 及预留条件通过；余额漂移本身是可修复对象 |
 | `issues` | 每个错误的对象、字段、预期值与实际值 |
 | `unverified_intent_kinds` | 缺少规范业务意图契约的类型，如 R1 的 OPENING fixture |
@@ -84,7 +84,7 @@ R1 OPENING 是显式测试开户，payload 没有规范充值指令；核对检�
 并发，文件描述的是被固定的快照，不一定是文件发布时刻的最新状态。每张表单独开启查询
 快照会拼出从未存在过的状态；并发测试及隔离级别变异用例明确验证了这点。
 
-版本 1/2/3/4 都包含 `data.json` 与 `manifest.json`。UUID 是规范字符串，金额是十进制整数字符串，
+版本 1/2/3/4/5 都包含 `data.json` 与 `manifest.json`。UUID 是规范字符串，金额是十进制整数字符串，
 状态/版本/行号保留 JSON 整数类型，payload 字节无损十六进制编码。manifest 记录 Git
 版本、dirty、行数、字节数和数据摘要。数据摘要检查损坏，不是源码清单，也不是真实性签名。
 最多每表 10,000 行，完整包不超过 16 MiB；超过上限失败，不截断。
@@ -103,3 +103,5 @@ workspace 的 projection_epoch/current_freeze_id、冻结元数据、修复表�
 版本 3 对应 001–004，增加冻结记录的 resume_report；v1/v2 仍按原格式解读。
 版本 4 对应 001–005，增加 reversal_attempts 与 reversal_effects，B 同时核对购买和冲正。
 旧 v1/v2/v3 包保持原规则。未知数据库版本直接失败，避免悄悄漏掉新表。
+
+版本 5 对应 001–006，包含 payouts、reservations、reservation_events、dispatch_intents、transport_attempts 和 repair.fold_version。核对器只依赖标准库，从 retained request 检查提现意图，从事件检查 hold 来源；生产准入/派发代码不参与生成预期。PR02 尚不处理外部金融终局，报告在 `unverified_intent_kinds` 明示 `PAYOUT_EXTERNAL_RESULT`。原始请求自身的真实性、报价/收款方配置的真实性、传输响应的签名权威不由账内 A/B 单独证明。旧格式的能力边界保持原样。

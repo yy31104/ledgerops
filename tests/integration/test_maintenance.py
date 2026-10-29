@@ -223,7 +223,7 @@ def test_fresh_wrong_owner_source_blocks_apply_even_when_preview_was_eligible(
     assert _state(seeded_db) == before
 
 
-def test_nonzero_reserved_blocks_apply_without_erasing_reservations(seeded_db, golden):
+def test_unbacked_reserved_projection_is_recomputed_from_empty_hold_history(seeded_db, golden):
     _drift(seeded_db, golden)
     with seeded_db.connect("owner") as conn:
         conn.execute(
@@ -231,11 +231,18 @@ def test_nonzero_reserved_blocks_apply_without_erasing_reservations(seeded_db, g
             (golden["purchase_request"]["merchant_account_id"],),
         )
     freeze_id = _freeze(seeded_db, golden)
-    before = _state(seeded_db)
-    with pytest.raises(MaintenanceError) as caught:
-        _apply(seeded_db, golden, freeze_id)
-    assert caught.value.code == "RESERVED_UNSUPPORTED"
-    assert _state(seeded_db) == before
+    _apply(seeded_db, golden, freeze_id)
+    with seeded_db.connect("reader") as conn:
+        assert conn.execute(
+            "SELECT booked,reserved FROM ledger.account_balance WHERE account_id=%s",
+            (golden["purchase_request"]["merchant_account_id"],),
+        ).fetchone() == (80, 0)
+        assert conn.execute("SELECT count(*) FROM ledger.reservation_event").fetchone() == (0,)
+        assert conn.execute(
+            "SELECT before_reserved,after_reserved FROM ledger.projection_repair_row "
+            "WHERE account_id=%s",
+            (golden["purchase_request"]["merchant_account_id"],),
+        ).fetchone() == (1, 0)
 
 
 def test_resume_rechecks_projection_and_repair_does_not_implicitly_resume(seeded_db, golden):
@@ -471,7 +478,7 @@ def test_business_and_export_credentials_cannot_forge_maintenance_metadata(
         "UPDATE ledger.operation SET response_body=response_body",
         "DELETE FROM ledger.journal_entry",
         "UPDATE ledger.account SET enabled=false",
-        "UPDATE ledger.account_balance SET reserved=0",
+        "UPDATE ledger.reservation SET gross_minor=gross_minor",
         "DELETE FROM ledger.account_balance",
         "UPDATE ledger.projection_repair SET reason=reason",
         "DELETE FROM ledger.projection_repair_row",

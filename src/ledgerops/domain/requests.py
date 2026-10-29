@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from ledgerops.domain.identities import AccountId, ClientId, OperationId, WorkspaceId
 from ledgerops.domain.money import AmountMinor
+from ledgerops.domain.payouts import PAYOUT_ROUTE
 
 PURCHASE_ROUTE = "purchase:v1"
 REVERSAL_ROUTE = "reversal:v1"
@@ -148,7 +149,7 @@ class RequestKey:
     def __post_init__(self) -> None:
         if type(self.workspace_id) is not WorkspaceId or type(self.client_id) is not ClientId:
             raise TypeError("request scope requires WorkspaceId and authenticated ClientId")
-        if self.route_family not in (PURCHASE_ROUTE, REVERSAL_ROUTE):
+        if self.route_family not in (PURCHASE_ROUTE, REVERSAL_ROUTE, PAYOUT_ROUTE):
             raise ValueError("unsupported request route family")
         if not isinstance(self.key, str):
             raise TypeError("request key must be a string")

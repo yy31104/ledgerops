@@ -126,8 +126,13 @@ def test_hand_frozen_rejected_funded_success_trace_and_unchanged_original(seeded
                 totals[name] for name in ("debits", "credits", "booked", "reserved")
             )
     report = verify_snapshot(snapshot)
-    assert report.structure_ok and report.projection_ok and report.request_intent_ok
-    assert not report.reservation_supported
+    # This historical R2 trace deliberately writes a raw reserve without a hold.
+    # Format5 can now prove that reserved projection differs from its event source.
+    assert report.structure_ok and report.request_intent_ok and report.reservation_supported
+    assert not report.projection_ok
+    assert any(
+        issue.code == "PROJECTION_DRIFT" and issue.field == "reserved" for issue in report.issues
+    )
 
 
 @pytest.mark.parametrize("actor", ["customer", "other-merchant", "unknown"])

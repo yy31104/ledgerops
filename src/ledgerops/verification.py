@@ -18,6 +18,7 @@ _MAX_TOTAL = 10**38 - 1
 _MAX_ROWS = 10_000
 _PREFIX = b"ledgerops.purchase:v1\n"
 _REVERSAL_PREFIX = b"ledgerops.reversal:v1\n"
+_PAYOUT_PREFIX = b"ledgerops.payout:v1\n"
 _TABLES = ("accounts", "balances", "operations", "requests", "journals", "entries")
 
 
@@ -104,6 +105,7 @@ def _time(value):
         raise _Invalid("UTC timestamp required") from exc
     if offset is None or offset.total_seconds() != 0:
         raise _Invalid("UTC timestamp required")
+    return parsed
 
 
 def _same_json(left, right):
@@ -340,7 +342,7 @@ def _check_journals(check, journal_rows, entry_rows, accounts, operations):
     return journals, lines, totals, by_operation
 
 
-def _check_projections(check, rows, accounts, totals):
+def _check_projections(check, rows, accounts, totals, held=None):
     balances = check.index(rows, "balances", lambda r: _uuid(r["account_id"]))
     for identifier in sorted(accounts.keys() - balances.keys()):
         check.issue("projection", "MISSING_PROJECTION", identifier, "account", "present", None)
@@ -358,6 +360,15 @@ def _check_projections(check, rows, accounts, totals):
                 "debits/credits/booked",
                 "bounded nonnegative totals",
                 [debit, credit, booked],
+            )
+        if held is not None and booked < held.get(identifier, 0):
+            check.issue(
+                "structure",
+                "INVALID_HELD_SOURCE",
+                identifier,
+                "folded_booked/reserved",
+                "booked covers active holds",
+                [str(booked), str(held.get(identifier, 0))],
             )
         row = balances.get(identifier)
         if row is None:
@@ -380,7 +391,16 @@ def _check_projections(check, rows, accounts, totals):
                 raise _Invalid("projection normal side differs from account")
             if int(row["booked"]) < reserved:
                 raise _Invalid("projection booked below reserved")
-            if reserved:
+            if held is not None and reserved != held.get(identifier, 0):
+                check.issue(
+                    "projection",
+                    "PROJECTION_DRIFT",
+                    identifier,
+                    "reserved",
+                    str(held.get(identifier, 0)),
+                    str(reserved),
+                )
+            elif held is None and reserved:
                 check.issue(
                     "reservation",
                     "UNSUPPORTED_RESERVATION",
@@ -401,10 +421,12 @@ def _check_operations(check, rows, version):
             _payload(row)
             _time(row["created_at"])
             kinds = ("OPENING", "PURCHASE", "REVERSAL") if version >= 4 else ("OPENING", "PURCHASE")
+            if version >= 5:
+                kinds += ("PAYOUT",)
             if row["kind"] not in kinds:
                 raise _Invalid("unsupported operation kind for snapshot format")
             if (row["admission"], type(row["http_status"]), row["http_status"]) not in {
-                ("ACCEPTED", int, 201),
+                ("ACCEPTED", int, 202 if row["kind"] == "PAYOUT" else 201),
                 ("REJECTED", int, 422),
             } or type(row["response_body"]) is not dict:
                 raise _Invalid("invalid committed operation outcome")
@@ -441,7 +463,7 @@ def _check_intent(check, workspace, accounts, operations, by_operation, lines):
                     sides,
                 )
             continue
-        if operation["kind"] == "REVERSAL":
+        if operation["kind"] in {"REVERSAL", "PAYOUT"}:
             continue  # The original purchase and success-only relation are checked together below.
         try:
             request = _purchase(_payload(operation), workspace, identifier)
@@ -551,13 +573,17 @@ def _check_requests(check, rows, operations):
             _payload(row)
             key = row["key"]
             if (
-                row["route_family"] not in {"purchase:v1", "reversal:v1"}
+                row["route_family"] not in {"purchase:v1", "reversal:v1", "payout:v1"}
                 or type(key) is not str
                 or "\x00" in key
                 or not 1 <= len(key.encode("utf-8")) <= 128
                 or operation is None
                 or (operation["kind"], row["route_family"])
-                not in {("PURCHASE", "purchase:v1"), ("REVERSAL", "reversal:v1")}
+                not in {
+                    ("PURCHASE", "purchase:v1"),
+                    ("REVERSAL", "reversal:v1"),
+                    ("PAYOUT", "payout:v1"),
+                }
             ):
                 raise _Invalid("invalid scoped request/operation reference")
             seen_operations.add(operation_id)
@@ -577,7 +603,10 @@ def _check_requests(check, rows, operations):
             )
             check.flags["intent"] = False
     for identifier, operation in operations.items():
-        if operation["kind"] in {"PURCHASE", "REVERSAL"} and identifier not in seen_operations:
+        if (
+            operation["kind"] in {"PURCHASE", "REVERSAL", "PAYOUT"}
+            and identifier not in seen_operations
+        ):
             check.issue("intent", "MISSING_REQUEST", identifier, "request_result", "present", None)
 
 
@@ -782,6 +811,344 @@ def _check_reversals(check, snapshot, workspace, accounts, operations, by_operat
             )
 
 
+def _payout_request(raw, workspace, operation_id):
+    """Parse captured business intent independently of domain/admission helpers."""
+    if not raw.startswith(_PAYOUT_PREFIX):
+        raise _Invalid("unsupported payout canonical prefix")
+    try:
+        request = json.loads(raw[len(_PAYOUT_PREFIX) :], object_pairs_hook=_unique_json_object)
+    except (ValueError, UnicodeError, RecursionError) as exc:
+        raise _Invalid("invalid payout JSON") from exc
+    names = (
+        "workspace_id",
+        "operation_id",
+        "merchant_account_id",
+        "beneficiary_id",
+        "provider_namespace",
+        "principal_minor",
+        "fee_minor",
+        "currency",
+        "contract_version",
+    )
+    if type(request) is not dict or request.keys() != set(names):
+        raise _Invalid("payout fields differ from v1 contract")
+    for name in names[:5]:
+        _uuid(request[name])
+    principal = _money(request["principal_minor"], 1, _MAX_AMOUNT)
+    fee = _money(request["fee_minor"], 0, _MAX_AMOUNT)
+    if (
+        request["workspace_id"] != workspace
+        or request["operation_id"] != operation_id
+        or request["currency"] != "PLN"
+        or type(request["contract_version"]) is not int
+        or request["contract_version"] != 1
+        or principal + fee > _MAX_AMOUNT
+    ):
+        raise _Invalid("invalid payout identity, amount or version")
+    expected = (
+        _PAYOUT_PREFIX
+        + json.dumps({name: request[name] for name in names}, separators=(",", ":")).encode()
+    )
+    if expected != raw:
+        raise _Invalid("noncanonical payout bytes")
+    return request
+
+
+def _provider_instruction(row, request):
+    """Check stored transmission bytes against captured intent; no signature claim."""
+    encoded, digest = row["provider_request_hex"], row["provider_request_sha256"]
+    if (
+        type(encoded) is not str
+        or not re.fullmatch(r"(?:[0-9a-f]{2})+", encoded)
+        or len(encoded) > 65536
+        or type(digest) is not str
+        or not re.fullmatch(r"[0-9a-f]{64}", digest)
+    ):
+        raise _Invalid("invalid provider instruction bytes")
+    raw = bytes.fromhex(encoded)
+    if hashlib.sha256(raw).hexdigest() != digest:
+        raise _Invalid("provider instruction digest mismatch")
+    deadline = _time(row["dispatch_deadline"])
+    if deadline.microsecond:
+        raise _Invalid("provider deadline must have whole-second precision")
+    deadline_text = deadline.isoformat(timespec="seconds").replace("+00:00", "Z")
+    gross = str(int(request["principal_minor"]) + int(request["fee_minor"]))
+    expected = {
+        "workspace_id": request["workspace_id"],
+        "operation_id": request["operation_id"],
+        "merchant_id": request["merchant_account_id"],
+        "beneficiary_id": request["beneficiary_id"],
+        "principal_minor": request["principal_minor"],
+        "fee_minor": request["fee_minor"],
+        "gross_minor": gross,
+        "currency": "PLN",
+        "contract_version": 1,
+        "dispatch_deadline": deadline_text,
+    }
+    if raw != json.dumps(expected, sort_keys=True, separators=(",", ":")).encode():
+        raise _Invalid("provider bytes differ from captured payout instruction")
+    return deadline_text, gross
+
+
+def _payout_rejection(operation):
+    body = operation["response_body"]
+    if type(body) is not dict or body.keys() != {"error"} or type(body["error"]) is not dict:
+        raise _Invalid("invalid payout rejection envelope")
+    error = body["error"]
+    messages = {
+        "INSUFFICIENT_AVAILABLE": "Insufficient available balance",
+        "LIMIT_EXCEEDED": "Payout would exceed ledger limits",
+    }
+    if (
+        error.keys() != {"code", "message", "operation_id", "request_id", "retryable"}
+        or error["code"] not in messages
+        or error["message"] != messages[error["code"]]
+        or error["operation_id"] != operation["operation_id"]
+        or error["retryable"] is not False
+    ):
+        raise _Invalid("invalid payout rejection fields")
+    _uuid(error["request_id"])
+
+
+def _payout_transport(check, snapshot, workspace, payouts):
+    intents = check.index(
+        check.rows(snapshot, "dispatch_intents", workspace),
+        "dispatch_intents",
+        lambda row: _uuid(row["payout_id"]),
+    )
+    attempts = check.index(
+        check.rows(snapshot, "transport_attempts", workspace),
+        "transport_attempts",
+        lambda row: _uuid(row["attempt_id"]),
+    )
+    by_payout = defaultdict(list)
+    for identifier, row in attempts.items():
+        try:
+            payout_id = _uuid(row["payout_id"])
+            if payout_id not in payouts or row["action"] not in {"PUT", "LOOKUP", "CLOSE"}:
+                raise _Invalid("attempt refers to missing payout or invalid action")
+            _time(row["started_at"])
+            by_payout[payout_id].append(identifier)
+            outcome = row["outcome"]
+            if outcome not in {
+                "MAY_HAVE_SENT",
+                "RESPONSE",
+                "TIMEOUT",
+                "CONNECTION_ERROR",
+                "TRANSPORT_ERROR",
+                "INVALID_RESPONSE",
+            }:
+                raise _Invalid("invalid transport outcome")
+            if outcome == "MAY_HAVE_SENT":
+                if any(
+                    row[name] is not None
+                    for name in ("finished_at", "http_status", "response_payload_hex")
+                ):
+                    raise _Invalid("unfinished attempt contains a completion")
+            else:
+                _time(row["finished_at"])
+            status = row["http_status"]
+            if status is not None:
+                _integer(status, 100, 599)
+            payload = row["response_payload_hex"]
+            if payload is not None and (
+                type(payload) is not str
+                or not re.fullmatch(r"(?:[0-9a-f]{2})*", payload)
+                or len(payload) > 131072
+            ):
+                raise _Invalid("invalid bounded transport bytes")
+            if outcome in {"RESPONSE", "INVALID_RESPONSE"} and (status is None or payload is None):
+                raise _Invalid("response outcome lacks response evidence")
+            if outcome in {"TIMEOUT", "CONNECTION_ERROR"} and (
+                status is not None or payload is not None
+            ):
+                raise _Invalid("transport absence contains an HTTP response")
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue(
+                "structure", "INVALID_TRANSPORT_ATTEMPT", identifier, "attempt", str(exc), None
+            )
+    for identifier, row in intents.items():
+        try:
+            if identifier not in payouts:
+                raise _Invalid("intent payout is missing")
+            count = _integer(row["attempts"])
+            _time(row["next_due_at"])
+            if row["state"] not in {"READY", "IN_FLIGHT", "OBSERVING"} or row[
+                "next_action"
+            ] not in {
+                "PUT",
+                "LOOKUP",
+                "CLOSE",
+            }:
+                raise _Invalid("invalid dispatch state/action")
+            if count != len(by_payout[identifier]):
+                raise _Invalid("attempt counter differs from retained history")
+            if count == 0:
+                if (
+                    row["state"] != "READY"
+                    or row["next_action"] != "PUT"
+                    or row["last_attempt_id"] is not None
+                ):
+                    raise _Invalid("initial intent state differs from no-attempt history")
+                if payouts[identifier]["knowledge"] != "NOT_SENT":
+                    raise _Invalid("unsent payout has unknown knowledge")
+            else:
+                last = _uuid(row["last_attempt_id"])
+                if last not in by_payout[identifier] or row["state"] == "READY":
+                    raise _Invalid("current claim is missing or not owned by payout")
+                if payouts[identifier]["knowledge"] != "UNKNOWN":
+                    raise _Invalid("claimed payout cannot claim to be unsent")
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue(
+                "structure", "INVALID_DISPATCH_INTENT", identifier, "intent", str(exc), None
+            )
+    return intents
+
+
+def _check_payouts(check, snapshot, workspace, accounts, operations, by_operation):
+    """Fold immutable HELD history and check local intent, not external finality."""
+    payouts = check.index(
+        check.rows(snapshot, "payouts", workspace),
+        "payouts",
+        lambda row: _uuid(row["operation_id"]),
+    )
+    reservations = check.index(
+        check.rows(snapshot, "reservations", workspace),
+        "reservations",
+        lambda row: _uuid(row["payout_id"]),
+    )
+    events = check.index(
+        check.rows(snapshot, "reservation_events", workspace),
+        "reservation_events",
+        lambda row: (_uuid(row["payout_id"]), _integer(row["event_no"], 1)),
+    )
+    history_by_payout = defaultdict(list)
+    for identity in events:
+        history_by_payout[identity[0]].append(identity)
+    intents = _payout_transport(check, snapshot, workspace, payouts)
+    held = defaultdict(int)
+    for identifier, row in payouts.items():
+        try:
+            op = operations.get(identifier)
+            if op is None or op["kind"] != "PAYOUT" or op["admission"] != "ACCEPTED":
+                raise _Invalid("payout must bind an accepted payout operation")
+            if row["knowledge"] not in {"NOT_SENT", "UNKNOWN"}:
+                raise _Invalid("external finality is unsupported in v5")
+            _integer(row["version"], 1)
+            for name in ("merchant_account_id", "beneficiary_id", "provider_namespace"):
+                _uuid(row[name])
+            principal = _money(row["principal_minor"], 1, _MAX_AMOUNT)
+            fee = _money(row["fee_minor"], 0, _MAX_AMOUNT)
+            gross = _money(row["gross_minor"], 1, _MAX_AMOUNT)
+            if (
+                principal + fee != gross
+                or row["currency"] != "PLN"
+                or type(row["contract_version"]) is not int
+                or row["contract_version"] != 1
+            ):
+                raise _Invalid("invalid payout amounts or contract")
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue("structure", "INVALID_PAYOUT", identifier, "payout", str(exc), None)
+    for identifier, reservation in reservations.items():
+        try:
+            payout = payouts.get(identifier)
+            account = _uuid(reservation["account_id"])
+            gross = _money(reservation["gross_minor"], 1, _MAX_AMOUNT)
+            if (
+                payout is None
+                or account not in accounts
+                or accounts[account]["class"] != "MERCHANT_LIABILITY"
+                or reservation["state"] != "HELD"
+                or type(reservation["version"]) is not int
+                or reservation["version"] != 1
+                or account != payout["merchant_account_id"]
+                or reservation["gross_minor"] != payout["gross_minor"]
+            ):
+                raise _Invalid("hold identity, state or amount differs from payout")
+            history = history_by_payout[identifier]
+            if history != [(identifier, 1)]:
+                raise _Invalid("v5 hold requires exactly one initial HELD event")
+            event = events[(identifier, 1)]
+            if event["state"] != "HELD" or event["observation_id"] is not None:
+                raise _Invalid("invalid initial hold event")
+            _time(event["recorded_at"])
+            held[account] += gross
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue("structure", "INVALID_HOLD_HISTORY", identifier, "hold", str(exc), None)
+            check.flags["reservation"] = False
+    for identifier, _ in events:
+        if identifier not in reservations:
+            check.issue("structure", "ORPHAN_HOLD_EVENT", identifier, "hold", "present", None)
+            check.flags["reservation"] = False
+    for identifier, operation in operations.items():
+        if operation["kind"] != "PAYOUT":
+            continue
+        try:
+            request = _payout_request(_payload(operation), workspace, identifier)
+            merchant = accounts.get(request["merchant_account_id"])
+            if merchant is None or merchant["class"] != "MERCHANT_LIABILITY":
+                raise _Invalid("payout merchant account is missing or wrong class")
+            if by_operation.get(identifier):
+                check.issue(
+                    "structure",
+                    "INVALID_PAYOUT_EFFECT",
+                    identifier,
+                    "journals",
+                    0,
+                    len(by_operation[identifier]),
+                )
+                raise _Invalid("v5 payout must not have a financial journal")
+            if operation["admission"] == "REJECTED":
+                if any(identifier in table for table in (payouts, reservations, intents)):
+                    raise _Invalid("rejected payout has a hold, instruction or intent")
+                _payout_rejection(operation)
+                continue
+            if any(identifier not in table for table in (payouts, reservations, intents)):
+                check.issue(
+                    "structure",
+                    "INCOMPLETE_PAYOUT",
+                    identifier,
+                    "admission",
+                    "instruction, hold and intent",
+                    None,
+                )
+                raise _Invalid("accepted payout lacks complete instruction, hold or intent")
+            row = payouts[identifier]
+            for name in (
+                "merchant_account_id",
+                "beneficiary_id",
+                "provider_namespace",
+                "principal_minor",
+                "fee_minor",
+                "currency",
+                "contract_version",
+            ):
+                if not _same_json(row[name], request[name]):
+                    raise _Invalid(f"payout {name} differs from captured request")
+            key = ".".join(("v1", request["provider_namespace"], workspace, identifier))
+            if row["provider_key"] != key:
+                raise _Invalid("provider key differs from stable business identity")
+            deadline, gross = _provider_instruction(row, request)
+            if row["gross_minor"] != gross:
+                raise _Invalid("payout gross differs from captured amount and fee")
+            expected_body = {
+                "operation_id": identifier,
+                "payout_id": identifier,
+                "admission": "accepted_for_processing",
+                "principal_minor": request["principal_minor"],
+                "fee_minor": request["fee_minor"],
+                "gross_minor": gross,
+                "currency": "PLN",
+                "dispatch_deadline": deadline,
+                "contract_version": 1,
+            }
+            if not _same_json(operation["response_body"], expected_body):
+                raise _Invalid("payout acceptance differs from fixed instruction")
+        except (KeyError, TypeError, ValueError) as exc:
+            check.issue("intent", "INVALID_PAYOUT_INTENT", identifier, "payout", str(exc), None)
+    return held
+
+
 def _resume_report(report):
     """A saved review records warnings without imposing rebuild admission on resume."""
     flags = (
@@ -894,6 +1261,8 @@ def _check_maintenance(check, snapshot, workspace, accounts):
             old = _integer(row["old_epoch"], 1, 2**63 - 2)
             new = _integer(row["new_epoch"], 2)
             _integer(row["account_count"], 0, _MAX_ROWS)
+            if snapshot["format_version"] >= 5:
+                _integer(row["fold_version"], 1, 2)
             if new != old + 1:
                 raise _Invalid("repair must advance epoch exactly once")
             epochs.append(old)
@@ -934,7 +1303,12 @@ def _check_maintenance(check, snapshot, workspace, accounts):
                 if side == "D"
                 else after["credits"] - after["debits"]
             )
-            if after["reserved"] != 0 or after["booked"] != booked:
+            fold_version = repairs[repair].get("fold_version", 1)
+            if (
+                (fold_version == 1 and after["reserved"] != 0)
+                or after["booked"] != booked
+                or after["booked"] < after["reserved"]
+            ):
                 raise _Invalid("invalid repaired totals/reservation")
             before_names = ("debits", "credits", "reserved", "booked", "version")
             before_values = [row["before_" + name] for name in before_names]
@@ -953,8 +1327,9 @@ def _check_maintenance(check, snapshot, workspace, accounts):
                     else before["credits"] - before["debits"]
                 )
                 if (
-                    before["reserved"] != 0
+                    (fold_version == 1 and before["reserved"] != 0)
                     or before["booked"] != old_booked
+                    or before["booked"] < before["reserved"]
                     or version != old_version + 1
                 ):
                     raise _Invalid("invalid original totals or projection version transition")
@@ -984,9 +1359,9 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
         if (
             type(snapshot) is not dict
             or type(snapshot.get("format_version")) is not int
-            or snapshot["format_version"] not in (1, 2, 3, 4)
+            or snapshot["format_version"] not in (1, 2, 3, 4, 5)
         ):
-            raise _Invalid("snapshot version 1, 2, 3 or 4 required")
+            raise _Invalid("snapshot version 1, 2, 3, 4 or 5 required")
         workspace = snapshot["workspace"]
         if type(workspace) is not dict:
             raise _Invalid("workspace object required")
@@ -1009,6 +1384,8 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
             schemas.append("004_resume_review.sql")
         if version >= 4:
             schemas.append("005_full_reversal.sql")
+        if version >= 5:
+            schemas.append("006_payout_admission.sql")
         if (
             snapshot["schema_versions"] != schemas
             or type(snapshot["snapshot_witness"]) is not str
@@ -1023,6 +1400,9 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
     tables = {name: check.rows(snapshot, name, workspace_id) for name in _TABLES}
     if version >= 4:
         check.intent_scope = ("PURCHASE", "REVERSAL")
+    if version >= 5:
+        check.intent_scope += ("PAYOUT",)
+        check.unverified.add("PAYOUT_EXTERNAL_RESULT")
     accounts = _check_accounts(check, tables["accounts"])
     if snapshot["format_version"] >= 2:
         _check_maintenance(check, snapshot, workspace, accounts)
@@ -1030,7 +1410,12 @@ def verify_snapshot(snapshot: dict) -> VerificationReport:
     _, lines, totals, by_operation = _check_journals(
         check, tables["journals"], tables["entries"], accounts, operations
     )
-    _check_projections(check, tables["balances"], accounts, totals)
+    held = (
+        _check_payouts(check, snapshot, workspace_id, accounts, operations, by_operation)
+        if version >= 5
+        else None
+    )
+    _check_projections(check, tables["balances"], accounts, totals, held)
     _check_intent(check, workspace_id, accounts, operations, by_operation, lines)
     if version >= 4:
         _check_reversals(check, snapshot, workspace_id, accounts, operations, by_operation, lines)

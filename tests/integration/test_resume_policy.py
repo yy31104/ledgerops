@@ -90,38 +90,39 @@ def _resume_with_retained_warning(db, golden, freeze_id, issue_code):
     return report
 
 
-def test_nonzero_reservation_blocks_repair_but_not_resume_and_is_retained(seeded_db, golden):
+def test_unbacked_reserve_is_projection_drift_and_must_be_repaired_before_resume(seeded_db, golden):
+    workspace = golden["workspace"]["id"]
     customer = golden["purchase_request"]["customer_account_id"]
     with seeded_db.connect("owner") as conn:
         conn.execute(
             "UPDATE ledger.account_balance SET reserved=10 WHERE workspace_id=%s AND account_id=%s",
-            (golden["workspace"]["id"], customer),
+            (workspace, customer),
         )
-    freeze_id = _freeze_and_refuse_repair(seeded_db, golden, "RESERVED_UNSUPPORTED")
-    report = _resume_with_retained_warning(seeded_db, golden, freeze_id, "UNSUPPORTED_RESERVATION")
-    assert report["request_intent_ok"] and not report["reservation_supported"]
+    freeze_id = str(uuid4())
+    with seeded_db.connect("maintenance") as conn:
+        freeze_workspace(conn, workspace, freeze_id, ACTOR, "inspect unbacked projection")
+        with pytest.raises(MaintenanceError) as caught:
+            resume_workspace(conn, workspace, freeze_id, ACTOR, "check")
+        assert caught.value.code == "PROJECTION_DRIFT"
+        assert caught.value.report["reservation_supported"]
+        apply_rebuild(
+            conn, workspace, freeze_id, str(uuid4()), ACTOR, "repair source fold", str(uuid4())
+        )
+        resumed = resume_workspace(conn, workspace, freeze_id, ACTOR, "check")
+        assert resumed["resume_report"]["healthy"]
+        assert resume_workspace(conn, workspace, freeze_id, ACTOR, "check") == resumed
     with seeded_db.connect("reader") as conn:
         assert conn.execute(
-            "SELECT booked,reserved FROM ledger.account_balance "
-            "WHERE workspace_id=%s AND account_id=%s",
-            (golden["workspace"]["id"], customer),
-        ).fetchone() == (100, 10)
-        current = verify_snapshot(capture_snapshot(conn, golden["workspace"]["id"]))
-    assert current.structure_ok and current.projection_ok
-    assert not current.reservation_supported
-    # A later legitimate-looking reserve release changes the live report. Resume
-    # replay still exposes the original warning instead of rewriting history.
-    with seeded_db.connect("owner") as conn:
-        conn.execute(
-            "UPDATE ledger.account_balance SET reserved=0 WHERE workspace_id=%s AND account_id=%s",
-            (golden["workspace"]["id"], customer),
-        )
-    with seeded_db.connect("maintenance") as conn:
-        replay = resume_workspace(
-            conn, golden["workspace"]["id"], freeze_id, ACTOR, "resume after inspection"
-        )
-        assert replay["resume_report"] == report
-        assert not replay["resume_report"]["reservation_supported"]
+            "SELECT booked,reserved FROM ledger.account_balance WHERE account_id=%s",
+            (customer,),
+        ).fetchone() == (100, 0)
+        assert conn.execute(
+            "SELECT before_reserved,after_reserved FROM ledger.projection_repair_row "
+            "WHERE account_id=%s",
+            (customer,),
+        ).fetchone() == (10, 0)
+        assert conn.execute("SELECT count(*) FROM ledger.reservation_event").fetchone() == (0,)
+        assert verify_snapshot(capture_snapshot(conn, workspace)).healthy
 
 
 def test_wrong_owner_blocks_repair_but_not_resume_and_is_retained(seeded_db, golden):

@@ -1,6 +1,14 @@
 """LedgerOps R1 domain values and canonical purchase identity."""
 
-from ledgerops.domain.identities import AccountId, ActorId, ClientId, OperationId, WorkspaceId
+from ledgerops.domain.identities import (
+    AccountId,
+    ActorId,
+    BeneficiaryId,
+    ClientId,
+    OperationId,
+    ProviderNamespaceId,
+    WorkspaceId,
+)
 from ledgerops.domain.money import (
     MAX_AMOUNT_MINOR,
     MAX_TOTAL_MINOR,
@@ -10,6 +18,7 @@ from ledgerops.domain.money import (
     checked_total,
     parse_fee,
 )
+from ledgerops.domain.payouts import PayoutCommand, TrustedPayoutPolicy
 from ledgerops.domain.requests import PurchaseCommand, RequestKey, ReversalCommand
 
 __all__ = [
@@ -17,12 +26,16 @@ __all__ = [
     "MAX_TOTAL_MINOR",
     "AccountId",
     "ActorId",
+    "BeneficiaryId",
     "AmountMinor",
     "ClientId",
     "OperationId",
+    "PayoutCommand",
+    "ProviderNamespaceId",
     "PurchaseCommand",
     "RequestKey",
     "ReversalCommand",
+    "TrustedPayoutPolicy",
     "WorkspaceId",
     "checked_add",
     "checked_operation_total",

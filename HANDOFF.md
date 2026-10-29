@@ -16,15 +16,22 @@ Commit adoption separately, then bounded implementation commits with real eviden
 Continue R3→R4→R5→R6; do not treat the former document-only scope as the current limit.
 Keep reference originals, tracker, Vault, Chronicle and learning material unchanged.
 Everything remains local until an actual remote environment is explicitly authorized.
-R3-PR01 independent provider is implemented under provider_sim.85specialized tests
-and the full694-test regression pass on Python3.12.14/SQLite3.53.1 with uv.lock
-versions. Ruff, wheel/sdist and separate fresh-installed-wheel checks pass.
-See evidence/R3-PR01/2026-10-29/verification.json, including environment failures
-before the successful run. iCloud source/Git hydration completed; the runtime
-uses a temporary environment to avoid evicted caches. No ledger source or old
-migration changed in PR01. Next: implement docs/tasks/R3-PR02.md without asking
-the same defaults again. R4–R6/service operations remain authorized and pending;
-do not claim R3 completion or production readiness from the provider-only slice.
+R3-PR01 provider is committed at b839ce6 (694-test full regression). R3-PR02 now adds
+payout:v1 admission, immutable202/dispatchdeadline, HELD events, durable conservative
+worker claims and total-deadline loopback transport. The worker rechecks outgoing
+bytes against captured business intent before anysend. Exportv5 independently folds
+activeholds; repair supports reserved drift without modifyingholdhistory. Oldexport
+formats/migrations remain intact. Full900test regression passes in90.56s on real
+PostgreSQL18.6; Ruff/build/freshwheel installation pass. Evidence:
+evidence/R3-PR02/2026-10-29/verification.json. The locked runtime currently resides
+in /private/tmp/ledgerops-r3-runtime to avoid evicted iCloud caches; UV_NO_SYNC is used
+only after uv.lock install, and distribution installation was checked separately.
+Next: R3-PR03 authenticated observations and one financial terminalresolution,
+thenPR04 real crash/recovery matrix and a bounded worker process. PR02 contains
+no consume/release, no workerdaemon and no productionHTTP. Continue R4–R6/service
+operations under existingauthorization; do not call the provider/hold slice the
+completed userrequest or claimproductionreadiness. Reference/tracker/Vault/lab stay
+untouched. Implementation, verifiedbehavior and personalownership remain separate.
 
 ## Latest learning request: linear document
 

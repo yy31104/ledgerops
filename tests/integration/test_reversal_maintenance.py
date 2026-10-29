@@ -55,7 +55,7 @@ def test_reversed_history_survives_repair_with_original_and_success_relation_unc
         )
         resumed = resume_workspace(conn, workspace, freeze, actor, "checked")
         assert resumed["resume_report"]["healthy"]
-        assert resumed["resume_report"]["intent_scope"] == ["PURCHASE", "REVERSAL"]
+        assert resumed["resume_report"]["intent_scope"] == ["PURCHASE", "REVERSAL", "PAYOUT"]
     with seeded_db.connect("reader") as conn:
         assert conn.execute(
             "SELECT booked FROM ledger.account_balance ORDER BY account_id"

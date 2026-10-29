@@ -59,8 +59,9 @@ def test_request_key_scope_and_exact_spelling():
     assert first != RequestKey(workspace, client, " key ")
     assert RequestKey(workspace, client, "é") != RequestKey(workspace, client, "e\u0301")
     assert first.route_family == "purchase:v1"
+    assert RequestKey(workspace, client, "key", route_family="payout:v1") != first
     with pytest.raises(ValueError):
-        RequestKey(workspace, client, "key", route_family="payout:v1")
+        RequestKey(workspace, client, "key", route_family="payout:v2")
     with pytest.raises(TypeError):
         RequestKey(workspace, ActorId.parse(ID_TEXT), "key")
 

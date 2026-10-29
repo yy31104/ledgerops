@@ -19,11 +19,13 @@ from ledgerops.domain import (
     MAX_TOTAL_MINOR,
     ActorId,
     ClientId,
+    PayoutCommand,
     PurchaseCommand,
     RequestKey,
     ReversalCommand,
     WorkspaceId,
 )
+from ledgerops.domain.payouts import PAYOUT_PREFIX, PAYOUT_ROUTE
 from ledgerops.domain.requests import (
     CANONICAL_PREFIX,
     PURCHASE_ROUTE,
@@ -117,13 +119,14 @@ def _authorize_customer(cur, principal, command):
 
 def _parse_stored(operation, workspace):
     kind = operation["kind"]
-    if kind not in {"PURCHASE", "REVERSAL"}:
+    codecs = {
+        "PURCHASE": (PurchaseCommand, CANONICAL_PREFIX),
+        "REVERSAL": (ReversalCommand, REVERSAL_PREFIX),
+        "PAYOUT": (PayoutCommand, PAYOUT_PREFIX),
+    }
+    if kind not in codecs:
         raise NotAuthorized()
-    command_type, prefix = (
-        (PurchaseCommand, CANONICAL_PREFIX)
-        if kind == "PURCHASE"
-        else (ReversalCommand, REVERSAL_PREFIX)
-    )
+    command_type, prefix = codecs[kind]
     try:
         payload = operation["payload"]
         if not payload.startswith(prefix):
@@ -195,9 +198,26 @@ def _authorize_stored(cur, principal, operation):
     stored = _parse_stored(operation, principal.workspace_id)
     if type(stored) is PurchaseCommand:
         _authorize_customer(cur, principal, stored)
-    else:
+    elif type(stored) is ReversalCommand:
         _original_purchase(cur, principal, stored)
+    elif type(stored) is PayoutCommand:
+        _authorize_merchant(cur, principal, stored)
     return stored
+
+
+def _authorize_merchant(cur, principal, command):
+    row = cur.execute(
+        "SELECT owner_id,class,normal_side,currency FROM ledger.account "
+        "WHERE workspace_id=%s AND id=%s",
+        (command.workspace_id.value, command.merchant_account_id.value),
+    ).fetchone()
+    if row is None or (row["owner_id"], row["class"], row["normal_side"], row["currency"]) != (
+        principal.actor_id.value,
+        "MERCHANT_LIABILITY",
+        "C",
+        "PLN",
+    ):
+        raise NotAuthorized()
 
 
 def _retained_purchase_result(cur, operation, stored):
@@ -327,7 +347,13 @@ def _retained_reversal_result(cur, operation, stored):
 def _retained_result(cur, operation, stored):
     if type(stored) is PurchaseCommand:
         return _retained_purchase_result(cur, operation, stored)
-    return _retained_reversal_result(cur, operation, stored)
+    if type(stored) is ReversalCommand:
+        return _retained_reversal_result(cur, operation, stored)
+    if type(stored) is PayoutCommand:
+        from ledgerops.db.payout_admission import retained_payout_result
+
+        return retained_payout_result(cur, operation, stored)
+    raise InvariantViolation("Unsupported retained operation kind")
 
 
 def _rejection(command, code, request_id):
@@ -340,6 +366,8 @@ def _rejection(command, code, request_id):
             LIMIT_EXCEEDED="Reversal would exceed ledger limits",
             ALREADY_REVERSED="Purchase already reversed",
         )
+    elif type(command) is PayoutCommand:
+        messages["LIMIT_EXCEEDED"] = "Payout would exceed ledger limits"
     return AdmissionResult(
         422,
         {
@@ -382,8 +410,12 @@ def _open_admission(cur, principal, command):
         raise RetrySameIdentity("workspace_not_normal")
     if type(command) is PurchaseCommand:
         _authorize_customer(cur, principal, command)
-    else:
+    elif type(command) is ReversalCommand:
         _original_purchase(cur, principal, command)
+    elif type(command) is PayoutCommand:
+        _authorize_merchant(cur, principal, command)
+    else:
+        raise TypeError("unsupported business command")
 
 
 def _replay_by_request_key(cur, principal, scope, payload):
@@ -537,7 +569,7 @@ def _finish_operation(cur, command, scope, result):
            SET admission=%s, http_status=%s, response_body=%s
            WHERE workspace_id=%s AND operation_id=%s RETURNING 1""",
         (
-            "ACCEPTED" if result.http_status == 201 else "REJECTED",
+            "ACCEPTED" if result.http_status in (201, 202) else "REJECTED",
             result.http_status,
             Jsonb(result.body),
             command.workspace_id.value,
@@ -633,6 +665,8 @@ def _submit_once(
     command,
     request_key: RequestKey,
     command_type,
+    *,
+    post_new=None,
 ) -> AdmissionResult:
     """One complete attempt; return only after COMMIT and deferred checks.
 
@@ -640,7 +674,14 @@ def _submit_once(
     total/version exhaustion are committed business outcomes. The public entry point
     may retry a definitely aborted transaction; the caller still owns the connection.
     """
-    kind = "PURCHASE" if command_type is PurchaseCommand else "REVERSAL"
+    commands = {
+        PurchaseCommand: ("PURCHASE", PURCHASE_ROUTE, _post_new_purchase),
+        ReversalCommand: ("REVERSAL", REVERSAL_ROUTE, _post_new_reversal),
+        PayoutCommand: ("PAYOUT", PAYOUT_ROUTE, post_new),
+    }
+    if command_type not in commands:
+        raise TypeError("unsupported business command")
+    kind, route, post = commands[command_type]
     if (
         type(principal) is not Principal
         or type(command) is not command_type
@@ -655,7 +696,6 @@ def _submit_once(
         or request_key.client_id != principal.client_id
     ):
         raise NotAuthorized()
-    route = PURCHASE_ROUTE if command_type is PurchaseCommand else REVERSAL_ROUTE
     if request_key.route_family != route:
         raise ValueError("request route family must match the business command")
     workspace = command.workspace_id.value
@@ -688,11 +728,8 @@ def _submit_once(
                 if claimed_operation is None:
                     result = _replay_by_operation(cur, principal, scope, command, payload)
                 else:
-                    post = (
-                        _post_new_purchase
-                        if command_type is PurchaseCommand
-                        else _post_new_reversal
-                    )
+                    if post is None:
+                        raise TypeError("business admission handler required")
                     result = post(cur, principal, command, scope)
         return result
     except (
@@ -747,3 +784,19 @@ def submit_reversal(
 ) -> AdmissionResult:
     """Original merchant's full reversal through the same admission/retry boundaries."""
     return _submit_with_retry(conn, principal, command, request_key, _submit_reversal_once)
+
+
+def submit_payout(conn, principal, command, request_key, *, policy, clock=None):
+    """Reserve funds and retain a 202 receipt; no external I/O or payout settlement."""
+    from ledgerops.db.payout_admission import payout_submitter
+
+    return _submit_with_retry(
+        conn, principal, command, request_key, payout_submitter(policy, clock)
+    )
+
+
+def get_payout_state(conn, principal, payout_id):
+    """Read current progress through the original merchant's ownership boundary."""
+    from ledgerops.db.payout_admission import payout_state
+
+    return payout_state(conn, principal, payout_id)

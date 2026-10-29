@@ -122,14 +122,38 @@ def freeze_workspace(conn, workspace_id, freeze_id, actor_id, reason):
 
 def _targets(cur, workspace_id, snapshot):
     """SQL aggregation independent of the verifier's Python fold; include idle accounts."""
+    # Aggregate the two histories separately: a join between raw journal lines
+    # and hold events would multiply both totals for accounts with several rows.
+    hold_cte = "held AS (SELECT NULL::uuid AS account_id,0::numeric AS reserved WHERE false)"
+    if snapshot["format_version"] >= 5:
+        hold_cte = """latest_hold AS (
+            SELECT DISTINCT ON (e.payout_id) e.payout_id,e.state
+            FROM ledger.reservation_event e WHERE e.workspace_id=%s
+            ORDER BY e.payout_id,e.event_no DESC
+        ), held AS (
+            SELECT r.account_id,sum(r.gross_minor) AS reserved
+            FROM latest_hold e JOIN ledger.reservation r ON r.payout_id=e.payout_id
+            WHERE r.workspace_id=%s AND e.state='HELD' GROUP BY r.account_id
+        )"""
+    params = (
+        (workspace_id, workspace_id, workspace_id, workspace_id)
+        if snapshot["format_version"] >= 5
+        else (workspace_id, workspace_id)
+    )
     rows = cur.execute(
-        """SELECT a.id,a.normal_side,
+        "WITH "
+        + hold_cte
+        + """, posted AS (
+           SELECT account_id,
            coalesce(sum(e.amount_minor) FILTER (WHERE e.side='D'),0) AS debits,
            coalesce(sum(e.amount_minor) FILTER (WHERE e.side='C'),0) AS credits
-           FROM ledger.account a LEFT JOIN ledger.journal_entry e
-             ON e.workspace_id=a.workspace_id AND e.account_id=a.id
-           WHERE a.workspace_id=%s GROUP BY a.id,a.normal_side ORDER BY a.id""",
-        (workspace_id,),
+           FROM ledger.journal_entry e WHERE e.workspace_id=%s GROUP BY account_id
+        ) SELECT a.id,a.normal_side,coalesce(p.debits,0) AS debits,
+           coalesce(p.credits,0) AS credits,coalesce(h.reserved,0) AS reserved
+           FROM ledger.account a LEFT JOIN posted p ON p.account_id=a.id
+           LEFT JOIN held h ON h.account_id=a.id
+           WHERE a.workspace_id=%s ORDER BY a.id""",
+        params,
     ).fetchall()
     before = {row["account_id"]: row for row in snapshot["balances"]}
     changes = []
@@ -138,11 +162,14 @@ def _targets(cur, workspace_id, snapshot):
         old = before.get(identifier)
         version = 0 if old is None else old["version"]
         debit, credit = int(row["debits"]), int(row["credits"])
+        reserved = int(row["reserved"])
         booked = debit - credit if row["normal_side"] == "D" else credit - debit
         if (
             version >= _MAX_VERSION
             or min(debit, credit, booked) < 0
             or max(debit, credit, booked) > _MAX_TOTAL
+            or reserved < 0
+            or booked < reserved
         ):
             raise MaintenanceError("LIMIT_EXCEEDED")
         old_fields = ("debits", "credits", "reserved", "booked", "version")
@@ -154,7 +181,7 @@ def _targets(cur, workspace_id, snapshot):
                 "after": {
                     "debits": str(debit),
                     "credits": str(credit),
-                    "reserved": "0",
+                    "reserved": str(reserved),
                     "booked": str(booked),
                     "version": version + 1,
                 },
@@ -184,21 +211,26 @@ def _require_source(report, *, projected=False):
         raise MaintenanceError("PROJECTION_DRIFT", report=report.as_dict())
 
 
-def _write_projection(cur, workspace_id, repair_id, change):
+def _write_projection(cur, workspace_id, repair_id, change, *, include_reserved=True):
     before, after = change["before"], change["after"]
     common = (workspace_id, change["account_id"])
+    values = (after["debits"], after["credits"])
+    if include_reserved:
+        values += (after["reserved"],)
+    values += (after["version"],)
     if before is None:
         cur.execute(
-            """INSERT INTO ledger.account_balance
-               (workspace_id,account_id,normal_side,debits,credits,version)
-               VALUES (%s,%s,%s,%s,%s,%s)""",
-            (*common, change["normal_side"], after["debits"], after["credits"], after["version"]),
+            "INSERT INTO ledger.account_balance (workspace_id,account_id,normal_side,"
+            "debits,credits," + ("reserved," if include_reserved else "") + "version) "
+            "VALUES (%s,%s,%s," + ",".join("%s" for _ in values) + ")",
+            (*common, change["normal_side"], *values),
         )
     else:
         cur.execute(
-            """UPDATE ledger.account_balance SET debits=%s,credits=%s,version=%s
-               WHERE workspace_id=%s AND account_id=%s""",
-            (after["debits"], after["credits"], after["version"], *common),
+            "UPDATE ledger.account_balance SET debits=%s,credits=%s,"
+            + ("reserved=%s," if include_reserved else "")
+            + "version=%s WHERE workspace_id=%s AND account_id=%s",
+            (*values, *common),
         )
     fields = ("debits", "credits", "reserved", "booked", "version")
     cur.execute(
@@ -250,11 +282,15 @@ def apply_rebuild(conn, workspace_id, freeze_id, repair_id, actor_id, reason, pr
             if epoch >= _MAX_VERSION:
                 raise MaintenanceError("LIMIT_EXCEEDED")
             changes = _targets(cur, workspace_id, snapshot)
+            hold_format = snapshot["format_version"] >= 5
             retained = cur.execute(
                 """INSERT INTO ledger.projection_repair
                    (workspace_id,repair_id,freeze_id,actor_id,reason,preview_export_id,
-                    source_witness,old_epoch,new_epoch,account_count)
-                   VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *""",
+                    source_witness,old_epoch,new_epoch,account_count"""
+                + (",fold_version" if hold_format else "")
+                + ") VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s"
+                + (",%s" if hold_format else "")
+                + ") RETURNING *",
                 (
                     workspace_id,
                     repair_id,
@@ -266,10 +302,14 @@ def apply_rebuild(conn, workspace_id, freeze_id, repair_id, actor_id, reason, pr
                     epoch,
                     epoch + 1,
                     len(changes),
-                ),
+                )
+                + ((2,) if hold_format else ()),
             ).fetchone()
             for change in changes:
-                _write_projection(cur, workspace_id, repair_id, change)
+                if hold_format:
+                    _write_projection(cur, workspace_id, repair_id, change)
+                else:
+                    _write_projection(cur, workspace_id, repair_id, change, include_reserved=False)
             cur.execute(
                 "UPDATE ledger.workspace SET projection_epoch=%s WHERE id=%s",
                 (epoch + 1, workspace_id),
