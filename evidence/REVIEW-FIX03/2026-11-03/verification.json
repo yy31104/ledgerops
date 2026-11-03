@@ -1,0 +1,40 @@
+{
+  "base_commit": "5a7843ca3ba785649f4c1ec6c4663106bba01083",
+  "source_binding": "Containing local commit: git log -1 --format=%H -- evidence/REVIEW-FIX03/2026-11-03/verification.json. Shared queue changes are recorded separately; final integrated source/full regression is recorded by the parent delivery.",
+  "scope": "WorkerConfig validates lease >= provider total timeout +5000ms for both environment and direct construction. Process fixture uses lease10s/provider timeout5s instead of invalid1s/5s.",
+  "commands": [
+    "env -u UV_NO_SYNC -u UV_PROJECT_ENVIRONMENT PYTHONPYCACHEPREFIX=/private/tmp/ledgerops-review-pycache /private/tmp/ledgerops-review-runtime/bin/python -m pytest -q tests/unit/test_worker_config.py --junitxml=/private/tmp/ledgerops-review-fix3-unit.xml",
+    "env -u UV_NO_SYNC -u UV_PROJECT_ENVIRONMENT PYTHONPYCACHEPREFIX=/private/tmp/ledgerops-review-pycache /private/tmp/ledgerops-review-runtime/bin/python -m pytest -q tests/integration/test_payout_worker_process.py --junitxml=/private/tmp/ledgerops-review-fix3-process.xml"
+  ],
+  "results": {
+    "unit": {
+      "passed": 71,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 0.09
+    },
+    "real_process": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 109.44
+    }
+  },
+  "environment": {
+    "python": "3.12.13",
+    "sqlite": "3.53.4",
+    "psycopg": "3.3.6",
+    "pytest": "9.1.1",
+    "database": "Actual isolated Docker PostgreSQL18.6, provisioned runtime credentials"
+  },
+  "checks": [
+    "Nine table-driven lease/timeout boundary cases test from_env and direct dataclass replacement, including lease1s/timeout30s rejection, exact10s/5s acceptance,34s/30s rejection and35s/30s acceptance.",
+    "Type/range guards remain before relational comparison; direct typed construction cannot bypass validation.",
+    "Actual process suite preserves SIGKILL provider-ahead recovery, durable claim before send, late PUT closure tombstones, transport deadlines, SIGTERM cleanup and credential redaction.",
+    "Lease expiry is observed from genuine persisted schedules; tests do not rewrite due times to hide the longer valid lease."
+  ],
+  "static_checks": "Ruff check and format passed for worker.py and both related test modules.",
+  "limits": [
+    "The five-second configuration margin avoids obviously premature lease expiry relative to the configured transport deadline. It does not guarantee no overlap under arbitrary OS/database pauses; stable provider identity remains required."
+  ]
+}

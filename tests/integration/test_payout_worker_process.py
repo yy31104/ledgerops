@@ -75,7 +75,7 @@ class ProcessWorker:
             "LEDGEROPS_RESTORE_MODE": "false",
             "LEDGEROPS_DISPATCH_ENABLED": "true",
             "LEDGEROPS_WORKER_POLL_MS": "50",
-            "LEDGEROPS_WORKER_LEASE_SECONDS": "1",
+            "LEDGEROPS_WORKER_LEASE_SECONDS": "10",
             **(overrides or {}),
         }
         self.stdout_path = directory / "worker.stdout"

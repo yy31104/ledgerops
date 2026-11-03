@@ -111,6 +111,53 @@ def test_numeric_resource_limits_are_bounded_before_conversion(environment, name
 
 
 @pytest.mark.parametrize(
+    "lease_seconds,timeout_ms,accepted",
+    [
+        (1, 30000, False),
+        (5, 1, False),
+        (6, 1, True),
+        (5, 1000, False),
+        (6, 1000, True),
+        (9, 5000, False),
+        (10, 5000, True),
+        (34, 30000, False),
+        (35, 30000, True),
+    ],
+)
+def test_lease_covers_provider_timeout_and_five_second_margin(
+    environment, lease_seconds, timeout_ms, accepted
+):
+    config = worker.WorkerConfig.from_env(environment)
+    environment["LEDGEROPS_WORKER_LEASE_SECONDS"] = str(lease_seconds)
+    environment["LEDGEROPS_PROVIDER_TIMEOUT_MS"] = str(timeout_ms)
+    if accepted:
+        actual = worker.WorkerConfig.from_env(environment)
+        assert actual.lease_seconds == lease_seconds
+        assert actual.provider_timeout_milliseconds == timeout_ms
+        assert (
+            replace(
+                config,
+                lease_seconds=lease_seconds,
+                provider_timeout_milliseconds=timeout_ms,
+            )
+            == actual
+        )
+    else:
+        with pytest.raises(
+            worker.ConfigurationError, match="LEASE_SHORTER_THAN_PROVIDER_TIMEOUT_MARGIN"
+        ):
+            worker.WorkerConfig.from_env(environment)
+        with pytest.raises(
+            worker.ConfigurationError, match="LEASE_SHORTER_THAN_PROVIDER_TIMEOUT_MARGIN"
+        ):
+            replace(
+                config,
+                lease_seconds=lease_seconds,
+                provider_timeout_milliseconds=timeout_ms,
+            )
+
+
+@pytest.mark.parametrize(
     "raw",
     [
         b"[]",

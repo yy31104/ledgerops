@@ -112,6 +112,8 @@ class WorkerConfig:
             value = getattr(self, name)
             if type(value) is not int or not lower <= value <= upper:
                 raise ConfigurationError("INVALID_WORKER_LIMITS")
+        if self.lease_seconds * 1000 < self.provider_timeout_milliseconds + 5000:
+            raise ConfigurationError("LEASE_SHORTER_THAN_PROVIDER_TIMEOUT_MARGIN")
         try:
             ProviderHTTPClient(
                 self.provider_url,
