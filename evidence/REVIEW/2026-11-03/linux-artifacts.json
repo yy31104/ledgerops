@@ -1,0 +1,36 @@
+{
+  "docker_engine": "29.4.3",
+  "docker_compose": "5.1.3",
+  "images": {
+    "runtime": {
+      "id": "sha256:d99f24e39a02ff5c6521ef8dbd73fb0653447b89d0ed94ceb6a8bc165fbe3e38",
+      "tags": [
+        "ledgerops-local:2fe307205e94"
+      ],
+      "os": "linux",
+      "architecture": "arm64",
+      "source_revision": "2fe307205e948d091dff6d6a6a2e9c2c3a985f57",
+      "source_dirty": false
+    },
+    "administrator": {
+      "id": "sha256:84a91971b4a6778198f9331b3630e9381abb26fcf53f203258a16e6654d52cac",
+      "tags": [
+        "ledgerops-local-admin:2fe307205e94"
+      ],
+      "os": "linux",
+      "architecture": "arm64",
+      "source_revision": "2fe307205e948d091dff6d6a6a2e9c2c3a985f57",
+      "source_dirty": false
+    },
+    "proxy": {
+      "id": "sha256:faacebea7d9b55c87a51e12ce9cba9e0459c4fa5fe7fba469b179d32a8531df0",
+      "tags": [
+        "ledgerops-local-proxy:2fe307205e94"
+      ],
+      "os": "linux",
+      "architecture": "arm64",
+      "source_revision": "2fe307205e948d091dff6d6a6a2e9c2c3a985f57",
+      "source_dirty": false
+    }
+  }
+}

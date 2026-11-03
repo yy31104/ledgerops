@@ -1,0 +1,87 @@
+{
+  "date": "2026-11-03",
+  "reviewed_base_commit": "5a7843ca3ba785649f4c1ec6c4663106bba01083",
+  "tested_source_commit": "2fe307205e948d091dff6d6a6a2e9c2c3a985f57",
+  "fix_commits": {
+    "clearing_commitments": "eb860ee",
+    "lease_margin": "18ffd8a",
+    "workspace_fairness": "7fca78b",
+    "subprocess_reproducibility": "2fe3072"
+  },
+  "scope": "Four independent review fixes plus global fail-stop operations guidance and authorized private GitHub publication. No new migration; SQL001–010, historical formats, reference/lab/tutorial unchanged.",
+  "checks": {
+    "bootstrap": "UV_CACHE_DIR=/private/tmp/ledgerops-review-uv make bootstrap passed, provisions default .venv",
+    "full_command": "env -u UV_NO_SYNC -u UV_PROJECT_ENVIRONMENT UV_CACHE_DIR=/private/tmp/ledgerops-review-uv PYTHONPYCACHEPREFIX=/private/tmp/ledgerops-review-pycache PYTEST_ADDOPTS=\"--junitxml=/private/tmp/ledgerops-review-full.xml --tb=short\" make test",
+    "environment_note": "Outer UV_NO_SYNC and UV_PROJECT_ENVIRONMENT removed. Cache/bytecode locations only redirected; default .venv chosen through documented makebootstrap/maketest. No hidden alternate interpreter override.",
+    "ruff": "make check passed;197files check and format, fresh noneditable package modules and10SQL assets checked",
+    "build": "uv build --offline passed wheel+sdist; Node syntax passed"
+  },
+  "python": "3.12.13",
+  "sqlite": "3.53.4",
+  "psycopg": "3.3.6",
+  "pytest": "9.1.1",
+  "postgres": "18.6",
+  "independent_reviews": [
+    "Admission lockorder/afterwaitHELD visibility/terminal lifecycle reviewed independently without finding.",
+    "Workspace fairness/cursor wiring/requestedrealPG scenarios and failstoprunbook reviewed independently without finding."
+  ],
+  "boundaries": [
+    "Workspace fairness cursor is process-local and resets on restart; does not guarantee persistent per-payout fairness or arbitrary-load latency.",
+    "Clearing commitment uses trusted Python entry path; privileged writes/corrupted projections remain separate audit issues.",
+    "InvariantViolation intentionally stops the whole worker; operational manual documents log and per-workspace metrics signals and incident/hold-preserving response.",
+    "Synthetic provider/local Linux scope remains; no realbank/cloud/HA/IdP/KMS or browser visual claims.",
+    "Existing reference originals, lab, tutorial and historical export formats preserved. No tracker/Vault/Chronicle changes."
+  ],
+  "publication_authorization": "User explicitly requested create GitHub repo and upload project after fixes pass; default private personal repository.",
+  "full_regression": {
+    "passed": 1684,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 445.97,
+    "junit_seconds": 445.938,
+    "categories": {
+      "integration": 687,
+      "provider": 89,
+      "reference": 41,
+      "unit": 867
+    },
+    "artifacts": [
+      "junit.xml",
+      "pytest.log"
+    ]
+  },
+  "linux_acceptance": {
+    "passed": true,
+    "groups": 9,
+    "seconds": 38.829,
+    "source_revision": "2fe307205e948d091dff6d6a6a2e9c2c3a985f57",
+    "source_dirty": false,
+    "images": {
+      "administrator": "sha256:84a91971b4a6778198f9331b3630e9381abb26fcf53f203258a16e6654d52cac",
+      "proxy": "sha256:faacebea7d9b55c87a51e12ce9cba9e0459c4fa5fe7fba469b179d32a8531df0",
+      "runtime": "sha256:d99f24e39a02ff5c6521ef8dbd73fb0653447b89d0ed94ceb6a8bc165fbe3e38"
+    },
+    "result": "linux-acceptance.json",
+    "artifacts": "linux-artifacts.json",
+    "initial_attempt": "linux-initial-result.json",
+    "diagnosis": "linux-diagnostic-summary.json",
+    "startup_note": "First attempt failed before check groups with CalledProcessError; original captured subprocess stderr was unavailable. Three bounded cold-start probes and full instrumented rerun passed without source changes. Root cause unproven, not labeled confirmed CA race. Diagnostic wrapper only retained/rethrew errors; no acceptance/result semantics modified."
+  },
+  "cleanup": {
+    "owned_test_stack_and_probes_removed": true,
+    "existing_learning_container_preserved_running": true,
+    "artifact": "cleanup.json",
+    "images": "Built local images retained; no system prune."
+  },
+  "github": {
+    "repository": "yy31104/ledgerops",
+    "url": "https://github.com/yy31104/ledgerops",
+    "visibility": "private",
+    "publication": "User-authorized project upload after validation; remote HEAD is checked after push. Final record commit is located via git log -1 --format=%H -- evidence/REVIEW/2026-11-03/verification.json."
+  },
+  "protected_checks": {
+    "reference_originals_verified": 17,
+    "unchanged": "docs/reference,lab,docs/learning,SQL001–010; no newmigration, historical financial formats unchanged"
+  }
+}

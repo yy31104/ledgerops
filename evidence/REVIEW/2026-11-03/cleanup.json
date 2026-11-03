@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-11-03T22:29:33.041961+00:00",
+  "cleanup_complete": true,
+  "projects": {
+    "ledgerops-test-review-2fe3072": {
+      "named_containers": [],
+      "label_containers": [],
+      "label_networks": [],
+      "label_volumes": [],
+      "named_networks": [],
+      "expected_volumes_present": [],
+      "expected_volume_count": 18
+    },
+    "ledgerops-test-review-race-1": {
+      "named_containers": [],
+      "label_containers": [],
+      "label_networks": [],
+      "label_volumes": [],
+      "named_networks": [],
+      "expected_volumes_present": [],
+      "expected_volume_count": 18
+    },
+    "ledgerops-test-review-race-2": {
+      "named_containers": [],
+      "label_containers": [],
+      "label_networks": [],
+      "label_volumes": [],
+      "named_networks": [],
+      "expected_volumes_present": [],
+      "expected_volume_count": 18
+    },
+    "ledgerops-test-review-race-3": {
+      "named_containers": [],
+      "label_containers": [],
+      "label_networks": [],
+      "label_volumes": [],
+      "named_networks": [],
+      "expected_volumes_present": [],
+      "expected_volume_count": 18
+    }
+  },
+  "preexisting_lab": {
+    "before": [
+      {
+        "ID": "68cb86270073",
+        "Names": "ledgerops-r1-tests-f1cd1d08c45b",
+        "State": "running",
+        "Status": "Up 6 days"
+      }
+    ],
+    "after": [
+      {
+        "ID": "68cb86270073",
+        "Names": "ledgerops-r1-tests-f1cd1d08c45b",
+        "State": "running",
+        "Status": "Up 6 days"
+      }
+    ],
+    "preserved_running": true
+  },
+  "images": "Tested tagged images retained intentionally; no system prune."
+}

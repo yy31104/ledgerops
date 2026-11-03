@@ -1,8 +1,42 @@
 # LedgerOps handoff
 
-Updated: 2026-10-29. LedgerOps R1–R6 and the local Linux delivery are complete within the documented scope.
+Updated: 2026-11-03. Independent review fixes are verified; GitHub publication is authorized.
 
-## Final local delivery
+## 2026-11-03 review corrections and GitHub publication
+
+User authorized all four supplied review fixes as separate local commits, followed
+by creating a GitHub repository and uploading the project. This supersedes prior
+local-only publication restrictions; it does not authorize cloud runtime activation.
+Private repository: https://github.com/yy31104/ledgerops (origin). Full history and
+tracked project files are included; credentials, local environments and caches stay
+outside Git under existing ignore rules.
+
+- `eb860ee`: UUID-sorted merchant/clearing balance locks and fresh all-HELD gross
+  capacity check prevent concurrent cross-merchant overcommit; refusal is retained422.
+- `18ffd8a`: lease must cover provider timeout plus5000ms; real process fixtures use
+  a valid10s lease and still exercise genuine recovery waits.
+- `7fca78b`: bounded workspace-interleaved scans with a circular process-local cursor
+  advance even after capacity skips; the21A/1B and25-workspace scenarios pass.
+- `2fe3072`: demo/lab subprocesses explicitly use the running interpreter; documented
+  makebootstrap/maketest no longer depends on inherited UV overrides.
+
+Combined tested source: `2fe307205e948d091dff6d6a6a2e9c2c3a985f57`. Default make test
+with outer UV_NO_SYNC/UV_PROJECT_ENVIRONMENT removed:1684passed/0failed/0skipped,
+445.97s. Ruff197files, formatting, fresh installed resources, build and JSsyntax pass.
+Clean installed-wheel Linux images:all9groups pass38.829s; original pre-check startup
+CalledProcessError was not reproduced in3 bounded fresh-start probes. Preserve both
+the initial failure and final results; its exact cause remains unproven. Evidence:
+`evidence/REVIEW/2026-11-03/verification.json`. Final record commit changes only docs
+and evidence, not tested executable/package inputs. Runtime/reference/lab/tutorial
+and old formats remain as recorded; SQL001–010 unchanged, no011 needed.
+
+Worker InvariantViolation remains an intentional global fail-stop. The Linux manual
+now describes worker_invariant_error and scoped metrics alerts plus hold-preserving
+response. Fairness cursor resets at process restart; it is not a persistent per-payout
+retry guarantee. All owned test/probe resources cleaned, existing learning container
+preserved. Real-provider/cloud/HA/browser boundaries below still apply.
+
+## Historical 2026-10-29 local delivery
 
 Tested source: `6cff874b835d99c595b66ebf96dcd25c5d568abe`. Capacity/maintenance is
 `cafc039`, selected evidence exchange is `e123640`, and the Linux stack is `6cff874`.
