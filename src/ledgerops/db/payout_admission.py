@@ -74,16 +74,29 @@ def accepted_body(command, deadline):
     }
 
 
-def _lock_merchant(cur, principal, command):
-    row = cur.execute(
-        "SELECT a.owner_id,a.class,a.normal_side,a.currency,a.enabled,b.debits,b.credits,"
-        "b.booked,b.reserved,b.version FROM ledger.account a JOIN ledger.account_balance b "
-        "ON b.workspace_id=a.workspace_id AND b.account_id=a.id "
-        "WHERE a.workspace_id=%s AND a.id=%s FOR UPDATE OF b",
-        (command.workspace_id.value, command.merchant_account_id.value),
-    ).fetchone()
-    if row is None:
-        raise InvariantViolation("Authorized merchant projection is missing")
+def _lock_admission_balances(cur, principal, command):
+    clearing = cur.execute(
+        "SELECT id FROM ledger.account WHERE workspace_id=%s AND class='SYNTHETIC_CLEARING'",
+        (command.workspace_id.value,),
+    ).fetchall()
+    if len(clearing) != 1:
+        raise InvariantViolation("Exactly one clearing projection is required")
+    clearing_id = clearing[0]["id"]
+    rows = {}
+    # Match settlement's global balance-lock order. The clearing row serializes
+    # admissions from different merchants; never acquire hold row locks here.
+    for account_id in sorted((clearing_id, command.merchant_account_id.value)):
+        row = cur.execute(
+            "SELECT a.owner_id,a.class,a.normal_side,a.currency,a.enabled,b.debits,b.credits,"
+            "b.booked,b.reserved,b.version FROM ledger.account a JOIN ledger.account_balance b "
+            "ON b.workspace_id=a.workspace_id AND b.account_id=a.id "
+            "WHERE a.workspace_id=%s AND a.id=%s FOR UPDATE OF b",
+            (command.workspace_id.value, account_id),
+        ).fetchone()
+        if row is None:
+            raise InvariantViolation("Required payout projection is missing")
+        rows[account_id] = row
+    row = rows[command.merchant_account_id.value]
     if not row["enabled"] or (
         row["owner_id"],
         row["class"],
@@ -91,7 +104,34 @@ def _lock_merchant(cur, principal, command):
         row["currency"],
     ) != (principal.actor_id.value, "MERCHANT_LIABILITY", "C", "PLN"):
         raise NotAuthorized()
-    return row
+    clearing_row = rows[clearing_id]
+    if (clearing_row["class"], clearing_row["normal_side"], clearing_row["currency"]) != (
+        "SYNTHETIC_CLEARING",
+        "D",
+        "PLN",
+    ):
+        raise InvariantViolation("Invalid clearing account")
+    return row, clearing_row
+
+
+def _admission_capacity(cur, workspace, merchant, clearing, gross):
+    # This statement runs AFTER the clearing lock is acquired, so READ COMMITTED
+    # sees a preceding admission/settlement that we waited for. All HELD payouts,
+    # including UNKNOWN or blocked ones, continue to consume the commitment.
+    held = int(
+        cur.execute(
+            "SELECT coalesce(sum(gross_minor),0) AS gross FROM ledger.reservation "
+            "WHERE workspace_id=%s AND state='HELD'",
+            (workspace,),
+        ).fetchone()["gross"]
+    )
+    return (
+        int(clearing["booked"]) - int(clearing["reserved"]) - held >= gross
+        and int(clearing["credits"]) + held + gross <= MAX_TOTAL_MINOR
+        and int(merchant["debits"]) + int(merchant["reserved"]) + gross <= MAX_TOTAL_MINOR
+        and merchant["version"] <= 2**63 - 3
+        and clearing["version"] < 2**63 - 1
+    )
 
 
 def settlement_capacity(cur, workspace, merchant, gross):
@@ -173,10 +213,12 @@ def payout_submitter(policy, clock, *, authorization_guard=None):
     def post(cur, principal, command, scope):
         if not policy.permits(command, principal.actor_id):
             raise NotAuthorized()
-        row = _lock_merchant(cur, principal, command)
+        row, clearing = _lock_admission_balances(cur, principal, command)
         if int(row["booked"]) - int(row["reserved"]) < command.gross_minor:
             result = _rejection(command, "INSUFFICIENT_AVAILABLE", str(uuid4()))
-        elif not settlement_capacity(cur, command.workspace_id.value, row, command.gross_minor):
+        elif not _admission_capacity(
+            cur, command.workspace_id.value, row, clearing, command.gross_minor
+        ):
             result = _rejection(command, "LIMIT_EXCEEDED", str(uuid4()))
         else:
             if not timing:
