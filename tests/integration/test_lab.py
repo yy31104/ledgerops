@@ -5,6 +5,7 @@ import os
 import re
 import signal
 import subprocess
+import sys
 import threading
 import time
 from urllib.error import HTTPError
@@ -172,6 +173,8 @@ def test_make_lab_http_smoke_and_shutdown_cleanup(tmp_path, exit_method):
         **os.environ,
         "UV_CACHE_DIR": str(ROOT / ".cache/uv"),
         "UV_OFFLINE": "1",
+        "UV_NO_SYNC": "1",
+        "UV_PROJECT_ENVIRONMENT": sys.prefix,
         "PYTEST_ADDOPTS": "",
         "TMPDIR": str(temporary),
     }
@@ -229,6 +232,8 @@ def test_make_lab_docker_absence_fails_explicitly(tmp_path):
         **os.environ,
         "UV_OFFLINE": "1",
         "UV_CACHE_DIR": str(ROOT / ".cache/uv"),
+        "UV_NO_SYNC": "1",
+        "UV_PROJECT_ENVIRONMENT": sys.prefix,
         "PYTEST_ADDOPTS": "",
         "DOCKER_HOST": f"unix://{tmp_path}/absent.sock",
     }

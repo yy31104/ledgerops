@@ -3,6 +3,7 @@
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -37,6 +38,10 @@ def _demo_environment(tmp_path):
         **os.environ,
         "UV_CACHE_DIR": str(ROOT / ".cache/uv"),
         "UV_OFFLINE": "1",
+        # Reuse this already provisioned test interpreter, independently of the
+        # caller's uv settings or whether the repository cache is populated.
+        "UV_NO_SYNC": "1",
+        "UV_PROJECT_ENVIRONMENT": sys.prefix,
         "PYTEST_ADDOPTS": "",
         "TMPDIR": str(temporary_root),
     }

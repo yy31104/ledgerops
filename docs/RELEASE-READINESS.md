@@ -32,6 +32,8 @@ make build
 ```
 
 首次运行可能下载锁定依赖和PostgreSQL镜像。Docker不可用时集成测试明确失败。
+`make test`中的demo/lab子进程明确复用正在运行pytest的解释器环境，不依赖外层设置
+`UV_NO_SYNC`、`UV_PROJECT_ENVIRONMENT`或预先填充仓库离线缓存；先按上面执行`make bootstrap`即可。
 测试只创建自己的临时数据库/容器；`make lab`仍是独立学习工具，不能当生产接口。
 从零理解可读[原有中文教程](learning/LEDGEROPS-TUTORIAL.zh-CN.md)。
 
