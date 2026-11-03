@@ -360,7 +360,9 @@ def test_empty_once_scan_is_ready_then_idle_then_clean_stop(environment, monkeyp
 
     monkeypatch.setattr(worker, "due_payouts", due)
     assert worker.run(config, Event(), once=True) == 0
-    assert received == [{"limit": 20, "provider_namespace": config.trust.namespace}]
+    assert received == [
+        {"limit": 20, "provider_namespace": config.trust.namespace, "after_workspace": None}
+    ]
     assert [row["event"] for row in events(capsys)] == [
         "worker_ready",
         "worker_idle",

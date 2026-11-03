@@ -198,16 +198,24 @@ def claim_payout(conn, workspace, payout_id, *, clock=utc_now, lease_seconds=30)
     return _retry(conn, once)
 
 
-def due_payouts(conn, *, clock=utc_now, limit=100, provider_namespace=None):
-    """Bounded, unlocked discovery; claim rechecks every fact under the barrier."""
+def due_payouts(conn, *, clock=utc_now, limit=100, provider_namespace=None, after_workspace=None):
+    """Interleave workspaces in bounded discovery; claims still recheck under locks.
+
+    The caller advances its workspace cursor even when capacity blocks a claim.
+    One large blocked workspace cannot consume every slot, and a circular cursor
+    prevents a fixed UUID prefix from monopolizing successive small batches.
+    """
     _idle(conn)
     if type(limit) is not int or not 1 <= limit <= 1000:
         raise ValueError("candidate batch must contain 1 to1000 items")
     namespace = (
         None if provider_namespace is None else _identity(provider_namespace, ProviderNamespaceId)
     )
+    after = None if after_workspace is None else _identity(after_workspace, WorkspaceId)
     return conn.execute(
-        "SELECT i.workspace_id,i.payout_id FROM ledger.dispatch_intent i JOIN ledger.workspace w "
+        "WITH due AS (SELECT i.workspace_id,i.payout_id,i.next_due_at,"
+        "row_number() OVER (PARTITION BY i.workspace_id ORDER BY i.next_due_at,i.payout_id) "
+        "AS workspace_rank FROM ledger.dispatch_intent i JOIN ledger.workspace w "
         "ON w.id=i.workspace_id JOIN ledger.payout p "
         "ON p.workspace_id=i.workspace_id AND p.operation_id=i.payout_id "
         "WHERE w.mode='NORMAL' AND i.next_due_at<=%s "
@@ -217,9 +225,11 @@ def due_payouts(conn, *, clock=utc_now, limit=100, provider_namespace=None):
         "WHERE incident.workspace_id=i.workspace_id AND incident.payout_id=i.payout_id) "
         "AND NOT EXISTS (SELECT 1 FROM ledger.unresolved_payout_incident incident "
         "JOIN ledger.provider_observation o ON o.observation_id=incident.related_observation_id "
-        "WHERE o.workspace_id=i.workspace_id AND o.payout_id=i.payout_id) ORDER BY "
-        "i.next_due_at,i.workspace_id,i.payout_id LIMIT %s",
-        (utc_instant(clock()), namespace, namespace, limit),
+        "WHERE o.workspace_id=i.workspace_id AND o.payout_id=i.payout_id)) "
+        "SELECT workspace_id,payout_id FROM due ORDER BY workspace_rank,"
+        "CASE WHEN %s::uuid IS NULL OR workspace_id>%s::uuid THEN 0 ELSE 1 END,"
+        "workspace_id,next_due_at,payout_id LIMIT %s",
+        (utc_instant(clock()), namespace, namespace, after, after, limit),
     ).fetchall()
 
 

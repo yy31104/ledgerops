@@ -220,6 +220,38 @@ _closed_runtime(admin)
 这段管理员操作可以绕过普通应用协议，因此它的证据与人类决定必须分别记录。它不是新的金融HTTP接口，
 也不声称限制拥有数据库所有者权限的人。遇到提交响应丢失，保持物理开关关闭，先查询真实mode/freeze/audit再继续。
 
+## worker 的停机取舍与值班处理
+
+worker 遇到任一提现的 `InvariantViolation` 会记录 `worker_invariant_error` 并以退出码2停止整个
+进程，因而同一进程负责的所有workspace都暂停派发。这是有意的完整性取舍。容器自动重启后，
+如果原记录没有处理，可能再次遇到同一错误；不要把不停重启视为恢复，也不要删除原始指令、
+事故、hold或修改已提交分录来跳过它。普通容量不足仍记录 `payout_blocked`，不会按不变量故障退出。
+
+接入实际值班监控时，至少配置三类信号：
+
+- 从worker结构化日志匹配 `event=worker_invariant_error`，立即告警并带上不透明
+  `workspace_id/payout_id`；`worker_database_error`、非正常 `worker_stopped` 退出和持续容器重启
+  是补充信号。不要把bearer、DSN或支付商原文转发到告警。
+- 按每个workspace使用具备 `evidence:read` 的凭据轮询 `GET /v1/metrics`，跟踪
+  `unresolved_count`、`oldest_unresolved_seconds` 和 `blocked_count`。持续有未决且年龄增长、
+  `payout_attempt` 消失，说明派发可能停止；健康的HTTP存活探针不能证明worker仍在工作。
+- `blocked_count` 只统计持久 `dispatch_intent.state='BLOCKED'`；它不保证包含令worker退出的
+  不变量错误。即使该值为0，也不能忽略上述错误日志。阈值和通知接收方需由实际部署设置，
+  此本地包没有替用户安装监控或值班服务。
+
+收到告警后：先关闭该部署的dispatch开关并停止worker，保留日志、镜像身份和数据库备份；
+用只读调查入口及同快照导出定位记录，并独立核对结构、A/B和hold。外部结果未知时保留hold，
+按原provider key查询证据，不新发另一个提现。若属于支持的终局 `LOCAL_BLOCKER`，按现有
+当前证据与不同actor的maker/checker流程处理；其他数据不一致需修复原因、复现测试并审查，
+不能伪装成可自动跳过的业务拒绝。确认独立核对通过、未决外部事实得到解释后，再明确重新开启
+worker，观察该记录与其余workspace的实际推进。
+
+候选发现按workspace交错，每个workspace先取一笔，再取第二笔；运行中的worker用循环UUID游标
+轮转下一批的起点，即使上一批全部因容量不足跳过，也会前进。这样A的21笔受阻提现不会挤掉
+同批B的一笔；超过batch_size个workspace也会在后续扫描获得机会。批大小和网络调用仍有界，
+容量跳过不会写transport_attempt、改变knowledge或发送请求。游标仅属于本进程，重启后从头开始；
+该策略保证跨workspace轮转，不承诺同一workspace中每笔受阻工作的持久退避或任意负载下的延迟SLO。
+
 ## 升级和回滚
 
 先保留备份和当前镜像ID，再关闭dispatch/金融写入、排空服务，使用明确迁移管理员作业应用新迁移；

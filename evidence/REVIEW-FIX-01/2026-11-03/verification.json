@@ -1,0 +1,32 @@
+{
+  "base_commit": "5a7843ca3ba785649f4c1ec6c4663106bba01083",
+  "source_binding": "Containing fix1 commit: git log -1 --format=%H -- evidence/REVIEW-FIX-01/2026-11-03/verification.json. Final integrated validation recorded separately.",
+  "choice": "Workspace round-robin, the second alternative authorized in review; no durable backoff table/counter or migration.",
+  "reason": "Interleave first due item of each workspace before second items, with a circular workspace cursor advanced even on capacity failure. Prevents a full blocked workspace and a static low-UUID prefix from monopolizing bounded scans; keeps old schemas and exports unchanged.",
+  "command": "PYTHONPYCACHEPREFIX=/private/tmp/ledgerops-review-pycache /private/tmp/ledgerops-review-runtime/bin/python -m pytest tests/integration/test_payout_queue_fairness.py tests/integration/test_payout_dispatch.py -o cache_dir=/private/tmp/ledgerops-review-pytest-cache --tb=short --junitxml=/private/tmp/ledgerops-fix1-pg.xml",
+  "result": {
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 8.2,
+    "python": "3.12.13",
+    "psycopg": "3.3.6",
+    "pytest": "9.1.1",
+    "database": "Real pinned PostgreSQL18.6 in uniquely-owned disposable Docker container"
+  },
+  "verified": [
+    "One actual worker scan batch20: A has21 historical valid admissions whose clearing is subsequently exhausted, B has1 normal62 payout. B reaches genuine separate persistent provider and settles to18/0;19 A skips occur, all21 A payout/intent/attempt facts remain identical, no provider send forA.",
+    "All21 blocked A payouts later pass deadline, CLOSE produces authenticated CLOSED_ABSENT, releases each originalhold and rejects delayedPUT through permanent tombstone; no A provider effect.",
+    "Two actual worker scans over25 permanently capacity-blockedworkspaces advance cursor afterworkspace20. Everyworkspace is visited, all40 dispatches report capacityunavailable,0transportattempts andknowledgeNOT_SENT.",
+    "Bad cursor types rejected. Existing14 claim/transport/COMMIT/retry/deadline/instruction invariant cases stillpass.",
+    "Independent healthy workspace snapshot remains healthy afterreal payoutsettlement; A capacityloss is privileged historicaldefect injection, not a healthy-sourceclaim.",
+    "Operational manual now documents fail-stop invariant behavior, worker_invariant_error, /v1/metrics interpretation and explicit incident/hold-preserving recovery steps."
+  ],
+  "limits": [
+    "Cursor is process-local and resets on restart; repeated short restarts can repeatedly visit initial workspaces.",
+    "Fairness is across eligible workspaces, not durable per-payout backoff or arbitrary-load latency guarantees.",
+    "InvariantViolation remains intentional global worker fail-stop; monitoring configuration belongs to actualdeployment.",
+    "Queue fix uses no migration and does not add transport facts or mutateknowledge forcapacity-onlyskip."
+  ],
+  "additional_integrated_check": "90tests including existing/new WorkerConfig unit cases passed9.20s in the shared working tree; not a separate isolated fix1 commit count."
+}

@@ -243,6 +243,7 @@ def run(config, stop, *, once=False, max_calls=None):
     calls, failures = 0, 0
     conn = None
     ever_ready, idle_reported = False, False
+    after_workspace = None
     try:
         while not stop.is_set():
             had_candidates, calls_before_scan = False, calls
@@ -259,7 +260,10 @@ def run(config, stop, *, once=False, max_calls=None):
                         namespace=str(config.trust.namespace),
                     )
                 candidates = due_payouts(
-                    conn, limit=config.batch_size, provider_namespace=config.trust.namespace
+                    conn,
+                    limit=config.batch_size,
+                    provider_namespace=config.trust.namespace,
+                    after_workspace=after_workspace,
                 )
                 had_candidates = bool(candidates)
                 if not candidates and not idle_reported:
@@ -270,6 +274,9 @@ def run(config, stop, *, once=False, max_calls=None):
                 for workspace, payout in candidates:
                     if stop.is_set():
                         break
+                    # Rotate even after capacity/contention skips. A permanently
+                    # blocked low UUID must not keep later workspaces off the page.
+                    after_workspace = workspace
                     try:
                         result = dispatch_once(
                             conn,
