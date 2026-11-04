@@ -50,6 +50,7 @@ def test_upgrade_preserves_v6_bytes_and_money_while_new_exports_declare_v9(
                 "008_reconciliation_publication.sql",
                 "009_authentication.sql",
                 "010_operator_actions.sql",
+                "011_active_reservation_index.sql",
             ]
         with db.connect("reader") as conn:
             after = capture_snapshot(conn, golden["workspace"]["id"])
