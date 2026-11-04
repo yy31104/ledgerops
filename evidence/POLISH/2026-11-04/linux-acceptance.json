@@ -1,0 +1,190 @@
+{
+  "administrator_runtime": {
+    "python": "3.12.15",
+    "restore": {
+      "external_dispatch_enabled": false,
+      "history_status": "RECOVERED",
+      "independent_healthy": true,
+      "modes": [
+        "RESTORE"
+      ],
+      "observed_restore_seconds": 0.21464737504720688,
+      "old_bearer_invalid": true,
+      "runtime_connect_enabled": false,
+      "verification_complete": true
+    },
+    "sqlite": "3.40.1",
+    "ssl": "OpenSSL 3.5.7 9 Jun 2026",
+    "uid": 10001
+  },
+  "capacity": {
+    "cgroup_peak_bytes": 101543936,
+    "export_path": "/var/lib/ledgerops-inputs/capacity/706685f0-03fa-42df-8a25-52e209ff5b66",
+    "independent_healthy": true,
+    "legacy_limit_rejected": true,
+    "merchant_booked": "18",
+    "merchant_reserved": "0",
+    "passed": true,
+    "quarantine_rows": 129,
+    "rss_peak_bytes": 59744256,
+    "scratch_cleaned": true,
+    "scratch_full_code": "SCRATCH_RESOURCE_LIMIT",
+    "source_bytes": 16992298,
+    "source_format": 10,
+    "sqlite_scratch_bytes": 34701312,
+    "verification_complete": true
+  },
+  "checks": [
+    {
+      "check": "linux_nonroot_wheel_secrets_caps_readonly_resources",
+      "passed": true
+    },
+    {
+      "check": "explicit_ca_verified_tls_restore_defaults_separate_operator",
+      "passed": true
+    },
+    {
+      "check": "tls_purchase_replay_conflict_hold_worker_loopback_one_effect_restart_independent_fold",
+      "passed": true
+    },
+    {
+      "check": "stream10_129_diagnostics_over16MiB_disk_scratch_and_actual_ENOSPC",
+      "passed": true
+    },
+    {
+      "check": "large_source_freeze_preview_repair_resume_v4_and_stable_replays",
+      "passed": true
+    },
+    {
+      "check": "database_outage_live_ready_separation_and_recovery",
+      "passed": true
+    },
+    {
+      "check": "safe_default_reentry_closes_prior_live_worker_operator_and_writes",
+      "passed": true
+    },
+    {
+      "check": "admin_python_abi_native_pgtools_backup_restore_history_old_identity",
+      "passed": true
+    },
+    {
+      "check": "secret_redaction_and_bounded_shutdown",
+      "elapsed_seconds": 1.398,
+      "passed": true
+    }
+  ],
+  "diagnostics": {
+    "failures": [
+      {
+        "category": "CalledProcessError",
+        "command": {
+          "action": "compose.exec",
+          "program": "docker",
+          "service": "proxy"
+        },
+        "phase": "startup.wait_proxy_ca",
+        "private_file": "failure-01.json",
+        "returncode": 1,
+        "stderr": {
+          "available": true,
+          "bytes": 0,
+          "retained_bytes": 0,
+          "truncated": false
+        },
+        "stdout": {
+          "available": true,
+          "bytes": 0,
+          "retained_bytes": 0,
+          "truncated": false
+        }
+      },
+      {
+        "category": "CalledProcessError",
+        "command": {
+          "action": "compose.exec",
+          "program": "docker",
+          "service": "proxy"
+        },
+        "phase": "startup.wait_proxy_ca",
+        "private_file": "failure-02.json",
+        "returncode": 1,
+        "stderr": {
+          "available": true,
+          "bytes": 0,
+          "retained_bytes": 0,
+          "truncated": false
+        },
+        "stdout": {
+          "available": true,
+          "bytes": 0,
+          "retained_bytes": 0,
+          "truncated": false
+        }
+      }
+    ],
+    "omitted_failures": 0,
+    "phase": "cleanup.owned_stack",
+    "private_directory_location": "SYSTEM_TMP",
+    "private_directory_name": "ledgerops-linux-diagnostics-chiimpuc",
+    "raw_output_is_publishable": false
+  },
+  "elapsed_seconds": 40.0,
+  "image_ids": {
+    "administrator": "sha256:80884a183892d7c5195397229c5721975640f87e68ef26683bab8f7aa14e317a",
+    "proxy": "sha256:f3ed938397db4c3ecf284d06f6186da93aa1ca833c0fa92513a87c415aa7de1d",
+    "runtime": "sha256:3d3587e99e21f0b3c12eabf91d5aee4db2fba083913274d7e37819794f233136"
+  },
+  "maintenance": {
+    "after_booked": "18",
+    "before_booked": "19",
+    "capture_context": "EXCLUSIVE_WORKSPACE_BARRIER_READ_COMMITTED_V1",
+    "cgroup_peak_bytes": 121397248,
+    "freeze_id": "1f859d6d-02b6-44f4-857f-d2fdaab84fd9",
+    "hold_history_unchanged": true,
+    "independent_healthy": true,
+    "journal_count_unchanged": true,
+    "new_epoch": 2,
+    "old_epoch": 1,
+    "passed": true,
+    "preview_report_version": 4,
+    "quarantine_rows": 129,
+    "repair_id": "46686091-09c8-49ad-964e-cae4b38fbd69",
+    "reserved": "0",
+    "resume_report_version": 4,
+    "rss_peak_bytes": 61231104,
+    "scratch_cleaned": true,
+    "source_bytes": 16993035,
+    "source_format": 10,
+    "stable_identity_replays": true,
+    "verification_complete": true
+  },
+  "memory_peak_bytes": {
+    "api": 63627264,
+    "operator": 34144256,
+    "postgres": 36950016,
+    "provider": 28475392,
+    "proxy": 18821120,
+    "worker": 28368896
+  },
+  "passed": true,
+  "project": "ledgerops-test-polish-99a63a7",
+  "runtime": {
+    "caps_zero": true,
+    "gid": 10001,
+    "gunicorn": "26.2.0",
+    "host_source_absent": true,
+    "installed": "/usr/local/lib/python3.12/site-packages/ledgerops/__init__.py",
+    "no_new_privs": true,
+    "profile_mode": 384,
+    "profile_uid": 10001,
+    "psycopg": "3.3.6",
+    "python": "3.12.15",
+    "readonly": true,
+    "ssl": "OpenSSL 3.0.22 25 Aug 2026",
+    "system": "Linux",
+    "uid": 10001
+  },
+  "schema_version": 1,
+  "source_dirty": false,
+  "source_revision": "99a63a7990cb71c8aab5e0a40057772bf9c620e0"
+}

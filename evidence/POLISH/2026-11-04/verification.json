@@ -1,0 +1,119 @@
+{
+  "date": "2026-11-04",
+  "base_commit": "9af388f5bd77f6a44740819cc31412cabc3a830e",
+  "suite_source_commit": "e820b99a84ed00d55688f4f9a69b463e8f4c4f39",
+  "linux_image_source_commit": "99a63a7990cb71c8aab5e0a40057772bf9c620e0",
+  "scope": "Review followup polish: active HELD partial covering index/closed restore index-only upgrade, permanent private Linux diagnostics/observed readiness, portable current evidence and idle learning container shutdown.",
+  "commits": {
+    "portability": "4f954a8",
+    "diagnostics": "f53b772",
+    "index": "99a63a7",
+    "upgrade_expectation": "e820b99"
+  },
+  "runtime_identity": "git diff99a63a7..final src/ops/provider_sim/Makefile/README/pyproject/uv.lock is empty; only an existing migration-list test expectation and final docs/evidence follow the clean image source.",
+  "full_command": "env -u UV_NO_SYNC -u UV_PROJECT_ENVIRONMENT UV_CACHE_DIR=/private/tmp/ledgerops-review-uv PYTHONPYCACHEPREFIX=/private/tmp/ledgerops-polish-pycache PYTEST_ADDOPTS=\"--junitxml=/private/tmp/ledgerops-polish-final.xml --tb=short\" make test",
+  "static_and_packages": {
+    "make_check": "Ruff check/format201files; fresh noneditable installed resources001–011 passed. Restricted sandbox initialbuildcouldnotfetchpinnedhatchling; approvednetworkcheckthenpassed.",
+    "final_build": "wheel/sdist offline passed; finalsdistchecked to include corrected R4upgrade test and evidence tool; wheel includes011/excludeslab/ops/tests.",
+    "javascript": "node syntax pass",
+    "migration_cli": "Installed .venv Python-I migrations--help exposes --index-only without DSN use."
+  },
+  "focused_checks": {
+    "index": {
+      "actual_pg_passed": 64,
+      "seconds": 29.06,
+      "result": "ACTIVE-HOLD-INDEX/2026-11-04"
+    },
+    "diagnostics": {
+      "passed": 16,
+      "seconds": 0.28,
+      "actual_docker_failure_captured": true
+    },
+    "redaction": {
+      "passed": 16,
+      "seconds": 0.07,
+      "historical_junit_only_hostname_changed": 26
+    },
+    "r4_upgrade_expected_migrations": {
+      "actual_pg_passed": 1,
+      "seconds": 1.49
+    }
+  },
+  "planner_sample": {
+    "terminal": 50000,
+    "held": 8,
+    "gross_each": 3,
+    "expected_sum": 24,
+    "before_shared_blocks": 667,
+    "after_shared_blocks": 2,
+    "enable_seqscan": "on",
+    "node": "Index Only Scan",
+    "heap_fetches": 8,
+    "claim": "Finite physical access-path sample with trigger-bypassed fixture; not financiallyvalidatedhistory or throughputSLO."
+  },
+  "learning_resource": {
+    "container": "ledgerops-r1-tests-f1cd1d08c45b",
+    "observed_user_connections_before_stop": 0,
+    "stop_exit_code": 0,
+    "after": "Absent due to original auto-remove fixture policy; no persistent user database was targeted.",
+    "other_resources": "No unrelated project was stopped."
+  },
+  "publication": {
+    "repository": "yy31104/ledgerops",
+    "visibility": "private",
+    "history_rewritten": false,
+    "current_tip_paths": "Personal absolute home paths removed from current tracked docs/evidence; existing history intentionally retains raw originals. Not a claim of public-history readiness."
+  },
+  "review_notes": [
+    "Independent read-only review found no contract/closed-restore issue in011filter,backupcompatibility or explicitindex-onlyhelper.",
+    "The new CA readiness condition actually observed2not-ready Dockerprobes before all9Linuxgroups passed. This does not prove old unreproducedfailure rootcause.",
+    "OriginalPro14package+manifest/followup/tutorialbody/PDF/render/lab andSQL001–010 unchanged. Derivedreference reviewpresentation and existingmetadatadigests explicitlyupdated; raw9aforiginals retained inhistory."
+  ],
+  "bounds": [
+    "OrdinaryCREATEINDEX needs maintenance writepause; no online/nonblocking migration claim.",
+    "Activeholds themselves stillneedscanning andindexmaintenance/visibilitymapmatter; no unboundedcapacityclaim.",
+    "Rawfailurestdout/stderr remain outsideGit with0700/0600 permissions and16records/8192bytes perstream retention; metadata only is copied into evidence.",
+    "Existing realprovider/cloud/HA/IdP/KMS/browseractivation boundaries remain."
+  ],
+  "full_result": {
+    "passed": 1721,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 434.37,
+    "junit_seconds": 434.299,
+    "categories": {
+      "integration": 699,
+      "provider": 89,
+      "reference": 41,
+      "unit": 892
+    },
+    "raw_source": "Final captured files retained locally outside checkout; committed copies redact host/path metadata and log trailing whitespace only."
+  },
+  "earlier_full_result": {
+    "passed": 1720,
+    "failed": 1,
+    "seconds": 436.62,
+    "cause": "Existing upgrade test expectedapplied008–010 only; runtimecorrectlyadded011. Testexpectedlistupdatedonly, fullfinal1721green. Both initial and final records retained."
+  },
+  "linux_result": {
+    "passed": true,
+    "groups": 9,
+    "seconds": 40.0,
+    "source_revision": "99a63a7990cb71c8aab5e0a40057772bf9c620e0",
+    "source_dirty": false,
+    "artifact": "linux-acceptance.json",
+    "images": {
+      "administrator": "sha256:80884a183892d7c5195397229c5721975640f87e68ef26683bab8f7aa14e317a",
+      "proxy": "sha256:f3ed938397db4c3ecf284d06f6186da93aa1ca833c0fa92513a87c415aa7de1d",
+      "runtime": "sha256:3d3587e99e21f0b3c12eabf91d5aee4db2fba083913274d7e37819794f233136"
+    },
+    "diagnostics": "Permanent implementation used;2expectednot-readyCAprobes captured, thenall9groupspassed. Private raw diagnostics deliberately not copied."
+  },
+  "cleanup": {
+    "owned_containers_networks_18_volumes_removed": true,
+    "artifact": "cleanup.json",
+    "learning_container": "Intentionally stopped before tests; original autoremove policy removed it, no runtimelearning server remained."
+  },
+  "presentation_note": "Path/hostname metadata redacted; trailing line whitespace normalized in logs and the initial failing XML traceback only. Counts/results/times and financial digests retained; raw captures remain outside checkout."
+}

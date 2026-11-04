@@ -1,8 +1,11 @@
 # Complete bounded financial stream format10
 
 Format10 exports every allowlisted financial row from one PostgreSQL REPEATABLE
-READ READ ONLY snapshot. It retains row-format9 semantics and the exact schemas
-001–010. Auth credential/ACL tables are excluded as before. Formats1–9 and their
+READ READ ONLY snapshot. It retains row-format9 semantics and financial row/constraint
+capabilities001–010. The exact checksummed physical-index migration011 is recognized
+separately and does not add financial fields; backups retain its actual inventory.
+Unknown migrations are still rejected. See [index upgrade](ACTIVE-HOLD-INDEX.md).
+Auth credential/ACL tables are excluded as before. Formats1–9 and their
 stored bytes remain supported through the legacy interface; format10 is an explicit
 choice, not an increased legacy constant.
 

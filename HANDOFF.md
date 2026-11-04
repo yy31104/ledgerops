@@ -1,6 +1,42 @@
 # LedgerOps handoff
 
-Updated: 2026-11-03. Independent review fixes are verified; GitHub publication is authorized.
+Updated: 2026-11-04. Review follow-up optimizations are verified; sync to the existing private GitHub repository remains authorized.
+
+## 2026-11-04 verified follow-up
+
+Completed the requested remaining polish: partial covering index011 for active
+HELD commitments (`99a63a7`), permanent bounded/private Linux failure capture and
+observed startup readiness (`f53b772`), current evidence/path portability
+(`4f954a8`), plus the existing R4 upgrade test's additive011 expectation (`e820b99`).
+No financial posting/hold/replay policy change. Source package includes the corrected
+upgrade test. See docs/ACTIVE-HOLD-INDEX.md and docs/tasks/POLISH.md.
+
+Final default make test:1721passed/0failed/0errors/0skips,434.37s, with outer UV
+overrides removed; Ruff201files, formatting, fresh001–011 installed resources,
+wheel/sdist and JS syntax pass. Suite source is `e820b99`; clean Linux image source
+is `99a63a7`, with identical executable/ops/package inputs. All9Linuxgroups pass
+40.000s, including two real CA-not-ready observations before readiness succeeds.
+The old unexplained failure is not relabeled as proven. Final evidence is
+evidence/POLISH/2026-11-04/verification.json. Initial1720pass/1failure from the old
+migration-list expectation and its subsequent full passing run are both retained.
+
+Index-only migration can explicitly upgrade an exact010 restored database while
+keeping runtime CONNECT, restore generation and mode unchanged. Ordinary index
+construction needs planned write drain; no online/nonblocking upgrade promise.
+Financial schema_versions represents row/constraint capabilities, while backup
+retains actual001–011 inventory. Unknown migration/checksum changes still reject.
+
+Current machine-path/hostname presentation was redacted. OriginalPro14 documents,
+manifest/followup, tutorial body/PDF/renderer, lab and SQL001–010 remain unchanged.
+Only derived reference/learning wrapper documentation and evidence display metadata
+were redacted, with original9af bytes/digests still traceable. Existing Git history
+was not rewritten and retains raw paths: keep the repository private; this is not
+public-history sanitization. Raw failure output stays outside Git in private dirs.
+
+The named idle learning container had no user connections and was stopped; its
+original auto-remove policy removed it. All own validation containers/networks/
+18Linuxvolumes were cleaned; no unrelated project was stopped. Reopen learning by
+starting a fresh make lab session. No tracker/Vault/Chronicle/cloud changes.
 
 ## 2026-11-03 review corrections and GitHub publication
 

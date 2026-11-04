@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "project": "ledgerops-test-polish-99a63a7",
+  "captured_at": "2026-11-04T08:42:07.370293+00:00",
+  "label_scope": {
+    "containers": [],
+    "networks": [],
+    "volumes": []
+  },
+  "name_scope": {
+    "containers": [],
+    "networks": [],
+    "expected_volumes": []
+  },
+  "expected_named_volume_count": 18,
+  "cleanup_complete": true,
+  "other_resources": "No unrelated names or IDs copied. Only owned project scopes used for mutation. Prior learning container was intentionally stopped by parent before this run, not required to remain running."
+}

@@ -132,6 +132,10 @@ v9 输出 report v3 的 `operator_actions` 计数与能力披露，并支持在�
 
 ## 大型来源：显式 format10
 
+新增011仅为HELD物理索引。财务`schema_versions`表示行/约束能力；只有精确匹配已知清单和
+011校验和时才将该索引标记单独处理，不改变格式1–9或stream10的行语义。备份仍保留真实迁移清单。
+未知迁移、缺前置版本和错误摘要继续拒绝，详见[索引升级](ACTIVE-HOLD-INDEX.md)。
+
 默认仍导出原格式；超过旧的每表10,000行或16MiB限制时，使用 `export --format stream10`，
 并用 `verify --format stream10` 核对。format10在一个RR只读事务中完整读取所有允许的财务表，
 使用有界游标、分块文件和完整清单；独立核对器将全部记录索引到磁盘SQLite，不截断来源。

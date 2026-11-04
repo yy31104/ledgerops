@@ -1,0 +1,77 @@
+{
+  "working_directory": "$REPO_ROOT",
+  "source_revision": "99a63a7990cb71c8aab5e0a40057772bf9c620e0",
+  "commands": [
+    {
+      "phase": "build",
+      "arguments": [
+        "$REPO_ROOT/.venv/bin/python",
+        "ops/linux/stack.py",
+        "--project",
+        "ledgerops-test-polish-99a63a7",
+        "--state",
+        "/private/tmp/ledgerops-linux-polish-99a63a7/state.json",
+        "build",
+        "--source",
+        "$REPO_ROOT",
+        "--context",
+        "/private/tmp/ledgerops-linux-polish-99a63a7/context",
+        "--https-port",
+        "18443",
+        "--operator-port",
+        "19443"
+      ]
+    },
+    {
+      "phase": "init",
+      "arguments": [
+        "$REPO_ROOT/.venv/bin/python",
+        "ops/linux/stack.py",
+        "--project",
+        "ledgerops-test-polish-99a63a7",
+        "--state",
+        "/private/tmp/ledgerops-linux-polish-99a63a7/state.json",
+        "init"
+      ]
+    },
+    {
+      "phase": "seed",
+      "arguments": [
+        "$REPO_ROOT/.venv/bin/python",
+        "ops/linux/stack.py",
+        "--project",
+        "ledgerops-test-polish-99a63a7",
+        "--state",
+        "/private/tmp/ledgerops-linux-polish-99a63a7/state.json",
+        "seed-synthetic"
+      ]
+    },
+    {
+      "phase": "up",
+      "arguments": [
+        "$REPO_ROOT/.venv/bin/python",
+        "ops/linux/stack.py",
+        "--project",
+        "ledgerops-test-polish-99a63a7",
+        "--state",
+        "/private/tmp/ledgerops-linux-polish-99a63a7/state.json",
+        "up",
+        "--operator"
+      ]
+    },
+    {
+      "phase": "acceptance",
+      "arguments": [
+        "$REPO_ROOT/.venv/bin/python",
+        "ops/linux/acceptance.py",
+        "--project",
+        "ledgerops-test-polish-99a63a7",
+        "--state",
+        "/private/tmp/ledgerops-linux-polish-99a63a7/state.json",
+        "--output",
+        "/private/tmp/ledgerops-linux-polish-99a63a7/verification.json",
+        "--dispose-owned-test-data"
+      ]
+    }
+  ]
+}

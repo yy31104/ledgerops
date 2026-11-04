@@ -1,5 +1,13 @@
 # Local backup and restore contract
 
+The current package adds physical-index migration011. Backups keep the complete
+actual001–011 checksummed inventory; the exact historical001–010 inventory also
+remains restorable with runtime CONNECT closed. No arbitrary older prefix is
+accepted. After an old restore, the explicit `--index-only` administrator entry
+point can add011 without granting CONNECT or changing mode/restore generation.
+The general migration entry point grants CONNECT and must not substitute for this
+closed upgrade. See [active hold index](ACTIVE-HOLD-INDEX.md).
+
 This procedure uses a trusted administrator connection and real PostgreSQL 18 `pg_dump` / `pg_restore`. It restores only into a new `ledgerops_restore_*` database and a new object directory. It never grants runtime CONNECT, starts traffic or enables dispatch. It is not a real-bank recovery guarantee.
 
 ## Artifact and authority
