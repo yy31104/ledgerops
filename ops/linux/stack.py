@@ -1,6 +1,8 @@
 """Build and operate an explicitly owned, loopback-only LedgerOps Linux stack."""
 
 import argparse
+import contextlib
+import contextvars
 import hashlib
 import io
 import json
@@ -8,6 +10,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import time
@@ -45,6 +48,122 @@ VOLUMES = (
     "evidence-inputs",
 )
 
+_DIAGNOSTICS = contextvars.ContextVar("ledgerops_linux_diagnostics", default=None)
+
+
+def diagnostic_phase(name):
+    diagnostics = _DIAGNOSTICS.get()
+    if diagnostics is not None:
+        diagnostics.phase = name
+
+
+class FailureDiagnostics:
+    """Publish metadata only; retain bounded raw error output outside the checkout."""
+
+    def __init__(self):
+        self.phase = "startup"
+        self.failures = []
+        self.omitted = 0
+        self.directory = None
+
+    @contextlib.contextmanager
+    def scope(self):
+        token = _DIAGNOSTICS.set(self)
+        try:
+            yield self
+        finally:
+            _DIAGNOSTICS.reset(token)
+
+    def record(self, arguments, error, *, stdout_file=None, stderr_file=None):
+        if len(self.failures) == 16:
+            self.omitted += 1
+            return
+        command = {"program": "other", "action": "other"}
+        if arguments and Path(arguments[0]).name == "docker":
+            command["program"] = "docker"
+            actions = {
+                "exec",
+                "cp",
+                "create",
+                "start",
+                "stop",
+                "rm",
+                "inspect",
+                "ps",
+                "run",
+                "up",
+                "down",
+                "logs",
+                "restart",
+            }
+            action = next((value for value in arguments[1:] if value in actions), "other")
+            command["action"] = ("compose." if "compose" in arguments[1:3] else "") + action
+            service = next(
+                (
+                    value
+                    for value in arguments[1:]
+                    if value
+                    in {"api", "operator", "worker", "provider", "postgres", "proxy", "bootstrap"}
+                ),
+                None,
+            )
+            if service is not None:
+                command["service"] = service
+        record = {
+            "phase": self.phase,
+            "category": type(error).__name__,
+            "command": command,
+            "returncode": getattr(error, "returncode", None),
+        }
+        raw = {}
+        for name in ("stdout", "stderr"):
+            value = getattr(error, name, None)
+            value = value.encode("utf-8", errors="replace") if isinstance(value, str) else value
+            stream = stdout_file if name == "stdout" else stderr_file
+            if stream is not None:
+                stream.seek(0, os.SEEK_END)
+                size = stream.tell()
+                stream.seek(0)
+                value = stream.read(8192)
+            else:
+                size = len(value) if value is not None else 0
+            record[name] = {
+                "bytes": size,
+                "retained_bytes": min(size, 8192),
+                "truncated": size > 8192,
+                "available": value is not None,
+            }
+            if value is not None:
+                raw[name] = value[:8192].decode("utf-8", errors="replace")
+        # Raw stderr may itself contain secrets. No regex redactor can safely
+        # publish arbitrary external output. Keep it private and out of Git.
+        try:
+            if self.directory is None:
+                directory = Path(
+                    tempfile.mkdtemp(prefix="ledgerops-linux-diagnostics-", dir="/tmp")
+                )
+                if directory.resolve().is_relative_to(HERE.parents[1].resolve()):
+                    directory.rmdir()
+                    raise ValueError("DIAGNOSTICS_MUST_BE_OUTSIDE_CHECKOUT")
+                directory.chmod(0o700)
+                self.directory = directory
+            name = f"failure-{len(self.failures) + 1:02d}.json"
+            protected_write(self.directory / name, json.dumps(raw, ensure_ascii=True).encode())
+            record["private_file"] = name
+        except (OSError, ValueError):
+            record["private_output_unavailable"] = True
+        self.failures.append(record)
+
+    def report(self):
+        return {
+            "phase": self.phase,
+            "failures": list(self.failures),
+            "omitted_failures": self.omitted,
+            "private_directory_name": None if self.directory is None else self.directory.name,
+            "private_directory_location": "SYSTEM_TMP",
+            "raw_output_is_publishable": False,
+        }
+
 
 def owned_labels(labels, project):
     return (
@@ -60,15 +179,38 @@ def run(arguments, *, env=None, capture=False, timeout=300, input_data=None):
     if pause and arguments[0] == "docker" and mutations.intersection(arguments[1:]):
         while Path(pause).exists():
             time.sleep(0.1)
-    return subprocess.run(
-        arguments,
-        env=env,
-        check=True,
-        timeout=timeout,
-        capture_output=capture,
-        text=capture or isinstance(input_data, str),
-        input=input_data,
-    )
+    diagnostics = _DIAGNOSTICS.get()
+    with contextlib.ExitStack() as resources:
+        stdout, stderr = (
+            tuple(resources.enter_context(tempfile.TemporaryFile()) for _ in range(2))
+            if diagnostics and not capture
+            else (None, None)
+        )
+        try:
+            result = subprocess.run(
+                arguments,
+                env=env,
+                check=True,
+                timeout=timeout,
+                capture_output=capture,
+                stdout=stdout,
+                stderr=stderr,
+                text=capture or isinstance(input_data, str),
+                input=input_data,
+            )
+        except (subprocess.SubprocessError, OSError) as error:
+            if diagnostics is not None:
+                diagnostics.record(arguments, error, stdout_file=stdout, stderr_file=stderr)
+            raise
+        for source, target in ((stdout, sys.stdout), (stderr, sys.stderr)):
+            if source is None:
+                continue
+            source.seek(0)
+            # Successful operation messages retain their existing terminal path.
+            # Error output is retained privately instead of being echoed.
+            while chunk := source.read(8192):
+                target.write(chunk.decode("utf-8", errors="replace"))
+        return result
 
 
 def protected_write(path, raw):

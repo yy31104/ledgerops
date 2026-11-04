@@ -1,0 +1,31 @@
+{
+  "phase": "startup.actual_missing_container",
+  "failures": [
+    {
+      "phase": "startup.actual_missing_container",
+      "category": "CalledProcessError",
+      "command": {
+        "program": "docker",
+        "action": "exec"
+      },
+      "returncode": 1,
+      "stdout": {
+        "bytes": 0,
+        "retained_bytes": 0,
+        "truncated": false,
+        "available": true
+      },
+      "stderr": {
+        "bytes": 81,
+        "retained_bytes": 81,
+        "truncated": false,
+        "available": true
+      },
+      "private_file": "failure-01.json"
+    }
+  ],
+  "omitted_failures": 0,
+  "private_directory_name": "ledgerops-linux-diagnostics-yu3uee24",
+  "private_directory_location": "SYSTEM_TMP",
+  "raw_output_is_publishable": false
+}

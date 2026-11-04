@@ -71,6 +71,19 @@ TLS purchase80、同键重放/改内容409；先观察 hold62，再启动真实 
 接收129条各64KiB的无效观测，验证超过16MiB的完整stream10及超过32MiB的SQLite临时索引；
 隔离且只读、无网络的consumer在4MiB tmpfs上必须返回SCRATCH_RESOURCE_LIMIT。该故障注入代码
 只通过验收进程的stdin提供，既不安装在运行镜像，也不开放公开HTTP控制面。
+
+启动验收先观察代理CA文件实际存在，再用该CA校验API和operator的`/health/live`；每个就绪
+阶段有20秒观察期限，单次Docker探测最多5秒，HTTP单次最多10秒，所以墙钟上限还包含最后
+一次在途探测。等待只在观察到未就绪后进行，不假定固定睡眠后服务必然启动。
+`diagnostics`记录阶段（例如`startup.wait_proxy_ca`）、允许清单中的命令类别/服务、退出码及
+输出字节数；不会把任意命令参数、Python代码、环境或原始stdout/stderr放进可提交报告。
+构造函数尚未返回就失败也保留阶段；清理失败另列，不能覆盖原始失败。
+
+子进程失败时，最多保留16组、每组每个输出流前8192字节原文到系统`/tmp/`下新建的
+`ledgerops-linux-diagnostics-*`私有目录（0700），文件为0600。报告只提供目录名和文件名。
+这些原文可能含凭据，**不要复制进仓库、GitHub或公开验收记录**。排障时在本机打开对应文件，
+确认后手动删除该私有目录；超过16组会标记省略数量。成功命令仍按原方式输出普通运行信息。
+此前那次未复现启动失败的确切原因仍未知；新增诊断与观察就绪不等于已经证明它是CA竞态。
 随后同一大源做明确的管理员projection故障18→19，实际freeze/preview/apply/resume修回18，
 核对完整format10、reportv4的EXCLUSIVE_WORKSPACE_BARRIER_READ_COMMITTED_V1捕获上下文、
 原始hold与journal不变、稳定ID重放。原生备份/恢复必须继续验证持久化的resume_report v4。

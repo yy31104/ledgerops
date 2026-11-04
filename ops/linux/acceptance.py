@@ -11,12 +11,16 @@ import time
 from pathlib import Path
 from uuid import uuid4
 
-from stack import Stack, protected_write, run
+from stack import FailureDiagnostics, Stack, diagnostic_phase, protected_write, run
+
+
+class AcceptanceFailure(AssertionError):
+    """An internal, fixed acceptance code suitable for a public result."""
 
 
 def require(condition, code):
     if not condition:
-        raise AssertionError(code)
+        raise AcceptanceFailure(code)
 
 
 def eventually(call, predicate, code, *, seconds=20):
@@ -41,12 +45,43 @@ class Acceptance:
             self.directory / "credentials.json",
             self.directory / "ca.crt",
         )
+        diagnostic_phase("startup.copy_bootstrap_credentials")
         stack.copy_volume_file("bootstrap-secrets", "acceptance.json", self.credentials_file)
+        diagnostic_phase("startup.wait_proxy_ca")
+
+        def ca_exists():
+            try:
+                stack.compose(
+                    "exec",
+                    "--no-TTY",
+                    "proxy",
+                    "sh",
+                    "-c",
+                    "test -s /data/caddy/pki/authorities/local/root.crt",
+                    capture=True,
+                    timeout=5,
+                )
+                return True
+            except subprocess.CalledProcessError:
+                return False
+
+        eventually(ca_exists, bool, "PROXY_CA_NOT_READY")
+        diagnostic_phase("startup.copy_proxy_ca")
         stack.copy_volume_file("caddy-data", "caddy/pki/authorities/local/root.crt", self.ca_file)
         self.credentials = json.loads(self.credentials_file.read_bytes())
         self.ssl_context = ssl.create_default_context(cafile=str(self.ca_file))
         self.port = int(stack.state["environment"]["LEDGEROPS_HTTPS_PORT"])
         self.operator_port = int(stack.state["environment"]["LEDGEROPS_OPERATOR_PORT"])
+        for name, operator in (("api", False), ("operator", True)):
+            diagnostic_phase("startup.wait_" + name)
+
+            def live(op=operator):
+                try:
+                    return self.request("/health/live", operator=op)[0] == 200
+                except ValueError:
+                    return False  # A transient non-JSON upstream response is not ready.
+
+            eventually(live, bool, name.upper() + "_NOT_LIVE")
 
     def passed(self, name, started=None):
         value = {"check": name, "passed": True}
@@ -686,6 +721,14 @@ with psycopg.connect(dsn,autocommit=True) as conn:
             path.unlink(missing_ok=True)
 
 
+def failure_summary(error, phase):
+    return {
+        "phase": phase,
+        "category": type(error).__name__,
+        "code": str(error) if type(error) is AcceptanceFailure else "LOCAL_DIAGNOSTICS_REQUIRED",
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", required=True)
@@ -700,10 +743,16 @@ def main():
         {"schema_version": 1, "project": args.project, "checks": [], "passed": False},
         None,
     )
+    diagnostics = FailureDiagnostics()
+    primary = None
     started = time.monotonic()
     try:
-        with tempfile.TemporaryDirectory(prefix="ledgerops-linux-private-") as private:
+        with (
+            diagnostics.scope(),
+            tempfile.TemporaryDirectory(prefix="ledgerops-linux-private-") as private,
+        ):
             acceptance = Acceptance(stack, private)
+            diagnostic_phase("runtime.kernel_and_secrets")
             result["runtime"] = acceptance.runtime()
             labels = acceptance.info("api")["Config"]["Labels"]
             result["source_revision"] = labels["org.opencontainers.image.revision"]
@@ -732,10 +781,15 @@ def main():
                     ("proxy", "LEDGEROPS_PROXY_IMAGE"),
                 )
             }
+            diagnostic_phase("service.safe_defaults")
             acceptance.safe_defaults()
+            diagnostic_phase("business.payout_and_replay")
             acceptance.business()
+            diagnostic_phase("capacity.complete_source")
             result["capacity"] = acceptance.capacity()
+            diagnostic_phase("maintenance.rebuild")
             result["maintenance"] = acceptance.maintenance()
+            diagnostic_phase("service.database_outage")
             acceptance.database_outage()
             result["memory_peak_bytes"] = {
                 name: acceptance.memory_peaks[name]
@@ -754,22 +808,48 @@ def main():
                 )
                 for name in ("api", "operator", "provider", "worker", "postgres", "proxy")
             }
+            diagnostic_phase("service.safe_reentry")
             acceptance.default_reentry()
+            diagnostic_phase("recovery.native_restore")
             result["administrator_runtime"] = acceptance.admin_runtime(
                 require_backup=not args.skip_backup_preliminary
             )
+            diagnostic_phase("shutdown.secret_audit")
             acceptance.secrecy_and_shutdown()
             result["checks"] = acceptance.checks
             result["passed"] = True
             acceptance.cleanup_secrets()
-    finally:
+    except BaseException as error:
+        primary = error
+        result["failure"] = failure_summary(error, diagnostics.phase)
+    # Keep diagnostics active through cleanup. Constructor failures still have a
+    # phase, and a second cleanup error must not replace the original failure.
+    with diagnostics.scope():
+        cleanups = []
         if acceptance is not None:
             result["checks"] = acceptance.checks
-            acceptance.cleanup_secrets()
-        result["elapsed_seconds"] = round(time.monotonic() - started, 3)
-        protected_write(args.output, json.dumps(result, sort_keys=True, indent=2).encode())
+            cleanups.append(("cleanup.local_secrets", acceptance.cleanup_secrets))
         if args.dispose_owned_test_data:
-            stack.dispose()
+            cleanups.append(("cleanup.owned_stack", stack.dispose))
+        for phase, cleanup in cleanups:
+            diagnostic_phase(phase)
+            try:
+                cleanup()
+            except BaseException as error:
+                result.setdefault("cleanup_failures", []).append(failure_summary(error, phase))
+                if primary is None:
+                    primary = error
+                    result["failure"] = failure_summary(error, phase)
+        result["passed"] = primary is None
+        result["elapsed_seconds"] = round(time.monotonic() - started, 3)
+        result["diagnostics"] = diagnostics.report()
+        try:
+            protected_write(args.output, json.dumps(result, sort_keys=True, indent=2).encode())
+        except BaseException as error:
+            if primary is None:
+                primary = error
+    if primary is not None:
+        raise primary
     print(
         json.dumps(
             {"event": "linux_acceptance_complete", "passed": True, "checks": len(result["checks"])}
@@ -787,7 +867,7 @@ if __name__ == "__main__":
                     "event": "linux_acceptance_failed",
                     "category": type(exc).__name__,
                     "code": str(exc)
-                    if type(exc) is AssertionError
+                    if type(exc) is AcceptanceFailure
                     else "LOCAL_DIAGNOSTICS_REQUIRED",
                 }
             )
