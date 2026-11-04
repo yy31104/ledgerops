@@ -42,20 +42,22 @@ make build
 源仓库必须已提交且干净。秘密只进入专属卷和临时0600文件，不打印到终端。
 
 ```sh
+REPO_ROOT="$(pwd -P)"
+RUN_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/ledgerops-local.XXXXXX")"
 python ops/linux/stack.py --project ledgerops-test-local \
-  --state $WORKSPACE_ROOT/ledgerops-local-run/stack.json \
-  build --source $REPO_ROOT \
-  --context $WORKSPACE_ROOT/ledgerops-local-run/build \
+  --state "$RUN_ROOT/stack.json" \
+  build --source "$REPO_ROOT" \
+  --context "$RUN_ROOT/build" \
   --https-port 18443 --operator-port 19443
 python ops/linux/stack.py --project ledgerops-test-local \
-  --state $WORKSPACE_ROOT/ledgerops-local-run/stack.json init
+  --state "$RUN_ROOT/stack.json" init
 python ops/linux/stack.py --project ledgerops-test-local \
-  --state $WORKSPACE_ROOT/ledgerops-local-run/stack.json seed-synthetic
+  --state "$RUN_ROOT/stack.json" seed-synthetic
 python ops/linux/stack.py --project ledgerops-test-local \
-  --state $WORKSPACE_ROOT/ledgerops-local-run/stack.json up --operator
+  --state "$RUN_ROOT/stack.json" up --operator
 python ops/linux/acceptance.py --project ledgerops-test-local \
-  --state $WORKSPACE_ROOT/ledgerops-local-run/stack.json \
-  --output $WORKSPACE_ROOT/ledgerops-local-run/verification.json \
+  --state "$RUN_ROOT/stack.json" \
+  --output "$RUN_ROOT/verification.json" \
   --dispose-owned-test-data
 ```
 

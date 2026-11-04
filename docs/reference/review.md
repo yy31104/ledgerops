@@ -2,8 +2,10 @@
 
 Date: 2026-10-23. Classification: private project review / action item, not learner knowledge.
 Status: **recommend adopting the architecture with targeted amendments; not yet a user-adopted implementation plan**.
-Input: [preserved source package]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/00-EXECUTIVE-REVIEW.md).
+Input: [preserved source package](pro-2026-10-23/00-EXECUTIVE-REVIEW.md).
 Scope: Yi asked “How is it?” after returning the package. No implementation, paid resources, publication, tracker, reminder, thesis, application, DSA or skill changes are authorized by this review.
+
+Presentation note (2026-11-04): local paths are redacted and source links now target the preserved package. The unredacted historical review remains at Git commit `9af388f`, `docs/reference/review.md`, original SHA-256 `3cc92da8f762b2438f09ef3fdf072b0fecc7d0471f215952c11e37f90275b0c2`. Review conclusions and code examples are unchanged.
 
 ## Verdict
 
@@ -29,7 +31,7 @@ The audited issues do not justify another project-selection round or a rewrite. 
 
 ### F1 — Rejected reversal consumes the successful-reversal uniqueness slot [P2; R1]
 
-Source: [operation schema]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/ledgerops/CONTRACTS.md:49), [retained rejection semantics]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/ledgerops/CONTRACTS.md:152), [admission algorithm]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/ledgerops/CONTRACTS.md:193).
+Source: [operation schema](pro-2026-10-23/ledgerops/CONTRACTS.md#L49), [retained rejection semantics](pro-2026-10-23/ledgerops/CONTRACTS.md#L152), [admission algorithm](pro-2026-10-23/ledgerops/CONTRACTS.md#L193).
 
 The schema says the original-operation reference is unique for a full reversal, while rejected operations must remain recorded. These rules conflict if uniqueness covers rejected attempts.
 
@@ -43,7 +45,7 @@ PostgreSQL distinguishes all-row uniqueness from subset uniqueness through a par
 
 ### F2 — Decimal precision 50 does not prove single correctly rounded output [P2; before optional C3 YoY]
 
-Source: [numeric policy]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/chronicle/CONTRACTS.md:31), [declared output domain]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/chronicle/DATA-RIGHTS-AND-AI-EVAL.md:271).
+Source: [numeric policy](pro-2026-10-23/chronicle/CONTRACTS.md#L31), [declared output domain](pro-2026-10-23/chronicle/DATA-RIGHTS-AND-AI-EVAL.md#L271).
 
 The fixed precision can round an intermediate ratio onto a half-even boundary before final 12-place quantization. Independently reproduced:
 
@@ -69,7 +71,7 @@ Mechanism: Python context precision rounds arithmetic; `quantize` then rounds to
 
 ### F3 — Make unknown-availability shadowing explicit in the independent oracle [clarification; C1]
 
-Source: [oracle paragraph]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/chronicle/CONTRACTS.md:300), versus [normative uncertainty rule]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/chronicle/CONTRACTS.md:25), [query companion rule]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/chronicle/CONTRACTS.md:335), and [G4]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/chronicle/VERIFICATION.md:57).
+Source: [oracle paragraph](pro-2026-10-23/chronicle/CONTRACTS.md#L300), versus [normative uncertainty rule](pro-2026-10-23/chronicle/CONTRACTS.md#L25), [query companion rule](pro-2026-10-23/chronicle/CONTRACTS.md#L335), and [G4](pro-2026-10-23/chronicle/VERIFICATION.md#L57).
 
 The oracle paragraph says to filter known-time eligible rows and choose the greatest order. Taken literally, known order 10/value 100 plus unknown-time order 20/value 103 yields 100. The actual contract and G4 correctly require `unknown_availability/null`.
 
@@ -77,7 +79,7 @@ Amendment: the independently written oracle must retain membership-restricted un
 
 ### F4 — Immutable evidence hashes do not establish current approval validity [P2 mechanism gap; R5]
 
-Source: [approval contract]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/ledgerops/CONTRACTS.md:341) and [stale-approval trace]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/ledgerops/CONTRACTS.md:373).
+Source: [approval contract](pro-2026-10-23/ledgerops/CONTRACTS.md#L341) and [stale-approval trace](pro-2026-10-23/ledgerops/CONTRACTS.md#L373).
 
 An action approved against run R1/hash H1/account v4 can still pass the listed immutable-hash and account-version checks after corrected run R2/H2 appears, if the account remains v4. The trace expects rejection, but the contract does not specify how that new evidence invalidates the action.
 
@@ -87,7 +89,7 @@ Acceptance: approve at H1/v4 → publish relevant H2 without changing financial 
 
 ### F5 — Separate safe rendered output from correct model assertions [P2 specification gap; C5]
 
-Source: [answer schema and rendering]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/chronicle/DATA-RIGHTS-AND-AI-EVAL.md:292), [AI-02/AI-09]($USER_HOME/Documents/AI-Knowledge-Vault/03-Resources/External-Examples/2026-10-23-pro-blueprints/LedgerOps-Chronicle-Blueprints/chronicle/DATA-RIGHTS-AND-AI-EVAL.md:379).
+Source: [answer schema and rendering](pro-2026-10-23/chronicle/DATA-RIGHTS-AND-AI-EVAL.md#L292), [AI-02/AI-09](pro-2026-10-23/chronicle/DATA-RIGHTS-AND-AI-EVAL.md#L379).
 
 The proposed claim has result references and free-form `proposed_text`, but no typed proposed numeric value/unit. AI-02 expects deterministic rejection of a draft saying 229 when the result says 353. Rendering the correct 353 from a reference makes the displayed answer safe, but cannot by itself establish that arbitrary draft prose asserted 229 or that the model reasoned correctly.
 

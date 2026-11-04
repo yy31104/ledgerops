@@ -13,10 +13,10 @@
 
 ## 重新生成
 
-使用带reportlab的文档Python环境运行，不向ledgerops运行时增加依赖。例如在当前机器：
+使用带reportlab的文档Python环境运行，不向ledgerops运行时增加依赖。将该环境的解释器路径赋给`DOCUMENT_PYTHON`后运行：
 
 ```sh
-$USER_HOME/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 docs/learning/render_pdf.py
+"$DOCUMENT_PYTHON" docs/learning/render_pdf.py
 ```
 
 默认读取同目录Markdown，输出到仓库output/pdf。默认使用macOS的STHeiti
