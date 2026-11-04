@@ -13,11 +13,14 @@ import stat
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
+from importlib.resources import files
 from pathlib import Path
 from uuid import UUID, uuid4
 
 from psycopg.pq import TransactionStatus
 from psycopg.rows import dict_row
+
+from ledgerops.db.migrations import INDEX_ONLY_MIGRATION
 
 MAX_ROWS_PER_TABLE = 10_000
 MAX_BUNDLE_BYTES = 16 * 1024 * 1024
@@ -48,6 +51,29 @@ SCHEMA_VERSIONS_BY_FORMAT[7] = (*SCHEMA_VERSIONS_BY_FORMAT[6], "008_reconciliati
 SCHEMA_VERSIONS_BY_FORMAT[8] = (*SCHEMA_VERSIONS_BY_FORMAT[7], "009_authentication.sql")
 SCHEMA_VERSIONS_BY_FORMAT[9] = (*SCHEMA_VERSIONS_BY_FORMAT[8], "010_operator_actions.sql")
 SCHEMA_VERSIONS = SCHEMA_VERSIONS_BY_FORMAT[9]
+
+
+def _financial_schema_versions(cur):
+    """Recognize only the exact known physical-index extension of row-format9.
+
+    Export schema_versions names financial row/constraint capabilities, not every
+    physical index. Backups retain the actual complete migration inventory.
+    """
+    schemas = cur.execute(
+        "SELECT version,sha256 FROM ledger.schema_migration ORDER BY version"
+    ).fetchall()
+    versions = [row["version"] for row in schemas]
+    if INDEX_ONLY_MIGRATION in versions:
+        expected = [*SCHEMA_VERSIONS_BY_FORMAT[9], INDEX_ONLY_MIGRATION]
+        digest = hashlib.sha256(
+            files("ledgerops.db").joinpath("sql", INDEX_ONLY_MIGRATION).read_bytes()
+        ).hexdigest()
+        if versions != expected or schemas[-1]["sha256"] != digest:
+            raise ExportError("Unsupported database schema: invalid index-only migration")
+        return list(SCHEMA_VERSIONS_BY_FORMAT[9])
+    return versions
+
+
 _BASE_TABLES = {
     "accounts": ("account", "workspace_id,id,owner_id,class,normal_side,currency,enabled", "id"),
     "balances": (
@@ -750,8 +776,7 @@ def read_snapshot(cur, workspace_id: str) -> dict:
     ).fetchone()
     if workspace is None:
         raise ExportError("Workspace not found")
-    schemas = cur.execute("SELECT version FROM ledger.schema_migration ORDER BY version").fetchall()
-    versions = [row["version"] for row in schemas]
+    versions = _financial_schema_versions(cur)
     version = next(
         (v for v, expected in SCHEMA_VERSIONS_BY_FORMAT.items() if versions == list(expected)), None
     )

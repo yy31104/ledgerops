@@ -256,6 +256,7 @@ def db(postgres_cluster):
                 "008_reconciliation_publication.sql",
                 "009_authentication.sql",
                 "010_operator_actions.sql",
+                "011_active_reservation_index.sql",
             ]
         yield database
     finally:

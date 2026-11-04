@@ -1,11 +1,15 @@
 """Apply immutable, checksummed SQL migrations as the non-login schema owner."""
 
+import argparse
 import hashlib
 import os
 from importlib.resources import files
 
 import psycopg
 from psycopg import sql
+from psycopg.pq import TransactionStatus
+
+INDEX_ONLY_MIGRATION = "011_active_reservation_index.sql"
 
 
 def apply_migrations(conn: psycopg.Connection) -> list[str]:
@@ -62,6 +66,54 @@ def apply_migrations(conn: psycopg.Connection) -> list[str]:
     return applied
 
 
+def apply_index_only_migration(conn: psycopg.Connection) -> list[str]:
+    """Explicit 010→011 access-path upgrade; never grant or reopen CONNECT.
+
+    A restored database stays physically closed. This entry point does not touch
+    workspace mode, restored identities, credentials or financial records.
+    """
+    if not conn.autocommit or conn.info.transaction_status != TransactionStatus.IDLE:
+        raise ValueError("index migration requires an idle autocommit connection")
+    resources = sorted(
+        (
+            path
+            for path in files("ledgerops.db").joinpath("sql").iterdir()
+            if path.name.endswith(".sql")
+        ),
+        key=lambda path: path.name,
+    )
+    if len(resources) != 11 or resources[-1].name != INDEX_ONLY_MIGRATION:
+        raise ValueError("index migration requires the exact known installed schema")
+    contents = [(path.name, path.read_bytes()) for path in resources]
+    installed = [(name, hashlib.sha256(raw).hexdigest()) for name, raw in contents]
+    with conn.transaction():
+        conn.execute("SET LOCAL ROLE ledger_migrator")
+        conn.execute("SET LOCAL lock_timeout='5s'")
+        conn.execute("SET LOCAL statement_timeout='120s'")
+        conn.execute("SELECT pg_advisory_xact_lock(hashtextextended('ledgerops:migrations', 0))")
+        actual = conn.execute(
+            "SELECT version,sha256 FROM ledger.schema_migration ORDER BY version"
+        ).fetchall()
+        if actual == installed:
+            return []
+        if actual != installed[:-1]:
+            raise ValueError("index migration requires exact predecessor names and checksums")
+        conn.execute(contents[-1][1].decode("utf-8"))
+        conn.execute(
+            "INSERT INTO ledger.schema_migration(version,sha256) VALUES (%s,%s)",
+            installed[-1],
+        )
+    return [INDEX_ONLY_MIGRATION]
+
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--index-only",
+        action="store_true",
+        help="apply only known011 to exact010 without changing runtime CONNECT",
+    )
+    args = parser.parse_args()
     with psycopg.connect(os.environ["LEDGEROPS_MIGRATION_DSN"], autocommit=True) as connection:
-        print("Applied:", apply_migrations(connection))
+        operation = apply_index_only_migration if args.index_only else apply_migrations
+        print("Applied:", operation(connection))

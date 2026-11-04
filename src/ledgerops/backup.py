@@ -26,6 +26,7 @@ from psycopg import sql
 from psycopg.pq import TransactionStatus
 
 from ledgerops.authentication import invalidate_restored_access
+from ledgerops.db.migrations import INDEX_ONLY_MIGRATION
 from ledgerops.reconciliation.publication import ObjectStore
 
 MAX_METADATA = 64 * 1024 * 1024
@@ -597,7 +598,16 @@ def restore_backup(
                 if path.name.endswith(".sql")
             ]
             # Verify without calling migrations: that entry point grants runtime CONNECT.
-            if schema != installed:
+            # 011 changes only a physical access path. An exact 001–010 backup
+            # remains restorable with CONNECT closed; it is not auto-upgraded
+            # through apply_migrations(), which also grants runtime CONNECT.
+            compatible_without_index = (
+                len(installed) == 11
+                and installed[-1][0] == INDEX_ONLY_MIGRATION
+                and len(schema) == 10
+                and schema == installed[:-1]
+            )
+            if schema != installed and not compatible_without_index:
                 raise BackupError("RESTORE_REQUIRES_EXACT_INSTALLED_SCHEMA")
             _closed_runtime(restored)
             generation = invalidate_restored_access(

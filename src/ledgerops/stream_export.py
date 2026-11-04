@@ -22,6 +22,7 @@ from ledgerops.export import (
     SCHEMA_VERSIONS_BY_FORMAT,
     ExportError,
     ExportLimitExceeded,
+    _financial_schema_versions,
     _json_bytes,
     _normal_row,
     _sync_directory,
@@ -63,12 +64,7 @@ def _metadata(conn, workspace):
         ).fetchone()
         if row is None:
             raise ExportError("Workspace not found")
-        versions = [
-            item["version"]
-            for item in cur.execute(
-                "SELECT version FROM ledger.schema_migration ORDER BY version"
-            ).fetchall()
-        ]
+        versions = _financial_schema_versions(cur)
         if versions != list(SCHEMA_VERSIONS_BY_FORMAT[ROW_FORMAT_VERSION]):
             raise ExportError("Stream requires exact row-format9 schema")
         witness = cur.execute(
