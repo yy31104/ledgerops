@@ -1,6 +1,6 @@
 """Offline selected synthetic evidence exchange; no database or operational callback.
 
-The input is one completed financial export and optional historical pinned R4 read
+The input is one completed financial export and optional historical pinned read
 files. Selection is explicit. Original export bytes are read and never rewritten.
 """
 

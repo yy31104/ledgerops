@@ -1,4 +1,4 @@
-"""Durable claim/transport boundaries; dispatch never consumes or releases a hold."""
+"""Durable claim and transport records; settlement happens in payout_resolution."""
 
 from contextlib import contextmanager
 from dataclasses import dataclass

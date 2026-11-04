@@ -1711,7 +1711,7 @@ def _check_maintenance(check, snapshot, workspace, accounts):
 def verify_snapshot(snapshot: dict) -> VerificationReport:
     """Check posted structure/projection and stored purchase intent without SUT helpers.
 
-    Nonzero reservations are reported separately. R1 OPENING records have opaque
+    Nonzero reservations are reported separately. OPENING records have opaque
     fixture payloads, so their funding intent is explicitly unverified. This function
     neither mutates inputs nor verifies provenance beyond the supplied stored rows.
     """
