@@ -35,7 +35,12 @@ def _demo_environment(tmp_path):
     temporary_root = tmp_path / "demo-temp"
     temporary_root.mkdir()
     return {
-        **os.environ,
+        # Inherited make recursion flags add directory messages to the public demo output.
+        **{
+            key: value
+            for key, value in os.environ.items()
+            if key not in {"MAKELEVEL", "MAKEFLAGS", "MFLAGS"}
+        },
         "UV_CACHE_DIR": str(ROOT / ".cache/uv"),
         "UV_OFFLINE": "1",
         # Reuse this already provisioned test interpreter, independently of the
