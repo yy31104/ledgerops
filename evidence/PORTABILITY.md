@@ -1,5 +1,10 @@
 # Portable evidence presentation
 
+The subsequent public release rewrites privacy metadata throughout Git history.
+The procedure below records the earlier current-tip-only cleanup; references to raw
+original commits now apply to the private archive. See
+[public history provenance](../docs/PUBLIC-HISTORY.md) for the public revision map.
+
 On 2026-11-04, local machine metadata was removed from the **current presentation**
 of recorded evidence: repository/home paths in logs and commands, and hostname
 attributes in JUnit XML. Test names, results, counts, timings, commit identities,

@@ -1,6 +1,16 @@
 # LedgerOps handoff
 
-Updated: 2026-11-04. Review follow-up optimizations are verified; sync to the existing private GitHub repository remains authorized.
+Updated: 2026-11-04. The user authorizes a privacy-clean public LedgerOps release and the concise recruiter-facing README.
+
+## Public distribution
+
+The README follows the requested concise English format. The unused Chinese overview
+is removed and the post draft is maintained outside Git. History was sanitized in an
+isolated clone, preserving original authors, timestamps and messages. Raw originals
+remain in a private archive, and the public repository receives only sanitized objects.
+See docs/PUBLIC-HISTORY.md and docs/history-rewrite-map.tsv for provenance mapping.
+Earlier private-history statements below describe their dated stage; they are
+superseded by this public distribution step. No runtime or test code was changed.
 
 ## Portfolio presentation
 
