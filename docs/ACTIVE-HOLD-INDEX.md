@@ -1,9 +1,9 @@
-# 活动预留查询与索引升级
+# Active-hold queries and index upgrades
 
-提现受理必须在锁住clearing余额后，再查询同一工作区全部`HELD`的gross之和，避免不同商户
-同时承诺同一份额度。这个顺序保持不变。`UNKNOWN`仍对应活动hold，不能因结果未知而扣除承诺。
+Payout admission locks the clearing balance before summing the gross amounts of all `HELD` reservations in the workspace, preventing different merchants
+from promising the same capacity concurrently. That ordering is unchanged. `UNKNOWN` still has an active hold; an unknown outcome cannot remove its commitment.
 
-新增`011_active_reservation_index.sql`：
+Migration `011_active_reservation_index.sql` adds:
 
 ```sql
 CREATE INDEX reservation_active_workspace_idx
@@ -11,59 +11,58 @@ CREATE INDEX reservation_active_workspace_idx
   WHERE state = 'HELD';
 ```
 
-旧索引包含所有历史预留；新索引只包含还在占用额度的记录，覆盖按workspace求gross合计所需的列。
-已消费或已释放的预留仍保留原表和事件，终态更新会移出这个部分索引，没有删除历史或新余额投影。
-查询继续在原来的显式事务里运行，锁序、422留存及重放不变。
+The old index contains all historical reservations. The new index contains only records still consuming capacity and covers the columns needed to sum gross by workspace.
+Consumed or released reservations remain in the original table and event history; terminal updates remove them only from this partial index.
+No history is deleted and no new balance projection is introduced. The query stays inside the original explicit transaction, with unchanged lock order, retained 422 results and replay behavior.
 
-这不能使任意规模的查询变成常数时间：活动hold本身很多时，仍需扫描该工作区的全部活动记录。
-索引增加存储和写入维护成本。Index Only Scan是否完全免去堆访问还取决于visibility map；
-本次样本实际有8次heap fetch，不声称永远不读表。
+This does not make queries constant-time at arbitrary scale: a workspace with many active holds still requires scanning all of those active records.
+The index adds storage and write-maintenance cost. Whether an Index Only Scan can avoid heap access entirely also depends on the visibility map;
+the measured sample performed eight heap fetches, so it is not described as always avoiding table reads.
 
-## 升级边界
+## Upgrade boundaries
 
-001–010原迁移字节不变，011进入原有校验和迁移记录。它只改变物理访问路径，不新增财务列、
-约束、业务状态或权限。完整新数据库仍使用原来的迁移管理员入口。
+The original migration 001–010 bytes remain unchanged. Migration 011 joins the existing checksum and migration history.
+It changes only the physical access path, with no new financial columns, constraints, business states or permissions. Complete new databases still use the ordinary migration administrator entry point.
 
-**这是普通事务内CREATE INDEX，可能阻塞表写入，不是在线无锁升级。** 现有大库须安排维护，
-先停止准入/派发及其他写入并排空在途事务，再显式执行。不要在业务请求启动时自动跑DDL。
-没有声称CONCURRENTLY或任意数据规模都在给定时间内完成。
+**This is an ordinary transactional CREATE INDEX that may block table writes, not an online lock-free upgrade.** Schedule maintenance for an existing large database:
+stop admission, dispatch and other writers, drain in-flight transactions, then execute explicitly. Do not run DDL automatically at business-request startup.
+There is no claim of CONCURRENTLY behavior or completion within a fixed time for arbitrary data sizes.
 
-对已经从旧001–010备份恢复、仍关闭runtime CONNECT的数据库，使用单独的窄入口：
+For a database restored from an old 001–010 backup with runtime CONNECT still closed, use the separate narrow entry point:
 
 ```sh
 python -m ledgerops.db.migrations --index-only
 ```
 
-由受保护的环境装载`LEDGEROPS_MIGRATION_DSN`，不得把密码写进命令行或Git。该入口要求空闲
-autocommit管理员连接、可SET ROLE到`ledger_migrator`，并获取与普通迁移相同的事务咨询锁。
-只接受本包精确001–010或001–011的文件名和校验和；旧状态执行011并记录，已完成时返回空列表。
-未知迁移、缺前序或校验和不符会拒绝。锁等待5秒、语句120秒超时后回滚；大库需要更长维护预算时，
-应先评估并调整受审实现，不能把超时当已完成。
+Load `LEDGEROPS_MIGRATION_DSN` through a protected environment, never command-line passwords or Git. This entry point requires an idle
+autocommit administrator connection able to SET ROLE to `ledger_migrator`; it takes the same transaction advisory lock as ordinary migration.
+It accepts only this package's exact 001–010 or 001–011 filenames and checksums. An old state applies and records 011; an already-upgraded state returns an empty list.
+Unknown migrations, missing predecessors or checksum differences are rejected. Lock waiting is limited to 5 seconds and statements to 120 seconds, with rollback on timeout.
+If a large database needs a longer maintenance budget, assess and change the reviewed implementation first; a timeout is not completion.
 
-它不会GRANT CONNECT，不改工作区mode、restore generation、凭据、审批或财务数据。
-恢复保持RESTORE和原身份失效状态，之后仍须走既有的独立核对及显式激活流程。
-**不要用普通`apply_migrations`代替这个恢复后的步骤**，普通入口包含runtime CONNECT授权。
-`restore_backup`本身不自动执行任何升级。
+The entry point does not GRANT CONNECT or change workspace mode, restore generation, credentials, approvals or financial data.
+Restore remains in RESTORE with the original access invalidation intact, followed by the existing independent verification and explicit activation flow.
+**Do not substitute ordinary `apply_migrations` for this post-restore step:** the ordinary entry point grants runtime CONNECT.
+`restore_backup` does not automatically perform upgrades.
 
-## 导出与备份兼容
+## Export and backup compatibility
 
-财务导出的`schema_versions`描述行/约束能力。旧格式1–9和stream10的财务字段、版本语义与
-离线核对器保持不变。只有检测到精确001–011清单且011校验和等于当前包里的已知索引迁移时，
-在线导出器才将该物理索引标记从财务能力列表中分离。未知迁移不能借此被忽略；缺少010或
-011摘要被改都会拒绝。
+Financial export `schema_versions` describes row and constraint capabilities. The financial fields, version semantics and offline verifier for old formats 1–9 and stream10 remain unchanged.
+Only when the exact 001–011 list is found and 011 matches the current package's known index-migration checksum does the online exporter separate that physical index marker from the financial capability list.
+This cannot conceal an unknown migration; missing 010 or an altered 011 digest is rejected.
 
-完整数据库备份仍保存真实001–011清单和校验和，不丢掉物理迁移证据。新恢复器也接受精确
-001–010旧备份，保持CONNECT关闭且不自动添加索引；其他旧前缀或未知变化仍拒绝。
-因此可以先恢复，再在管理员控制下执行`--index-only`，无需为了索引重定义历史财务文件。
+Full database backups still retain the actual 001–011 list and checksums, preserving physical migration evidence. The new restorer also accepts exact old 001–010 backups,
+keeps CONNECT closed and does not add the index automatically. Other old prefixes or unknown changes remain rejected.
+A database can therefore be restored first and upgraded through administrator-controlled `--index-only`, without redefining historical financial files for an index.
 
-## 实际验证
+## Verification performed
 
-真实PostgreSQL的物理查询样本使用50,000条终态预留和8条HELD，每条gross为3，期望合计24。
-保持默认`enable_seqscan=on`，不强迫优化器走索引。索引前顺序扫描过滤50,000行，访问667个共享块；
-索引后优化器自行选择部分覆盖索引，读取8条活动记录、访问2个共享块。毫秒耗时仅是该样本观测，
-不作为吞吐或SLO承诺。
+The actual PostgreSQL access-path sample uses 50,000 terminal reservations and eight HELD reservations, each with gross 3, for an expected total of 24.
+The default `enable_seqscan=on` remains enabled; the optimizer is not forced to use an index. Before the index, a sequential scan filtered 50,000 rows and accessed 667 shared blocks.
+Afterward, the optimizer selected the partial covering index itself, reading eight active records and accessing two shared blocks.
+Millisecond timings describe only that sample, not throughput or SLO commitments.
 
-此计划夹具为隔离的物理访问路径实验，特权绕过业务图触发器并在事务结束时全部回滚；
-**不把这50,000条行称为通过财务核验的业务历史**。另外的真实准入并发/422/终局测试验证金融行为；
-原生dump/restore测试覆盖新旧备份、旧恢复后安全索引升级、CONNECT仍关闭、代次及mode不变。
-原格式导出和stream完整核对均继续通过。原始计划和测试记录见本轮索引验收目录。
+This plan fixture is an isolated physical-access experiment. It uses privileged bypass of business-graph triggers and rolls back everything at transaction end;
+**these 50,000 rows are not presented as financially verified business history**. Separate actual admission-concurrency, 422 and terminal-result tests verify financial behavior.
+Native dump/restore tests cover new and old backups, a safe index upgrade after old-backup restore, CONNECT remaining closed and unchanged generation/mode.
+Original-format exports and complete stream verification continue to pass. Raw plans and test records are in this index change's acceptance directory.

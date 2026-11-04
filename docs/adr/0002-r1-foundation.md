@@ -4,11 +4,11 @@ Date: 2026-10-23. Status: local implementation; first four business defaults acc
 
 ## Context and authority
 
-Yi authorized R1-PR01 implementation and accepted [packet 1](../DECISION-PACKET-R1.md).
+Yi authorized R1-PR01 implementation and accepted [packet 1](../../devlog/docs/DECISION-PACKET-R1.md).
 The latest Vault LedgerOps working blueprint rev 1 supplies Python-led admission,
 immutable header declarations, column-level runtime grants, R2 reversal/drain and
 R5 evidence epochs. Its design-only status is historical; it is not a current test result.
-The preserved Pro package and reviews under `docs/reference/` remain unchanged.
+The preserved Pro package and reviews under `devlog/docs/reference/` remain unchanged.
 
 ## Decisions implemented in PR01
 
@@ -53,8 +53,8 @@ HTTP decoder; PR01 accepts an already-decoded mapping and does not implement HTT
 
 ## Trust and evidence
 
-See [working contract](../working/R1-CONTRACT.md) and the
-[task](../tasks/R1-PR01.md). Database constraints do not establish correct merchant,
+See [working contract](../../devlog/docs/working/R1-CONTRACT.md) and the
+[task](../../devlog/docs/tasks/R1-PR01.md). Database constraints do not establish correct merchant,
 request amount, journal/projection correspondence, or actor authorization.
 Real runtime SQL deliberately demonstrates these gaps; independent checks detect
 the missed projection and consistent wrong-merchant defects after they commit.

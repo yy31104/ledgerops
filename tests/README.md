@@ -1,9 +1,15 @@
 # Tests
 
-No business tests exist at initialization. Do not treat a package import or lint check
-as proof of domain correctness. `make test` runs pytest and currently exits with code 5
-(no tests collected); no placeholder passing tests or unconditional skips are added.
+Run `make bootstrap`, then `make test` for the complete suite. Docker is required:
+the integration fixtures start a disposable PostgreSQL container and fail clearly
+when it is unavailable. Each test owns its database and connections; session cleanup
+removes the owned container.
 
-The first task contract under `docs/tasks/` defines the meaningful tests to add.
-PostgreSQL claims must eventually be verified with a real server and runtime role.
-Expected results must not import production calculation/posting helpers.
+`make test-unit` runs the unit tests and independent journal/command model.
+`make test-integration` runs the PostgreSQL cases. `make test-provider` exercises
+the separate persistent provider and its HTTP protocol.
+
+Expected financial results stay independent of production posting and calculation
+helpers. Integration tests cover commit-time constraints, ordered locks, concurrent
+requests, unknown results and recovery. Historical task contracts and verification
+records are in `devlog/`; current operating instructions are in `docs/`.

@@ -1,91 +1,93 @@
-# 终局证据的受控重处理
+# Controlled reprocessing of terminal evidence
 
-R5-PR03只开放一种操作：`REPROCESS_TERMINAL_LOCAL_BLOCKER`。支付商已有经过认证的
-SUCCEEDED、FAILED或CLOSED_ABSENT观测，但本地资金处理因LOCAL_BLOCKER停止；管理员完成
-独立修复并发布新的R4结算证据后，两人复核，再用原观测重试本地结算。本入口不向支付商发请求。
-UNKNOWN、矛盾证据和EVIDENCE_LIMIT不能用这个动作绕过。
+R5-PR03 exposes one action: `REPROCESS_TERMINAL_LOCAL_BLOCKER`. The provider already has an authenticated
+SUCCEEDED, FAILED or CLOSED_ABSENT observation, but local financial processing stopped with LOCAL_BLOCKER. After an administrator
+completes an independent repair and publishes fresh R4 reconciliation evidence, two actors review the action and retry local settlement using the original observation.
+This entry point sends no provider request. UNKNOWN, contradictory evidence and EVIDENCE_LIMIT cannot be bypassed with this action.
 
-## 用62说明完整流程
+## A complete example using 62
 
-客户100，购买80后商户80。商户提现60、手续费2，预留62，可用18。支付商报告SUCCEEDED，
-但本地结算失败；原观测、LOCAL_BLOCKER、hold和202全部保留。
+The customer starts with 100. A purchase of 80 leaves the merchant with 80. A payout of 60 plus a fee of 2 reserves 62, leaving 18 available.
+The provider reports SUCCEEDED, but local settlement fails. The original observation, LOCAL_BLOCKER, hold and 202 receipt all remain.
 
-1. 修复本地故障，不修改原观测或事故。重新导出并发布完整R4版本；付款成功的来源必须在实际
-   支付商清单中出现，旧的空清单不能凭“版本是新的”授权。
-2. 提议者提交提现、原终局观测、当前run UUID和理由。服务器读取金额、支付键、完整事故集合、
-   目标账户/hold/观测版本，生成不可变提案及SHA-256。重复相同action ID保持原文和绝对期限。
-3. 另一位actor读取提案并审批。提议者换token、换client仍不能自批；审批本身不转账。
-4. 执行时重新检查期限、恢复代次、maker/checker当前权限版本、当前workspace证据epoch、
-   所引用run和全部文件、source HMAC、当前完整目标和关联矛盾。全部成立才调用已有settle。
-5. SUCCEEDED消费62，商户账面18、预留0、可用18，产生原有商户借/清算贷分录。
-   FAILED/CLOSED_ABSENT只释放62，不产生付款分录。结算、执行结果、尝试和事故处置关系同事务提交。
+1. Repair the local fault without changing the original observation or incident. Export again and publish a complete R4 version. The successful payment's source must appear in the actual
+   provider manifest; an old empty manifest cannot authorize the action merely because its version is new.
+2. The proposer submits the payout, original terminal observation, current run UUID and reason. The server reads the amount, payment key, complete incident set,
+   target accounts, hold and observation versions, then creates an immutable proposal and SHA-256 digest. Repeating the same action ID preserves the original bytes and absolute expiry.
+3. A different actor reads and approves the proposal. Changing tokens or clients does not let the proposer approve their own action. Approval itself transfers no money.
+4. Execution rechecks expiry, restore generation, current maker/checker permission versions, the workspace's current evidence epoch,
+   referenced run and all files, source HMAC, the full current target and related contradictions. Only then does it call the existing settle path.
+5. SUCCEEDED consumes 62: the merchant has booked 18, reserved 0 and available 18, with the existing merchant-debit/clearing-credit entries.
+   FAILED/CLOSED_ABSENT releases 62 without payment entries. Settlement, execution result, attempt and incident-resolution relations commit in the same transaction.
 
-原事故永不删除；`payout_incident_resolution`只追加本动作处理的精确LOCAL_BLOCKER。
-worker和查询通过`unresolved_payout_incident`区分未处置与已处置；不能用最近32条摘要授权清除。
+Original incidents are never deleted. `payout_incident_resolution` appends only the exact LOCAL_BLOCKER incidents handled by this action.
+Workers and queries use `unresolved_payout_incident` to distinguish unresolved from resolved incidents; a recent 32-item summary cannot authorize clearing them.
 
-## 服务配置与接口
+## Service configuration and interfaces
 
-普通HTTP实例默认没有运维入口。仅在独立运维实例配置全部四项：
+An ordinary HTTP instance has no operator entry point by default. Configure all four settings only on a separate operator instance:
 
-| 配置 | 要求 |
+| Setting | Requirement |
 |---|---|
-| LEDGEROPS_OPERATOR_DSN | 独立login，继承ledger_operator；拒绝超级用户、migrator、auth_admin和ledger_app成员 |
-| LEDGEROPS_OPERATOR_OBJECTS | 已存在、非软链接的R4对象根目录；必须保留所引用全部文件 |
-| LEDGEROPS_OPERATOR_NAMESPACE | 明确的支付商namespace UUID |
-| LEDGEROPS_OPERATOR_KEYS_FILE | 所有者私有密钥文件；复用provider trust规则，不能从正文传入信任根 |
+| LEDGEROPS_OPERATOR_DSN | Separate login inheriting ledger_operator; superusers and members of migrator, auth_admin or ledger_app are rejected. |
+| LEDGEROPS_OPERATOR_OBJECTS | Existing, non-symlink R4 object root; all referenced files must be retained. |
+| LEDGEROPS_OPERATOR_NAMESPACE | Explicit provider namespace UUID. |
+| LEDGEROPS_OPERATOR_KEYS_FILE | Owner-private key file using provider trust rules; a request body cannot supply trust roots. |
 
-ledger_operator包含worker/reader/auth_reader的受信代码权限，不发给终端用户。
-HTTP仍由Bearer的数据库映射决定workspace/actor/client和scope；数据库login不能从请求选择。
-普通服务DSN仍按HTTP-SERVICE配置，公共实例不得挂载运维DSN和密钥。恢复物理开关阻止所有运维POST，
-读取既有审计不受写开关影响。部署时将运维实例放在受限入口，不能靠前端隐藏按钮隔离权限。
+ledger_operator includes worker/reader/auth_reader privileges for trusted code and is not distributed to end users.
+HTTP still derives workspace, actor, client and scopes from the Bearer credential's database mapping. A request cannot select the database login.
+The ordinary service DSN still follows HTTP-SERVICE configuration. Public instances must not mount the operator DSN or keys.
+The restore deployment flag blocks all operator POST requests; reading existing audits is unaffected by the write flag.
+Place the operator instance behind a restricted entry point. Hiding controls in the frontend is not permission isolation.
 
-| 接口 | 权限与内容 |
+| Interface | Permission and content |
 |---|---|
-| POST /v1/operator/actions | approval:propose；精确字段action_id/action_type/payout_id/observation_id/evidence_run_id/reason/ttl_seconds |
-| GET /v1/operator/actions/UUID | evidence:read；提案、审批、执行和最近20次尝试，附attempts_have_more |
-| POST /v1/operator/actions/UUID/approve | approval:approve；仅proposal_sha256，actor必须不同 |
-| POST /v1/operator/actions/UUID/execute | approval:execute；仅proposal_sha256和稳定execution_id |
+| POST /v1/operator/actions | approval:propose; exact fields action_id/action_type/payout_id/observation_id/evidence_run_id/reason/ttl_seconds. |
+| GET /v1/operator/actions/UUID | evidence:read; proposal, approval, execution and latest 20 attempts, with attempts_have_more. |
+| POST /v1/operator/actions/UUID/approve | approval:approve; only proposal_sha256; actor must differ from the proposer. |
+| POST /v1/operator/actions/UUID/execute | approval:execute; only proposal_sha256 and a stable execution_id. |
 
-新提案和新审批返回201，原身份重放200。执行成功200。409表示版本/证据等已变化；422表示此业务
-不能执行。确定的409/422执行拒绝在金融事务回滚后，用新的受控事务保留稳定失败尝试。
-未知数据库/COMMIT错误直接传播，不伪造一条“执行失败”；同一action/execution ID重查或重试。
-一旦action已有成功执行，只返回保留结果，不能再次转账。
+New proposals and approvals return 201; original-identity replays return 200. Successful execution returns 200.
+409 means a version, evidence or another bound fact has changed; 422 means the business action cannot execute.
+Definite 409/422 execution refusals are retained as stable failed attempts in a new controlled transaction after the financial transaction rolls back.
+Unknown database or COMMIT errors propagate without fabricating an execution-failed record; query or retry using the same action/execution IDs.
+Once an action has a successful execution, it returns only the retained result and cannot transfer money again.
 
-金融POST的Idempotency-Key不用于此处：提案身份是action_id，执行尝试身份是execution_id。
-任何重试都保留原编号；改变提议内容需要新的action ID，不能把不同意图塞进旧身份。
+The financial POST Idempotency-Key is not used here: action_id identifies the proposal and execution_id identifies the execution attempt.
+Every retry retains the original IDs. Changed proposal content requires a new action ID; a different intent cannot reuse an old identity.
 
-## 页面审核
+## Reviewing in the console
 
-调查台按当前`/v1/me`权限开放控件；只有运维scope、没有accounts:read的用户也可以连接。
-页面给出“提出→另一人读取原文→执行”的线性流程。金额与epoch摘要用字符串传输，
-`proposal_json`保留精确canonical JSON字符串，不经JavaScript数字解析再序列化；浏览器计算原文字节
-SHA-256，匹配后才能审批。提案哈希不是“人已读完”的证明；数据库仍执行全部当前性检查。
+The investigation console enables controls using current `/v1/me` permissions. Users with operator scopes but without accounts:read can also connect.
+It presents the sequence: propose → another actor reads the original text → execute. Amounts and epoch digests travel as strings.
+`proposal_json` retains the exact canonical JSON string rather than being parsed as JavaScript numbers and serialized again. The browser calculates
+SHA-256 over the original bytes and requires a match before approval. A proposal hash does not prove a person read it; the database still performs all current-state checks.
 
-凭据、当前提案和执行编号只在页面内存中；断开/离开会清除，旧异步响应不能复活会话。
-换成checker后需重新输入保留的action UUID，读取原提案。不要把审批token写进URL或文件分享。
-浏览器自动化受当前Work设置限制：实际HTTP流程和脚本语法已验证，视觉与真实浏览器交互未验收。
+Credentials, the current proposal and execution ID remain only in page memory. Disconnecting or navigating away clears them, and old asynchronous responses cannot revive a session.
+After switching to the checker, enter the retained action UUID again to read the original proposal. Do not share approval tokens in URLs or files.
+Browser automation was restricted by the Work settings: actual HTTP flows and script syntax were checked; visual appearance and real-browser interaction have not been accepted.
 
-## 锁、失效与资源边界
+## Locks, invalidation and resource limits
 
-协作代码锁序：workspace共享屏障→registry→auth共享→provider namespace→action→原业务/payout/
-intent→hold→按账户UUID排序的余额。冻结持有排他workspace屏障，等这些事务退出；外部付款是否停止
-仍要另查支付商。当前实测覆盖两执行者、callback/跨workspace矛盾两种先后顺序和冻结等待，
-不宣称任意未来SQL都无死锁；只重试确定中止的40P01/40001。
+The cooperative code lock order is: shared workspace barrier → registry → shared auth → provider namespace → action → original operation/payout/
+intent → hold → balances ordered by account UUID. Freeze takes the exclusive workspace barrier and waits for those transactions to finish.
+Whether external payments have stopped must still be checked with the provider. Tests cover two executors, both orderings of callback/cross-workspace contradictions and freeze waiting.
+They do not establish that arbitrary future SQL is deadlock-free. Only definitely aborted 40P01/40001 transactions are retried.
 
-提案绑定workspace全局evidence epoch，另一日期的新发布也使其失效。目标余额花掉、观测增加、
-恢复generation改变、maker/checker membership/client版本改变或DB期限到期，均要求重新审查。
-单独轮换token不改变同一个人的权限版本；当前executor凭据每次仍须有效。
+Proposals bind the workspace-wide evidence epoch, so a new publication for another date also invalidates them. Spending a target balance, adding an observation,
+changing restore generation or maker/checker membership/client versions, or reaching the database expiry all require fresh review.
+Rotating a token alone does not change the same actor's permission version; the executor's current credential must still be valid on every attempt.
 
-提案最多512KiB、完整LOCAL_BLOCKER最多100条，101条整体拒绝；单action最多100次执行尝试，
-期限1–3600秒，页面15分钟。审核前核验引用对象总字节数最多64MiB，超限在读取前拒绝；
-旧工作区导出仍有独立容量上限，分块导出在后续运行切片处理。没有自动GC或静默丢弃历史。
+Proposals are limited to 512KiB, and the complete LOCAL_BLOCKER set to 100 incidents; 101 incidents reject the whole action. Each action allows at most 100 execution attempts.
+Expiry is 1–3600 seconds, with 15 minutes used by the page. Referenced objects are limited to 64MiB in total before review; oversized sets are rejected before reading.
+Workspace exports retain their own separate capacity limit, with chunked export deferred to a later operational slice. There is no automatic garbage collection or silent history loss.
 
-## 独立核对与不能证明的事
+## Independent checks and limits
 
-财务导出v9增加批准、执行与处置关系，report v3独立校验canonical SHA、distinct actor、精确
-终局/effect/事故绑定；旧v1–v8保持原字节与能力。只有验证成立的LOCAL_BLOCKER处置才不再阻断。
-导出不包含凭据、auth表或运维attempt理由的秘密配置。当前数据库里的原始请求仍不是外部原始意图的证明。
+Financial export v9 adds approval, execution and resolution relations. Report v3 independently checks canonical SHA, distinct actors and exact
+terminal/effect/incident binding. Old v1–v8 exports retain their original bytes and capabilities. Only a validated LOCAL_BLOCKER resolution stops blocking settlement.
+Exports exclude credentials, auth tables and secret configuration in operator-attempt reasons. An original request in the current database still does not prove external original intent.
 
-离线核对器没有权限历史/信任密钥，不能证明当时maker/checker确实有权，也不能声称HMAC已认证；
-报告明确保留OPERATOR_HISTORICAL_AUTHORIZATION和PAYOUT_PROVIDER_AUTHENTICITY未核实项。
-线上执行会使用实际当前权限和配置的信任根。有限故障测试不证明任意故障时序、银行终局或多地域HA。
+The offline verifier has neither permission history nor trust keys. It cannot establish that the maker/checker was authorized at the time or claim to have authenticated the HMAC.
+Reports explicitly retain OPERATOR_HISTORICAL_AUTHORIZATION and PAYOUT_PROVIDER_AUTHENTICITY as unverified items.
+Online execution uses actual current permissions and configured trust roots. Finite fault tests do not establish arbitrary failure schedules, bank finality or multi-region high availability.

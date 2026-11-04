@@ -47,11 +47,15 @@ def _demo_environment(tmp_path):
     }
 
 
-def test_make_demo_runs_the_story_in_order_and_cleans_its_own_resources(tmp_path):
+@pytest.mark.parametrize("language", ["en", "zh"])
+def test_make_demo_runs_the_story_in_order_and_cleans_its_own_resources(tmp_path, language):
     # A normal regression run may already own its session-scoped test container.
     # The demo must preserve that container and remove only the one it creates.
     before = _containers()
     env = _demo_environment(tmp_path)
+    env.pop("LEDGEROPS_DEMO_LANG", None)
+    if language == "zh":
+        env["LEDGEROPS_DEMO_LANG"] = "zh"
     result = subprocess.run(
         ["make", "demo"],
         cwd=ROOT,
@@ -64,21 +68,48 @@ def test_make_demo_runs_the_story_in_order_and_cleans_its_own_resources(tmp_path
     steps = re.findall(r"^\[(\d{2})\]\s+(.+)$", result.stdout, flags=re.MULTILINE)
     assert [number for number, _ in steps] == [f"{number:02}" for number in range(1, 13)]
     by_number = dict(steps)
-    for number, markers in {
-        "01": ("开户", "100"),
-        "02": ("购买", "201", "80"),
-        "03": ("422", "INSUFFICIENT_AVAILABLE"),
-        "04": ("冲正", "201"),
-        "05": ("422", "ALREADY_REVERSED"),
-        "06": ("漂移", "120"),
-        "07": ("离线", "A", "失败"),
-        "08": ("冻结", "FROZEN"),
-        "09": ("预览", "120", "100"),
-        "10": ("重建", "epoch", "2"),
-        "11": ("恢复", "NORMAL"),
-        "12": ("离线", "健康"),
-    }.items():
+    expected = {
+        "en": {
+            "01": ("Open accounts", "100"),
+            "02": ("Purchase", "201", "80"),
+            "03": ("422", "INSUFFICIENT_AVAILABLE"),
+            "04": ("reverses", "201"),
+            "05": ("422", "ALREADY_REVERSED"),
+            "06": ("drift", "120"),
+            "07": ("offline", "A fails", "B passes"),
+            "08": ("Freeze", "FROZEN"),
+            "09": ("Preview", "120", "100"),
+            "10": ("rebuild", "version 2"),
+            "11": ("resume", "NORMAL"),
+            "12": ("offline", "healthy"),
+        },
+        "zh": {
+            "01": ("开户", "100"),
+            "02": ("购买", "201", "80"),
+            "03": ("422", "INSUFFICIENT_AVAILABLE"),
+            "04": ("冲正", "201"),
+            "05": ("422", "ALREADY_REVERSED"),
+            "06": ("漂移", "120"),
+            "07": ("离线", "A", "失败"),
+            "08": ("冻结", "FROZEN"),
+            "09": ("预览", "120", "100"),
+            "10": ("重建", "epoch", "2"),
+            "11": ("恢复", "NORMAL"),
+            "12": ("离线", "健康"),
+        },
+    }
+    for number, markers in expected[language].items():
         assert all(marker in by_number[number] for marker in markers), by_number[number]
+    lines = [line for line in result.stdout.splitlines() if line]
+    assert len(lines) == 13, result.stdout
+    if language == "en":
+        assert not re.search(r"[\u3400-\u9fff]", result.stdout + result.stderr)
+        assert lines[-1] == (
+            "Demo complete. Temporary PostgreSQL and exported files have been removed."
+        )
+    else:
+        assert lines[-1] == "演示完成，临时 PostgreSQL 和导出文件已清理。"
+    assert not re.search(r"\d+ passed|^\.$", result.stdout, flags=re.MULTILINE)
     assert _containers() == before
     assert not list(Path(env["TMPDIR"]).rglob("ledgerops-demo-*"))
 

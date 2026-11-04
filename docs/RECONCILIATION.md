@@ -1,17 +1,24 @@
-# 结算文件与离线核对
+# Settlement statements and offline reconciliation
 
-这一层回答“本地记账与支付商自己的结算记录是否一致”，不执行退款、释放预留或改账。
-购买属于内部转账，没有外部结算行；提现本金60、手续费2应对应支付商一笔gross62效果。
+This layer compares local accounting with the provider's own settlement records.
+It does not refund payments, release holds or change the ledger. Purchases are
+internal transfers without external settlement rows. A payout of principal 60 plus
+a fee of 2 should correspond to one provider effect with gross amount 62.
 
-## 先取得支付商证据
+## Obtain provider evidence first
 
-模拟支付商使用自己的SQLite文件。结算分配只指定已有支付编号和业务时间，金额/商户/收款方
-从它自己的持久请求和effects读取；不能用账本导出来生成“外部证据”。
+The simulator has its own SQLite file. Settlement assignment supplies existing
+payment identifiers and business times; amounts, merchants and beneficiaries come
+from its retained requests and effects. A ledger export cannot generate independent
+provider evidence.
 
-批次JSON四个字段：`batch_id`、`effective_at`（UTC秒格式）、`fee_rule_version`（quoted_fee_v1）、
-`rows`。每个row仅含`row_id`和明确的`provider_keys`数组。UUID与key须取实际已存在的对象。
-一个批次只能有一个workspace，每行只能属于同一商户/币种；同一支付编号最多分配一次。
-同一组允许拆行，每行都须明确成员。以下命令在仓库运行，秘密通过环境注入：
+Batch JSON has four fields: `batch_id`, `effective_at` (UTC seconds),
+`fee_rule_version` (`quoted_fee_v1`) and `rows`. Each row contains only `row_id` and
+an explicit `provider_keys` array. UUIDs and keys must identify real existing objects.
+A batch belongs to one workspace; each row belongs to one merchant/currency. A
+payment key can be assigned only once. A group may be split across rows, but every
+row must name its members. Run these commands from the repository, injecting secrets
+through the environment:
 
 ```sh
 python -m provider_sim.settlement \
@@ -25,18 +32,23 @@ python -m provider_sim.settlement \
   statement --workspace "$WORKSPACE_ID" --date 2026-10-29 --version 1
 ```
 
-`LEDGEROPS_PROVIDER_HMAC_KEY`须与该已有支付商文件的签名配置一致。路径错误明确失败，
-不会默默创建一个空数据库并签发“没有支付”的结算单。输出JSON可保存为statement文件。
-这条本机管理员CLI不是公网权限接口；独立provider_sim不进入正式ledgerops wheel。
+`LEDGEROPS_PROVIDER_HMAC_KEY` must match the signing configuration of that existing
+provider file. A wrong path fails explicitly rather than creating an empty database
+and signing a statement that says no payments occurred. Save the JSON output as a
+statement file. This local administrator CLI is not a public authorization interface;
+`provider_sim` is separate from the installed ledgerops wheel.
 
-同workspace/日期/时区的版本从1递增；重复请求旧版本返回原字节。后来补到的结算只出新版本。
-两套固定水位分别描述执行事件和结算分配；新增结算不会增加执行事件水位。
+Versions increase from 1 for each workspace/date/timezone. Requesting an old version
+again returns its original bytes. Later settlement assignments create a new version.
+Two fixed watermarks describe execution events and settlement assignments separately;
+new assignments do not advance the execution-event watermark.
 
-## 固定本地导出后离线比较
+## Capture a local export, then compare offline
 
-先按 [导出文档](EXPORT-AND-VERIFY.md) 保存同一个REPEATABLE READ快照。
-签名验证文件为key ID→十六进制密钥的JSON映射，仅当前所有者可读；不要提交到Git。
-支持最多8个可信key ID，namespace必须显式指定。
+Follow the [export instructions](EXPORT-AND-VERIFY.md) to capture one REPEATABLE READ
+snapshot. The signature-verification file is a JSON mapping of key IDs to hexadecimal
+keys, readable only by its current owner. Keep it outside Git. At most eight trusted
+key IDs are supported, and the namespace must be explicit.
 
 ```sh
 python -m ledgerops.recon_cli match \
@@ -46,52 +58,75 @@ python -m ledgerops.recon_cli match \
   --keys-file /absolute/path/private/provider-keys.json
 ```
 
-命令不需要数据库连接。源码checkout会记录实际HEAD和dirty状态；从已安装wheel运行时，
-必须另传 `--code-revision` 的40位实现提交，开发状态另加 `--dirty`。
-来源导出的代码版本和本次匹配器版本分开记录，不能拿旧导出的版本冒充新算法版本。
+The command needs no database connection. A source checkout records actual HEAD and
+dirty state. An installed wheel requires `--code-revision` with the full 40-character
+implementation commit, plus `--dirty` for a development build. The export's source
+revision and the current matcher's revision are recorded separately; an old export
+revision cannot stand in for a new algorithm's identity.
 
-stdout为JSON报告；exit0表示本报告范围内reconciled，exit1表示输入可用但有差异/未决，
-exit2表示输入或配置不可用。运行脚本必须检查退出码，不能把“文件里有JSON”当通过。
-缺失/软链接/FIFO/超限输入明确失败；不截断后返回健康结果。
+Stdout contains a JSON report. Exit 0 means reconciled within the report's declared
+scope. Exit 1 means usable input with differences or pending work. Exit 2 means
+unusable input or configuration. Scripts must check the exit code; the existence of
+JSON is not a passing result. Missing files, symlinks, FIFOs and oversized input fail
+explicitly rather than being truncated into a healthy report.
 
-## 怎样读报告
+## Read the report
 
-- `usable`说明输入能否安全解释；`reconciled`是本次明确范围内的结果，不是全系统结算完成保证。
-- `issues`按稳定规则排列，先看`category`和对象引用，再看expected/actual。数额相同但商户不同
-  仍是WRONG_OWNER；未知状态不能因经过了一段时间就变成成功或失败。
-- `groups`保留完整组键、成员与本金/手续费/gross；缺少成员信息是AMBIGUOUS_GROUP，不猜配。
-- `matched_provider_keys`与组级匹配都必须考虑相关矛盾；不能只看合计相等。
-- `unsettled_provider_keys`列出完整支付商effects索引中尚未分配结算的编号；有这些编号时
-  `settlement_complete=false`且`reconciled=false`。单笔资金字段可以匹配，但不声称已经结算。
-  因为没有执行时间，不能把未分配编号硬归到某一天，也不能编造未来结算时间。
-- `internal_verification`附独立结构/A/B核对。它与外部statement匹配有不同能力，不能互相替代。
-- `inputs`固定原始字节摘要/长度、各自版本与水位、业务窗口和匹配器版本，供重现和后续发布。
+- `usable` states whether inputs can be interpreted safely. `reconciled` applies to
+  this report's explicit scope, not settlement completion across the whole system.
+- `issues` follow a stable order. Read `category` and object references first, then
+  expected/actual values. Equal amounts with different merchants are still
+  WRONG_OWNER. Elapsed time cannot turn an unknown outcome into success or failure.
+- `groups` retain the full group key, members, principal, fee and gross. Missing
+  membership is AMBIGUOUS_GROUP; the matcher does not guess.
+- `matched_provider_keys` and group matches both account for relevant contradictions;
+  matching totals alone are insufficient.
+- `unsettled_provider_keys` lists keys from the complete provider-effects inventory
+  that lack a settlement assignment. Their presence sets `settlement_complete=false`
+  and `reconciled=false`. Individual financial fields can match without establishing
+  settlement. With no execution time, these keys cannot be forced into a particular
+  business day or assigned an invented future settlement time.
+- `internal_verification` includes independent structure/A/B checks. Those checks
+  and matching an external statement establish different properties.
+- `inputs` fixes raw-byte digests and lengths, source versions and watermarks,
+  business windows and matcher revision for reproduction and later publication.
 
-全部差异类别：MISSING_INTERNAL、UNEXPECTED_INTERNAL、DUPLICATE_EFFECT、WRONG_OWNER、
-WRONG_AMOUNT、CURRENCY_MISMATCH、MISSING_PROVIDER、UNEXPECTED_PROVIDER、TIMING_ONLY、
-FEE_MISMATCH、AMBIGUOUS_GROUP、INPUT_CONTRADICTION、CORRUPT_INPUT。
-这些是调查分类，不是自动认定哪一方经济事实必然为真。
+Difference categories are MISSING_INTERNAL, UNEXPECTED_INTERNAL, DUPLICATE_EFFECT,
+WRONG_OWNER, WRONG_AMOUNT, CURRENCY_MISMATCH, MISSING_PROVIDER, UNEXPECTED_PROVIDER,
+TIMING_ONLY, FEE_MISMATCH, AMBIGUOUS_GROUP, INPUT_CONTRADICTION and CORRUPT_INPUT.
+These are investigation categories, not automatic verdicts about whose economic
+account is necessarily true.
 
-## 时间与范围
+## Time and scope
 
-完整effects索引比较的是固定workspace/namespace输入里的资金与身份，日期窗口比较的是当天结算组。
-报告分开写inventory_scope与settlement_scope，历史差异不冒充今日新差异。
-业务日用Europe/Warsaw的本地日历算UTC半开窗口，夏令时切换日可能23或25小时。
+The complete effects inventory compares amounts and identities within fixed
+workspace/namespace inputs. The date window compares settlement groups for that day.
+The report separates inventory_scope from settlement_scope; an old difference is
+not presented as a new difference today. Business days use the Europe/Warsaw local
+calendar to produce half-open UTC windows. A daylight-saving transition day can have
+23 or 25 hours.
 
-R3事件没有实际执行时间，结算模块没有补猜。`effective_at`是支付商管理员分配的结算生效时间，
-`recorded_at`是分配留档时间；HTTP收到时间不代替两者。本地journal.recorded_at是本地记账时间。
-TIMING_ONLY必须有双方完全一致的经济字段及明确不同窗口；支付商已付而本地只有HELD仍报告
-MISSING_INTERNAL，不能用“可能是异步”把它隐藏。
+R3 events have no actual execution time, and settlement processing does not invent
+one. `effective_at` is the settlement effective time assigned by the provider
+administrator; `recorded_at` is when that assignment was retained. HTTP receive time
+replaces neither. Local journal.recorded_at is local posting time. TIMING_ONLY
+requires fully matching economic fields and explicitly different windows. A provider
+payment with only a local HELD state remains MISSING_INTERNAL; possible asynchronous
+processing does not hide it.
 
-HMAC证明签名配置一致，不证明支付商永不撒谎、数据库从未丢记录或原始请求捕获完全正确。
-两份独立存储导出不是分布式原子快照。当前边界为每账本表10000行、账本包16MiB；statement
-最多10000效果/成员、1000行、签名包16MiB。超限报错，吞吐与容量以实际测量为准。
+HMAC establishes agreement with the signing configuration. It does not prove that the
+provider never lies, that its database never lost records or that original requests
+were captured correctly. Exports from two separate stores are not a distributed atomic
+snapshot. Bounds are 10,000 rows per ledger table and 16 MiB per ledger package;
+statements allow at most 10,000 effects/members, 1,000 rows and a 16 MiB signed envelope.
+Exceeding a bound fails; throughput and capacity depend on actual measurements.
 
-## 发布、查询与恢复中断
+## Publish, read and recover interrupted runs
 
-`match`仍是无需数据库的单次离线报告。`publish`使用迁移008的专用
-`ledger_reconciler`登录角色和独立对象目录；角色没有余额、分录、hold写权限。
-通过环境变量`LEDGEROPS_RECON_DSN`注入凭据，不把DSN放在命令行参数或Git中。
+`match` remains a one-off offline report without a database connection. `publish`
+uses migration 008's separate `ledger_reconciler` login and a separate object directory.
+The role cannot write balances, entries or holds. Inject credentials through
+`LEDGEROPS_RECON_DSN`; do not put a DSN in command arguments or Git.
 
 ```sh
 python -m ledgerops.recon_cli publish \
@@ -103,16 +138,22 @@ python -m ledgerops.recon_cli publish \
   --run-id "$RUN_UUID" --workers 2 --partitions 16 --timeout-seconds 300
 ```
 
-先生成并保存本次run UUID。它标识一次固定输入和计划，和金融业务operation ID分开。
-相同run仅允许相同字节/版本/计划重试；不同输入必须新建run。`--workers`只允许1、2、4，
-分区计划不随进程数变化。工作进程不持有数据库连接或发布权限，只接收已经认证的事实和计划；
-父进程复核每份结果并发布。它们是同一操作系统用户下的可信代码，不是安全沙箱。
+Generate and save the run UUID first. It identifies fixed inputs and a plan, separately
+from a financial operation ID. Retrying a run requires identical bytes, versions and
+plan; different inputs require a new run. `--workers` accepts only 1, 2 or 4. Partition
+planning is independent of worker count. Worker processes receive authenticated facts
+and a plan, without database connections or publishing authority. The parent verifies
+every result before publishing. These are trusted processes under the same operating
+system user, not a security sandbox.
 
-`publish` exit0只说明本次完整发布协议完成，不表示报告没有差异。返回`published=false`
-表示本次run完整，但同scope的其他run先更新了current；不会偷偷重试覆盖它。完整对象固定保留，
-current按workspace/namespace/日期划分，workspace的evidence epoch在每次成功更新时递增。
+Exit 0 from `publish` means its complete publication protocol finished, not that the
+report contains no differences. `published=false` means this run is complete but
+another run updated current for the same scope first. It does not silently retry to
+overwrite that run. Complete objects remain fixed. Current is scoped by workspace,
+namespace and date; each successful update increments the workspace's evidence epoch.
 
-查询时改用专用`ledger_reader`连接（同名环境变量），按固定run读取，或显式选择当前scope：
+Read through a separate `ledger_reader` connection using the same DSN environment
+variable. Select a fixed run or explicitly request current within a scope:
 
 ```sh
 python -m ledgerops.recon_cli read \
@@ -123,26 +164,39 @@ python -m ledgerops.recon_cli read \
   --current --namespace "$PROVIDER_NAMESPACE" --date 2026-10-29
 ```
 
-读者先持久固定run引用，再复核全部引用文件。`is_current_at_pin`、`evidence_epoch_at_pin`
-仅描述取得引用的那个时点；读取期间后来发布新报告不会改写已固定的内容。
-`published_epoch`是该run当初发布时的历史值，不是“永远有效”的证明。
-读取exit0/1分别表示报告范围内通过/存在差异；坏文件、未完成run、错误权限等返回exit2，
-不自动换一份报告掩盖问题。正常结束或读取失败会释放reader pin；stderr打印reader ID，
-进程或连接异常中断留下的pin可在确认读者停止后显式释放：
+The reader first durably pins a run reference, then verifies every referenced file.
+`is_current_at_pin` and `evidence_epoch_at_pin` describe only the instant of pinning.
+Later publication during the read cannot change pinned contents. `published_epoch`
+is the historical epoch when that run was published, not permanent validity.
+
+Read exit codes 0/1 mean passing/differences within the report's scope. Corrupt files,
+incomplete runs and incorrect privileges return 2; the reader does not silently
+substitute another report. Normal completion or a read failure releases the reader
+pin. Stderr prints the reader ID. If a process or connection interruption leaves a
+pin, first confirm the reader has stopped, then release it explicitly:
 
 ```sh
 python -m ledgerops.recon_cli release-pin --workspace "$WORKSPACE_ID" --reader-id "$READER_UUID"
 ```
 
-任何工作进程退出、超时或结果不完整都会终止本次工作进程组，尝试将run记为FAILED。
-数据库断线可能发生在COMMIT之后，此时`outcome_unknown=true`不等于回滚；按返回run ID
-重新读取状态，再用原始输入/计划恢复，不能凭错误响应换身份覆盖当前证据。
-SIGINT/SIGTERM会清理本次拥有的工作进程；强杀父进程不能保证执行清理，残留STAGING不作完整证据。
+A worker exit, timeout or incomplete result terminates the owned worker group and
+attempts to mark the run FAILED. A database disconnect can occur after COMMIT, so
+`outcome_unknown=true` does not establish rollback. Read status by the returned run ID,
+then recover with the original inputs and plan. An error response is not permission
+to change identity and overwrite current evidence. SIGINT/SIGTERM cleans up owned
+workers. Forcibly killing the parent cannot guarantee cleanup; remaining STAGING
+objects are not complete evidence.
 
-文件先写入私有临时文件并fsync，再在registry锁下原子改名、同步目录、登记引用。
-这不是数据库与文件系统的分布式事务；注册前崩溃可能留下未引用文件。没有自动GC，
-也不能按文件年龄删除对象。备份须同时保留注册表、引用对象和密钥引用；清理未知文件前
-停止所有发布者，确认它既无持久引用也无pin。损坏对象应从经过核验的备份恢复，不能覆盖为新含义。
+Files are written privately, fsynced, atomically renamed under the registry lock,
+followed by directory synchronization and reference registration. This is not a
+distributed transaction between the database and filesystem: a pre-registration crash
+can leave unreferenced files. There is no automatic garbage collection, and object age
+is not a deletion rule. Backups must retain the registry, referenced objects and key
+references together. Before removing unknown files, stop all publishers and confirm
+both durable references and pins are absent. Restore damaged objects from verified
+backups rather than overwriting them with a new meaning.
 
-迁移008后的金融导出是v7，保留v6的金融行结构；发布对象通过这里的固定run读取。
-原有v1–v6导出仍可核对，不能只把旧文件的版本号改为7。
+Financial export v7, introduced after migration 008, preserves v6's financial row
+shape. Read publication objects through fixed runs as described above. Existing
+v1-v6 exports remain verifiable; changing an old file's version number to 7 does not
+supply the missing evidence.

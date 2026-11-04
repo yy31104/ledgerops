@@ -29,12 +29,16 @@ build:
 	$(UV) build
 
 demo:
-	@$(UV) run --locked python -m pytest -q -s --no-header --tb=short tests/demo_story.py
-	@printf '%s\n' '演示完成，临时 PostgreSQL 和导出文件已清理。'
+	@$(UV) run --quiet --locked python -m pytest -qq -s --no-header --tb=short -p tests.demo_output tests/demo_story.py
+	@if [ "$${LEDGEROPS_DEMO_LANG:-en}" = "zh" ]; then \
+		printf '%s\n' '演示完成，临时 PostgreSQL 和导出文件已清理。'; \
+	else \
+		printf '%s\n' 'Demo complete. Temporary PostgreSQL and exported files have been removed.'; \
+	fi
 
 lab:
 	@$(UV) run --locked python -m pytest -q -s --no-header --tb=short tests/lab_story.py
-	@printf '%s\n' '学习工具已退出，临时 PostgreSQL 和导出文件已清理。'
+	@printf '%s\n' 'Learning lab stopped. Temporary PostgreSQL and exported files have been removed.'
 
 benchmark:
 	$(UV) run --locked python -m pytest -q -s --no-header --tb=short tests/benchmark_story.py

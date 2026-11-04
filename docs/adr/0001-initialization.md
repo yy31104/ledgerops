@@ -6,8 +6,8 @@ user decisions. No R1 behavior is implemented by this ADR.
 
 ## Context
 
-The [original contracts](../reference/pro-2026-10-23/ledgerops/CONTRACTS.md) put
-admission in narrow PL/pgSQL entry points. The [follow-up review](../reference/follow-up-review.md)
+The [original contracts](../../devlog/docs/reference/pro-2026-10-23/ledgerops/CONTRACTS.md) put
+admission in narrow PL/pgSQL entry points. The [follow-up review](../../devlog/docs/reference/follow-up-review.md)
 supports Python-led SQL, while identifying guarantees that direct writes weaken.
 Original sources stay unchanged; this document records the working amendment.
 

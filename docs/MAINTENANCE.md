@@ -1,17 +1,19 @@
-# 冻结、核对、重建与恢复（含 R3 活动预留）
+# Freeze, verify, rebuild and resume, including active payout holds
 
-大型工作区会自动转入完整磁盘核验，旧小数据路径保持不变。核验在已经获得排他屏障的
-READ COMMITTED事务内执行，避免锁前固定的旧快照；修复仍现场重算并在同一事务中独立后验。
-新报告v4和预览标明该捕获上下文，B失败仍阻止重建、但不阻止结构/A通过后的恢复。
-详见[大型维护与资源边界](MAINTENANCE-CAPACITY.md)。
+Larger workspaces automatically switch to complete on-disk verification; the original small-data path is unchanged.
+Verification runs in a READ COMMITTED transaction after the exclusive barrier has been acquired, avoiding an old snapshot fixed before the lock.
+Repairs still recompute current values and verify the result independently in the same transaction. Report v4 and previews identify that capture context.
+A failed B check still blocks rebuild, but does not block resume when structure and A pass.
+See [large-workspace maintenance and resource limits](MAINTENANCE-CAPACITY.md).
 
-已实现的本地维护流程：冻结并排空合作写事务 → 导出、查看差异 → 排他事务内现场重算
-并应用 → 再导出核对 → 显式恢复。没有候选余额表，也没有从预览文件导入余额的接口。
-数据库冻结不代表外部付款停止；R3 的在途模拟支付商调用可能继续执行。冻结期间不接下新的准入、派发 claim 或观测落库，恢复后须继续查证外部事实。
+The implemented local flow is: freeze and drain cooperating write transactions → export and inspect differences → recompute and apply
+inside an exclusive transaction → export and verify again → explicitly resume. There is no candidate-balance table or interface for importing balances from a preview.
+Freezing the database does not stop external payments. In-flight R3 simulator calls may finish. While frozen, new admissions, dispatch claims and observation writes are blocked;
+external facts must still be investigated after resume.
 
-## 准备与身份
+## Preparation and identities
 
-在已有 R1 数据库上，先由本地管理员建立独立角色，再使用既有迁移连接应用 003：
+On an existing R1 database, a local administrator first creates a separate role, then applies 003 using the existing migration connection:
 
 ```sql
 CREATE ROLE ledger_maintenance LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
@@ -19,41 +21,42 @@ CREATE ROLE ledger_maintenance LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
 \password ledger_maintenance
 ```
 
-迁移 004 追加恢复报告字段；已应用的 003 不改。
+Migration 004 adds resume-report fields without changing the already-applied 003.
 
-角色没有 app/migrator 成员资格、历史账务写权限或 DDL。迁移 006 为活动 hold 重建增加 reserved 的投影写权限，不能据此修改 hold 或其事件。
-它可以修改模式、余额投影和维护元数据，因此仍须通过 Python 流程正确操作。
-直接拿维护凭据执行任意 SQL 不会自动遵守屏障和核对规则。
+The role has no app/migrator membership, historical financial write privileges or DDL capability. Migration 006 adds reserved projection-write privileges for active-hold rebuilds;
+it does not permit changes to holds or their events. The role can change mode, balance projections and maintenance metadata, so correct operation still requires the Python flow.
+Arbitrary SQL executed with maintenance credentials does not automatically obey the barrier or verification rules.
 
 ```sh
-# 私下设置 LEDGEROPS_MIGRATION_DSN；不要将密码写入 Git 或证据日志。
+# Set LEDGEROPS_MIGRATION_DSN privately; keep passwords out of Git and evidence logs.
 PYTHONPATH=src uv run --locked python -m ledgerops.db.migrations
 ```
 
-迁移器不创建角色或密码。迁移 006 起，新数据库需事先准备 migrator、app、reader、maintenance、worker 五个
-角色。worker 的创建与边界见[提现说明](PAYOUTS.md)。实际业务工作区与数据也须已初始化；本任务未创建常驻本地数据库。
+The migrator does not create roles or passwords. From migration 006 onward, a new database requires migrator, app, reader, maintenance and worker roles beforehand.
+Worker creation and boundaries are covered by [payouts](PAYOUTS.md). The actual workspace and data must also be initialized; this task did not create a persistent local database.
 
-维护命令使用 `LEDGEROPS_MAINTENANCE_DSN`，普通导出仍用 reader 的
-`LEDGEROPS_EXPORT_DSN`。actor UUID 来自受信调用边界，仅作为审计身份，不代替认证。
+Maintenance commands use `LEDGEROPS_MAINTENANCE_DSN`; ordinary exports still use the reader's `LEDGEROPS_EXPORT_DSN`.
+The actor UUID comes from a trusted calling boundary and is an audit identity, not a replacement for authentication.
 
-首次操作前固定并保存以下值，之后重试必须复用：工作区 `LEDGEROPS_WORKSPACE_ID`、
-本次冻结 `LEDGEROPS_FREEZE_ID`、本次修复 `LEDGEROPS_REPAIR_ID`、操作人
-`LEDGEROPS_ACTOR_ID`。每个都是规范 UUID。原因文本原样保留，不会去空格或归一化。
+Fix and save these values before the first operation, then reuse them on retries: workspace `LEDGEROPS_WORKSPACE_ID`,
+freeze `LEDGEROPS_FREEZE_ID`, repair `LEDGEROPS_REPAIR_ID` and operator `LEDGEROPS_ACTOR_ID`.
+Each must be a canonical UUID. Reason text is retained exactly, without trimming or normalization.
 
-## 顺序执行
+## Run in order
 
-在仓库根目录运行。冻结会等待持有该工作区共享屏障的在途购买完成，再提交 FROZEN：
+Run from the repository root. Freeze waits for in-flight purchases holding the workspace's shared barrier, then commits FROZEN:
 
 ```sh
 PYTHONPATH=src uv run --locked python -m ledgerops.cli freeze \
     --workspace "$LEDGEROPS_WORKSPACE_ID" --freeze-id "$LEDGEROPS_FREEZE_ID" \
-    --actor "$LEDGEROPS_ACTOR_ID" --reason "核对余额漂移"
+    --actor "$LEDGEROPS_ACTOR_ID" --reason "investigate balance drift"
 ```
 
-之后新购买（包括需要写新请求关联的重放）返回 503，且不保留新业务结果。冻结失败不会
-伪造冻结成功；锁超时或取消后，用原身份确认结果。RESTORE 不能当作普通冻结处理。
+Subsequent purchases, including replays that need a new request association, return 503 without retaining a new business result.
+A failed freeze does not fabricate success. After a lock timeout or cancellation, confirm the outcome using the original identity.
+RESTORE is not an ordinary freeze.
 
-查看预览；可将 stdout JSON 重定向到自己的 `var/preview-report.json` 保存：
+Inspect the preview; stdout JSON may be redirected to your own `var/preview-report.json`:
 
 ```sh
 PYTHONPATH=src uv run --locked python -m ledgerops.cli preview-rebuild \
@@ -61,28 +64,31 @@ PYTHONPATH=src uv run --locked python -m ledgerops.cli preview-rebuild \
     --output-root ./var/exports
 ```
 
-预览返回 `export_path`、`report`、`changes`。changes 包含全部账户的 before/after，
-包括零活动和未改变金额的账户；版本字段展示下一次修复会写入的版本。保存导出目录末尾
-的 UUID 为 `LEDGEROPS_PREVIEW_EXPORT_ID`。它是后续审计的引用，不是可执行余额数据。
+The preview returns `export_path`, `report` and `changes`. Changes contain before/after values for every account,
+including zero-activity accounts and unchanged amounts; version fields show what the next repair would write.
+Save the export directory's final UUID as `LEDGEROPS_PREVIEW_EXPORT_ID`. It is a later audit reference, not executable balance data.
 
-v5 起，结构（含合法 hold 生命周期）和 B 通过时，余额漂移可以修复：借贷合计来自 journal，reserved 来自不可变 HELD 事件对应的活动 hold。B 失败不能用重建掩盖；缺失或非法的 hold 源记录同样阻止应用。旧 v1–v4 没有 hold 历史，保留原先非零预留不支持重建的边界。
+From v5 onward, balance drift can be repaired when structure, including a valid hold lifecycle, and B pass. Debit/credit totals come from the journal;
+reserved comes from active holds tied to immutable HELD events. Rebuild cannot conceal a failed B check, and missing or invalid hold source records also block application.
+Old v1–v4 exports lack hold history and retain the original restriction against rebuilding with nonzero reservations.
 
 ```sh
 PYTHONPATH=src uv run --locked python -m ledgerops.cli apply-rebuild \
     --workspace "$LEDGEROPS_WORKSPACE_ID" --freeze-id "$LEDGEROPS_FREEZE_ID" \
     --repair-id "$LEDGEROPS_REPAIR_ID" --preview-export-id "$LEDGEROPS_PREVIEW_EXPORT_ID" \
-    --actor "$LEDGEROPS_ACTOR_ID" --reason "从分录重建余额"
+    --actor "$LEDGEROPS_ACTOR_ID" --reason "rebuild balances from journal entries"
 ```
 
-应用时重新取得排他屏障，检查当前冻结身份，重新读取并核对账本，再用 SQL 独立聚合
-全部账户。更新余额、完整 before/after 审计、账户版本和 projection epoch，在一个事务
-里全成或全败。应用没有目标余额参数，也不读取旧预览计算结果。preview ID 由调用者
-声明，工具不认证它确实指向已读报告。成功后仍为 FROZEN。
+Apply reacquires the exclusive barrier, checks the current freeze identity, rereads and verifies the ledger, then independently aggregates all accounts in SQL.
+Balance updates, complete before/after audits, account versions and projection epoch commit or roll back together in one transaction.
+Apply accepts no target balances and does not read values calculated by an old preview. The caller supplies the preview ID;
+the tool does not authenticate that it identifies a report the operator actually read. Success leaves the workspace FROZEN.
 
-现有账户 version 加 1；缺失余额行从 1 开始；epoch 加 1。booked 仍是数据库生成列。
-源分录、业务结果、hold 和事件不改；reserved 是会被修复的投影。修复日志包含全部账户及 reserved 的前后值，提交后不能增删改审计行。历史 fold_version=1 仍要求预留为零，新修复使用 fold_version=2。
+Existing account versions increase by one; a missing balance row starts at version one; epoch increases by one. Booked remains a database-generated column.
+Source entries, business results, holds and events do not change; reserved is a repairable projection. The repair log includes every account and before/after reserved values,
+and audit rows cannot be added, changed or deleted after commit. Historical fold_version=1 still requires zero reservations; new repairs use fold_version=2.
 
-重新导出，用返回的新路径进行离线核对（详见[导出说明](EXPORT-AND-VERIFY.md)）：
+Export again and verify offline using the new returned path; see [export and verification](EXPORT-AND-VERIFY.md):
 
 ```sh
 PYTHONPATH=src uv run --locked python -m ledgerops.cli export \
@@ -90,45 +96,46 @@ PYTHONPATH=src uv run --locked python -m ledgerops.cli export \
 PYTHONPATH=src uv run --locked python -m ledgerops.cli verify "$LEDGEROPS_POST_EXPORT_DIR"
 ```
 
-确认结果后，显式恢复。resume 会在排他事务内再次现场核对，不信任旧报告：
+After confirming the result, explicitly resume. Resume verifies current data again inside the exclusive transaction rather than trusting an old report:
 
 ```sh
 PYTHONPATH=src uv run --locked python -m ledgerops.cli resume \
     --workspace "$LEDGEROPS_WORKSPACE_ID" --freeze-id "$LEDGEROPS_FREEZE_ID" \
-    --actor "$LEDGEROPS_ACTOR_ID" --reason "应用后核对通过"
+    --actor "$LEDGEROPS_ACTOR_ID" --reason "post-rebuild verification passed"
 ```
 
-健康账本也可冻结、核对后直接恢复，无需做无意义的修复。恢复只要求结构正确与余额核对 A
-通过；B 不通过时，完整报告仍写入不可再改的 `resume_report`，不会被恢复改成通过。合法非零 hold 不阻止恢复；v5 的 reserved 若与权威 hold 不符，就是 A 失败，须先重建。应用重建要求结构和 B 通过，允许合法活动 hold。
-服务能证明现场核对通过，不能证明操作人读过预览或另存了导出报告。
+A healthy ledger may be frozen, checked and resumed without an unnecessary repair. Resume requires only valid structure and a passing balance check A.
+When B fails, the complete report is still saved in immutable `resume_report`; resuming does not turn it into a pass. Valid nonzero holds do not prevent resume.
+In v5, reserved differing from authoritative holds fails A and requires rebuild first. Applying a rebuild requires passing structure and B, and permits valid active holds.
+The service can establish that current checks passed, not that the operator read the preview or saved another copy of the export report.
 
-## 失败和重试
+## Failures and retries
 
-- 相同修复 ID、相同字段会返回原修复元数据，不会再次增加余额版本或 epoch。字段不同
-  报 `IDENTITY_CONFLICT`。COMMIT 断线时不能推断失败；重新连接并复用同一 ID。
-- 已关闭冻结／恢复身份的重放只返回历史元数据，不会操作新冻结会话。成功读回历史结果
-  不表示工作区现在一定是 NORMAL；当前状态应另查新快照。
-- 新操作必须使用当前 freeze ID。其他工作区的、上一轮的身份都不能作用于当前会话。
-- 业务前置条件不满足时，CLI 返回退出码 2 和结构化错误，例如 `INVALID_SOURCE`、
-  `RESERVED_UNSUPPORTED`、`FREEZE_CONFLICT`、`PROJECTION_DRIFT`。preview 命令运行
-  成功可返回 0，同时报告漂移，是否可应用要看报告字段。verify 发现不一致返回 1。
-- SQL、约束、锁超时、取消和连接错误不会内部自动重试。数据库事务原子回滚；连接错误
-  可能结果未知，由稳定 ID 解决。有限故障测试不证明任意故障都已穷尽。
+- The same repair ID and fields return the original repair metadata without incrementing balance versions or epoch again. Different fields return `IDENTITY_CONFLICT`.
+  A disconnect during COMMIT does not establish failure; reconnect and reuse the same ID.
+- Replaying a closed freeze/resume identity returns historical metadata only and does not act on a newer freeze session.
+  Reading a historical success does not establish that the workspace is currently NORMAL; query a fresh snapshot for current state.
+- New operations require the current freeze ID. Identities from another workspace or an earlier session cannot affect the current session.
+- Failed business preconditions produce CLI exit code 2 and a structured error, such as `INVALID_SOURCE`, `RESERVED_UNSUPPORTED`, `FREEZE_CONFLICT` or `PROJECTION_DRIFT`.
+  A successful preview command may exit 0 while reporting drift; inspect the report fields to determine whether apply is allowed. Verify exits 1 when it finds inconsistency.
+- SQL, constraint, lock-timeout, cancellation and connection errors are not retried internally. Database transactions roll back atomically;
+  a connection error may leave the outcome unknown, resolved through stable IDs. Finite fault tests do not exhaust every possible failure.
 
-## 旧包兼容与范围
+## Old-bundle compatibility and scope
 
-新数据库导出格式 v5（迁移 001–006）增加提现、hold、意图、尝试及审计 fold_version；v4 冲正和 v3 恢复报告契约继续保留。
-旧 v1（001/002）、v2（001–003）、v3（001–004）、v4（001–005）数据继续
-按原规则加载、核对，冻结的 PR01 导出包有独立回归。未知新版本仍拒绝。
-源码命令自动记录 Git 版本与 dirty；安装包预览需显式 `--code-revision`，同导出命令。
-文件发布和防护沿用 PR01，不添加另一套文件协议。
+New-database export format v5 (migrations 001–006) adds payouts, holds, intents, attempts and audit fold_version. The v4 reversal and v3 resume-report contracts remain supported.
+Old v1 (001/002), v2 (001–003), v3 (001–004) and v4 (001–005) data continue to load and verify under their original rules.
+The frozen PR01 export bundle has a separate regression test. Unknown newer versions are rejected.
+Source commands automatically record the Git revision and dirty state. Installed-package previews require explicit `--code-revision`, just like exports.
+File publication and protection retain the PR01 protocol rather than adding another one.
 
-[R2-PR03 冲正](REVERSAL.md)已实现；冲正后的完整历史同样参与现场核对和重建。
-测试中的合成开户／预留不是公共业务接口。
+[Full reversal](REVERSAL.md) is implemented. Complete history after reversal also participates in current verification and rebuild.
+Synthetic test opening balances and reservations are not public business interfaces.
 
-升级前如果旧库 reserved 非零却没有权威 hold 历史，006 明确拒绝；应先调查旧值来源，不能由迁移自动清零或伪造历史。
+Migration 006 explicitly rejects an old database with nonzero reserved but no authoritative hold history. Investigate the source of those values before upgrading;
+the migration cannot silently zero them or fabricate history.
 
-007 起的跨工作区支付商冲突属于全局诊断：另一个工作区新收到的冲突可能在本工作区
-冻结期间出现。排他屏障固定本工作区 journal/hold 金融来源，不能冻结所有支付商证据；
-维护报告中的关联诊断反映当次读取，`source_witness` 不证明这些跨工作区诊断拥有同一快照。
-普通只读导出仍在独立的 REPEATABLE READ 事务中取得一致快照。关联诊断不作为重建金额来源。
+From 007 onward, cross-workspace provider conflicts are global diagnostics: a conflict received in another workspace may arise while this workspace is frozen.
+The exclusive barrier fixes this workspace's journal/hold financial sources, not every provider's evidence. Related maintenance diagnostics reflect the read performed;
+`source_witness` does not establish a shared snapshot for these cross-workspace diagnostics. Ordinary read-only exports still obtain a consistent snapshot in a separate REPEATABLE READ transaction.
+Related diagnostics are not inputs to rebuilt amounts.

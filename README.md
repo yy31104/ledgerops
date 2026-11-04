@@ -11,9 +11,7 @@
 LedgerOps is a Python + PostgreSQL ledger for a small payment platform: customers
 make purchases and merchants withdraw their balance. It follows three troublesome
 cases: two requests spending the same money, a worker crashing just after the
-provider pays, and balanced entries crediting the wrong merchant. Business requests
-produce retained results, with journal entries and payout history available for
-reconciliation and recovery.
+provider pays, and balanced entries crediting the wrong merchant.
 
 Solo portfolio project. The payment provider is a local simulator; no real money moves. Built with AI assistance.
 
@@ -23,9 +21,12 @@ Solo portfolio project. The payment provider is a local simulator; no real money
 
 For a payout of 60 with a fee of 2:
 
-`POST /v1/payouts` → [`db/payout_admission.py`](src/ledgerops/db/payout_admission.py) locks clearing + merchant balances, reserves 62, returns 202 → [`worker.py`](src/ledgerops/worker.py) + [`db/payout_dispatch.py`](src/ledgerops/db/payout_dispatch.py) commit `MAY_HAVE_SENT` (the call may have reached the provider) before sending → [`provider_sim/`](provider_sim/) persists the payment → [`db/payout_finance.py`](src/ledgerops/db/payout_finance.py) consumes the hold on success or releases it on confirmed failure; an unknown outcome keeps it reserved.
+1. `POST /v1/payouts` reaches [`db/payout_admission.py`](src/ledgerops/db/payout_admission.py), which locks clearing and merchant balances, reserves 62 and returns 202.
+2. [`worker.py`](src/ledgerops/worker.py) and [`db/payout_dispatch.py`](src/ledgerops/db/payout_dispatch.py) commit `MAY_HAVE_SENT` before making the call: the provider may receive it even if the worker never sees a reply.
+3. [`provider_sim/`](provider_sim) stores the payment and its result under a persistent payment key.
+4. [`db/payout_finance.py`](src/ledgerops/db/payout_finance.py) consumes the hold on success or releases it on confirmed failure. An unknown outcome keeps the money reserved.
 
-A timeout never releases money; release requires a confirmed provider failure or closure.
+A timeout never releases money; the provider must confirm that the payment failed or was closed without paying.
 
 Amounts below are PLN minor units: 100 means PLN 1.00. Booked is the merchant's recorded balance; reserved is money held for a payout.
 
@@ -107,11 +108,12 @@ wrong merchant.
 
 **Recover from retained facts.** The worker saves its dispatch intent before network
 I/O and preserves the provider key across restarts. Repair recomputes projections
-under a writer-drained barrier, and operator actions bind approval to current facts.
+after blocking new writes and waiting for in-flight transactions to finish.
+Operator actions bind approval to current facts.
 
 ## Limits
 
-- The provider is a simulator with persistent payment keys and close-if-absent tombstones.
+- The provider is a simulator; it retains payment keys and records closed payments to reject late requests.
 - Deployment has been exercised on one Linux host; cloud operation and high availability are untested.
 - No real bank is connected.
 

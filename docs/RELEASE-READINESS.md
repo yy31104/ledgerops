@@ -1,28 +1,28 @@
-# LedgerOps 本地交付与运行入口
+# LedgerOps release and operating guide
 
-本项目已从单条记账示例扩展为带认证、异步提现、独立核对、受控人工操作和恢复工具的服务。
-运行包仍只使用合成支付商，在本机 Linux 容器中验收；没有把真实资金、银行终局或云端运行当作
-本地测试能证明的事情。最终命令、测试结果、镜像身份和清理记录见
-[统一验收](../evidence/DELIVERY/2026-10-29/verification.json)。
+The project has grown from a single posting example into a service with authentication, asynchronous payouts, independent verification, controlled operator actions and recovery tools.
+The runtime package still uses a synthetic provider and has been exercised in local Linux containers. Local tests do not establish real-money handling, bank finality or cloud operation.
+Recorded commands, test results, image identities and cleanup outcomes are in the
+[delivery acceptance record](../devlog/evidence/DELIVERY/2026-10-29/verification.json).
 
-## 已经交付的完整流程
+## Delivered flows
 
-| 部分 | 能做什么 | 关键边界 |
+| Area | Capability | Boundary |
 |---|---|---|
-| R1/R2 | 购买、并发防透支、原身份重试、冲正、A/B核对、冻结排空和投影重建 | SQL约束不能单独证明余额和归属正确，仍由独立核对发现偏差 |
-| R3 | 持久提现指令、hold、保守派发、认证观测、未知结果恢复和关单墓碑 | 202只表示受理；时间过去或NOT_FOUND都不能释放hold |
-| R4 | 固定结算来源、完整组匹配、不可变run、全块pin与原子current发布 | 对账发现差异，不自动修账；不完整来源不能变成健康结果 |
-| R5 | 当前权限鉴权、真实HTTP服务、调查台、不同actor审批、备份恢复 | 旧权限/证据/版本失效；恢复默认不写账、不派发 |
-| R6 | 选定合成证据和来源、严格版本/单位、独立标准库读入器 | 只读，无数据库凭据或运维修正能力；Chronicle应用未在此仓库集成 |
-| 运行配套 | 固定镜像/依赖、非root、TLS、角色隔离、资源限制、优雅停机 | 单机本地范围；真实环境需要自己的身份、网络和支付商契约 |
+| R1/R2 | Purchases, concurrent overdraft prevention, original-identity retries, reversals, A/B verification, draining writers and projection rebuilds | SQL constraints alone do not establish correct balances or ownership; independent checks detect drift. |
+| R3 | Persistent payout instructions, holds, conservative dispatch, authenticated observations, unknown-outcome recovery and durable closed-payment records | 202 means acceptance only; elapsed time or NOT_FOUND cannot release a hold. |
+| R4 | Fixed reconciliation sources, complete group matching, immutable runs, pinning every block and atomic current publication | Reconciliation finds differences without repairing balances automatically; incomplete sources cannot produce a healthy result. |
+| R5 | Current-permission authentication, HTTP service, investigation console, distinct-actor approvals and backup recovery | Stale permissions, evidence and versions invalidate authorization; restore defaults to no financial writes or dispatch. |
+| R6 | Selected synthetic evidence and sources, strict versions/units and an independent standard-library reader | Read-only, with no database credentials or operator repair capability; the Chronicle application is not integrated into this repository. |
+| Operations | Pinned images/dependencies, non-root containers, TLS, role separation, resource limits and graceful shutdown | Local single-host scope; an actual deployment needs its own identities, network and provider contract. |
 
-用同一组数字理解：客户100买80后，客户20、商户80；商户提现60、手续费2时预留62，
-可用18。只有经认证的SUCCEEDED才消费62并记本地分录；负终局释放hold；UNKNOWN继续保留。
-如果支付商已成功而本地崩溃，恢复读取既有外部证据，沿原身份结算，不重新付款。
+Using the same amounts throughout: a customer with 100 purchases 80, leaving customer 20 and merchant 80. A merchant payout of 60 plus a fee of 2 reserves 62,
+leaving 18 available. Only authenticated SUCCEEDED consumes 62 and posts local entries. A negative terminal result releases the hold; UNKNOWN retains it.
+If the provider pays and the local process crashes, recovery reads existing external evidence and settles under the original identity without paying again.
 
-## 从哪里开始运行
+## Running the project
 
-源码开发与测试需要Python3.12、uv和Docker：
+Source development and tests require Python 3.12, uv and Docker:
 
 ```sh
 make bootstrap
@@ -31,15 +31,14 @@ make test
 make build
 ```
 
-首次运行可能下载锁定依赖和PostgreSQL镜像。Docker不可用时集成测试明确失败。
-`make test`中的demo/lab子进程明确复用正在运行pytest的解释器环境，不依赖外层设置
-`UV_NO_SYNC`、`UV_PROJECT_ENVIRONMENT`或预先填充仓库离线缓存；先按上面执行`make bootstrap`即可。
-测试只创建自己的临时数据库/容器；`make lab`仍是独立学习工具，不能当生产接口。
-从零理解可读[原有中文教程](learning/LEDGEROPS-TUTORIAL.zh-CN.md)。
+The first run may download locked dependencies and the PostgreSQL image. Integration tests fail explicitly when Docker is unavailable.
+The demo/lab subprocesses inside `make test` explicitly reuse the running pytest interpreter environment. They do not require outer
+`UV_NO_SYNC` or `UV_PROJECT_ENVIRONMENT` settings, or a prefilled repository offline cache; run `make bootstrap` first as shown above.
+Tests create only their own temporary databases and containers. `make lab` remains a separate learning tool, not a service interface.
 
-需要真实容器部署时，先读[Linux运行手册](../ops/linux/README.md)。以下是可直接替换路径的
-本地合成验收示例，目录需要是新的；`--dispose-owned-test-data`会明确删除这个测试项目的数据。
-源仓库必须已提交且干净。秘密只进入专属卷和临时0600文件，不打印到终端。
+For container deployment, read the [Linux operating guide](../ops/linux/README.md) first. The example below runs local synthetic acceptance with replaceable paths;
+use a new directory. `--dispose-owned-test-data` explicitly deletes this test project's data.
+The source repository must be committed and clean. Secrets enter only dedicated volumes and temporary 0600 files and are not printed to the terminal.
 
 ```sh
 REPO_ROOT="$(pwd -P)"
@@ -61,14 +60,15 @@ python ops/linux/acceptance.py --project ledgerops-test-local \
   --dispose-owned-test-data
 ```
 
-验收会显式开启自己的合成派发，执行完自动关停清理。普通默认启动保持RESTORE、ready503，
-金融写入关闭且worker不启动；这不是程序故障。需要保留数据的普通`down`不删除卷。
-不要用`docker system prune`清理项目，也不要把验收里的故障注入用于真实数据。
+Acceptance explicitly enables its own synthetic dispatch, then shuts down and cleans up. An ordinary default startup keeps RESTORE, returns ready 503,
+disables financial writes and does not start the worker; this is intentional. An ordinary `down` retains volumes when data must be preserved.
+Do not clean up this project with `docker system prune`, or apply acceptance fault injection to real data.
 
-## 大工作区如何继续核对和维护
+## Verification and maintenance for larger workspaces
 
-旧财务格式1–9仍支持，原来的10,000行/表和16MiB上限保持。新的format10通过有界游标和分块
-完整导出，以磁盘SQLite独立核对；不靠截断或忽略隔离记录缩小数据。CLI须显式选择：
+Financial formats 1–9 remain supported with their original limits of 10,000 rows per table and 16MiB. The new format10 provides a complete,
+chunked export through bounded cursors and independent verification using on-disk SQLite. It does not shrink data by truncating or omitting quarantine records.
+The CLI requires an explicit choice:
 
 ```sh
 python -m ledgerops.cli export --format stream10 --workspace WORKSPACE_UUID \
@@ -77,45 +77,48 @@ python -m ledgerops.cli verify --format stream10 PRIVATE_EXPORT_UUID_DIRECTORY \
   --scratch-root PRIVATE_DISK_SCRATCH
 ```
 
-受保护的`LEDGEROPS_EXPORT_DSN`须由运行环境装载；不要把密码写进命令行或Git。
-[R4与审批接入](STREAMING-EVIDENCE.md)、[完整源格式](STREAM10.md)和
-[大型维护](MAINTENANCE-CAPACITY.md)说明限制与操作方式。
-维护自动保留小数据旧路径，大数据改用排他屏障内的完整磁盘核验。维护预览明确标识
-READ COMMITTED捕获上下文，不能冒充只读RR来源进入R4或R6。
+Load the protected `LEDGEROPS_EXPORT_DSN` through the runtime environment; do not put passwords in command lines or Git.
+[R4 and approval integration](STREAMING-EVIDENCE.md), the [complete source format](STREAM10.md) and
+[large-workspace maintenance](MAINTENANCE-CAPACITY.md) describe the limits and operating procedures.
+Maintenance keeps the original small-data path and switches larger data to complete on-disk verification under the exclusive barrier.
+Maintenance previews explicitly identify their READ COMMITTED capture context; they cannot be presented as read-only RR sources to R4 or R6.
 
-实测覆盖约17MiB来源、129条64KiB隔离记录和超过10,000请求键。声明的源上限为256MiB/
-100万行、单行4MiB、SQLite主索引512MiB、语义闭包16MiB；额外临时文件仍需要磁盘。
-超限或不完整语义检查会明确失败，不能返回健康。这些是工程拒绝上限，不能当吞吐或SLO承诺。
+Tests cover a source of about 17MiB, 129 quarantine records of 64KiB each and more than 10,000 request keys.
+Declared source limits are 256MiB and one million rows, with 4MiB per row, a 512MiB primary SQLite index and 16MiB of semantic closure. Additional temporary files still require disk space.
+Exceeding a limit or leaving semantic checks incomplete fails explicitly rather than returning healthy. These are rejection limits, not throughput or SLO commitments.
 
-提现额度查询已增加[活动预留部分索引](ACTIVE-HOLD-INDEX.md)，减少已终结历史对受理时持锁查询的影响。
-011只改变物理访问路径；财务行格式和旧文件语义保持。普通索引构建需要维护窗口。
-旧备份恢复后可用明确的`--index-only`管理员入口补建索引，保持runtime CONNECT关闭；
-不要用会授予CONNECT的普通迁移入口代替恢复后的升级。
+Payout capacity queries now use an [active-hold partial index](ACTIVE-HOLD-INDEX.md), reducing the effect of terminal history on admission queries performed while holding locks.
+Migration 011 changes only the physical access path; financial row formats and old file semantics remain intact. A regular index build requires a maintenance window.
+After restoring an old backup, use the explicit administrator `--index-only` entry point while runtime CONNECT remains closed.
+Do not replace that post-restore upgrade with the ordinary migration entry point, which grants CONNECT.
 
-## 恢复、身份与人工操作
+## Recovery, identity and operator actions
 
-- [认证与撤销](AUTHENTICATION.md)：身份从当前凭据映射；金融事务内复核，旧业务重放也不能绕过撤权。
-- [受控重处理](OPERATOR-ACTIONS.md)：不同actor审批，绑定当前证据epoch、目标版本、恢复代次、期限和完整事故集合。
-- [备份恢复](BACKUP-RESTORE.md)：真实pg_dump/pg_restore，同快照业务档案、对象清单、旧凭据/审批失效。
-- [HTTP接口](HTTP-SERVICE.md)：业务接口与学习lab分离，普通API与运维实例使用不同能力配置。
-- [只读交换](EVIDENCE-EXCHANGE.md)：离线读入与明确的未知外部时间/COMMIT时间，无操作回调。
+- [Authentication and revocation](AUTHENTICATION.md): identity comes from current credential mappings, rechecked inside financial transactions; old-result replay cannot bypass revocation.
+- [Controlled reprocessing](OPERATOR-ACTIONS.md): distinct-actor approval bound to current evidence epoch, target versions, restore generation, expiry and the complete incident set.
+- [Backup and restore](BACKUP-RESTORE.md): actual pg_dump/pg_restore, same-snapshot business archive, object manifest and invalidation of old credentials/approvals.
+- [HTTP interfaces](HTTP-SERVICE.md): business interfaces are separate from the learning lab; ordinary API and operator instances use different capability configurations.
+- [Read-only exchange](EVIDENCE-EXCHANGE.md): offline reading with explicit unknown external/COMMIT times and no operation callbacks.
 
-备份早于受理、且缺少独立命令档案时，工具报告RESTORE_GAP。它不会根据支付商记录猜造原请求键
-或原202，更不会自动再付款。恢复后CONNECT、写入和派发仍关闭；重新开放需要手册中的明确检查。
-同一数据库里的业务档案不能代替独立耐久命令档案；数据恢复耗时不是已经恢复营业的RTO。
+If a backup predates acceptance and there is no independent command archive, the tool reports RESTORE_GAP. It does not infer original request keys
+or an original 202 from provider records, and does not pay again automatically. CONNECT, writes and dispatch remain closed after restore; reopening requires the explicit checks in the operating guide.
+A business archive in the same database cannot replace an independently durable command archive. Data recovery time is not a measured time to resumed service.
 
-## 上线声明的实际范围
+## Scope of deployment claims
 
-已测试的运行环境是本机Docker中的Linux arm64，使用真实PostgreSQL和独立持久SQLite支付商。
-没有远程部署、真实支付商适配、真实IdP、主机丢失容灾或HA验收。非root、TLS和有限故障测试
-不会自动证明这些能力。不同actor分离依赖身份管理员正确映射现实人员，不能阻止受信管理员串通。
+The exercised environment is Linux arm64 in local Docker, with actual PostgreSQL and a separate persistent SQLite provider.
+Remote deployment, a real provider adapter, a real IdP, host-loss recovery and high availability have not been accepted. Non-root execution, TLS and finite fault tests do not establish those capabilities.
+Distinct-actor separation depends on the identity administrator correctly mapping real people; it cannot prevent trusted administrators from colluding.
 
-工作区导出能核对保留的原始请求，却不能证明最初保存的请求就没有错误；历史权限和provider HMAC
-在无信任密钥的离线核对中仍明确标为未核实。Hash是完整性证据，不是来源签名。
-当前Work设置禁止浏览器自动化，HTTP接口/静态资源/脚本已经检查，网页视觉和实际浏览器交互未验收。
-代码实现、验证范围、真实上线以及个人掌握分别记录，不能互相代替。
+Workspace exports can check retained original requests but cannot prove the requests were saved correctly in the first place.
+Historical permissions and provider HMAC remain explicitly unverified during offline checks without trust keys. A hash provides integrity evidence, not a source signature.
+The Work settings disabled browser automation during acceptance. HTTP interfaces, static assets and scripts were checked; visual appearance and real-browser interaction were not accepted.
+Implementation, verification scope, actual deployment and personal understanding are recorded separately and cannot substitute for one another.
 
-当前证据中的本机路径与JUnit主机名已做[展示脱敏](../evidence/PORTABILITY.md)。
-Git历史仍保留原始记录，仓库保持私有；当前文件路径清理不能代替公开前的历史审查。
-Linux验收失败会在报告中保存阶段和受限命令元数据；原始输出仅在库外私有诊断目录，
-具体检查方式见[Linux运行手册](../ops/linux/README.md)。
+The current public history has been sanitized, and the original repository is retained as a private archive; see [public history and recorded results](../devlog/docs/PUBLIC-HISTORY.md).
+Earlier presentation cleanup is documented in [portability notes](../devlog/evidence/PORTABILITY.md).
+Linux acceptance failures retain the stage and bounded command metadata in the report. Raw output remains only in a private diagnostics directory outside the repository;
+see the [Linux operating guide](../ops/linux/README.md) for inspection steps.
+
+Demo narration defaults to English. For the original Chinese narration, run
+`LEDGEROPS_DEMO_LANG=zh make demo`.

@@ -1,0 +1,5 @@
+20aae316f6cb4bcd7d54ac467b117d16db48899eb053b638a60d77f7ad851cad  devlog/evidence/R1-PR02/2026-10-23/pytest.xml
+b6b96ac3a4d809a7a3265d839a35b2c60169954ffbc266e56ff21209aa9aed6e  devlog/evidence/R1-PR02/2026-10-23/pytest-initial.xml
+684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1  dist/.gitignore
+9bb21d5692bb85be395b351b8dc0066615f960854addf6585cc0560c9c77cbbf  dist/ledgerops-0.1.0-py3-none-any.whl
+bf96026959dcce3ed60d37b24baa6f9dd7f051e109c240f605acff2eb8836832  dist/ledgerops-0.1.0.tar.gz

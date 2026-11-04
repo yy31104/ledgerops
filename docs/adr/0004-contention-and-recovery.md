@@ -71,7 +71,7 @@ retries start new transactions and re-run claims/posting rather than just the fi
 statement. Cancelled/timed-out calls must release transaction locks and claims.
 Independent fold and literal expected accounts remain the financial oracles.
 
-[Actual run record](../../evidence/R1-PR03/2026-10-23/README.md) binds tested source,
+[Actual run record](../../devlog/evidence/R1-PR03/2026-10-23/README.md) binds tested source,
 JUnit output and build artifacts. Earlier evidence remains historical.
 
 ## Limits
