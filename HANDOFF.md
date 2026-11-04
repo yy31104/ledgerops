@@ -6,8 +6,8 @@ Updated: 2026-11-04. Review follow-up optimizations are verified; sync to the ex
 
 The latest user asks for a credible project/post presentation. README now leads
 with the payment story, architecture, runnable demo and concrete failure-case
-tests, replacing stale R1/R2-only status claims. Chinese code tour:
-docs/PROJECT-TOUR.zh-CN.md; editable post draft: docs/portfolio/POST.zh-CN.md.
+tests, replacing stale R1/R2-only status claims. The subsequent recruiter-focused
+revision removes the Chinese overview and keeps the editable post outside Git.
 AI assistance and synthetic/local scope are stated without invented independent
 authorship or production experience. The repository remains private; no external
 post, access grant or visibility change is authorized by this documentation slice.
