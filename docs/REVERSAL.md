@@ -97,7 +97,7 @@ When two new reversal IDs target one purchase, the second waits for the original
 purchase lock. After the first commits, the second sees the success relation and
 retains ALREADY_REVERSED. The success relation's primary key is the final database
 guard. An unexpected 23505 propagates instead of being treated as success or ordinary
-replay. Contention on the same request key keeps purchase ledger's unique-claim waiting rules.
+replay. Contention on the same request key uses the purchase admission unique-claim waiting rules.
 
 `reversal_attempt` retains each eligible attempt; `purchase_reversal_effect` contains
 only successful relations. Composite foreign keys bind workspace, kind and original

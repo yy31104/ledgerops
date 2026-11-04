@@ -1,7 +1,7 @@
 """Independent checks over exported raw rows, using only the standard library.
 
 Purchase intent is the immutable stored canonical request, not reconstructed journal
-output. OPENING has no canonical request contract in purchase: it receives structural
+output. OPENING has no canonical request contract: it receives structural
 checks only. A test-only external manifest can additionally check request capture.
 """
 

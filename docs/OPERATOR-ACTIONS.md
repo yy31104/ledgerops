@@ -1,8 +1,8 @@
 # Controlled reprocessing of terminal evidence
 
-operator approvals exposes one action: `REPROCESS_TERMINAL_LOCAL_BLOCKER`. The provider already has an authenticated
+The operator approval workflow exposes one action: `REPROCESS_TERMINAL_LOCAL_BLOCKER`. The provider already has an authenticated
 SUCCEEDED, FAILED or CLOSED_ABSENT observation, but local financial processing stopped with LOCAL_BLOCKER. After an administrator
-completes an independent repair and publishes fresh reconciliation reconciliation evidence, two actors review the action and retry local settlement using the original observation.
+completes an independent repair and publishes fresh reconciliation evidence, two actors review the action and retry local settlement using the original observation.
 This entry point sends no provider request. UNKNOWN, contradictory evidence and EVIDENCE_LIMIT cannot be bypassed with this action.
 
 ## A complete example using 62
@@ -10,7 +10,7 @@ This entry point sends no provider request. UNKNOWN, contradictory evidence and 
 The customer starts with 100. A purchase of 80 leaves the merchant with 80. A payout of 60 plus a fee of 2 reserves 62, leaving 18 available.
 The provider reports SUCCEEDED, but local settlement fails. The original observation, LOCAL_BLOCKER, hold and 202 receipt all remain.
 
-1. Repair the local fault without changing the original observation or incident. Export again and publish a complete reconciliation version. The successful payment's source must appear in the actual
+1. Repair the local fault without changing the original observation or incident. Export again and publish a complete reconciliation run. The successful payment's source must appear in the actual
    provider manifest; an old empty manifest cannot authorize the action merely because its version is new.
 2. The proposer submits the payout, original terminal observation, current run UUID and reason. The server reads the amount, payment key, complete incident set,
    target accounts, hold and observation versions, then creates an immutable proposal and SHA-256 digest. Repeating the same action ID preserves the original bytes and absolute expiry.
@@ -65,7 +65,7 @@ SHA-256 over the original bytes and requires a match before approval. A proposal
 
 Credentials, the current proposal and execution ID remain only in page memory. Disconnecting or navigating away clears them, and old asynchronous responses cannot revive a session.
 After switching to the checker, enter the retained action UUID again to read the original proposal. Do not share approval tokens in URLs or files.
-Browser automation was restricted by the Work settings: actual HTTP flows and script syntax were checked; visual appearance and real-browser interaction have not been accepted.
+Automated console checks cover HTTP flows and JavaScript syntax; visual interaction is outside those tests.
 
 ## Locks, invalidation and resource limits
 
@@ -78,9 +78,9 @@ Proposals bind the workspace-wide evidence epoch, so a new publication for anoth
 changing restore generation or maker/checker membership/client versions, or reaching the database expiry all require fresh review.
 Rotating a token alone does not change the same actor's permission version; the executor's current credential must still be valid on every attempt.
 
-Proposals are limited to 512KiB, and the complete LOCAL_BLOCKER set to 100 incidents; 101 incidents reject the whole action. Each action allows at most 100 execution attempts.
-Expiry is 1–3600 seconds, with 15 minutes used by the page. Referenced objects are limited to 64MiB in total before review; oversized sets are rejected before reading.
-Workspace exports retain their own separate capacity limit, with chunked export deferred to a later operational slice. There is no automatic garbage collection or silent history loss.
+Proposals are limited to 512 KiB, and the complete LOCAL_BLOCKER set to 100 incidents; 101 incidents reject the whole action. Each action allows at most 100 execution attempts.
+Expiry is 1–3600 seconds, with 15 minutes used by the page. Legacy referenced objects are limited to 64 MiB in total before review; oversized sets are rejected before reading.
+Complete chunked sources have a separate bounded read path, described in [streaming evidence](STREAMING-EVIDENCE.md). There is no automatic garbage collection or silent history loss.
 
 ## Independent checks and limits
 

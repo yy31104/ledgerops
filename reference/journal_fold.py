@@ -1,7 +1,7 @@
 """Small integer oracle over raw rows, independent of production money and SQL code.
 
 Rows may carry UUID objects or strings. PostgreSQL numeric projection values may
-be Decimal. This purchase oracle handles posted balances only; it does not verify holds.
+be Decimal. This oracle folds posted balances only; it does not verify holds.
 """
 
 from collections import defaultdict

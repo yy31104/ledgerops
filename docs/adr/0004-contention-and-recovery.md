@@ -73,10 +73,10 @@ Process and wire-proxy tests exercise these schedules against PostgreSQL.
 
 ## Limits
 
-These bounded experiments establish the tested schedules and fault locations, not
-exhaustive correctness for every network, scheduler or database failure. They do not
-implement automatic reconnection, durable client command storage, production HTTP
-authentication, end-to-end external payment delivery, reversal or maintenance APIs.
+These bounded experiments cover purchase retries and response-loss recovery at the
+listed fault locations. Automatic reconnection and durable client command storage
+are outside that retry boundary. HTTP authentication, reversals, maintenance and
+external payout recovery have their own implementations and integration tests.
 The runtime remains a trusted credential, and database-owner access can bypass application rules.
 
 Primary semantics: [PostgreSQL whole-transaction retry guidance](https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html)

@@ -64,13 +64,7 @@ Install Python 3.12, [uv](https://docs.astral.sh/uv/), `make` and Docker, then c
 
 ```sh
 git clone https://github.com/yy31104/ledgerops.git
-```
-
-```sh
 cd ledgerops
-```
-
-```sh
 make bootstrap
 ```
 

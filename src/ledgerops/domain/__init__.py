@@ -1,4 +1,4 @@
-"""LedgerOps purchase domain values and canonical purchase identity."""
+"""LedgerOps domain values and canonical request identities."""
 
 from ledgerops.domain.identities import (
     AccountId,

@@ -13,7 +13,7 @@ external facts must still be investigated after resume.
 
 ## Preparation and identities
 
-On an existing purchase ledger database, a local administrator first creates a separate role, then applies 003 using the existing migration connection:
+Create the separate maintenance login before applying the packaged migrations with the administrator's migration connection:
 
 ```sql
 CREATE ROLE ledger_maintenance LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
@@ -33,7 +33,7 @@ PYTHONPATH=src uv run --locked python -m ledgerops.db.migrations
 ```
 
 The migrator does not create roles or passwords. From migration 006 onward, a new database requires migrator, app, reader, maintenance and worker roles beforehand.
-Worker creation and boundaries are covered by [payouts](PAYOUTS.md). The actual workspace and data must also be initialized; this task did not create a persistent local database.
+Worker creation and boundaries are covered by [payouts](PAYOUTS.md). Initialize the workspace and business data before running maintenance commands.
 
 Maintenance commands use `LEDGEROPS_MAINTENANCE_DSN`; ordinary exports still use the reader's `LEDGEROPS_EXPORT_DSN`.
 The actor UUID comes from a trusted calling boundary and is an audit identity, not a replacement for authentication.
@@ -125,7 +125,7 @@ The service can establish that current checks passed, not that the operator read
 
 New-database export format v5 (migrations 001–006) adds payouts, holds, intents, attempts and audit fold_version. The v4 reversal and v3 resume-report contracts remain supported.
 Old v1 (001/002), v2 (001–003), v3 (001–004) and v4 (001–005) data continue to load and verify under their original rules.
-The frozen snapshot export export bundle has a separate regression test. Unknown newer versions are rejected.
+The frozen snapshot export bundle has a separate regression test. Unknown newer versions are rejected.
 Source commands automatically record the Git revision and dirty state. Installed-package previews require explicit `--code-revision`, just like exports.
 File publication and protection retain the snapshot export protocol rather than adding another one.
 

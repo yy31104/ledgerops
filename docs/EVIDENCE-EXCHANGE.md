@@ -82,12 +82,12 @@ resolution -> financial snapshot -> selected exchange -> isolated `python -I -S`
 consumer, and real pinned reconciliation references. They preserve original exceptions and their
 dispositions. They do not claim that Chronicle's own adapter has been implemented.
 
-The selected exchange requires a readable complete source export. Minor0 retains
-the legacy 10,000-row/16-MiB source limit. Minor1 below accepts complete format10
+The selected exchange requires a readable complete source export. Minor version 0 retains
+the legacy 10,000-row/16-MiB source limit. Minor version 1 accepts complete format 10
 sources through their separate bounded verifier; do not treat a smaller selected
 output as a complete-source capacity guarantee.
 
-Exchange minor1 adds an explicit `FINANCIAL_STREAM10` source kind:
+Exchange minor version 1 supports the explicit `FINANCIAL_STREAM10` source kind:
 
 ```sh
 python -m ledgerops.exchange --financial-stream /absolute/export-uuid \
@@ -97,20 +97,20 @@ python -m ledgerops.exchange --financial-stream /absolute/export-uuid \
 
 The producer first validates and fully checks the complete chunked source, then
 collects only the selected allowlisted records into the bounded exchange. The
-manifest retains row-format9, chunk count, original stream-manifest hash and a
+manifest retains row format 9, chunk count, original stream-manifest hash and a
 content hash explicitly defined as concatenated JSONL bytes in manifest order.
 It preserves the full checker summary/completeness and report hash; failed or
 incomplete global checks remain visible as `source_healthy=false`. Selected records
-do not replace that source verdict. The consumer recognizes this exact minor1
-provenance structure and rejects unknown extensions. Historical minor0 files and
-their frozen golden bytes are unchanged. Minor0 and minor1 remain distinct source
-contracts; stream provenance is never silently inserted into a minor0 file.
+do not replace that source verdict. The consumer recognizes this exact minor version 1
+provenance structure and rejects unknown extensions. Historical minor version 0 files and
+their frozen golden bytes are unchanged. Minor versions 0 and 1 remain distinct source
+contracts; stream provenance is never silently inserted into a minor version 0 file.
 
-Minor1 also accepts a saved pinned read from the explicit stream-backed reconciliation source.
+Minor version 1 also accepts a saved pinned read from the explicit stream-backed reconciliation source.
 It checks the reconstructed reconciliation artifact and requires the original stream-manifest
 and content hashes to match. The reference keeps `matcher_data_sha256` separately
 from `full_stream_manifest_sha256` and the full source content hash; compact matcher
 bytes are never mislabeled as the original full history. Reader pin identity,
 selected business date/window and both source watermarks remain intact under an
 explicit historical stream-pin status. The isolated consumer recognizes this exact
-minor1 reference shape. Historical minor0 reference fields remain unchanged.
+minor version 1 reference shape. Historical minor version 0 reference fields remain unchanged.

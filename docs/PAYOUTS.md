@@ -188,13 +188,13 @@ automatic processing stops. Arbitrary SQL/COMMIT errors still roll back and prop
 they cannot be converted into business refusals.
 
 Repairing a projection does not automatically clear an existing blocker; controlled
-reprocessing requires the service security and recovery approval path. This differs from the first normal receipt
+reprocessing requires the operator approval workflow. This differs from the first normal receipt
 of success evidence after an active-hold repair, which may settle normally.
 FROZEN/RESTORE does not acknowledge durable observation receipt: callers must redeliver
 or query after recovery. A v6 `healthy` result does not mean all payouts were paid;
 read the pending, incident, blocker and resolved counts in `external_evidence` as well.
 
-## Bounded worker process (payout recovery)
+## Bounded payout worker process
 
 The installed package provides `python -m ledgerops.worker`, a dedicated background
 process. It uses a separate `ledger_worker` login. Database owners, migration roles
@@ -229,7 +229,7 @@ Process connections use 10 s statement, 5 s lock, 30 s transaction and 15 s
 idle-in-transaction guards on PostgreSQL 18. These are independent limits, not a
 promise that the whole process exits within five seconds. Restoring an old NORMAL
 workspace cannot bypass the separate restore/dispatch switches; do not enable them
-before the service security and recovery restore procedure completes. Database freezing cannot recall network
+before the backup restore procedure completes. Database freezing cannot recall network
 requests already sent.
 
 Logs are JSON events for readiness, idle state, attempt/result categories, pause

@@ -1,18 +1,17 @@
 # LedgerOps release and operating guide
 
-The project has grown from a single posting example into a service with authentication, asynchronous payouts, independent verification, controlled operator actions and recovery tools.
-The runtime package still uses a synthetic provider and has been exercised in local Linux containers. Local tests do not establish real-money handling, bank finality or cloud operation.
-The local Linux acceptance exercises the deployment, financial flows and resource cleanup.
+LedgerOps provides authenticated purchases and asynchronous payouts, independent verification, controlled operator actions and recovery tools.
+The package uses a synthetic provider. Local Linux acceptance exercises the deployment, financial flows and resource cleanup; real-money handling, bank finality and cloud operation remain outside that scope.
 
-## Delivered flows
+## Supported flows
 
 | Area | Capability | Boundary |
 |---|---|---|
 | Purchases and maintenance | Purchases, concurrent overdraft prevention, original-identity retries, reversals, A/B verification, draining writers and projection rebuilds | SQL constraints alone do not establish correct balances or ownership; independent checks detect drift. |
-| payout | Persistent payout instructions, holds, conservative dispatch, authenticated observations, unknown-outcome recovery and durable closed-payment records | 202 means acceptance only; elapsed time or NOT_FOUND cannot release a hold. |
-| reconciliation | Fixed reconciliation sources, complete group matching, immutable runs, pinning every block and atomic current publication | Reconciliation finds differences without repairing balances automatically; incomplete sources cannot produce a healthy result. |
-| service security and recovery | Current-permission authentication, HTTP service, investigation console, distinct-actor approvals and backup recovery | Stale permissions, evidence and versions invalidate authorization; restore defaults to no financial writes or dispatch. |
-| offline exchange | Selected synthetic evidence and sources, strict versions/units and an independent standard-library reader | Read-only, with no database credentials or operator repair capability; the Chronicle application is not integrated into this repository. |
+| Payouts | Persistent payout instructions, holds, conservative dispatch, authenticated observations, unknown-outcome recovery and durable closed-payment records | 202 means acceptance only; elapsed time or NOT_FOUND cannot release a hold. |
+| Reconciliation | Fixed reconciliation sources, complete group matching, immutable runs, pinning every block and atomic current publication | Reconciliation finds differences without repairing balances automatically; incomplete sources cannot produce a healthy result. |
+| Service security and recovery | Current-permission authentication, HTTP service, investigation console, distinct-actor approvals and backup recovery | Stale permissions, evidence and versions invalidate authorization; restore defaults to no financial writes or dispatch. |
+| Offline exchange | Selected synthetic evidence and sources, strict versions/units and an independent standard-library reader | Read-only, with no database credentials or operator repair capability; the Chronicle application is not integrated into this repository. |
 | Operations | Pinned images/dependencies, non-root containers, TLS, role separation, resource limits and graceful shutdown | Local single-host scope; an actual deployment needs its own identities, network and provider contract. |
 
 Using the same amounts throughout: a customer with 100 purchases 80, leaving customer 20 and merchant 80. A merchant payout of 60 plus a fee of 2 reserves 62,
@@ -65,7 +64,7 @@ Do not clean up this project with `docker system prune`, or apply acceptance fau
 
 ## Verification and maintenance for larger workspaces
 
-Financial formats 1–9 remain supported with their original limits of 10,000 rows per table and 16MiB. The new format10 provides a complete,
+Financial formats 1–9 remain supported with their original limits of 10,000 rows per table and 16 MiB. Format 10 provides a complete,
 chunked export through bounded cursors and independent verification using on-disk SQLite. It does not shrink data by truncating or omitting quarantine records.
 The CLI requires an explicit choice:
 
@@ -77,13 +76,13 @@ python -m ledgerops.cli verify --format stream10 PRIVATE_EXPORT_UUID_DIRECTORY \
 ```
 
 Load the protected `LEDGEROPS_EXPORT_DSN` through the runtime environment; do not put passwords in command lines or Git.
-[reconciliation and approval integration](STREAMING-EVIDENCE.md), the [complete source format](STREAM10.md) and
+[Reconciliation and approval integration](STREAMING-EVIDENCE.md), the [complete source format](STREAM10.md) and
 [large-workspace maintenance](MAINTENANCE-CAPACITY.md) describe the limits and operating procedures.
 Maintenance keeps the original small-data path and switches larger data to complete on-disk verification under the exclusive barrier.
 Maintenance previews explicitly identify their READ COMMITTED capture context; they cannot be presented as read-only RR sources to reconciliation or offline exchange.
 
-Tests cover a source of about 17MiB, 129 quarantine records of 64KiB each and more than 10,000 request keys.
-Declared source limits are 256MiB and one million rows, with 4MiB per row, a 512MiB primary SQLite index and 16MiB of semantic closure. Additional temporary files still require disk space.
+Tests cover a source of about 17 MiB, 129 quarantine records of 64 KiB each and more than 10,000 request keys.
+Declared source limits are 256 MiB and one million rows, with 4 MiB per row, a 512 MiB primary SQLite index and 16 MiB of semantic closure. Additional temporary files still require disk space.
 Exceeding a limit or leaving semantic checks incomplete fails explicitly rather than returning healthy. These are rejection limits, not throughput or SLO commitments.
 
 Payout capacity queries now use an [active-hold partial index](ACTIVE-HOLD-INDEX.md), reducing the effect of terminal history on admission queries performed while holding locks.

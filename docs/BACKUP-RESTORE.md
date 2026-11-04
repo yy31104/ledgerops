@@ -1,10 +1,10 @@
 # Local backup and restore contract
 
-The current package adds physical-index migration011. Backups keep the complete
-actual001–011 checksummed inventory; the exact historical001–010 inventory also
-remains restorable with runtime CONNECT closed. No arbitrary older prefix is
-accepted. After an old restore, the explicit `--index-only` administrator entry
-point can add011 without granting CONNECT or changing mode/restore generation.
+Backups retain the complete checksummed inventory of migrations 001–011, including
+the physical-index migration 011. The exact historical inventory of migrations
+001–010 also remains restorable with runtime CONNECT closed; arbitrary older prefixes
+are rejected. After an old restore, the explicit `--index-only` administrator entry
+point can add migration 011 without granting CONNECT or changing mode/restore generation.
 The general migration entry point grants CONNECT and must not substitute for this
 closed upgrade. See [active hold index](ACTIVE-HOLD-INDEX.md).
 
@@ -61,17 +61,14 @@ If every external identity has its original local admission, the tool obtains si
 
 `RECOVERED` means all retained payouts in this namespace have terminal local resolutions through the captured evidence. `UNRESOLVED` means at least one retained payout still lacks terminal evidence; its hold remains. `BLOCKED` means an existing/arriving contradiction, evidence limit or local obstacle stopped the resolver. `RESTORE_GAP` means authenticated provider history contains an identity absent from the restored admission archive. In particular, a backup before a paid admission lacks the client request key and original 202; provider request bytes cannot reconstruct them. The tool returns the gap, keeps RESTORE and creates no business record. No independent full-archive recovery path is claimed.
 
-There is no activation command in this slice. Keep CONNECT, HTTP financial writes and dispatch closed after investigation. Reopening requires a separate operator decision after current independent structure/projection/request-intent checks, latest complete namespace evidence, resolution of every gap/blocker and fresh identity bootstrap. An open pre-existing freeze must go through its explicit reviewed maintenance lifecycle; do not clear its pointer or rewrite its audit to force activation. Never restore an enable flag from artifact metadata.
+There is no activation command in this release. Keep CONNECT, HTTP financial writes and dispatch closed after investigation. Reopening requires a separate operator decision after current independent structure/projection/request-intent checks, latest complete namespace evidence, resolution of every gap/blocker and fresh identity bootstrap. An open pre-existing freeze must go through its explicit reviewed maintenance lifecycle; do not clear its pointer or rewrite its audit to force activation. Never restore an enable flag from artifact metadata.
 
-## Observed local drills
+## Recovery checks and bounds
 
-Preflight on PostgreSQL 18.6 used actual custom-format dump and restore, real provisioned runtime roles, an independently persistent provider process/SQLite store and a recording loopback HTTP proxy. Integrated actual PostgreSQL/CLI cases (22), signed-history cases (16), and native tool resource cases (4) passed together in18.14seconds. The complete suite passed1504cases in288.37seconds. A further actualPG post-publication parent-fsync failure case passed1.78seconds after that full run started; it verifies preservation of the complete artifact and original error. The final1664-case delivery regression includes this case and passes; the clean Linux image also passes native restore after large-source maintenance. Native recovery tests cover these restore and closed-access boundaries.
+[Recovery integration tests](../tests/integration/test_backup_recovery.py) use actual PostgreSQL dump/restore, provisioned runtime roles, a persistent provider simulator and a recording HTTP proxy. They cover a provider payment after the snapshot and a missing admission before the snapshot: the first settles from retained evidence, while the second reports RESTORE_GAP without inventing a request key.
 
-| Specific drill | Snapshot age at observation | Backup | New DB restore | History/LOOKUP validation | Observed data loss |
-|---|---:|---:|---:|---:|---|
-| Admission/202 retained; provider paid after snapshot | 0.393 s | 0.113 s | 0.163 s | 0.035 s | 0 admitted commands; 0 provider effects missing after recovery |
-| Backup before admission; provider later paid; no independent command archive | 0.323 s | 0.117 s | 0.161 s | 0.002 s | 1 missing admission; RESTORE_GAP, recovery not achieved |
+The same tests check one shared backup snapshot, GET-only provider recovery, token revocation, immutable objects and open-freeze preservation, corrupt artifacts, unsafe roles, closed service/worker defaults and cleanup after failures. A provider-ahead payout of 60 plus a fee of 2 settles to merchant booked 18 / reserved 0, retaining one journal and the original 202. [Native-tool tests](../tests/unit/test_backup_tools.py) check output limits, password environment handling and command deadlines.
 
-These are per-drill measured data-restore/validation times, not service-availability RTOs: traffic remains closed. They do not establish a universal RPO, recovery of unknown commands, HA, host loss tolerance, arbitrary volume or all interruption points. The bound is 512 MiB dump, 64 MiB same-database archive, 250,000 archive rows per selected table/objects, 512 MiB total object bytes, 10,000 history events / 16 MiB total history, at most 32 events per 64 KiB response and 10,000 retained payouts/workspaces. Crossing a bound fails closed; limits are not capacity certification.
+The bounds are a 512 MiB dump, a 64 MiB same-database archive, 250,000 archive rows per selected table/objects, 512 MiB total object bytes, 10,000 history events / 16 MiB total history, at most 32 events per 64 KiB response and 10,000 retained payouts/workspaces. Crossing a bound fails closed. Traffic remains closed after restore; these checks do not establish a service-availability RTO or recovery of unknown commands.
 
-The real checks include: one exported snapshot despite concurrent admission; provider-ahead 60+2 settlement to merchant18/reserved0 with one journal and original202; provider proxy proving GET-only recovery and one provider effect; old token resurrection rejection; preserved immutable objects/open freeze; corruption, missing bytes, changed schema, unsafe roles, existing target and failed restore cleanup; incomplete signatures/pages/coverage/key retention; default actual Gunicorn/worker against an explicitly NORMAL restored database producing zero financial writes/zero provider calls; and recovery exceptions restoring mode and releasing advisory locks. Independent financial verification is separate from provider HMAC authenticity.
+Independent financial verification and provider HMAC verification use separate checks and trust inputs.

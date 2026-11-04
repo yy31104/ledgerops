@@ -10,10 +10,9 @@ and approval evidence use these same trust boundaries.
 
 ## Foundation decisions
 
-- PostgreSQL 18.6, immutable image digest recorded in the test fixture; psycopg 3.3.6.
-  Retain the already initialized Python 3.12 interpreter. Use explicit, ordered SQL
-  migrations packaged with the Python code and recorded by content checksum. A small
-  transaction runner is sufficient for this one migration; no ORM or Alembic added.
+- PostgreSQL 18.6 has an immutable image digest recorded in the test fixture; the
+  Python 3.12 package uses psycopg 3.3.6. A transaction runner applies ordered SQL
+  migrations packaged with the code, recording each migration by content checksum.
 - `ledger_migrator` is a non-login schema/database owner in the disposable fixture.
   `ledger_app` is a separate actual login, with no owner/superuser/escalation privileges.
   Python owns business admission; there is no SECURITY DEFINER workflow.
@@ -30,8 +29,7 @@ and approval evidence use these same trust boundaries.
 - Database/public-schema creation, PUBLIC temporary-table privilege and PUBLIC
   ledger-function execution are revoked. Trigger functions use invoker rights,
   fixed search paths and qualified references. Runtime cannot disable them.
-- The clearing account may be owned by the fixture's SYSTEM actor. Frozen expected data was not changed
-  to satisfy an unnecessarily narrower database assumption.
+- The clearing account may be owned by the fixture's SYSTEM actor.
 
 ## Input and identity details
 
@@ -60,10 +58,11 @@ an explicit numeric-to-bigint cast can round. Python validates the wire domain.
 The runtime is a trusted service credential with cross-workspace SELECT access;
 composite foreign keys establish referential scope, not row-level authorization.
 
-The small reference fold is test evidence over posted entries, not the verification and repair export,
-hold lifecycle, drift service or rebuild implementation. Test fixtures write explicit
-SQL and are not a production admission API. Purchase replay, response loss,
-debit concurrency and the workspace barrier have separate integration coverage.
+The small reference fold checks posted entries. Complete exports, hold lifecycles,
+drift detection and projection rebuilds have separate implementations and tests.
+Fixtures write explicit SQL; application admission runs through its service boundary.
+Purchase replay, response loss, debit concurrency and the workspace barrier have
+separate integration coverage.
 
 ## Primary semantics checked
 

@@ -6,7 +6,7 @@ This page describes the current local interfaces. Controlled approvals are cover
 
 ## Configuration and startup
 
-An administrator must first create the database and roles, apply migration 010 and issue current credentials as described in AUTHENTICATION.md.
+An administrator must first create the database and roles, apply the packaged migrations and issue current credentials as described in AUTHENTICATION.md.
 The service login must inherit ledger_app/ledger_reader/ledger_auth_reader. Superusers and members of migrator,
 auth_admin or worker roles are rejected. Every database connection checks its roles and the local SQL migration versions and digests. A misconfigured service is not ready.
 
@@ -35,7 +35,7 @@ It neither disables authentication nor injects fixtures. Restore and write flags
 The payout policy file contains exactly `version:1` and a `workspaces` array. Each entry contains workspace_id, provider_namespace,
 fixed_fee_minor, dispatch_ttl_seconds and beneficiary_owners (beneficiary UUID → owner actor UUID).
 Fees and beneficiary ownership come from the administrator's file; a request body cannot replace that policy. Symlinks, FIFOs,
-files owned by another user and group/world permissions are rejected. The file is limited to 64KiB, with at most 128 workspaces and 1000 beneficiaries per entry.
+files owned by another user and group/world permissions are rejected. The file is limited to 64 KiB, with at most 128 workspaces and 1000 beneficiaries per entry.
 Signing key files use the worker's private-file checks and allow at most eight keys.
 
 ## API
@@ -44,7 +44,7 @@ All /v1 business endpoints use `Authorization: Bearer <token>`. Workspace, clien
 Financial POST requests also require `Idempotency-Key`. At the HTTP boundary, it must contain 1–128 ASCII letters, digits or `._~-`.
 This is narrower than the internal Python RequestKey character range, preventing merged duplicate headers from creating an ambiguous new identity.
 Bodies must be strict UTF-8 JSON. Duplicate fields, non-finite numbers and unknown business fields are rejected; amounts must be decimal strings in minor units.
-The outer body is limited to 16KiB. Content-Length is required and Transfer-Encoding is not accepted. Credentials and transport retry details are excluded from business identity.
+The outer body is limited to 16 KiB. Content-Length is required and Transfer-Encoding is not accepted. Credentials and transport retry details are excluded from business identity.
 
 | Route | Current permission or result |
 |---|---|
@@ -89,7 +89,7 @@ Credentials live only in page memory, and the input clears on connection. Logout
 from redisplaying data after logout. The UI uses textContent and does not execute HTML from records; it has no external scripts, browser persistence or operation callbacks.
 The original `proposal_json` string preserves canonical bytes. The browser verifies SHA-256 and binds approval to that digest, avoiding large-integer drift from parsing and serializing again.
 Static assets have only three fixed paths; arbitrary file reads are rejected. CSP, same-origin restrictions, nosniff and no-store headers are defaults.
-Browser automation was disabled by the Work settings during this delivery. Actual HTTP assets/API checks and Node syntax checks passed; visual appearance and real-browser interaction still require acceptance.
+Automated checks cover the HTTP API, static assets and JavaScript syntax; visual interaction is outside those tests.
 
 ## Resource limits and shutdown
 
@@ -102,7 +102,7 @@ JSON request logs contain the server request ID, fixed route/status and duration
 They do not contain arbitrary request bodies or paths. Raw access logging is disabled. HTTP parsing warnings and exceptions use fixed events to avoid leaking headers, URL queries, DSNs, payloads and keys.
 Parser-generated 400/431 responses before the application may use the server's standard error pages.
 Metrics read the currently authorized workspace database; per-worker memory counts are not presented as global totals.
-Workspace export and evidence capacity limits remain those in the reconciliation documentation. This slice makes no production-throughput, high-availability or arbitrary-capacity guarantee.
+Workspace export and evidence capacity limits are defined in the reconciliation documentation. This release has no measured production-throughput, high-availability or arbitrary-capacity guarantee.
 
 The main implementation references are the installed Gunicorn 26.2.0 source, its [official settings](https://gunicorn.org/reference/settings/)
 and the [locked release](https://pypi.org/project/gunicorn/26.2.0/). Database deadlines were checked against an actual PostgreSQL 18 server.
