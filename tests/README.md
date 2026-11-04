@@ -11,5 +11,4 @@ the separate persistent provider and its HTTP protocol.
 
 Expected financial results stay independent of production posting and calculation
 helpers. Integration tests cover commit-time constraints, ordered locks, concurrent
-requests, unknown results and recovery. Historical task contracts and verification
-records are in `devlog/`; current operating instructions are in `docs/`.
+requests, unknown results and recovery. Current operating instructions are in `docs/`.

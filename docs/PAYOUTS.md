@@ -1,6 +1,6 @@
 # Payout admission, retained instructions and dispatch
 
-The Python interfaces introduced in R3-PR02/03 reserve funds, accept authenticated
+The Python payout interfaces reserve funds, accept authenticated
 provider observations and settle each payout locally at most once. The HTTP service
 and the bounded worker are separate entry points. The provider is a synthetic local
 protocol; its behavior does not establish a connection to a bank.
@@ -132,7 +132,7 @@ authenticity. Agreement between A and B does not prove the original request, quo
 beneficiary configuration is true. The simulator supplies permanent keys and retained
 records of closure; a real provider may not. Real funds and production identity
 configuration require their corresponding environments. The bounded worker and crash
-matrix follow the PR04 rules below; recorded acceptance belongs to its development log.
+matrix are covered by the process and fault tests described below.
 
 ## Authenticated observations and one-time resolution (007)
 
@@ -188,13 +188,13 @@ automatic processing stops. Arbitrary SQL/COMMIT errors still roll back and prop
 they cannot be converted into business refusals.
 
 Repairing a projection does not automatically clear an existing blocker; controlled
-reprocessing requires the R5 approval path. This differs from the first normal receipt
+reprocessing requires the service security and recovery approval path. This differs from the first normal receipt
 of success evidence after an active-hold repair, which may settle normally.
 FROZEN/RESTORE does not acknowledge durable observation receipt: callers must redeliver
 or query after recovery. A v6 `healthy` result does not mean all payouts were paid;
 read the pending, incident, blocker and resolved counts in `external_evidence` as well.
 
-## Bounded worker process (R3-PR04)
+## Bounded worker process (payout recovery)
 
 The installed package provides `python -m ledgerops.worker`, a dedicated background
 process. It uses a separate `ledger_worker` login. Database owners, migration roles
@@ -229,7 +229,7 @@ Process connections use 10 s statement, 5 s lock, 30 s transaction and 15 s
 idle-in-transaction guards on PostgreSQL 18. These are independent limits, not a
 promise that the whole process exits within five seconds. Restoring an old NORMAL
 workspace cannot bypass the separate restore/dispatch switches; do not enable them
-before the R5 restore procedure completes. Database freezing cannot recall network
+before the service security and recovery restore procedure completes. Database freezing cannot recall network
 requests already sent.
 
 Logs are JSON events for readiness, idle state, attempt/result categories, pause

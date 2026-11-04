@@ -64,7 +64,7 @@ def propose_body(story):
         "payout_id": str(story["payout_id"]),
         "observation_id": str(story["observation_id"]),
         "evidence_run_id": str(story["evidence_run_id"]),
-        "reason": "修复后重新核验原终局证据",
+        "reason": "Recheck the original terminal evidence after repair",
         "ttl_seconds": 900,
     }
 

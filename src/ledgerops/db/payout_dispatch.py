@@ -1,4 +1,4 @@
-"""Durable claim/transport boundaries; PR02 never consumes or releases a hold."""
+"""Durable claim/transport boundaries; dispatch never consumes or releases a hold."""
 
 from contextlib import contextmanager
 from dataclasses import dataclass

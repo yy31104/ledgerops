@@ -1,8 +1,8 @@
 # Controlled reprocessing of terminal evidence
 
-R5-PR03 exposes one action: `REPROCESS_TERMINAL_LOCAL_BLOCKER`. The provider already has an authenticated
+operator approvals exposes one action: `REPROCESS_TERMINAL_LOCAL_BLOCKER`. The provider already has an authenticated
 SUCCEEDED, FAILED or CLOSED_ABSENT observation, but local financial processing stopped with LOCAL_BLOCKER. After an administrator
-completes an independent repair and publishes fresh R4 reconciliation evidence, two actors review the action and retry local settlement using the original observation.
+completes an independent repair and publishes fresh reconciliation reconciliation evidence, two actors review the action and retry local settlement using the original observation.
 This entry point sends no provider request. UNKNOWN, contradictory evidence and EVIDENCE_LIMIT cannot be bypassed with this action.
 
 ## A complete example using 62
@@ -10,7 +10,7 @@ This entry point sends no provider request. UNKNOWN, contradictory evidence and 
 The customer starts with 100. A purchase of 80 leaves the merchant with 80. A payout of 60 plus a fee of 2 reserves 62, leaving 18 available.
 The provider reports SUCCEEDED, but local settlement fails. The original observation, LOCAL_BLOCKER, hold and 202 receipt all remain.
 
-1. Repair the local fault without changing the original observation or incident. Export again and publish a complete R4 version. The successful payment's source must appear in the actual
+1. Repair the local fault without changing the original observation or incident. Export again and publish a complete reconciliation version. The successful payment's source must appear in the actual
    provider manifest; an old empty manifest cannot authorize the action merely because its version is new.
 2. The proposer submits the payout, original terminal observation, current run UUID and reason. The server reads the amount, payment key, complete incident set,
    target accounts, hold and observation versions, then creates an immutable proposal and SHA-256 digest. Repeating the same action ID preserves the original bytes and absolute expiry.
@@ -30,7 +30,7 @@ An ordinary HTTP instance has no operator entry point by default. Configure all 
 | Setting | Requirement |
 |---|---|
 | LEDGEROPS_OPERATOR_DSN | Separate login inheriting ledger_operator; superusers and members of migrator, auth_admin or ledger_app are rejected. |
-| LEDGEROPS_OPERATOR_OBJECTS | Existing, non-symlink R4 object root; all referenced files must be retained. |
+| LEDGEROPS_OPERATOR_OBJECTS | Existing, non-symlink reconciliation object root; all referenced files must be retained. |
 | LEDGEROPS_OPERATOR_NAMESPACE | Explicit provider namespace UUID. |
 | LEDGEROPS_OPERATOR_KEYS_FILE | Owner-private key file using provider trust rules; a request body cannot supply trust roots. |
 

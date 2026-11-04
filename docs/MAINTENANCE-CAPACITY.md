@@ -10,7 +10,7 @@ Large preview publication happens after the database transaction using captured 
 capture_context = EXCLUSIVE_WORKSPACE_BARRIER_READ_COMMITTED_V1
 ```
 
-This is a barrier observation, not a read-only RR export. Standalone stream verification retains the tag. R4 matching/action evidence and R6 stream exchange reject this source capability for now. Use a fresh ordinary RR stream export when those consumers need new evidence; a later RR export may contain the historical saved maintenance review without inheriting its outer capture context.
+This is a barrier observation, not a read-only RR export. Standalone stream verification retains the tag. reconciliation matching/action evidence and offline exchange stream exchange reject this source capability for now. Use a fresh ordinary RR stream export when those consumers need new evidence; a later RR export may contain the historical saved maintenance review without inheriting its outer capture context.
 
 Repair requires complete structure, request-intent(B) and hold-source checks, then complete structure/projection(A)/B/hold checks on the newly written state. Resume keeps the adopted structure/A policy: complete structure and projection checks are required, while B, reservation and external warnings remain visible in the saved review. No hold is released and no provider command is sent by maintenance.
 

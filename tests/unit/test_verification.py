@@ -825,13 +825,13 @@ def test_reversal_defects_block_repair_even_if_projection_matches(reversal_snaps
 
 
 def test_reversal_reason_uses_fixed_ascii_escaped_canonical_json(reversal_snapshot):
-    payload = reversal_bytes(reason="退款：客户取消")
+    payload = reversal_bytes(reason="\u9000\u6b3e\uff1a\u5ba2\u6237\u53d6\u6d88")
     for row in [reversal_snapshot["operations"][-1], reversal_snapshot["requests"][-1]]:
         row.update(bytes_fields(payload))
     assert verify_snapshot(reversal_snapshot).healthy
 
 
-@pytest.mark.parametrize("reason", ["", "a" * 257, "\x00", "退" * 86, True])
+@pytest.mark.parametrize("reason", ["", "a" * 257, "\x00", "\u9000" * 86, True])
 def test_invalid_reversal_reason_is_not_a_valid_retained_intent(reversal_snapshot, reason):
     payload = reversal_bytes(reason=reason)
     for row in [reversal_snapshot["operations"][-1], reversal_snapshot["requests"][-1]]:

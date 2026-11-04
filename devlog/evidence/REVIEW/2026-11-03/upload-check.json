@@ -1,8 +1,0 @@
-{
-  "source_commit": "2fe307205e948d091dff6d6a6a2e9c2c3a985f57",
-  "unique_history_blobs": 710,
-  "largest_blob_bytes": 615753,
-  "secret_candidate_findings": [],
-  "scope": "Finite pattern check of complete reachable history plus independent review. Not a security scan or guarantee of absence.",
-  "repository_visibility": "private; existing evidence contains local paths/hostname and synthetic identities"
-}

@@ -15,3 +15,7 @@ build/
 !.env.example
 var/
 output/
+*.pdf
+*TUTORIAL*
+*DEEP-DIVE*
+personal-notes/

@@ -1,7 +1,7 @@
 # Authenticated HTTP service and investigation console
 
 Start the service with `python -m ledgerops.service` (or `make service`), using the locked Gunicorn 26.2.0 release.
-`lab/` remains a separate learning tool; the service does not create test identities, reset the ledger or run demonstrations automatically.
+The service does not create test identities, reset the ledger or run demonstrations automatically.
 This page describes the current local interfaces. Controlled approvals are covered by the [operator contract](OPERATOR-ACTIONS.md); Linux deployment and actual restore drills have separate acceptance checks.
 
 ## Configuration and startup
@@ -74,7 +74,7 @@ The core retries only definitely aborted 40P01/40001 transactions. The HTTP laye
 
 With complete configuration, `POST /v1/provider/callbacks/<workspace UUID>/<payout UUID>` accepts the existing provider-event:v1
 signed envelope rather than an ordinary user Bearer token. It verifies the HMAC domain over the exact payload string before connecting to the database.
-An invalid signature returns 401 without looking up the target or writing quarantine records. A valid signature still goes through the complete R3 identity,
+An invalid signature returns 401 without looking up the target or writing quarantine records. A valid signature still goes through the complete payout identity,
 amount and namespace binding, evidence retention, contradiction blocking and one-time settlement checks. Reordering the outer JSON does not change the signed payload bytes;
 verification does not regenerate business content and sign that replacement. Acceptance returns 202, with status distinguishing APPLIED, REPLAYED, INCIDENT, BLOCKED and other outcomes.
 Receiving a callback does not unconditionally establish payment success. The restore deployment flag also blocks callback financial writes.
@@ -102,7 +102,7 @@ JSON request logs contain the server request ID, fixed route/status and duration
 They do not contain arbitrary request bodies or paths. Raw access logging is disabled. HTTP parsing warnings and exceptions use fixed events to avoid leaking headers, URL queries, DSNs, payloads and keys.
 Parser-generated 400/431 responses before the application may use the server's standard error pages.
 Metrics read the currently authorized workspace database; per-worker memory counts are not presented as global totals.
-Workspace export and evidence capacity limits remain those in the R4 documentation. This slice makes no production-throughput, high-availability or arbitrary-capacity guarantee.
+Workspace export and evidence capacity limits remain those in the reconciliation documentation. This slice makes no production-throughput, high-availability or arbitrary-capacity guarantee.
 
 The main implementation references are the installed Gunicorn 26.2.0 source, its [official settings](https://gunicorn.org/reference/settings/)
 and the [locked release](https://pypi.org/project/gunicorn/26.2.0/). Database deadlines were checked against an actual PostgreSQL 18 server.

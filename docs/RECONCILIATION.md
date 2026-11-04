@@ -106,7 +106,7 @@ not presented as a new difference today. Business days use the Europe/Warsaw loc
 calendar to produce half-open UTC windows. A daylight-saving transition day can have
 23 or 25 hours.
 
-R3 events have no actual execution time, and settlement processing does not invent
+payout events have no actual execution time, and settlement processing does not invent
 one. `effective_at` is the settlement effective time assigned by the provider
 administrator; `recorded_at` is when that assignment was retained. HTTP receive time
 replaces neither. Local journal.recorded_at is local posting time. TIMING_ONLY

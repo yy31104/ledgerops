@@ -30,7 +30,7 @@ def test_amount_accepts_positive_canonical_minor_units(value):
         "1 ",
         "1\n",
         "١",
-        "１",
+        "\uff11",
         "",
         "9000000000000001",
         "9" * 5000,

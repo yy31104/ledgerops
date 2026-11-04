@@ -49,7 +49,7 @@ If the original customer is disabled, it returns generic 404 and rolls back with
 retaining a request, operation or reversal attempt. This differs from a retained 422
 for insufficient funds. After reenabling the account, the original identity can still
 be submitted. Authorized historical replay does not recheck later changes to enabled
-state. [PR04 acceptance](../devlog/docs/R2-ACCEPTANCE.md) explicitly covers this existing behavior.
+state. The reversal admission tests explicitly cover this behavior.
 
 ## Results and retries
 
@@ -97,7 +97,7 @@ When two new reversal IDs target one purchase, the second waits for the original
 purchase lock. After the first commits, the second sees the success relation and
 retains ALREADY_REVERSED. The success relation's primary key is the final database
 guard. An unexpected 23505 propagates instead of being treated as success or ordinary
-replay. Contention on the same request key keeps R1's unique-claim waiting rules.
+replay. Contention on the same request key keeps purchase ledger's unique-claim waiting rules.
 
 `reversal_attempt` retains each eligible attempt; `purchase_reversal_effect` contains
 only successful relations. Composite foreign keys bind workspace, kind and original

@@ -748,7 +748,7 @@ def _submit_once(
 
 
 def _submit_purchase_once(conn, principal, command, request_key):
-    """Keep the R1 entry point while sharing the actual transaction body."""
+    """Keep the purchase entry point while sharing the actual transaction body."""
     return _submit_once(conn, principal, command, request_key, PurchaseCommand)
 
 

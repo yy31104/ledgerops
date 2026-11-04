@@ -1,4 +1,4 @@
-"""Pinned current R4 evidence for the one typed operator action.
+"""Pinned current reconciliation evidence for the one typed operator action.
 
 The caller owns the workspace barrier and transaction. Registry locking precedes
 its auth and provider locks; this helper never opens a nested transaction or

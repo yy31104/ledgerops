@@ -1,4 +1,4 @@
-"""Complete stream authority reaches R4 publication and typed action execution."""
+"""Complete stream authority reaches reconciliation publication and typed action execution."""
 
 import json
 from pathlib import Path

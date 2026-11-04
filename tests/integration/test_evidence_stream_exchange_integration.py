@@ -1,4 +1,4 @@
-"""Selected stream exchange and pinned R4 provenance through actual components."""
+"""Selected stream exchange and pinned reconciliation provenance through actual components."""
 
 import json
 import shutil

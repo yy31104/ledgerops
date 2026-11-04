@@ -220,7 +220,7 @@ def test_synthetic_client_rejects_untrusted_or_nonloopback_endpoints(url):
         ProviderHTTPClient(url, "x" * 32)
 
 
-@pytest.mark.parametrize("token", ["short", "x" * 513, "x" * 31 + "\n", "x" * 31 + "你"])
+@pytest.mark.parametrize("token", ["short", "x" * 513, "x" * 31 + "\n", "x" * 31 + "\u4f60"])
 def test_client_credential_is_bounded_ascii(token):
     with pytest.raises(ValueError):
         ProviderHTTPClient("http://127.0.0.1:8000", token)

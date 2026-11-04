@@ -23,7 +23,7 @@ def test_provider_json_object_is_preserved():
     }
 
 
-@pytest.mark.parametrize("token", [None, "short", "a" * 31 + "\n", "a" * 513, "a" * 32 + "界"])
+@pytest.mark.parametrize("token", [None, "short", "a" * 31 + "\n", "a" * 513, "a" * 32 + "\u754c"])
 def test_provider_token_rejects_ambiguous_credentials(token):
     with pytest.raises(ValueError):
         require_token(token)

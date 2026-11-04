@@ -1,16 +1,14 @@
-# ADR 0002: executable R1 foundation
+# ADR 0002: ledger foundation
 
-Date: 2026-10-23. Status: local implementation; first four business defaults accepted.
+Date: 2026-10-23. Status: accepted.
 
-## Context and authority
+## Context
 
-Yi authorized R1-PR01 implementation and accepted [packet 1](../../devlog/docs/DECISION-PACKET-R1.md).
-The latest Vault LedgerOps working blueprint rev 1 supplies Python-led admission,
-immutable header declarations, column-level runtime grants, R2 reversal/drain and
-R5 evidence epochs. Its design-only status is historical; it is not a current test result.
-The preserved Pro package and reviews under `devlog/docs/reference/` remain unchanged.
+The foundation combines Python-led admission, immutable journal declarations,
+column-level runtime grants and independent verification. Reversals, maintenance
+and approval evidence use these same trust boundaries.
 
-## Decisions implemented in PR01
+## Foundation decisions
 
 - PostgreSQL 18.6, immutable image digest recorded in the test fixture; psycopg 3.3.6.
   Retain the already initialized Python 3.12 interpreter. Use explicit, ordered SQL
@@ -18,7 +16,7 @@ The preserved Pro package and reviews under `devlog/docs/reference/` remain unch
   transaction runner is sufficient for this one migration; no ORM or Alembic added.
 - `ledger_migrator` is a non-login schema/database owner in the disposable fixture.
   `ledger_app` is a separate actual login, with no owner/superuser/escalation privileges.
-  Python owns future business admission; there is no SECURITY DEFINER workflow.
+  Python owns business admission; there is no SECURITY DEFINER workflow.
 - Header count (2–16) and one-sided total are immutable. Deferred header **and**
   entry triggers compare the final complete journal at commit. Historical balanced
   additions increase its count/totals and fail. No writable seal flag or transaction-ID trick.
@@ -26,14 +24,13 @@ The preserved Pro package and reviews under `devlog/docs/reference/` remain unch
   checks query their final row by identity, rather than the queued trigger's stale
   `NEW` tuple. Terminal updates, including no-op updates, are rejected.
 - Totals use a `numeric` domain without scale coercion, checking integer equality
-  and the range 0 through 10^38−1. This corrects rev 1's `numeric(38,0)` example:
+  and the range 0 through 10^38−1. Prefer this to `numeric(38,0)`:
   a typmod can round a fractional value before CHECK; NaN also needs an upper bound.
   `booked` is generated from valid debit/credit totals and immutable normal side.
 - Database/public-schema creation, PUBLIC temporary-table privilege and PUBLIC
   ledger-function execution are revoked. Trigger functions use invoker rights,
   fixed search paths and qualified references. Runtime cannot disable them.
-- The clearing account may be owned by the fixture's SYSTEM actor, as allowed by
-  the source's “workspace/system” convention. Frozen expected data was not changed
+- The clearing account may be owned by the fixture's SYSTEM actor. Frozen expected data was not changed
   to satisfy an unnecessarily narrower database assumption.
 
 ## Input and identity details
@@ -48,13 +45,12 @@ Canonical purchase v1 is `ledgerops.purchase:v1\n` followed by compact UTF-8 JSO
 in order: workspace, operation, customer account, merchant account, amount string,
 currency (exact field names are frozen in the literal unit-test vector). Request
 keys/client credentials/generated timestamps are excluded. Compare stored bytes;
-SHA-256 is an integrity/index aid. Duplicate JSON keys need rejection by the future
-HTTP decoder; PR01 accepts an already-decoded mapping and does not implement HTTP.
+SHA-256 is an integrity/index aid. The HTTP decoder handles duplicate-key rejection;
+admission receives an already-decoded mapping.
 
 ## Trust and evidence
 
-See [working contract](../../devlog/docs/working/R1-CONTRACT.md) and the
-[task](../../devlog/docs/tasks/R1-PR01.md). Database constraints do not establish correct merchant,
+Database constraints do not establish correct merchant,
 request amount, journal/projection correspondence, or actor authorization.
 Real runtime SQL deliberately demonstrates these gaps; independent checks detect
 the missed projection and consistent wrong-merchant defects after they commit.
@@ -64,10 +60,10 @@ an explicit numeric-to-bigint cast can round. Python validates the wire domain.
 The runtime is a trusted service credential with cross-workspace SELECT access;
 composite foreign keys establish referential scope, not row-level authorization.
 
-The small reference fold is test evidence over posted entries, not the R2 export,
+The small reference fold is test evidence over posted entries, not the verification and repair export,
 hold lifecycle, drift service or rebuild implementation. Test fixtures write explicit
-SQL and are not a production admission API. Real purchase replay, response loss,
-debit concurrency and the workspace barrier belong to PR02/03.
+SQL and are not a production admission API. Purchase replay, response loss,
+debit concurrency and the workspace barrier have separate integration coverage.
 
 ## Primary semantics checked
 

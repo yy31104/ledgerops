@@ -99,7 +99,7 @@ def test_missing_required_configuration_does_not_fall_back_to_test_defaults(envi
         ("LEDGEROPS_PROVIDER_TIMEOUT_MS", "0"),
         ("LEDGEROPS_PROVIDER_TIMEOUT_MS", "30001"),
         ("LEDGEROPS_WORKER_BATCH_SIZE", "9" * 10000),
-        ("LEDGEROPS_WORKER_BATCH_SIZE", "１"),
+        ("LEDGEROPS_WORKER_BATCH_SIZE", "\uff11"),
         ("LEDGEROPS_WORKER_BATCH_SIZE", "-1"),
         ("LEDGEROPS_WORKER_BATCH_SIZE", "1.5"),
     ],

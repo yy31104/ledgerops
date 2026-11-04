@@ -32,11 +32,11 @@ replacing both files.
 
 For an optional reconciliation reference, save the JSON stdout from the existing
 `ledgerops.recon_cli read` command into a local file, then pass `--pinned-read FILE`.
-The producer checks the complete reconstructed R4 artifact digest and exact
+The producer checks the complete reconstructed reconciliation artifact digest and exact
 financial source hash before emitting selected namespace/date/window/watermark,
 run/hash, reader-pin and publication-epoch references. This is a historical pin
 reference; it does not assert that a released reader pin remains active or that
-the run is current when imported. The source R4 RUN objects remain under their
+the run is current when imported. The source reconciliation RUN objects remain under their
 original retention policy. No key file is added to the exchange.
 
 Copy `src/ledgerops/exchange_consumer.py` and the two-file output directory to
@@ -79,7 +79,7 @@ The v1 golden fixture imports without producer modules. Its source is the unchan
 historical financial export v1 and its purchase journal has independent literal
 80/80 debit/credit totals. Tests also exercise real PostgreSQL repair/approval/
 resolution -> financial snapshot -> selected exchange -> isolated `python -I -S`
-consumer, and real pinned R4 references. They preserve original exceptions and their
+consumer, and real pinned reconciliation references. They preserve original exceptions and their
 dispositions. They do not claim that Chronicle's own adapter has been implemented.
 
 The selected exchange requires a readable complete source export. Minor0 retains
@@ -106,8 +106,8 @@ provenance structure and rejects unknown extensions. Historical minor0 files and
 their frozen golden bytes are unchanged. Minor0 and minor1 remain distinct source
 contracts; stream provenance is never silently inserted into a minor0 file.
 
-Minor1 also accepts a saved pinned read from the explicit stream-backed R4 source.
-It checks the reconstructed R4 artifact and requires the original stream-manifest
+Minor1 also accepts a saved pinned read from the explicit stream-backed reconciliation source.
+It checks the reconstructed reconciliation artifact and requires the original stream-manifest
 and content hashes to match. The reference keeps `matcher_data_sha256` separately
 from `full_stream_manifest_sha256` and the full source content hash; compact matcher
 bytes are never mislabeled as the original full history. Reader pin identity,

@@ -1,4 +1,4 @@
-"""Frozen R2 semantic traces; production reversal is not implemented by these tests."""
+"""Frozen reversal semantic traces; production reversal is not implemented by these tests."""
 
 import ast
 import json

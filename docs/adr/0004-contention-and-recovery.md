@@ -1,8 +1,6 @@
 # ADR 0004: contention, retry and response-loss recovery
 
-Date: 2026-10-23. Status: implemented and verified locally; see the PR03 evidence record.
-Yi explicitly requested R1-PR03. The four accepted business defaults remain unchanged;
-this slice applies the existing task contract rather than introducing new product choices.
+Date: 2026-10-23. Status: accepted and covered by integration tests.
 
 ## Bounded retry
 
@@ -71,8 +69,7 @@ retries start new transactions and re-run claims/posting rather than just the fi
 statement. Cancelled/timed-out calls must release transaction locks and claims.
 Independent fold and literal expected accounts remain the financial oracles.
 
-[Actual run record](../../devlog/evidence/R1-PR03/2026-10-23/README.md) binds tested source,
-JUnit output and build artifacts. Earlier evidence remains historical.
+Process and wire-proxy tests exercise these schedules against PostgreSQL.
 
 ## Limits
 
@@ -80,7 +77,7 @@ These bounded experiments establish the tested schedules and fault locations, no
 exhaustive correctness for every network, scheduler or database failure. They do not
 implement automatic reconnection, durable client command storage, production HTTP
 authentication, end-to-end external payment delivery, reversal or maintenance APIs.
-The trusted runtime/database-owner boundaries from PR01/02 still apply.
+The runtime remains a trusted credential, and database-owner access can bypass application rules.
 
 Primary semantics: [PostgreSQL whole-transaction retry guidance](https://www.postgresql.org/docs/18/mvcc-serialization-failure-handling.html)
 and [frontend/backend message formats](https://www.postgresql.org/docs/18/protocol-message-formats.html).

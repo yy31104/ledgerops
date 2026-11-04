@@ -1,1 +1,1 @@
-"""Authenticated bounded HTTP adapters, separate from the disposable learning lab."""
+"""Authenticated bounded HTTP adapters."""

@@ -1,4 +1,4 @@
-"""R6 must not label barrier/READ COMMITTED previews as RR source selection."""
+"""offline exchange must not label barrier/READ COMMITTED previews as RR source selection."""
 
 from contextlib import contextmanager
 

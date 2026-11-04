@@ -2,18 +2,17 @@
 
 The project has grown from a single posting example into a service with authentication, asynchronous payouts, independent verification, controlled operator actions and recovery tools.
 The runtime package still uses a synthetic provider and has been exercised in local Linux containers. Local tests do not establish real-money handling, bank finality or cloud operation.
-Recorded commands, test results, image identities and cleanup outcomes are in the
-[delivery acceptance record](../devlog/evidence/DELIVERY/2026-10-29/verification.json).
+The local Linux acceptance exercises the deployment, financial flows and resource cleanup.
 
 ## Delivered flows
 
 | Area | Capability | Boundary |
 |---|---|---|
-| R1/R2 | Purchases, concurrent overdraft prevention, original-identity retries, reversals, A/B verification, draining writers and projection rebuilds | SQL constraints alone do not establish correct balances or ownership; independent checks detect drift. |
-| R3 | Persistent payout instructions, holds, conservative dispatch, authenticated observations, unknown-outcome recovery and durable closed-payment records | 202 means acceptance only; elapsed time or NOT_FOUND cannot release a hold. |
-| R4 | Fixed reconciliation sources, complete group matching, immutable runs, pinning every block and atomic current publication | Reconciliation finds differences without repairing balances automatically; incomplete sources cannot produce a healthy result. |
-| R5 | Current-permission authentication, HTTP service, investigation console, distinct-actor approvals and backup recovery | Stale permissions, evidence and versions invalidate authorization; restore defaults to no financial writes or dispatch. |
-| R6 | Selected synthetic evidence and sources, strict versions/units and an independent standard-library reader | Read-only, with no database credentials or operator repair capability; the Chronicle application is not integrated into this repository. |
+| Purchases and maintenance | Purchases, concurrent overdraft prevention, original-identity retries, reversals, A/B verification, draining writers and projection rebuilds | SQL constraints alone do not establish correct balances or ownership; independent checks detect drift. |
+| payout | Persistent payout instructions, holds, conservative dispatch, authenticated observations, unknown-outcome recovery and durable closed-payment records | 202 means acceptance only; elapsed time or NOT_FOUND cannot release a hold. |
+| reconciliation | Fixed reconciliation sources, complete group matching, immutable runs, pinning every block and atomic current publication | Reconciliation finds differences without repairing balances automatically; incomplete sources cannot produce a healthy result. |
+| service security and recovery | Current-permission authentication, HTTP service, investigation console, distinct-actor approvals and backup recovery | Stale permissions, evidence and versions invalidate authorization; restore defaults to no financial writes or dispatch. |
+| offline exchange | Selected synthetic evidence and sources, strict versions/units and an independent standard-library reader | Read-only, with no database credentials or operator repair capability; the Chronicle application is not integrated into this repository. |
 | Operations | Pinned images/dependencies, non-root containers, TLS, role separation, resource limits and graceful shutdown | Local single-host scope; an actual deployment needs its own identities, network and provider contract. |
 
 Using the same amounts throughout: a customer with 100 purchases 80, leaving customer 20 and merchant 80. A merchant payout of 60 plus a fee of 2 reserves 62,
@@ -34,7 +33,7 @@ make build
 The first run may download locked dependencies and the PostgreSQL image. Integration tests fail explicitly when Docker is unavailable.
 The demo/lab subprocesses inside `make test` explicitly reuse the running pytest interpreter environment. They do not require outer
 `UV_NO_SYNC` or `UV_PROJECT_ENVIRONMENT` settings, or a prefilled repository offline cache; run `make bootstrap` first as shown above.
-Tests create only their own temporary databases and containers. `make lab` remains a separate learning tool, not a service interface.
+Tests create only their own temporary databases and containers.
 
 For container deployment, read the [Linux operating guide](../ops/linux/README.md) first. The example below runs local synthetic acceptance with replaceable paths;
 use a new directory. `--dispose-owned-test-data` explicitly deletes this test project's data.
@@ -78,10 +77,10 @@ python -m ledgerops.cli verify --format stream10 PRIVATE_EXPORT_UUID_DIRECTORY \
 ```
 
 Load the protected `LEDGEROPS_EXPORT_DSN` through the runtime environment; do not put passwords in command lines or Git.
-[R4 and approval integration](STREAMING-EVIDENCE.md), the [complete source format](STREAM10.md) and
+[reconciliation and approval integration](STREAMING-EVIDENCE.md), the [complete source format](STREAM10.md) and
 [large-workspace maintenance](MAINTENANCE-CAPACITY.md) describe the limits and operating procedures.
 Maintenance keeps the original small-data path and switches larger data to complete on-disk verification under the exclusive barrier.
-Maintenance previews explicitly identify their READ COMMITTED capture context; they cannot be presented as read-only RR sources to R4 or R6.
+Maintenance previews explicitly identify their READ COMMITTED capture context; they cannot be presented as read-only RR sources to reconciliation or offline exchange.
 
 Tests cover a source of about 17MiB, 129 quarantine records of 64KiB each and more than 10,000 request keys.
 Declared source limits are 256MiB and one million rows, with 4MiB per row, a 512MiB primary SQLite index and 16MiB of semantic closure. Additional temporary files still require disk space.
@@ -97,7 +96,7 @@ Do not replace that post-restore upgrade with the ordinary migration entry point
 - [Authentication and revocation](AUTHENTICATION.md): identity comes from current credential mappings, rechecked inside financial transactions; old-result replay cannot bypass revocation.
 - [Controlled reprocessing](OPERATOR-ACTIONS.md): distinct-actor approval bound to current evidence epoch, target versions, restore generation, expiry and the complete incident set.
 - [Backup and restore](BACKUP-RESTORE.md): actual pg_dump/pg_restore, same-snapshot business archive, object manifest and invalidation of old credentials/approvals.
-- [HTTP interfaces](HTTP-SERVICE.md): business interfaces are separate from the learning lab; ordinary API and operator instances use different capability configurations.
+- [HTTP interfaces](HTTP-SERVICE.md): ordinary API and operator instances use different capability configurations.
 - [Read-only exchange](EVIDENCE-EXCHANGE.md): offline reading with explicit unknown external/COMMIT times and no operation callbacks.
 
 If a backup predates acceptance and there is no independent command archive, the tool reports RESTORE_GAP. It does not infer original request keys
@@ -112,13 +111,7 @@ Distinct-actor separation depends on the identity administrator correctly mappin
 
 Workspace exports can check retained original requests but cannot prove the requests were saved correctly in the first place.
 Historical permissions and provider HMAC remain explicitly unverified during offline checks without trust keys. A hash provides integrity evidence, not a source signature.
-The Work settings disabled browser automation during acceptance. HTTP interfaces, static assets and scripts were checked; visual appearance and real-browser interaction were not accepted.
-Implementation, verification scope, actual deployment and personal understanding are recorded separately and cannot substitute for one another.
+HTTP interfaces, static assets and scripts have automated checks; visual appearance and real-browser interaction have not been accepted.
 
-The current public history has been sanitized, and the original repository is retained as a private archive; see [public history and recorded results](../devlog/docs/PUBLIC-HISTORY.md).
-Earlier presentation cleanup is documented in [portability notes](../devlog/evidence/PORTABILITY.md).
 Linux acceptance failures retain the stage and bounded command metadata in the report. Raw output remains only in a private diagnostics directory outside the repository;
 see the [Linux operating guide](../ops/linux/README.md) for inspection steps.
-
-Demo narration defaults to English. For the original Chinese narration, run
-`LEDGEROPS_DEMO_LANG=zh make demo`.

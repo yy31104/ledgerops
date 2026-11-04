@@ -66,12 +66,12 @@ def test_request_key_scope_and_exact_spelling():
         RequestKey(workspace, ActorId.parse(ID_TEXT), "key")
 
 
-@pytest.mark.parametrize("key", ["a" * 128, "é" * 64, "中" * 42 + "aa"])
+@pytest.mark.parametrize("key", ["a" * 128, "é" * 64, "\u4e2d" * 42 + "aa"])
 def test_request_key_length_counts_utf8_bytes(key):
     assert RequestKey(WorkspaceId.parse(ID_TEXT), ClientId.parse(ID_TEXT), key).key == key
 
 
-@pytest.mark.parametrize("key", ["", "a" * 129, "é" * 65, "中" * 43, "\x00", "x\ud800"])
+@pytest.mark.parametrize("key", ["", "a" * 129, "é" * 65, "\u4e2d" * 43, "\x00", "x\ud800"])
 def test_request_key_rejects_empty_oversize_or_unstorable_utf8(key):
     with pytest.raises(ValueError):
         RequestKey(WorkspaceId.parse(ID_TEXT), ClientId.parse(ID_TEXT), key)

@@ -216,7 +216,7 @@ def test_non_ascii_sqlite_body_budget_counts_bytes_before_semantic_decode(seeded
             conn.execute(
                 "UPDATE ledger.operation SET response_body=jsonb_build_object('unicode',%s::text) "
                 "WHERE kind='OPENING'",
-                ("汉" * 10000,),
+                ("\u6c49" * 10000,),
             )
         finally:
             conn.execute("ALTER TABLE ledger.operation ENABLE TRIGGER USER")

@@ -1,4 +1,4 @@
-"""Hash-recomputed contradictory pinned R4 scope/version must fail closed."""
+"""Hash-recomputed contradictory pinned reconciliation scope/version must fail closed."""
 
 import copy
 import hashlib

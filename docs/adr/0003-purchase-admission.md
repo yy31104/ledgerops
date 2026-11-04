@@ -1,8 +1,6 @@
-# ADR 0003: Python purchase admission, R1-PR02
+# ADR 0003: Python purchase admission
 
-Date: 2026-10-23. Status: implemented locally; verification recorded in the PR02 evidence directory. Yi's “continue”
-authorizes the next slice; the four business defaults remain the accepted packet.
-These are implementation choices, not additional claims of user mastery.
+Date: 2026-10-23. Status: accepted.
 
 ## Service boundary and authorization
 
@@ -13,8 +11,8 @@ READ COMMITTED / READ WRITE and bounded lock/statement timeouts. It returns only
 after psycopg's transaction context acknowledges COMMIT, including deferred checks.
 
 Principal carries typed workspace, client and customer actor IDs from a trusted
-caller. There is no token verification or HTTP adapter yet. UUID possession or a
-session variable is not authentication. The command and key must match this scope;
+caller. Token validation belongs to the HTTP authentication layer, not posting.
+UUID possession or a session variable is not authentication. The command and key must match this scope;
 the debit account must be a customer liability owned by the principal's actor.
 The merchant account ID in the validated command is the chosen payee; resolve its
 immutable owner/class from the database, without adding a second wire identity.
@@ -35,7 +33,7 @@ Use the source's exact workspace lock mapping:
 `hashtextextended('ledgerops:workspace:' || workspace_uuid::text, 0)` and
 `pg_advisory_xact_lock_shared`. Take it before reading mode or writing a claim.
 Non-NORMAL mode raises retryable 503 RETRY_SAME_IDENTITY without persisted result.
-R2 provides the maintenance freeze interface; tests exercise its SQL counterpart.
+The maintenance freeze interface uses this barrier; tests also exercise its SQL counterpart.
 
 Claim request key first with `ON CONFLICT ON CONSTRAINT request_result_pkey`, then
 business ID with `ON CONFLICT ON CONSTRAINT operation_pkey`. Each losing INSERT
@@ -54,8 +52,8 @@ results, write two declared journal lines, and apply one relative UPDATE per acc
 Finalize both stored results within this same transaction. Opening journals are
 explicit privileged fixture setup, not a public funding API.
 
-PR03 supersedes the retry/transport limits below; see [ADR 0004](0004-contention-and-recovery.md).
-The following section records the PR02 boundary and its stable outcome shapes.
+[ADR 0004](0004-contention-and-recovery.md) defines bounded transaction retry and
+response-loss recovery. The outcome shapes below remain stable.
 
 ## Outcomes and error precedence
 
@@ -74,12 +72,12 @@ The following section records the PR02 boundary and its stable outcome shapes.
    effect=purchase_posted, contract_version=1. It contains no current balance.
 5. Rejection body is `{error:{code,message,retryable:false,operation_id,request_id}}`.
    Generate its diagnostic request_id once and retain it; retries return that same
-   body. Unretained typed errors expose code/status/retryable to the future adapter.
+   body. Unretained typed errors expose code/status/retryable to the HTTP adapter.
 6. Lock/statement timeout, deadlock or serialization failure raises retryable 503
-   after rollback. PR02 does not internally retry transactions; the PR03 retry policy
-   will add bounded whole-transaction retries. Other integrity errors propagate.
+   after rollback. Only deadlocks and serialization failures use bounded whole-transaction
+   retry; other integrity errors propagate.
    Connection loss, especially during COMMIT, remains outcome-unknown to the caller;
-   never infer rollback or substitute a new identity. Fault/transport recovery is PR03.
+   never infer rollback or substitute a new identity. The recovery policy is detailed in ADR 0004.
 
 ## Verification scope
 
@@ -87,5 +85,4 @@ Drive the actual service with runtime credentials. Check independent entry fold 
 original-owner expectations, retained success/rejection replay, new-key binding,
 unauthorized collisions, scope separation, balance limits, rollback under real SQL
 faults and shared-barrier ordering. No production failpoint parameter is added.
-Broader simultaneous-debit and transport-failure tests remain PR03. Keep PR01's
-original evidence manifest intact; record PR02 as a separate run.
+Separate simultaneous-debit and transport-failure tests extend these same independent checks.

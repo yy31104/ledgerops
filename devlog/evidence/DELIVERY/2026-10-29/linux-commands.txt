@@ -1,7 +1,0 @@
-Working directory: $REPO_ROOT
-Expected clean Git source: 6cff874b835d99c595b66ebf96dcd25c5d568abe
-/private/tmp/ledgerops-r3-runtime/bin/python ops/linux/stack.py --project ledgerops-test-final-6cff874 --state /private/tmp/ledgerops-linux-final-6cff874/state.json build --source $REPO_ROOT --context /private/tmp/ledgerops-linux-final-6cff874/context --https-port 18443 --operator-port 19443
-/private/tmp/ledgerops-r3-runtime/bin/python ops/linux/stack.py --project ledgerops-test-final-6cff874 --state /private/tmp/ledgerops-linux-final-6cff874/state.json init
-/private/tmp/ledgerops-r3-runtime/bin/python ops/linux/stack.py --project ledgerops-test-final-6cff874 --state /private/tmp/ledgerops-linux-final-6cff874/state.json seed-synthetic
-/private/tmp/ledgerops-r3-runtime/bin/python ops/linux/stack.py --project ledgerops-test-final-6cff874 --state /private/tmp/ledgerops-linux-final-6cff874/state.json up --operator
-/private/tmp/ledgerops-r3-runtime/bin/python ops/linux/acceptance.py --project ledgerops-test-final-6cff874 --state /private/tmp/ledgerops-linux-final-6cff874/state.json --output /private/tmp/ledgerops-linux-final-6cff874/verification.json --dispose-owned-test-data

@@ -8,12 +8,12 @@ See [large-workspace maintenance and resource limits](MAINTENANCE-CAPACITY.md).
 
 The implemented local flow is: freeze and drain cooperating write transactions → export and inspect differences → recompute and apply
 inside an exclusive transaction → export and verify again → explicitly resume. There is no candidate-balance table or interface for importing balances from a preview.
-Freezing the database does not stop external payments. In-flight R3 simulator calls may finish. While frozen, new admissions, dispatch claims and observation writes are blocked;
+Freezing the database does not stop external payments. In-flight payout simulator calls may finish. While frozen, new admissions, dispatch claims and observation writes are blocked;
 external facts must still be investigated after resume.
 
 ## Preparation and identities
 
-On an existing R1 database, a local administrator first creates a separate role, then applies 003 using the existing migration connection:
+On an existing purchase ledger database, a local administrator first creates a separate role, then applies 003 using the existing migration connection:
 
 ```sql
 CREATE ROLE ledger_maintenance LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
@@ -125,9 +125,9 @@ The service can establish that current checks passed, not that the operator read
 
 New-database export format v5 (migrations 001–006) adds payouts, holds, intents, attempts and audit fold_version. The v4 reversal and v3 resume-report contracts remain supported.
 Old v1 (001/002), v2 (001–003), v3 (001–004) and v4 (001–005) data continue to load and verify under their original rules.
-The frozen PR01 export bundle has a separate regression test. Unknown newer versions are rejected.
+The frozen snapshot export export bundle has a separate regression test. Unknown newer versions are rejected.
 Source commands automatically record the Git revision and dirty state. Installed-package previews require explicit `--code-revision`, just like exports.
-File publication and protection retain the PR01 protocol rather than adding another one.
+File publication and protection retain the snapshot export protocol rather than adding another one.
 
 [Full reversal](REVERSAL.md) is implemented. Complete history after reversal also participates in current verification and rebuild.
 Synthetic test opening balances and reservations are not public business interfaces.

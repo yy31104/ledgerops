@@ -1,6 +1,6 @@
 # Independent journal checks and test-only command model
 
-R2 adds `command_model.py`, a single-threaded semantic oracle importing no production
+verification and repair adds `command_model.py`, a single-threaded semantic oracle importing no production
 helpers. `fixtures/golden/r2_commands.json` contains literal commands, expected
 outcomes and cumulative totals. Tests cover purchase/replay, rejected reversal,
 funding, a new successful reversal and success-only uniqueness. OPENING/RESERVE are
@@ -8,7 +8,7 @@ explicit test setup actions, not implemented application APIs. This model establ
 no PostgreSQL locking, wire encoding or production reversal claim. Its frozen input
 also checks request capture independently of the runtime retained-payload verifier.
 
-## Existing R1 journal checks
+## Existing purchase ledger journal checks
 
 `journal_fold.py` consumes plain row dictionaries. It imports no production
 posting, money, canonicalization, database connection or schema helper.
@@ -58,7 +58,7 @@ by the original request's merchant assertion.
 
 ## Limits
 
-These are R1 posted-balance and isolated-purchase checks. They do not validate
+These are purchase ledger posted-balance and isolated-purchase checks. They do not validate
 holds, authorization, journal sealing, commit behavior or concurrency. Empty
 journal headers cannot be discovered from an entry-only export and require the
 separate real-database/header checks. Passing reference tests is not evidence that

@@ -8,7 +8,7 @@ their own temporary PostgreSQL instance and clean it up afterward.
 ## Database privileges
 
 Export uses the separate `ledger_reader` login. It has CONNECT, schema USAGE and
-SELECT on explicitly listed financial and maintenance tables. R4 additionally grants
+SELECT on explicitly listed financial and maintenance tables. reconciliation additionally grants
 the pin INSERT/DELETE and specific column-locking privileges needed for evidence
 reading; these grant no financial write permission. The reader is neither an owner
 nor a member of application or migration roles. A READ ONLY transaction is a second
@@ -16,7 +16,7 @@ boundary, not a substitute for database privileges. Tests use real reader creden
 in ordinary transactions to prove that writes, DDL, temporary tables and privilege
 escalation fail.
 
-For an existing R1 database, an administrator first creates the reader role and sets
+For an existing purchase ledger database, an administrator first creates the reader role and sets
 its password privately, then runs migrations. For example, in an administrator's
 psql session:
 
@@ -35,7 +35,7 @@ PYTHONPATH=src uv run --locked python -m ledgerops.db.migrations
 ```
 
 Migration `002_export_reader.sql` introduced export without changing
-`001_foundation.sql` or purchasing. PR02 added `003_projection_maintenance.sql`, which
+`001_foundation.sql` or purchasing. purchase admission added `003_projection_maintenance.sql`, which
 also requires a maintenance role before application. Test fixtures show the complete
 isolated initialization.
 
@@ -79,7 +79,7 @@ amounts with the sum of active holds.
 | `healthy` | Structure, A and B pass; v6 additionally requires no detected provider-evidence contradiction. This does not establish payment completion or verified external authenticity |
 | `rebuild_eligible` | Structure, B and reservation conditions pass; projection drift itself is eligible for repair |
 | `issues` | Affected objects, fields, expected values and actual values |
-| `unverified_intent_kinds` | Kinds without a canonical business-intent contract, such as the R1 OPENING fixture |
+| `unverified_intent_kinds` | Kinds without a canonical business-intent contract, such as the purchase ledger OPENING fixture |
 
 If a payload names M1 but entries and balances credit M2, A passes and B reports
 `WRONG_OWNER`. If the payload was also captured incorrectly as M2, all three can
@@ -87,7 +87,7 @@ agree. A hand-maintained original-input manifest in tests detects that defect. R
 B needs no hand-maintained manifest and does not independently prove correct capture
 of the external request.
 
-R1 OPENING is explicit test funding; its payload has no canonical funding instruction.
+purchase ledger OPENING is explicit test funding; its payload has no canonical funding instruction.
 Verification checks its digest, opening structure and result while disclosing that
 intent boundary, without inventing a source of funds. Historical refusals are checked
 for retained records and absence of financial effects. Today's balance is not used
@@ -126,7 +126,7 @@ An interrupted export can leave hidden `.ledgerops-export-*` temporary directori
 The reader rejects them. After confirming that no exporter is running, these
 temporary directories may be removed manually.
 
-Version 1 preserves the R1 financial-table contract from migrations 001/002. Version
+Version 1 preserves the purchase ledger financial-table contract from migrations 001/002. Version
 2 corresponds to 001/002/003 and adds workspace projection_epoch/current_freeze_id,
 freeze metadata, repair headers and complete audit rows. New verifiers still accept
 retained v1 packages; replacing the schema list must not invalidate old evidence.
@@ -156,7 +156,7 @@ signatures have no accompanying trusted keys, so
 independent provider history. Pending work and local blockers appear in the report;
 `healthy` still describes consistency within the declared scope.
 
-Version 7 corresponds to 001-008 and retains v6's financial row shape. R4 publication
+Version 7 corresponds to 001-008 and retains v6's financial row shape. reconciliation publication
 metadata and raw inputs live in separately pinned immutable objects. Version 8
 corresponds to 001-009, retains v7's row shape and supports maintenance auditing in
 restore mode. Authentication credentials, token digests and permission tables are
@@ -205,4 +205,4 @@ capacity boundaries and independent input handling are described in [STREAM10](S
 Large maintenance previews use the distinct
 `EXCLUSIVE_WORKSPACE_BARRIER_READ_COMMITTED_V1` capture marker. They are captured
 inside an exclusive transaction after writers drain, not as public REPEATABLE READ
-evidence. Current R4/R6 entry points reject that context.
+evidence. Current reconciliation and offline exchange entry points reject that context.

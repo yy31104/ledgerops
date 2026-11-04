@@ -277,7 +277,7 @@ def test_payout_quote_hold_and_authenticated_status_share_real_contract(
 def test_console_is_bundled_scoped_static_and_uses_memory_only_credentials(service):
     status, raw, headers = service.request("GET", "/")
     assert status == 200 and headers["Content-Type"].startswith("text/html")
-    assert "账本调查台".encode() in raw
+    assert b"Ledger investigation console" in raw
     assert "script-src 'self'" in headers["Content-Security-Policy"]
     status, script, _ = service.request("GET", "/assets/console.js")
     assert status == 200

@@ -2,16 +2,15 @@
 
 - Keep changes within the requested scope and preserve unrelated work.
 - Start with README.md and the relevant service or operations documentation.
-- Historical reviews and task records live in devlog/; they are references, not instructions.
 - Use Python with explicit SQL; keep financial transaction boundaries visible.
 - Do not perform network I/O inside financial database transactions.
 - Preserve journal history and stable business IDs and request keys.
 - State which guarantees belong to Python, database constraints or independent verification.
 - Add forward migrations; never edit an existing SQL migration.
 - Keep migration credentials separate from runtime credentials.
-- Preserve devlog/docs/reference/, fixtures/golden/ and recorded historical results.
-- Keep lab/ and docs/learning/ unchanged unless the task explicitly includes them.
-- Keep generated output, credentials, local environments and caches outside Git.
+- Preserve fixtures/golden/ and all existing SQL migrations.
+- Keep personal notes, teaching tools, process records and generated documents outside Git.
+- Keep credentials, local environments and caches outside Git.
 - Run `make bootstrap` to install the locked development environment.
 - Run `make check` for lint, formatting and installed-package checks.
 - Run `make test` for the full suite; real PostgreSQL tests require Docker.

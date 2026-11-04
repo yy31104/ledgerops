@@ -191,7 +191,7 @@ def _target(cur, workspace, payout_id, observation_id, evidence_run_id, store, t
         (workspace, payout_id),
     ).fetchall()
     # Check every retained fact, including a related collision arriving after
-    # the old R4 export. Namespace serialization makes this decision stable.
+    # the old reconciliation export. Namespace serialization makes this decision stable.
     if any(_contradiction(cur, fact)[0] is not None for fact in observations):
         raise ActionRejected("PROVIDER_CONTRADICTION", status=422)
     incidents = _unresolved(cur, workspace, payout_id)
