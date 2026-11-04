@@ -4,7 +4,7 @@
 
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-36B7A8?style=flat-square&labelColor=17202A&logo=python&logoColor=white)
 ![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-36B7A8?style=flat-square&labelColor=17202A&logo=postgresql&logoColor=white)
-![Synthetic payments](https://img.shields.io/badge/Payments-Synthetic-36B7A8?style=flat-square&labelColor=17202A)
+[![CI](https://github.com/yy31104/ledgerops/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yy31104/ledgerops/actions/workflows/ci.yml?query=branch%3Amain)
 
 **A balanced ledger can still pay the wrong merchant.**
 
