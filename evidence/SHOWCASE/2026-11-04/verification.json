@@ -1,0 +1,15 @@
+{
+  "base_commit": "75d32a38c26f7e3af2430eca740e1a2dce60ef1f",
+  "scope": "Portfolio-facing README, Chinese failure-case code tour and ready-to-edit post draft; documentation only.",
+  "checks": {
+    "relative_file_links_valid": 44,
+    "named_test_commands_exist": 2,
+    "markdown_fences_balanced": true,
+    "personal_machine_paths_absent": true,
+    "wheel_and_sdist_build": "passed after final README edit"
+  },
+  "factual_review": "Independent read-only review mapped six major claims to actual tests; corrected holdcheckinput and actor-vs-human boundary.",
+  "regression": "No new financial regression claimed for documentation changes;1721tests/9Linuxgroups are explicitly dated2026-11-04 snapshots from evidence/POLISH. Runtime/tests/migrations unchanged.",
+  "publication": "Repository remains private. Post draft not sent to any external service; no publicvisibility or accessgrant changes.",
+  "authorship": "AI assistance disclosed without invented independent authorship, businessvolume, productionincident or realbankexperience."
+}

@@ -2,6 +2,21 @@
 
 Updated: 2026-11-04. Review follow-up optimizations are verified; sync to the existing private GitHub repository remains authorized.
 
+## Portfolio presentation
+
+The latest user asks for a credible project/post presentation. README now leads
+with the payment story, architecture, runnable demo and concrete failure-case
+tests, replacing stale R1/R2-only status claims. Chinese code tour:
+docs/PROJECT-TOUR.zh-CN.md; editable post draft: docs/portfolio/POST.zh-CN.md.
+AI assistance and synthetic/local scope are stated without invented independent
+authorship or production experience. The repository remains private; no external
+post, access grant or visibility change is authorized by this documentation slice.
+
+Documentation validation:44relative links and2named test commands exist, fences
+balanced, wheel/sdist build passes. Runtime/tests/migrations remain unchanged;
+1721/9 are explicitly dated existing verification snapshots, not a newly claimed
+financial regression. See evidence/SHOWCASE/2026-11-04/verification.json.
+
 ## 2026-11-04 verified follow-up
 
 Completed the requested remaining polish: partial covering index011 for active

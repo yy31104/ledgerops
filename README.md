@@ -1,281 +1,178 @@
 # LedgerOps
 
-A PostgreSQL ledger service for auditable transaction integrity, replay and recovery.
-All payment-provider execution remains synthetic; real bank finality and remote activation
-are outside the current local delivery.
-**R1-PR01 through R1-PR04 are implemented locally:** typed money/identity, PostgreSQL
-safeguards, an explicit-SQL purchase service, bounded transaction retries, and
-concurrency / response-loss recovery tests with independent financial checks.
-**R2 is complete within the declared local scope:** a dedicated reader exports one consistent
-snapshot, and an offline verifier separately checks journal structure, projected
-balances and fidelity to retained purchase requests. Maintenance can drain writers,
-preview drift, atomically recompute/audit balances and explicitly resume. Original
-merchants can now submit full internal reversals with retained failures and one success.
-All financial examples use synthetic PLN minor units.
+**A PostgreSQL ledger for concurrent spending, uncertain payouts and auditable recovery.**
 
-R3 adds persistent payout instructions, holds, authenticated observations and crash
-recovery. R4 pins independent settlement evidence and publishes complete reconciliation
-runs. R5 adds current scoped credentials, a real Gunicorn HTTP process, typed
-maker/checker reprocessing and actual closed-database restore. R6 adds immutable
-selected evidence with an independent stdlib reader. Large sources use bounded
-format10 with complete audit and maintenance checks. See the
-[delivery and running guide](docs/RELEASE-READINESS.md), [Linux runtime](ops/linux/README.md),
-[HTTP service](docs/HTTP-SERVICE.md),
-[authentication](docs/AUTHENTICATION.md), [operator actions](docs/OPERATOR-ACTIONS.md)
-and [delivery scope](docs/tasks/DELIVERY.md) for the tested boundaries.
+LedgerOps follows a payment from admission to reconciliation and recovery. It asks
+what happens when two requests compete for the same money, a provider commits just
+before a worker dies, or a balanced journal credits the wrong merchant.
 
-第一次学习这个项目，可先顺读[中文教程PDF](output/pdf/LedgerOps-从零读懂账本.pdf)。
-它用同一笔100/80的例子，从SQL和Python事务讲到并发、冲正、核对、重建和面试追问，
-正文包含全部推演结果。[可搜索原文](docs/learning/LEDGEROPS-TUTORIAL.zh-CN.md)与PDF内容一致。
+The service uses **Python 3.12, explicit SQL transactions and PostgreSQL 18**. An
+independent, persistent SQLite payment-provider simulator makes external failures
+reproducible. All payment execution is synthetic.
 
-## Run locally
+[中文项目导览](docs/PROJECT-TOUR.zh-CN.md) ·
+[Run the service](docs/RELEASE-READINESS.md) ·
+[Verified failure cases](#failure-cases-you-can-inspect) ·
+[Latest verification](evidence/POLISH/2026-11-04/README.md)
 
-Requires Python 3.12, [uv](https://docs.astral.sh/uv/), make and a running Docker engine.
-The lockfile uses psycopg 3.3.6; tests pin PostgreSQL 18.6 by image digest. Docker may
-need to download that image on the first run.
+## One payment, including the uncertain part
 
-```sh
-make bootstrap         # install the locked environment
-make check             # Ruff plus installed-package / SQL-resource checks
-make test              # complete suite, including real PostgreSQL
-make test-unit         # domain and independent-reference tests; no Docker
-make test-integration  # actual PostgreSQL tests
-make build             # wheel and source distribution
-make demo              # complete narrated story in temporary PostgreSQL; auto cleanup
-make lab               # interactive local learning page; Ctrl-C / end button cleans up
+Amounts below are synthetic PLN minor units: `100` means PLN 1.00.
+
+| Step | Customer | Merchant booked / reserved / available | What the result means |
+|---|---:|---|---|
+| Open accounts | 100 | 0 / 0 / 0 | Synthetic opening fixture |
+| Purchase 80 | 20 | 80 / 0 / 80 | Journal, balances and retained result commit together |
+| Request payout 60 + fee 2 | 20 | 80 / 62 / 18 | `202` confirms admission; it does not confirm payment |
+| Provider outcome unknown | 20 | 80 / 62 / 18 | Hold stays active while evidence is collected |
+| Authenticated success | 20 | 18 / 0 / 18 | One local settlement consumes the hold |
+
+An authenticated terminal `FAILED` observation or permanent close-if-absent tombstone releases the hold
+without a payout journal. A timeout or `NOT_FOUND` response does not.
+
+The provider key and exact request bytes survive retries and process restarts.
+Before the immutable dispatch deadline, retries use that identity; after it,
+recovery requests closure under the simulator's specific contract. Provider success
+followed by a local crash is recovered through retained evidence, without creating
+a new payment identity.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Client[Client or investigation console] --> TLS[Caddy TLS]
+    TLS --> API[Gunicorn HTTP service]
+    API --> PG[(PostgreSQL ledger)]
+    Worker[Bounded payout worker] <--> PG
+    Worker <--> Provider[Provider HTTP simulator]
+    Provider --> SQLite[(Independent SQLite store)]
+    PG --> Export[Immutable financial export]
+    Export --> Audit[Independent offline verifier]
 ```
 
-Integration tests create one uniquely named disposable container on an ephemeral
-localhost port, with random credentials and a fresh database per test. They remove
-their own resources afterward and never use an existing application database.
-Missing Docker fails the suite instead of skipping tests.
+- **Admission:** current scoped authorization, request/business identity claims,
+  UUID-ordered balance locks, and journal/projection/result writes in one transaction.
+- **Payouts:** a hold and durable dispatch intent precede network I/O. The worker
+  commits `MAY_HAVE_SENT` before calling the provider, then records observations in
+  a separate transaction.
+- **Independent checks:** A recomputes balances from entries; B compares effects
+  with retained original requests. The verifier does not call posting helpers.
+- **Operations:** versioned reconciliation pins source bytes. A separate operator
+  instance supports typed maker/checker reprocessing bound to current evidence,
+  permissions, target versions, expiry and restore generation.
 
-Tests load current `src/` explicitly. The package check forces a fresh non-editable install:
-on this Mac, Python ignores hidden `.pth` files, making editable-only import checks
-unreliable. Build archives include migration SQL and exclude private reference docs.
-Tests and the optional source-checkout learning lab provision only temporary databases.
-The installed `python -m ledgerops.service` is a separate authenticated HTTP service;
-it requires explicit database/identity/TLS configuration and defaults to writes disabled.
+The loopback teaching lab is a separate disposable tool outside the production
+package. It is not the authenticated service or its operator console.
 
-## 交互式学习工作台
+## Try it locally
 
-在仓库根目录运行 `make lab`，打开终端打印的 `http://127.0.0.1:端口/`。
-页面左侧是12步导览，每次点“执行这一步”只执行一步；右侧可以切换
-“这一步 / 执行过程 / 代码与面试”。先读解释，再操作，再查看余额、分录、
-业务身份和原始返回结果，最后对照当前仓库里的函数。
+Requires Python 3.12, [uv](https://docs.astral.sh/uv/), `make` and Docker.
+Run from the repository root:
 
-“执行过程”记录这次调用实际发出的客户端 SQL、参数、事务命令、SQLSTATE
-和重试次数，排除页面刷新的查询。它不展开数据库触发器内部语句，也不代表
-已经观测到锁等待。自动提交的单条故障注入不会凭空补上BEGIN/COMMIT。
-自由实验支持更换金额和商户、原身份重放、原键改金额409、新业务重复冲正422、
-漂移与维护；自由写操作后请重置再按标准导览学习。重放的是最近一次提交的购买，
-包括已保存的拒绝；冲正针对最近一次成功购买。
+```sh
+make bootstrap
+make demo
+```
 
-所有操作只连接本次新建的临时 PostgreSQL，不接受浏览器传入DSN或任意SQL。
-身份来自固定的合成夹具，**不是登录认证**。页面只监听127.0.0.1，不进入wheel或
-源码发行包，不加运行时依赖，生产代码和迁移保持原样。结束时使用“结束并清理”
-或终端Ctrl-C；关闭浏览器标签页不会停止服务。重置创建新的工作区，清空页面进度；
-退出才删除整个临时数据库和导出文件。Docker不可用会明确失败。
-余额卡片下面的“并发单步”可展开两个真实场景：两笔80竞争100、购买未结束时
-冻结等待。启动会创建新的合成工作区，每点一次推进一个阶段；观察实际PID、
-`pg_blocking_pids`和阻塞SQL，再释放余额行锁。结束后显示真实结果和独立核对。
-刷新会先清理未完成的场景；也可用“清理场景”或顶部重置。
-教学会话五分钟后自动取消；worker额外执行十分钟数据库超时后备SQL，给清理
-留出余量。原入口的5秒/10秒配置仍先执行，额外配置在追踪中可见，且仅用于
-教学连接。超时不用于决定正常执行顺序。详见[并发切片](docs/tasks/LAB-CONCURRENCY.md)。
-完整范围、解释文案和验证记录见 [学习工作台任务](docs/tasks/LAB.md)。
+The narrated demo creates temporary PostgreSQL, executes purchase/refusal/reversal,
+injects balance drift, detects it offline, then freezes, rebuilds and resumes. Each
+step asserts the result before printing it. Its database and exports are cleaned
+on exit; Docker absence fails explicitly.
 
-## Narrated local demo
+To inspect real SQL and observed lock waits interactively:
 
-Run `make demo` from this repository root. It starts its own temporary PostgreSQL,
-uses the frozen synthetic opening and existing service interfaces, then prints12
-short steps: purchase success/refusal, reversal success/duplicate422, deliberate
-projection drift, offline A failure, freeze/preview/rebuild/resume and final healthy
-verification. All amounts are minor units. Duplicate422 uses a new business ID;
-same-ID replay still returns its original result.
+```sh
+make lab
+```
 
-The temporary database/container and export files are cleaned when the run ends;
-cleanup completion is printed only after fixture teardown succeeds. Docker absence
-fails clearly. Existing user databases/DSNs are not used. The script is a pytest
-fixture-backed demo (`tests/demo_story.py`), with normal subprocess smoke coverage,
-not a new production command or migration. See [the slice contract](docs/tasks/DEMO.md)
-and [actual output](evidence/DEMO/2026-10-28/demo.log).
+Open the loopback URL printed in the terminal. Use the page's end action or Ctrl-C
+to clean up. The [linear Chinese tutorial](docs/learning/LEDGEROPS-TUTORIAL.zh-CN.md)
+explains the R1/R2 core without requiring browser interaction.
 
-## Purchase service
+For the **authenticated HTTP service, payouts, TLS and native restore**, follow the
+[Linux runbook](ops/linux/README.md). It builds from a clean Git commit, installs the
+wheel, provisions separate roles/secrets and runs without a host source mount.
+Default startup keeps financial writes and dispatch disabled until explicit
+activation. The demo above covers the ledger/maintenance story, not every subsystem.
 
-`ledgerops.db.admission.submit_purchase(conn, principal, command, request_key)` takes
-an idle autocommit psycopg connection, trusted typed principal, validated
-`PurchaseCommand` and scoped `RequestKey`. The caller is responsible for authenticating
-the workspace/client/actor context. It returns `AdmissionResult` after COMMIT.
-The [service integration test](tests/integration/test_purchase_admission.py) gives
-executable inputs and checks independently calculated results.
+## Failure cases you can inspect
 
-The transaction takes the shared workspace barrier, authorizes the customer,
-reserves request/business identities, locks balances in account-ID order, then
-writes the journal, relative balance deltas and both stored results atomically.
-Same bytes replay the original result; changed bytes conflict. Authorization also
-covers the stored operation, so knowing its ID cannot reveal another customer's result.
-Insufficient available funds persists a stable rejection; new funding requires a
-new operation ID for a new decision. Success contains no mutable current balance.
+These tests use real PostgreSQL, processes or protocol boundaries where stated.
+They provide concrete entry points for reviewing the design.
 
-The historical PR04 extraction reduced the purchase orchestrator to 63 source lines: workspace
-admission, request-key replay, business-ID replay and new purchase posting each have
-an explicit helper. Request/business claim order and the COMMIT boundary remain
-visible in the orchestrator. [PR04 evidence](evidence/R1-PR04/2026-10-25/README.md)
-compares that extraction to the committed R1 baseline without changing tests.
-PR03 now shares one transaction orchestrator and retry boundary between purchase
-and reversal; request-before-business ordering and the COMMIT boundary remain visible.
+| Scenario | Expected behavior | Executable evidence |
+|---|---|---|
+| Two purchases of 80 compete for 100 | One commits; the other retains a 422 refusal | [Concurrent purchase](tests/integration/test_purchase_concurrency.py) |
+| Provider commits, then worker receives SIGKILL | Recovery retains the original identity and one external effect | [Worker crash/restart](tests/integration/test_payout_worker_process.py) |
+| A balanced transfer credits the wrong merchant | A can pass; independent B detects the wrong owner and blocks rebuild | [Business-intent verification](tests/integration/test_export_verification.py) |
+| Different merchants compete for clearing capacity | Admission serializes on clearing and includes all active holds, including UNKNOWN | [Clearing commitments](tests/integration/test_payout_clearing_commitments.py) |
+| Workspace A has 21 blocked payouts; B has one normal payout | B is dispatched in the first batch of 20 | [Queue fairness](tests/integration/test_payout_queue_fairness.py) |
+| An approval outlives its evidence or permissions | Execution rechecks current facts; the proposer cannot self-approve using another credential | [Operator actions](tests/integration/test_operator_actions.py) |
+| Provider is ahead of a restored database | HISTORY/LOOKUP recovery keeps runtime CONNECT closed and revokes old credentials; missing admission is an explicit gap | [Native backup/recovery](tests/integration/test_backup_recovery.py) |
 
-## Full reversal
+The [Chinese walkthrough](docs/PROJECT-TOUR.zh-CN.md) names the specific test
+functions and explains the transaction boundaries behind these cases.
 
-`ledgerops.db.admission.submit_reversal` accepts a typed `ReversalCommand` with
-new operation ID, original purchase ID and exact reason. Only the original merchant
-actor can reverse an eligible accepted purchase. Amount/accounts come from verified
-original records. [Usage and contract](docs/REVERSAL.md).
+## Design choices worth reviewing
 
-Reversal takes the original row lock before sorted balance locks and adds a new
-merchant-debit/customer-credit journal. Original purchase rows stay immutable.
-Rejected attempts survive; only success occupies the unique original→reversal relation.
-Funding does not change a retained refusal: use a new business ID for a new decision.
-Already reversed under a fresh ID is a retained422 ALREADY_REVERSED. Replay uses the
-same shared admission paths and original result, without another financial effect.
+**Explicit transactions over hidden business workflows.** Python coordinates the
+business decisions; SQL makes identity claims and lock order visible. Database
+constraints protect declared structure, append-only journals and nonnegative
+projections. They cannot prove that an otherwise balanced payment belongs to the
+right merchant, which is why independent A/B checking is part of the design.
 
-## Retry and recovery
+**Unknown outcomes retain obligations.** A transport failure cannot release a hold
+or establish that no payment occurred. This costs availability while an outcome is
+unresolved, but avoids spending money already committed to an external payment.
 
-Deadlock 40P01 and serialization failure 40001 retry at most three whole transactions
-with unchanged identities. Each rollback must restore an open IDLE connection before
-backoff (10–50 ms, then 20–100 ms). Lock timeouts and query cancellation are returned as
-unretained retryable errors; arbitrary integrity faults propagate unchanged.
+**Rebuild from facts, not a saved preview.** After writer drain, repair recomputes
+journal and active-hold projections under an exclusive barrier. Fresh SQL targets,
+an independent after-check, repair audit and epoch update commit together. Legal
+active holds are supported; original history remains unchanged.
 
-Connection failure can leave COMMIT outcome unknown. The service propagates it and
-the caller reconnects with the same business ID and command. Tests sever the actual
-COMMIT before PostgreSQL receives it, withhold acknowledgement after it commits,
-and kill a committed worker before its business reply. Recovery returns or creates
-one effect according to committed state; no automatic reconnect is hidden in service.
+**Bounded evidence rather than truncated evidence.** Large financial sources use
+chunked format10 and a disk-backed SQLite index for complete verification. Missing
+chunks, unsupported semantics or exhausted budgets fail explicitly. A compact R4
+matching view retains pins to the full source and is rechecked before an action.
 
-## Export and independent verification
+The active-hold query has a partial covering index. A documented sample with
+50,000 terminal rows and eight HELD rows changed shared-block accesses from 667 to
+2, with the same sum and the default planner. This is a [specific query-plan
+measurement](docs/ACTIVE-HOLD-INDEX.md), not a throughput benchmark.
 
-See [export/verify usage](docs/EXPORT-AND-VERIFY.md) for role setup, commands,
-report fields and the bounded bundle contract. Existing databases must provision
-`ledger_reader` before applying migration 002. Application grants and migration
-001 are unchanged.
+## Verification snapshot
 
-Export reads all workspace tables in one REPEATABLE READ READ ONLY transaction.
-A folds entries into balances; B decodes retained `operation.payload` and compares
-exact effects and saved results, without a hand-authored business manifest.
-A consistent transfer to the wrong merchant can pass A and fail B. A test-only
-manifest additionally detects a request itself captured with the wrong merchant.
+**2026-11-04:** 1,721 tests passed, with zero failures or skips in the final full
+run. Nine Linux acceptance groups also passed from a clean installed-wheel image.
+The record includes actual disk exhaustion, large-source maintenance, TLS,
+restricted runtime roles, process restart and native `pg_dump`/`pg_restore`.
 
-Reports disclose the legacy OPENING fixture's opaque funding intent. Nonzero
-reservations prohibit rebuild eligibility even when posted balances agree.
-Eligibility is a source-check result, not permission to mutate a live DB.
-Format v4 adds reversal attempts/effects to the saved resume reports and maintenance
-metadata. Old v1/v2/v3 bundles remain accepted under their original schema rules. Unknown future schemas fail until explicitly supported.
+```sh
+make check     # lint, format, fresh installed package and SQL resources
+make test      # full suite, including disposable PostgreSQL and provider processes
+make build    # wheel and source distribution
+```
 
-## Maintenance
+See [commands, source commits, image IDs and results](evidence/POLISH/2026-11-04/README.md).
+The record retains earlier failures and their corrections. These are dated local
+verification results, not a GitHub CI badge or proof of every failure schedule.
 
-[PR02 workflow](docs/MAINTENANCE.md): freeze/drain → preview → live transactional
-recompute/apply → post-export/check → explicit resume. Apply takes a stable repair
-ID and current freeze identity, never a list of target balances. It keeps the
-workspace FROZEN, records every account's before/after values, advances versions
-and projection epoch atomically, and verifies the result independently. Same-ID
-recovery never applies twice; failed/unknown COMMIT uses the original repair ID.
-Nonzero reservations and source/intent errors block application. Resume gates only
-structure/A; full B/reservation findings are saved in its immutable resume report.
-No candidate tables.
+## Scope and further reading
 
-The maintenance credential has projection/metadata authority, not financial-history,
-reservation, DDL or owner authority. All cooperating writers must take the shared
-barrier; raw privileged SQL remains outside that protocol. Database freeze does
-not establish that external payments stopped.
+This is a single-host, synthetic-provider system with a tested local Linux deployment.
+The simulator's persistent keys, finality and close-if-absent tombstones are explicit
+protocol assumptions. A real provider needs its own adapter and contract. Real-bank
+execution, cloud/HA operation and browser visual interaction have not been validated.
 
-## Evidence and boundaries
+| Read next | Purpose |
+|---|---|
+| [Running guide](docs/RELEASE-READINESS.md) / [Linux runbook](ops/linux/README.md) | Setup, safe defaults, upgrades, diagnostics and cleanup |
+| [Authentication](docs/AUTHENTICATION.md) / [HTTP service](docs/HTTP-SERVICE.md) | Current permissions and service boundaries |
+| [Payout contract](docs/tasks/R3.md) / [Reconciliation](docs/R4-ACCEPTANCE.md) | Provider uncertainty and immutable settlement evidence |
+| [Maintenance](docs/MAINTENANCE.md) / [Backup and restore](docs/BACKUP-RESTORE.md) | Projection repair and closed recovery |
+| [Operator actions](docs/OPERATOR-ACTIONS.md) | Current-evidence maker/checker workflow |
+| [Read-only evidence exchange](docs/EVIDENCE-EXCHANGE.md) | Selected immutable evidence and standalone consumer |
+| [ADRs](docs/adr/) / [Handoff](HANDOFF.md) | Decisions, revision history and precise implementation status |
 
-[Demo verification](evidence/DEMO/2026-10-28/README.md): the actual narrated run
-completed successfully; **583 regression cases pass**, including the two new
-make-target/Docker-unavailable smokes. Production code and migrations are unchanged.
-
-[R2 integrated acceptance](docs/R2-ACCEPTANCE.md) maps every R2 requirement to exact
-tests and states the trust limits and reviewed disabled-customer404 boundary.
-[PR04 evidence](evidence/R2-PR04/2026-10-28/README.md): **581 passed**, zero failures/
-errors/skips (272 unit, 41 reference, 268 real PostgreSQL). Four mixed schedules,
-three targeted mutations, two actual exporter interruptions and one explicit
-review-boundary case close the final gaps. Production/migration/reference/fixture
-bytes are unchanged from PR03. Package checks and disposable-database setup pass;
-this is not production deployment or proof of every possible failure schedule.
-
-[R2-PR03 verification](evidence/R2-PR03/2026-10-28/README.md) records **571 passing
-cases**: 272 unit, 41 reference, 258 real PostgreSQL integration. 123 new cases cover
-full-reversal requests, independent original/effect checks, the literal failed→funded
-trace, merchant authorization, observed identity/original/balance waits, deferred DB
-bindings, eight SQL failure stages and both actual COMMIT-loss outcomes. A reversal
-history also passes export/repair/resume without changing its original purchase.
-The first full run's obsolete intent-scope assertion and corrected rerun are retained.
-
-[Resume correction](evidence/R2-RESUME/2026-10-28/README.md) is separate commit
-`3d4901f`, with 448 passing tests. It permits resume with B/reserve warnings while
-persisting the report and leaving the stricter repair admission unchanged.
-
-[R2-PR02 verification](evidence/R2-PR02/2026-10-27/README.md) records **432 passing
-tests**: 189 unit, 41 reference, 202 real PostgreSQL integration. The 74 new cases
-cover format compatibility, maintenance, actual writer drain/identity races, stale
-preview mutation, SQL/COMMIT rollback and actual wire-level ambiguous repair recovery.
-The previous R2 and R1 records remain historical evidence.
-
-[R2-PR01 verification](evidence/R2-PR01/2026-10-27/README.md) records **358 passing
-tests**: 165 unit, 41 reference and 152 real PostgreSQL integration. The 121 new
-cases include reader privileges, coherent concurrent exports, isolation mutation,
-offline corruption detection, bundle faults and a test-only reversal model.
-Source identity uses Git commits and trees.
-
-
-[PR03 verification](evidence/R1-PR03/2026-10-23/README.md) records **237 passing tests**,
-including 128 real PostgreSQL integration cases. The new cases force balance/identity
-waits, a real deadlock, retry exhaustion, cancellation, lock timeout and the three
-controlled connection/process faults. PostgreSQL lock relations and wire-frame
-observations establish the tested schedules; timeouts are not treated as success.
-
-[PR02 verification](evidence/R1-PR02/2026-10-23/README.md) covers the actual service,
-including injected SQL failures through deferred COMMIT, identity/scope isolation,
-retained-result corruption and workspace barrier ordering. The earlier
-[PR01 record](evidence/R1-PR01/2026-10-23/README.md) remains historical evidence.
-
-The frozen example funds 100 and purchases 80: clearing/customer/M1/M2 end at
-100/20/80/0. Independent tests detect both missed projection updates and a transfer
-to the wrong merchant even when journal and projection agree. Database-valid writes
-can still be business-wrong; the trusted runtime credential can bypass service rules.
-Replay consistency checks do not re-audit every historical entry or projection.
-
-These bounded schedules and fault locations do not exhaust every possible failure.
-Connection loss remains potentially ambiguous; never substitute a new identity.
-There is no automatic reconnect, durable client command store, HTTP authentication adapter,
-external provider, partial reversal, hold lifecycle, deployment or production-readiness claim.
-
-## R2 scope
-
-The [R2 task contract](docs/tasks/R2.md) and
-[five-item Chinese decision packet](docs/DECISION-PACKET-R2.md) were adopted with user amendments on 2026-10-27. They cover independent export/checking, writer-drained maintenance rebuild,
-and success-only full purchase reversal. B checks retained canonical requests, and repair recomputes in one exclusive
-transaction without candidate tables. [R2-PR01](docs/tasks/R2-PR01.md) and
-[R2-PR02](docs/tasks/R2-PR02.md) plus resume correction `3d4901f` and
-[R2-PR03](docs/tasks/R2-PR03.md) and [PR04 integrated acceptance](docs/tasks/R2-PR04.md)
-are complete. R2 acceptance covers the bounded local ledger core. Persistent demo,
-HTTP authentication, external providers and later-stage work remain outside scope.
-
-## Continue here
-
-- [Current handoff](HANDOFF.md): implemented / verified / personal ownership.
-- [Accepted decision packet](docs/DECISION-PACKET-R1.md): four defaults confirmed by Yi.
-- [Foundation ADR](docs/adr/0002-r1-foundation.md), [purchase ADR](docs/adr/0003-purchase-admission.md)
-  [retry/recovery ADR](docs/adr/0004-contention-and-recovery.md) and
-  [working contract](docs/working/R1-CONTRACT.md).
-- [PR02 task](docs/tasks/R1-PR02.md), [PR03 task](docs/tasks/R1-PR03.md) and
-  [PR04 extraction task](docs/tasks/R1-PR04.md).
-- [Agent rules](AGENTS.md) and [source provenance](docs/reference/PROVENANCE.md).
-
-The repository has local Git commits and no remote. The received R1 implementation
-is preserved in baseline `feb4588`; the PR04 extraction is the next independent
-commit. R2 adoption is separate documentation commit `328733b`, followed by a
-bounded PR01 `a067785`, PR02 `d825d41`, resume correction `3d4901f`, PR03 `82fa8ff`
-and a separate PR04 acceptance commit. PR numbers identify
-work slices; no GitHub pull request, deployment or tracker update has been made.
+Implementation and review were AI-assisted. The repository keeps design decisions,
+corrections and reproducible checks visible alongside the code.
