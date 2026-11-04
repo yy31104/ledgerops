@@ -29,6 +29,8 @@ def test_demo_reporter_preserves_narration_and_failure_diagnostics(tmp_path, fai
             "--tb=short",
             "-p",
             "tests.demo_output",
+            "-p",
+            "no:cacheprovider",
             "--confcutdir",
             str(tmp_path),
             str(story),
