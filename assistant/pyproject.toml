@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ledgerops-assistant"
+version = "0.1.0"
+description = "Operator assistant for LedgerOps: cited answers from the docs, no write access"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "huggingface-hub>=0.30,<2",
+    "numpy>=2,<3",
+    "onnxruntime>=1.20,<2",
+    "tokenizers>=0.21,<1",
+    "psycopg[binary]>=3.2,<4",
+    "mlflow-skinny>=3.8,<4",
+    "sqlalchemy>=2,<3",
+    "alembic>=1.16,<2",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.80,<3"]
+subscription = [
+    "openai-codex>=0.163.0",
+]
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "ruff==0.16.9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ledgerops_assistant"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+# Same grouping as the root configuration, so scenarios/ (which imports LedgerOps and its
+# test helpers) formats identically whichever configuration ruff picks up.
+known-first-party = ["ledgerops", "ledgerops_assistant", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra --strict-config --strict-markers -m 'not model and not postgres'"
+markers = [
+    "model: downloads and runs the real bge-small embedding model",
+    "postgres: requires a disposable pgvector PostgreSQL container",
+]

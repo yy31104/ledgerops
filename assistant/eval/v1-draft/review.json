@@ -1,0 +1,8 @@
+{
+  "status": "frozen_unreviewed",
+  "sha256": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+  "dev": 40,
+  "test": 20,
+  "owner_review": "deferred at user instruction; not manually approved",
+  "holdout_policy": "No holdout run until implementation and development settings are fixed. Never tune on holdout."
+}

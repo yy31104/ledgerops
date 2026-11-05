@@ -51,4 +51,52 @@ jobs:
         run: |
           uv run --locked ruff check assistant/scenarios
           uv run --locked ruff format --check assistant/scenarios
-          uv run --locked python -m pytest -p tests.conftest -q assistant/scenarios/capture.py
+          uv run --locked python -m pytest -c pyproject.toml -p tests.conftest -q assistant/scenarios/capture.py
+
+  assistant:
+    name: Operator assistant
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: assistant
+    env:
+      UV_PYTHON: "3.12.15"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12.15"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.11.14"
+          enable-cache: false
+
+      - name: Lint
+        run: |
+          uv run --locked ruff check .
+          uv run --locked ruff format --check .
+
+      # The fake provider and the hashing embedder keep this job offline and free:
+      # no model download, no API key.
+      - name: Test
+        run: uv run --locked python -m pytest
+
+      - name: PostgreSQL integration
+        run: uv run --locked python -m pytest -m postgres
+
+      # Generation is fake. Retrieval quality uses the pinned, public local encoder.
+      - name: Retrieval Recall gate (development split only)
+        env:
+          HF_HUB_DISABLE_IMPLICIT_TOKEN: "1"
+          MLFLOW_DISABLE_AGENT_HINT: "1"
+        run: |
+          uv run --locked python scripts/evaluate_local.py --split dev \
+            --baseline eval/results/v1-postgres-dev.json --output .cache/ci-evaluation.json

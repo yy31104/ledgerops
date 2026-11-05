@@ -155,7 +155,7 @@ the operator matches it against a ledger export offline.
 From the repository root, with Docker running:
 
 ```sh
-uv run --locked python -m pytest -p tests.conftest -q assistant/scenarios/capture.py
+uv run --locked python -m pytest -c pyproject.toml -p tests.conftest -q assistant/scenarios/capture.py
 ```
 
 `LEDGEROPS_SCENARIOS_CHECK=1` compares a fresh capture with the committed snapshots
