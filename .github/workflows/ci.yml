@@ -44,3 +44,11 @@ jobs:
 
       - name: Run the full test suite
         run: make test
+
+      - name: Check assistant scenario snapshots
+        env:
+          LEDGEROPS_SCENARIOS_CHECK: "1"
+        run: |
+          uv run --locked ruff check assistant/scenarios
+          uv run --locked ruff format --check assistant/scenarios
+          uv run --locked python -m pytest -p tests.conftest -q assistant/scenarios/capture.py

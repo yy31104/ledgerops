@@ -1,0 +1,120 @@
+{
+  "scenario": "dispatch_timeout",
+  "summary": "Merchant M1's payout of 60 + 2 is admitted and claimed by the worker. The worker records MAY_HAVE_SENT, sends PUT, and the call times out. Nobody knows whether the provider paid, so the 62 stays held.",
+  "setup": [
+    "Opening: customer 100. Purchase 80 to M1.",
+    "M1 payout 60 + 2 admitted: 202, hold 62.",
+    "Worker claim commits MAY_HAVE_SENT, then PUT raises a timeout."
+  ],
+  "worker_result": {
+    "outcome": "TIMEOUT"
+  },
+  "merchant_balance": {
+    "booked": "80",
+    "reserved": "62",
+    "available": "18"
+  },
+  "operator_views": [
+    {
+      "request": "GET /v1/payouts/40000000-0000-4000-8000-000000000003",
+      "status": 200,
+      "body": {
+        "attempts": "1",
+        "dispatch_deadline": "2026-10-29T12:01:00Z",
+        "dispatch_state": "OBSERVING",
+        "fee_minor": "2",
+        "gross_minor": "62",
+        "incident_resolutions": [],
+        "incident_resolutions_have_more": false,
+        "incidents": [],
+        "knowledge": "UNKNOWN",
+        "next_due_at": "<next_due_at>",
+        "payout_id": "40000000-0000-4000-8000-000000000003",
+        "principal_minor": "60",
+        "recent_observations": [],
+        "reservation_state": "HELD",
+        "resolution": null,
+        "source_sequence": "0"
+      }
+    },
+    {
+      "request": "GET /v1/accounts",
+      "status": 200,
+      "body": {
+        "accounts": [
+          {
+            "available": "18",
+            "booked": "80",
+            "class": "MERCHANT_LIABILITY",
+            "currency": "PLN",
+            "id": "30000000-0000-4000-8000-000000000003",
+            "reserved": "62",
+            "version": "2"
+          }
+        ],
+        "next_after": null
+      }
+    },
+    {
+      "request": "GET /v1/investigation/operations/40000000-0000-4000-8000-000000000003",
+      "status": 200,
+      "body": {
+        "current_reconciliation_references": [],
+        "entries": [],
+        "evidence_boundary": "Stored hashes and references; no provider authenticity or whole-history assertion",
+        "incidents_have_more": false,
+        "limits": {
+          "entries": 100,
+          "incidents": 32,
+          "observations": 20
+        },
+        "observations_have_more": false,
+        "operation": {
+          "admission": "ACCEPTED",
+          "created_at": "<time:1>",
+          "http_status": 202,
+          "kind": "PAYOUT",
+          "operation_id": "40000000-0000-4000-8000-000000000003",
+          "payload_sha256": "<digest:1>",
+          "response_body": {
+            "admission": "accepted_for_processing",
+            "contract_version": 1,
+            "currency": "PLN",
+            "dispatch_deadline": "2026-10-29T12:01:00Z",
+            "fee_minor": "2",
+            "gross_minor": "62",
+            "operation_id": "40000000-0000-4000-8000-000000000003",
+            "payout_id": "40000000-0000-4000-8000-000000000003",
+            "principal_minor": "60"
+          }
+        },
+        "payout": {
+          "fee_minor": "2",
+          "gross_minor": "62",
+          "hold_state": "HELD",
+          "hold_version": "1",
+          "knowledge": "UNKNOWN",
+          "operation_id": "40000000-0000-4000-8000-000000000003",
+          "principal_minor": "60",
+          "provider_key": "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003",
+          "provider_namespace": "00000000-0000-4000-8000-000000000100",
+          "version": "2"
+        },
+        "recent_incidents": [],
+        "recent_observations": [],
+        "reconciliations_have_more": false
+      }
+    },
+    {
+      "request": "GET /v1/metrics",
+      "status": 200,
+      "body": {
+        "blocked_count": 0,
+        "oldest_unresolved_seconds": "<oldest_unresolved_seconds>",
+        "payout_count": 1,
+        "quarantine_count": 0,
+        "unresolved_count": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "scenario": "limit_exceeded",
+  "summary": "Merchant M2 asks for a payout of 60 + fee 2. Merchant M1 already holds 62 against a clearing capacity of 100, so admission refuses M2 with a retained 422 LIMIT_EXCEEDED and creates no hold.",
+  "setup": [
+    "Opening: customer 100. Purchase 80 to M1. Opening 80 to M2.",
+    "Clearing projection set to 100 (deliberately short; see capture.py).",
+    "M1 payout 60 + 2 admitted: 202, hold 62.",
+    "M2 payout 60 + 2 refused: 422 LIMIT_EXCEEDED, no hold."
+  ],
+  "admission_receipts": {
+    "40000000-0000-4000-8000-000000000003": {
+      "http_status": 202,
+      "body": {
+        "operation_id": "40000000-0000-4000-8000-000000000003",
+        "payout_id": "40000000-0000-4000-8000-000000000003",
+        "admission": "accepted_for_processing",
+        "principal_minor": "60",
+        "fee_minor": "2",
+        "gross_minor": "62",
+        "currency": "PLN",
+        "dispatch_deadline": "2026-10-29T12:01:00Z",
+        "contract_version": 1
+      }
+    },
+    "40000000-0000-4000-8000-000000000004": {
+      "http_status": 422,
+      "body": {
+        "error": {
+          "code": "LIMIT_EXCEEDED",
+          "message": "Payout would exceed ledger limits",
+          "retryable": false,
+          "operation_id": "40000000-0000-4000-8000-000000000004",
+          "request_id": "<uuid:1>"
+        }
+      }
+    }
+  },
+  "operator_views": [
+    {
+      "request": "GET /v1/operations/40000000-0000-4000-8000-000000000004",
+      "status": 200,
+      "body": {
+        "admission": "REJECTED",
+        "created_at": "<time:1>",
+        "http_status": 422,
+        "kind": "PAYOUT",
+        "operation_id": "40000000-0000-4000-8000-000000000004",
+        "response_body": {
+          "error": {
+            "code": "LIMIT_EXCEEDED",
+            "message": "Payout would exceed ledger limits",
+            "operation_id": "40000000-0000-4000-8000-000000000004",
+            "request_id": "<uuid:1>",
+            "retryable": false
+          }
+        }
+      }
+    },
+    {
+      "request": "GET /v1/payouts/40000000-0000-4000-8000-000000000004",
+      "status": 404,
+      "body": {
+        "error": {
+          "code": "NOT_FOUND",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "request": "GET /v1/accounts",
+      "status": 200,
+      "body": {
+        "accounts": [
+          {
+            "available": "80",
+            "booked": "80",
+            "class": "MERCHANT_LIABILITY",
+            "currency": "PLN",
+            "id": "30000000-0000-4000-8000-000000000004",
+            "reserved": "0",
+            "version": "1"
+          }
+        ],
+        "next_after": null
+      }
+    },
+    {
+      "request": "GET /v1/investigation/operations/40000000-0000-4000-8000-000000000004",
+      "status": 200,
+      "body": {
+        "current_reconciliation_references": [],
+        "entries": [],
+        "evidence_boundary": "Stored hashes and references; no provider authenticity or whole-history assertion",
+        "incidents_have_more": false,
+        "limits": {
+          "entries": 100,
+          "incidents": 32,
+          "observations": 20
+        },
+        "observations_have_more": false,
+        "operation": {
+          "admission": "REJECTED",
+          "created_at": "<time:1>",
+          "http_status": 422,
+          "kind": "PAYOUT",
+          "operation_id": "40000000-0000-4000-8000-000000000004",
+          "payload_sha256": "<digest:1>",
+          "response_body": {
+            "error": {
+              "code": "LIMIT_EXCEEDED",
+              "message": "Payout would exceed ledger limits",
+              "operation_id": "40000000-0000-4000-8000-000000000004",
+              "request_id": "<uuid:1>",
+              "retryable": false
+            }
+          }
+        },
+        "payout": null,
+        "recent_incidents": [],
+        "recent_observations": [],
+        "reconciliations_have_more": false
+      }
+    },
+    {
+      "request": "GET /v1/investigation/operations/40000000-0000-4000-8000-000000000003",
+      "status": 200,
+      "body": {
+        "current_reconciliation_references": [],
+        "entries": [],
+        "evidence_boundary": "Stored hashes and references; no provider authenticity or whole-history assertion",
+        "incidents_have_more": false,
+        "limits": {
+          "entries": 100,
+          "incidents": 32,
+          "observations": 20
+        },
+        "observations_have_more": false,
+        "operation": {
+          "admission": "ACCEPTED",
+          "created_at": "<time:2>",
+          "http_status": 202,
+          "kind": "PAYOUT",
+          "operation_id": "40000000-0000-4000-8000-000000000003",
+          "payload_sha256": "<digest:2>",
+          "response_body": {
+            "admission": "accepted_for_processing",
+            "contract_version": 1,
+            "currency": "PLN",
+            "dispatch_deadline": "2026-10-29T12:01:00Z",
+            "fee_minor": "2",
+            "gross_minor": "62",
+            "operation_id": "40000000-0000-4000-8000-000000000003",
+            "payout_id": "40000000-0000-4000-8000-000000000003",
+            "principal_minor": "60"
+          }
+        },
+        "payout": {
+          "fee_minor": "2",
+          "gross_minor": "62",
+          "hold_state": "HELD",
+          "hold_version": "1",
+          "knowledge": "NOT_SENT",
+          "operation_id": "40000000-0000-4000-8000-000000000003",
+          "principal_minor": "60",
+          "provider_key": "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003",
+          "provider_namespace": "00000000-0000-4000-8000-000000000100",
+          "version": "1"
+        },
+        "recent_incidents": [],
+        "recent_observations": [],
+        "reconciliations_have_more": false
+      }
+    },
+    {
+      "request": "GET /v1/metrics",
+      "status": 200,
+      "body": {
+        "blocked_count": 0,
+        "oldest_unresolved_seconds": "<oldest_unresolved_seconds>",
+        "payout_count": 1,
+        "quarantine_count": 0,
+        "unresolved_count": 1
+      }
+    }
+  ]
+}

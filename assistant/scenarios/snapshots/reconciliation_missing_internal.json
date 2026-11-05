@@ -1,0 +1,249 @@
+{
+  "scenario": "reconciliation_missing_internal",
+  "summary": "Same timeout as dispatch_timeout, except the PUT did reach the provider and it paid 62. The reply was lost, so the ledger still holds 62 with an unknown outcome. The provider's signed settlement statement includes the payment, and the offline reconciliation report flags MISSING_INTERNAL.",
+  "setup": [
+    "Opening: customer 100. Purchase 80 to M1.",
+    "M1 payout 60 + 2 admitted: 202, hold 62.",
+    "Worker claim commits MAY_HAVE_SENT; PUT reaches the provider and pays 62.",
+    "The provider's reply is lost: the worker records TIMEOUT, hold stays 62.",
+    "Provider issues a signed settlement statement; ledger export is matched offline."
+  ],
+  "worker_result": {
+    "outcome": "TIMEOUT"
+  },
+  "reconciliation_report": {
+    "report_version": 1,
+    "status": "COMPLETE",
+    "usable": true,
+    "reconciled": false,
+    "rule_version": "ledgerops.reconciliation.v1",
+    "parser_version": 1,
+    "workspace_id": "10000000-0000-4000-8000-000000000001",
+    "provider_namespace": "00000000-0000-4000-8000-000000000100",
+    "business_date": "<business_date>",
+    "timezone": "Europe/Warsaw",
+    "window": {
+      "start_inclusive": "<time:1>",
+      "end_exclusive": "<time:2>"
+    },
+    "statement_version": 1,
+    "inputs": {
+      "manifest_version": 1,
+      "inputs": {
+        "ledger_manifest": {
+          "sha256": "<digest:1>",
+          "bytes": 842
+        },
+        "ledger_data": {
+          "sha256": "<digest:2>",
+          "bytes": 12014
+        },
+        "statement": {
+          "sha256": "<digest:3>",
+          "bytes": 2159
+        }
+      },
+      "workspace_id": "10000000-0000-4000-8000-000000000001",
+      "provider_namespace": "00000000-0000-4000-8000-000000000100",
+      "business_date": "<business_date>",
+      "timezone": "Europe/Warsaw",
+      "start_inclusive": "<time:1>",
+      "end_exclusive": "<time:2>",
+      "statement_version": 1,
+      "statement_key_id": "test-v1",
+      "effect_watermark": 1,
+      "assignment_watermark": 1,
+      "export_id": "<uuid:1>",
+      "ledger_source_code_revision": "<digest:4>",
+      "ledger_source_dirty": true,
+      "rule_version": "ledgerops.reconciliation.v1",
+      "parser_version": 1,
+      "code_revision": "<git-revision>",
+      "dirty": true
+    },
+    "inventory_scope": "COMPLETE_PINNED_WORKSPACE_INPUTS",
+    "settlement_scope": "EXPLICIT_SELECTED_BUSINESS_DAY",
+    "issues": [
+      {
+        "category": "MISSING_INTERNAL",
+        "object_id": "40000000-0000-4000-8000-000000000003",
+        "field": "journal_count",
+        "expected": 1,
+        "actual": 0,
+        "scope": "INVENTORY",
+        "refs": []
+      }
+    ],
+    "groups": [
+      {
+        "group_id": "<digest:5>",
+        "group_key": [
+          "00000000-0000-4000-8000-000000000100",
+          "<uuid:2>",
+          "PLN",
+          "30000000-0000-4000-8000-000000000003",
+          "quoted_fee_v1"
+        ],
+        "row_ids": [
+          "<uuid:3>"
+        ],
+        "provider_keys": [
+          "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003"
+        ],
+        "principal_minor": "60",
+        "fee_minor": "2",
+        "gross_minor": "62",
+        "matched": false
+      }
+    ],
+    "matched_provider_keys": [],
+    "unmatched_provider_keys": [
+      "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003"
+    ],
+    "unresolved_payout_ids": [
+      "40000000-0000-4000-8000-000000000003"
+    ],
+    "workspace_unresolved_payout_ids": [
+      "40000000-0000-4000-8000-000000000003"
+    ],
+    "unsettled_provider_keys": [],
+    "settlement_complete": true,
+    "internal_verification": {
+      "structure_ok": true,
+      "projection_ok": true,
+      "request_intent_ok": true,
+      "reservation_supported": true,
+      "issues": [],
+      "intent_scope": [
+        "PURCHASE",
+        "REVERSAL",
+        "PAYOUT"
+      ],
+      "unverified_intent_kinds": [
+        "OPENING",
+        "OPERATOR_HISTORICAL_AUTHORIZATION",
+        "PAYOUT_EXTERNAL_EFFECT",
+        "PAYOUT_PROVIDER_AUTHENTICITY"
+      ],
+      "external_evidence": {
+        "signature_authenticity": "NOT_VERIFIED_NO_TRUST_KEYS",
+        "independent_provider_history": "NOT_PROVIDED",
+        "external_consistency_ok": true,
+        "accepted_payout_count": 1,
+        "resolved_payout_count": 0,
+        "payouts_resolved": false,
+        "unresolved_payout_ids": [
+          "40000000-0000-4000-8000-000000000003"
+        ],
+        "incident_payout_ids": [],
+        "local_blocker_payout_ids": [],
+        "quarantine_count": 0,
+        "retained_observation_count": 0
+      },
+      "operator_actions": {
+        "historical_authorization": "NOT_VERIFIED_NO_AUTH_HISTORY",
+        "maker_checker_separation": "DISTINCT_OPAQUE_ACTOR_IDS_CHECKED",
+        "proposal_count": 0,
+        "approval_count": 0,
+        "execution_count": 0,
+        "disposition_count": 0
+      },
+      "report_version": 3,
+      "healthy": true,
+      "rebuild_eligible": true
+    },
+    "limits": [
+      "HMAC proves source/key agreement, not completeness or truth of the provider database.",
+      "Stored requests are intent evidence, not proof of correct user-request capture.",
+      "Ledger event signatures are not authenticated by the independent A/B verifier.",
+      "Missing rows describe these fixed inputs; source watermarks are not a shared clock.",
+      "Unassigned effects have no known settlement day at the fixed assignment watermark.",
+      "This report cannot authorize a release, financial correction or external payment."
+    ]
+  },
+  "operator_views": [
+    {
+      "request": "GET /v1/payouts/40000000-0000-4000-8000-000000000003",
+      "status": 200,
+      "body": {
+        "attempts": "1",
+        "dispatch_deadline": "2026-10-29T12:01:00Z",
+        "dispatch_state": "OBSERVING",
+        "fee_minor": "2",
+        "gross_minor": "62",
+        "incident_resolutions": [],
+        "incident_resolutions_have_more": false,
+        "incidents": [],
+        "knowledge": "UNKNOWN",
+        "next_due_at": "<next_due_at>",
+        "payout_id": "40000000-0000-4000-8000-000000000003",
+        "principal_minor": "60",
+        "recent_observations": [],
+        "reservation_state": "HELD",
+        "resolution": null,
+        "source_sequence": "0"
+      }
+    },
+    {
+      "request": "GET /v1/investigation/operations/40000000-0000-4000-8000-000000000003",
+      "status": 200,
+      "body": {
+        "current_reconciliation_references": [],
+        "entries": [],
+        "evidence_boundary": "Stored hashes and references; no provider authenticity or whole-history assertion",
+        "incidents_have_more": false,
+        "limits": {
+          "entries": 100,
+          "incidents": 32,
+          "observations": 20
+        },
+        "observations_have_more": false,
+        "operation": {
+          "admission": "ACCEPTED",
+          "created_at": "<time:3>",
+          "http_status": 202,
+          "kind": "PAYOUT",
+          "operation_id": "40000000-0000-4000-8000-000000000003",
+          "payload_sha256": "<digest:6>",
+          "response_body": {
+            "admission": "accepted_for_processing",
+            "contract_version": 1,
+            "currency": "PLN",
+            "dispatch_deadline": "2026-10-29T12:01:00Z",
+            "fee_minor": "2",
+            "gross_minor": "62",
+            "operation_id": "40000000-0000-4000-8000-000000000003",
+            "payout_id": "40000000-0000-4000-8000-000000000003",
+            "principal_minor": "60"
+          }
+        },
+        "payout": {
+          "fee_minor": "2",
+          "gross_minor": "62",
+          "hold_state": "HELD",
+          "hold_version": "1",
+          "knowledge": "UNKNOWN",
+          "operation_id": "40000000-0000-4000-8000-000000000003",
+          "principal_minor": "60",
+          "provider_key": "v1.00000000-0000-4000-8000-000000000100.10000000-0000-4000-8000-000000000001.40000000-0000-4000-8000-000000000003",
+          "provider_namespace": "00000000-0000-4000-8000-000000000100",
+          "version": "2"
+        },
+        "recent_incidents": [],
+        "recent_observations": [],
+        "reconciliations_have_more": false
+      }
+    },
+    {
+      "request": "GET /v1/metrics",
+      "status": 200,
+      "body": {
+        "blocked_count": 0,
+        "oldest_unresolved_seconds": "<oldest_unresolved_seconds>",
+        "payout_count": 1,
+        "quarantine_count": 0,
+        "unresolved_count": 1
+      }
+    }
+  ]
+}
