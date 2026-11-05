@@ -1,0 +1,378 @@
+{
+  "created_at": "2026-11-05T13:56:53+00:00",
+  "corpus": {
+    "revision": "7106a8ac4fb78e463a5e6423f20e1e02f9eaf0f0",
+    "digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+    "chunker": "headings-v1",
+    "files": 21,
+    "chunks": 175,
+    "sections": 105
+  },
+  "questions": {
+    "file": "questions.jsonl",
+    "sha256": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+    "total": 40,
+    "retrieval_scored": 32,
+    "by_route": {
+      "docs": 32,
+      "live_state": 2,
+      "action": 4,
+      "out_of_scope": 2
+    },
+    "by_split": {
+      "dev": 40
+    },
+    "evaluated_split": "dev"
+  },
+  "environment": {
+    "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+    "python": "3.12.13",
+    "onnxruntime": "1.31.1",
+    "tokenizers": "0.23.3",
+    "machine": "arm64",
+    "backend": "postgres",
+    "quality_signal": true
+  },
+  "fusion": {
+    "rrf_k": 10,
+    "depth": 50,
+    "weights": [
+      1.0,
+      1.0
+    ],
+    "unit": "chunk"
+  },
+  "retrieval": {
+    "postgres_fts": {
+      "all": {
+        "n": 32,
+        "hit@1": 0.4688,
+        "hit@3": 0.7188,
+        "hit@5": 0.75,
+        "recall@5": 0.625,
+        "mrr@10": 0.6084,
+        "ndcg@5": 0.552,
+        "context_recall@5": 0.6094
+      },
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.4688,
+          "hit@3": 0.7188,
+          "hit@5": 0.75,
+          "recall@5": 0.625,
+          "mrr@10": 0.6084,
+          "ndcg@5": 0.552,
+          "context_recall@5": 0.6094
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      },
+      "latency_ms": {
+        "mean": 8.1,
+        "p95": 10.223
+      }
+    },
+    "pgvector_hnsw": {
+      "all": {
+        "n": 32,
+        "hit@1": 0.5,
+        "hit@3": 0.8438,
+        "hit@5": 0.9062,
+        "recall@5": 0.7344,
+        "mrr@10": 0.6687,
+        "ndcg@5": 0.6253,
+        "context_recall@5": 0.7188
+      },
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.5,
+          "hit@3": 0.8438,
+          "hit@5": 0.9062,
+          "recall@5": 0.7344,
+          "mrr@10": 0.6687,
+          "ndcg@5": 0.6253,
+          "context_recall@5": 0.7188
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      },
+      "latency_ms": {
+        "mean": 11.623,
+        "p95": 13.901
+      }
+    },
+    "pgvector_exact": {
+      "all": {
+        "n": 32,
+        "hit@1": 0.5,
+        "hit@3": 0.8438,
+        "hit@5": 0.9062,
+        "recall@5": 0.7344,
+        "mrr@10": 0.6687,
+        "ndcg@5": 0.6253,
+        "context_recall@5": 0.7188
+      },
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.5,
+          "hit@3": 0.8438,
+          "hit@5": 0.9062,
+          "recall@5": 0.7344,
+          "mrr@10": 0.6687,
+          "ndcg@5": 0.6253,
+          "context_recall@5": 0.7188
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      },
+      "latency_ms": {
+        "mean": 11.729,
+        "p95": 13.469
+      }
+    },
+    "legacy_hybrid": {
+      "all": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.7812,
+        "hit@5": 0.8125,
+        "recall@5": 0.7083,
+        "mrr@10": 0.7527,
+        "ndcg@5": 0.6741,
+        "context_recall@5": 0.6771
+      },
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.6875,
+          "hit@3": 0.7812,
+          "hit@5": 0.8125,
+          "recall@5": 0.7083,
+          "mrr@10": 0.7527,
+          "ndcg@5": 0.6741,
+          "context_recall@5": 0.6771
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      },
+      "latency_ms": {
+        "mean": 20.116,
+        "p95": 23.045
+      }
+    },
+    "hybrid": {
+      "all": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.75,
+        "hit@5": 0.9062,
+        "recall@5": 0.7812,
+        "mrr@10": 0.7531,
+        "ndcg@5": 0.7048,
+        "context_recall@5": 0.7031
+      },
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.6875,
+          "hit@3": 0.75,
+          "hit@5": 0.9062,
+          "recall@5": 0.7812,
+          "mrr@10": 0.7531,
+          "ndcg@5": 0.7048,
+          "context_recall@5": 0.7031
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      },
+      "latency_ms": {
+        "mean": 20.67,
+        "p95": 25.944
+      }
+    }
+  },
+  "comparisons": {
+    "postgres_fts -> hybrid": {
+      "hit@1": {
+        "mean_difference": 0.2188,
+        "ci95": [
+          0.0938,
+          0.375
+        ],
+        "better_on": [
+          "v1-005",
+          "v1-012",
+          "v1-014",
+          "v1-020",
+          "v1-026",
+          "v1-028",
+          "v1-032"
+        ],
+        "worse_on": []
+      },
+      "mrr@10": {
+        "mean_difference": 0.1448,
+        "ci95": [
+          0.0651,
+          0.2375
+        ],
+        "better_on": [
+          "v1-002",
+          "v1-004",
+          "v1-005",
+          "v1-011",
+          "v1-012",
+          "v1-013",
+          "v1-014",
+          "v1-020",
+          "v1-026",
+          "v1-027",
+          "v1-028",
+          "v1-030",
+          "v1-032"
+        ],
+        "worse_on": [
+          "v1-008"
+        ]
+      }
+    },
+    "postgres_fts -> pgvector_hnsw": {
+      "hit@1": {
+        "mean_difference": 0.0312,
+        "ci95": [
+          -0.1562,
+          0.2188
+        ],
+        "better_on": [
+          "v1-014",
+          "v1-020",
+          "v1-026",
+          "v1-028",
+          "v1-032"
+        ],
+        "worse_on": [
+          "v1-001",
+          "v1-006",
+          "v1-007",
+          "v1-022"
+        ]
+      },
+      "mrr@10": {
+        "mean_difference": 0.0604,
+        "ci95": [
+          -0.0641,
+          0.1812
+        ],
+        "better_on": [
+          "v1-002",
+          "v1-004",
+          "v1-011",
+          "v1-013",
+          "v1-014",
+          "v1-020",
+          "v1-023",
+          "v1-026",
+          "v1-027",
+          "v1-028",
+          "v1-030",
+          "v1-032"
+        ],
+        "worse_on": [
+          "v1-001",
+          "v1-005",
+          "v1-006",
+          "v1-007",
+          "v1-008",
+          "v1-012",
+          "v1-022"
+        ]
+      }
+    },
+    "pgvector_hnsw -> hybrid": {
+      "hit@1": {
+        "mean_difference": 0.1875,
+        "ci95": [
+          0.0625,
+          0.3125
+        ],
+        "better_on": [
+          "v1-001",
+          "v1-005",
+          "v1-006",
+          "v1-007",
+          "v1-012",
+          "v1-022"
+        ],
+        "worse_on": []
+      },
+      "mrr@10": {
+        "mean_difference": 0.0844,
+        "ci95": [
+          -0.0073,
+          0.1823
+        ],
+        "better_on": [
+          "v1-001",
+          "v1-005",
+          "v1-006",
+          "v1-007",
+          "v1-008",
+          "v1-012",
+          "v1-022"
+        ],
+        "worse_on": [
+          "v1-004",
+          "v1-011",
+          "v1-013",
+          "v1-023",
+          "v1-027"
+        ]
+      }
+    }
+  },
+  "mlflow_run_id": "e392c7a8f97044f9843abd2b9dc89580",
+  "artifact_note": "Full development evaluation preserved in local MLflow under mlflow_run_id; this file is the compact CI baseline."
+}

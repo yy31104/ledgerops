@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels: {app: postgres}
+spec:
+  selector: {app: postgres}
+  ports: [{name: postgres, port: 5432, targetPort: 5432}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels: {app: postgres}
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector: {matchLabels: {app: postgres}}
+  template:
+    metadata:
+      labels: {app: postgres}
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      terminationGracePeriodSeconds: 50
+      containers:
+        - name: postgres
+          # Local alias created by `make preload` from the pinned digest used by
+          # ops/linux/compose.yaml and tests/conftest.py (PostgreSQL 18.6):
+          # postgres@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+          image: ledgerops-postgres:18.6
+          imagePullPolicy: Never
+          args: [postgres, -c, max_connections=40, -c, shared_buffers=32MB, -c, max_wal_size=128MB]
+          env:
+            - {name: POSTGRES_PASSWORD_FILE, value: /run/postgres-secret/password}
+            - {name: PGDATA, value: /var/lib/postgresql/18/docker}
+            - {name: POSTGRES_INITDB_ARGS, value: --auth-host=scram-sha-256 --auth-local=scram-sha-256}
+          ports: [{containerPort: 5432, name: postgres}]
+          readinessProbe:
+            exec: {command: [pg_isready, -U, postgres, -h, 127.0.0.1]}
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec: {command: [pg_isready, -U, postgres, -h, 127.0.0.1]}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests: {cpu: 250m, memory: 192Mi}
+            limits: {cpu: "1", memory: 256Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/postgresql}
+            - {name: secret, mountPath: /run/postgres-secret, readOnly: true}
+            - {name: run, mountPath: /var/run/postgresql}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: secret
+          secret: {secretName: ledgerops-postgres, defaultMode: 0440}
+        - name: run
+          emptyDir: {medium: Memory, sizeLimit: 8Mi}
+        - name: tmp
+          emptyDir: {medium: Memory, sizeLimit: 32Mi}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: {requests: {storage: 1Gi}}

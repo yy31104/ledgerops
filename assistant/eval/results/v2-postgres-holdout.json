@@ -1,0 +1,431 @@
+{
+  "created_at": "2026-11-05T13:59:15.988322+00:00",
+  "corpus": {
+    "digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+    "revision": "1f0e7ca4b2ee0fed4f972913f562c9a7337c87e1"
+  },
+  "questions": {
+    "sha256": "653bf40dcdc1117bd42c165710b028b27622359a8c546129db7d901626396677",
+    "evaluated_split": "test",
+    "total": 60,
+    "groups": 29
+  },
+  "environment": {
+    "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+    "backend": "postgres",
+    "quality_signal": true,
+    "python": "3.12.13"
+  },
+  "freeze_sha256": "7a2cccac673f52729adceb9f1612b7cc3bf5052ef522fa0be777094625ccadf5",
+  "fusion": {
+    "weights": [
+      1.0,
+      1.0
+    ],
+    "rrf_k": 10,
+    "depth": 50,
+    "unit": "chunk"
+  },
+  "comparisons": {
+    "legacy_hybrid -> hybrid": {
+      "recall@5": {
+        "mean_difference": 0.025,
+        "ci95": [
+          0.0,
+          0.0667
+        ],
+        "better_on": [
+          "blind-v2-003",
+          "blind-v2-010"
+        ],
+        "worse_on": [],
+        "cluster_ci95": [
+          0.0,
+          0.0656
+        ],
+        "clusters": 29
+      },
+      "mrr@10": {
+        "mean_difference": -0.0058,
+        "ci95": [
+          -0.0179,
+          0.0021
+        ],
+        "better_on": [
+          "blind-v2-003"
+        ],
+        "worse_on": [
+          "blind-v2-012",
+          "blind-v2-014",
+          "blind-v2-040"
+        ],
+        "cluster_ci95": [
+          -0.0193,
+          0.0025
+        ],
+        "clusters": 29
+      },
+      "ndcg@5": {
+        "mean_difference": 0.0085,
+        "ci95": [
+          -0.0038,
+          0.0259
+        ],
+        "better_on": [
+          "blind-v2-003",
+          "blind-v2-010"
+        ],
+        "worse_on": [
+          "blind-v2-040"
+        ],
+        "cluster_ci95": [
+          -0.004,
+          0.0253
+        ],
+        "clusters": 29
+      },
+      "context_recall@5": {
+        "mean_difference": 0.025,
+        "ci95": [
+          0.0,
+          0.0667
+        ],
+        "better_on": [
+          "blind-v2-003",
+          "blind-v2-010"
+        ],
+        "worse_on": [],
+        "cluster_ci95": [
+          0.0,
+          0.0656
+        ],
+        "clusters": 29
+      }
+    },
+    "pgvector_hnsw -> hybrid": {
+      "recall@5": {
+        "mean_difference": 0.0528,
+        "ci95": [
+          0.0056,
+          0.1056
+        ],
+        "better_on": [
+          "blind-v2-010",
+          "blind-v2-023",
+          "blind-v2-026",
+          "blind-v2-031",
+          "blind-v2-040",
+          "blind-v2-053",
+          "blind-v2-056"
+        ],
+        "worse_on": [
+          "blind-v2-021"
+        ],
+        "cluster_ci95": [
+          0.0164,
+          0.0968
+        ],
+        "clusters": 29
+      },
+      "mrr@10": {
+        "mean_difference": 0.0543,
+        "ci95": [
+          -0.0111,
+          0.1182
+        ],
+        "better_on": [
+          "blind-v2-002",
+          "blind-v2-006",
+          "blind-v2-009",
+          "blind-v2-010",
+          "blind-v2-011",
+          "blind-v2-014",
+          "blind-v2-020",
+          "blind-v2-023",
+          "blind-v2-027",
+          "blind-v2-038",
+          "blind-v2-039",
+          "blind-v2-040",
+          "blind-v2-043",
+          "blind-v2-053",
+          "blind-v2-054",
+          "blind-v2-056"
+        ],
+        "worse_on": [
+          "blind-v2-003",
+          "blind-v2-021",
+          "blind-v2-024",
+          "blind-v2-026",
+          "blind-v2-034",
+          "blind-v2-050"
+        ],
+        "cluster_ci95": [
+          0.001,
+          0.1097
+        ],
+        "clusters": 29
+      },
+      "ndcg@5": {
+        "mean_difference": 0.0629,
+        "ci95": [
+          0.0132,
+          0.1106
+        ],
+        "better_on": [
+          "blind-v2-002",
+          "blind-v2-006",
+          "blind-v2-009",
+          "blind-v2-010",
+          "blind-v2-011",
+          "blind-v2-020",
+          "blind-v2-023",
+          "blind-v2-027",
+          "blind-v2-028",
+          "blind-v2-030",
+          "blind-v2-031",
+          "blind-v2-038",
+          "blind-v2-039",
+          "blind-v2-040",
+          "blind-v2-043",
+          "blind-v2-045",
+          "blind-v2-053",
+          "blind-v2-054",
+          "blind-v2-056"
+        ],
+        "worse_on": [
+          "blind-v2-003",
+          "blind-v2-021",
+          "blind-v2-024",
+          "blind-v2-025",
+          "blind-v2-026",
+          "blind-v2-034",
+          "blind-v2-050"
+        ],
+        "cluster_ci95": [
+          0.0238,
+          0.1013
+        ],
+        "clusters": 29
+      },
+      "context_recall@5": {
+        "mean_difference": 0.0444,
+        "ci95": [
+          -0.0111,
+          0.1056
+        ],
+        "better_on": [
+          "blind-v2-010",
+          "blind-v2-023",
+          "blind-v2-031",
+          "blind-v2-040",
+          "blind-v2-053",
+          "blind-v2-056"
+        ],
+        "worse_on": [
+          "blind-v2-021",
+          "blind-v2-025"
+        ],
+        "cluster_ci95": [
+          -0.0025,
+          0.0994
+        ],
+        "clusters": 29
+      }
+    }
+  },
+  "mlflow_run_id": "6347aab5d58246388dc43119a07b8ff4",
+  "retrieval": {
+    "postgres_fts": {
+      "all": {
+        "n": 60,
+        "hit@1": 0.55,
+        "hit@3": 0.8,
+        "hit@5": 0.9167,
+        "recall@5": 0.8639,
+        "mrr@10": 0.6938,
+        "ndcg@5": 0.7049,
+        "context_recall@5": 0.8222
+      },
+      "by_split": {
+        "dev": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        },
+        "test": {
+          "n": 60,
+          "hit@1": 0.55,
+          "hit@3": 0.8,
+          "hit@5": 0.9167,
+          "recall@5": 0.8639,
+          "mrr@10": 0.6938,
+          "ndcg@5": 0.7049,
+          "context_recall@5": 0.8222
+        }
+      },
+      "latency_ms": {
+        "mean": 9.197,
+        "p95": 11.486
+      }
+    },
+    "pgvector_hnsw": {
+      "all": {
+        "n": 60,
+        "hit@1": 0.6667,
+        "hit@3": 0.85,
+        "hit@5": 0.9,
+        "recall@5": 0.8361,
+        "mrr@10": 0.7733,
+        "ndcg@5": 0.7529,
+        "context_recall@5": 0.8278
+      },
+      "by_split": {
+        "dev": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        },
+        "test": {
+          "n": 60,
+          "hit@1": 0.6667,
+          "hit@3": 0.85,
+          "hit@5": 0.9,
+          "recall@5": 0.8361,
+          "mrr@10": 0.7733,
+          "ndcg@5": 0.7529,
+          "context_recall@5": 0.8278
+        }
+      },
+      "latency_ms": {
+        "mean": 12.565,
+        "p95": 13.793
+      }
+    },
+    "pgvector_exact": {
+      "all": {
+        "n": 60,
+        "hit@1": 0.6667,
+        "hit@3": 0.85,
+        "hit@5": 0.9,
+        "recall@5": 0.8361,
+        "mrr@10": 0.7733,
+        "ndcg@5": 0.7529,
+        "context_recall@5": 0.8278
+      },
+      "by_split": {
+        "dev": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        },
+        "test": {
+          "n": 60,
+          "hit@1": 0.6667,
+          "hit@3": 0.85,
+          "hit@5": 0.9,
+          "recall@5": 0.8361,
+          "mrr@10": 0.7733,
+          "ndcg@5": 0.7529,
+          "context_recall@5": 0.8278
+        }
+      },
+      "latency_ms": {
+        "mean": 12.71,
+        "p95": 14.13
+      }
+    },
+    "legacy_hybrid": {
+      "all": {
+        "n": 60,
+        "hit@1": 0.75,
+        "hit@3": 0.9,
+        "hit@5": 0.9333,
+        "recall@5": 0.8639,
+        "mrr@10": 0.8335,
+        "ndcg@5": 0.8073,
+        "context_recall@5": 0.8472
+      },
+      "by_split": {
+        "dev": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        },
+        "test": {
+          "n": 60,
+          "hit@1": 0.75,
+          "hit@3": 0.9,
+          "hit@5": 0.9333,
+          "recall@5": 0.8639,
+          "mrr@10": 0.8335,
+          "ndcg@5": 0.8073,
+          "context_recall@5": 0.8472
+        }
+      },
+      "latency_ms": {
+        "mean": 21.291,
+        "p95": 24.789
+      }
+    },
+    "hybrid": {
+      "all": {
+        "n": 60,
+        "hit@1": 0.75,
+        "hit@3": 0.8833,
+        "hit@5": 0.95,
+        "recall@5": 0.8889,
+        "mrr@10": 0.8277,
+        "ndcg@5": 0.8158,
+        "context_recall@5": 0.8722
+      },
+      "by_split": {
+        "dev": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        },
+        "test": {
+          "n": 60,
+          "hit@1": 0.75,
+          "hit@3": 0.8833,
+          "hit@5": 0.95,
+          "recall@5": 0.8889,
+          "mrr@10": 0.8277,
+          "ndcg@5": 0.8158,
+          "context_recall@5": 0.8722
+        }
+      },
+      "latency_ms": {
+        "mean": 20.992,
+        "p95": 22.981
+      }
+    }
+  },
+  "full_report_sha256": "668eff0d77c179d5884879bea021dda38ff4c0a3bec0eee2170b96775de472c5",
+  "artifact_note": "Full report preserved in local MLflow; per-question scores are in v2-postgres-holdout.csv. Compact summary has no generated answers."
+}
