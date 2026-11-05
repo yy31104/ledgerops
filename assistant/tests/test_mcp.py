@@ -9,7 +9,7 @@ import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from ledgerops_assistant.mcp_server import private_token
+from ledgerops_assistant.mcp_server import build_server, private_token
 
 
 def test_private_token_file_rejects_world_readable_files_and_symlinks(tmp_path):
@@ -25,7 +25,8 @@ def test_private_token_file_rejects_world_readable_files_and_symlinks(tmp_path):
         private_token(link)
 
 
-def test_real_stdio_mcp_roundtrip_has_no_credential_argument(tmp_path):
+@pytest.mark.parametrize("provider", [None, "fake", "openai_api", "ollama"])
+def test_real_stdio_mcp_roundtrip_has_no_credential_argument(tmp_path, provider):
     token = "lo1_" + "m" * 43
     path = tmp_path / "credential.json"
     path.write_text(json.dumps({"token": token}))
@@ -40,6 +41,7 @@ def test_real_stdio_mcp_roundtrip_has_no_credential_argument(tmp_path):
             assert self.headers.get("Authorization") == "Bearer " + token
             data = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             assert set(data) == {"question", "request_id", "provider"}
+            assert data["provider"] == (provider or "fake")
             if data["question"] == "Denied access":
                 self.send_response(401)
                 self.send_header("Content-Length", "0")
@@ -61,11 +63,14 @@ def test_real_stdio_mcp_roundtrip_has_no_credential_argument(tmp_path):
     worker.start()
 
     async def run():
+        env = {k: v for k, v in os.environ.items() if k != "LEDGEROPS_ASSISTANT_MCP_PROVIDER"}
+        if provider is not None:
+            env["LEDGEROPS_ASSISTANT_MCP_PROVIDER"] = provider
         params = StdioServerParameters(
             command=sys.executable,
             args=["-m", "ledgerops_assistant.mcp_server"],
             env={
-                **os.environ,
+                **env,
                 "LEDGEROPS_ASSISTANT_URL": f"http://127.0.0.1:{server.server_port}",
                 "LEDGEROPS_ASSISTANT_TOKEN_FILE": str(path),
             },
@@ -91,3 +96,10 @@ def test_real_stdio_mcp_roundtrip_has_no_credential_argument(tmp_path):
         server.shutdown()
         server.server_close()
         worker.join(timeout=3)
+
+
+@pytest.mark.parametrize("provider", ["chatgpt_subscription", "", "arbitrary", "https://invalid"])
+def test_mcp_rejects_unavailable_provider_configuration(monkeypatch, provider):
+    monkeypatch.setenv("LEDGEROPS_ASSISTANT_MCP_PROVIDER", provider)
+    with pytest.raises(ValueError, match="MCP provider"):
+        build_server(token_file="unused-private-file")

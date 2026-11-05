@@ -16,9 +16,32 @@ from pathlib import Path
 CHUNKER_VERSION = "headings-v1"
 MAX_WORDS = 220
 
-# Operator-facing docs only. assistant/ is excluded on purpose: BASELINE.md describes the
-# evaluation scenarios and their correct answers, so indexing it would leak the answers.
-CORPUS_GLOBS = ("README.md", "docs/*.md", "docs/adr/*.md", "ops/linux/README.md")
+# Versioned operating/investigation/evidence sources from the reviewed study.
+# New files require a label review and a new development baseline. Deployment
+# guides, rename proposals and assistant evaluation material are not auto-indexed.
+CORPUS_FILES = (
+    "README.md",
+    "docs/ACTIVE-HOLD-INDEX.md",
+    "docs/AUTHENTICATION.md",
+    "docs/BACKUP-RESTORE.md",
+    "docs/EVIDENCE-EXCHANGE.md",
+    "docs/EXPORT-AND-VERIFY.md",
+    "docs/HTTP-SERVICE.md",
+    "docs/MAINTENANCE-CAPACITY.md",
+    "docs/MAINTENANCE.md",
+    "docs/OPERATOR-ACTIONS.md",
+    "docs/PAYOUTS.md",
+    "docs/RECONCILIATION.md",
+    "docs/RELEASE-READINESS.md",
+    "docs/REVERSAL.md",
+    "docs/STREAM10.md",
+    "docs/STREAMING-EVIDENCE.md",
+    "docs/adr/0001-initialization.md",
+    "docs/adr/0002-ledger-foundation.md",
+    "docs/adr/0003-purchase-admission.md",
+    "docs/adr/0004-contention-and-recovery.md",
+    "ops/linux/README.md",
+)
 
 _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 _FENCE = re.compile(r"^\s*(```|~~~)")
@@ -180,11 +203,11 @@ def repository_root() -> Path:
 
 def load_corpus(root: Path | None = None) -> Corpus:
     root = (root or repository_root()).resolve()
-    paths = sorted({p for pattern in CORPUS_GLOBS for p in root.glob(pattern) if p.is_file()})
+    paths = [root / path for path in CORPUS_FILES]
     if any(not p.resolve().is_relative_to(root) for p in paths):
         raise ValueError("corpus document resolves outside the configured root")
-    if not paths:
-        raise FileNotFoundError(f"no LedgerOps docs found under {root}")
+    if any(not p.is_file() for p in paths):
+        raise FileNotFoundError("a reviewed corpus file is missing")
     chunks, digests = [], {}
     for file in paths:
         relative = file.relative_to(root).as_posix()

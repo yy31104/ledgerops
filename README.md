@@ -1,7 +1,5 @@
 # LedgerOps
 
-![LedgerOps — A timeout is not a failed payment.](https://readme-typing-svg.demolab.com?font=JetBrains+Mono&size=24&duration=2800&pause=1100&color=36B7A8&width=720&height=70&lines=LedgerOps;A+timeout+is+not+a+failed+payment.)
-
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-36B7A8?style=flat-square&labelColor=17202A&logo=python&logoColor=white)
 ![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-36B7A8?style=flat-square&labelColor=17202A&logo=postgresql&logoColor=white)
 [![CI](https://github.com/yy31104/ledgerops/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yy31104/ledgerops/actions/workflows/ci.yml?query=branch%3Amain)
@@ -46,6 +44,15 @@ Amounts below are PLN minor units: 100 means PLN 1.00. Booked is the merchant's 
 | Entries balance but credit the wrong merchant | Independent request checks detect the wrong owner and block rebuild | [Wrong-owner check](tests/integration/test_export_verification.py) |
 | Two merchants promise more than clearing can pay | Admission counts existing holds before accepting another payout | [Shared capacity](tests/integration/test_payout_clearing_commitments.py) |
 | A backup predates a completed provider payment | Recovery reads provider history, keeps runtime access closed and revokes old credentials | [Backup recovery](tests/integration/test_backup_recovery.py) |
+
+The first and fourth rows are the attack class that [ACIDRain](https://doi.org/10.1145/3035918.3064037)
+(Warszawski and Bailis, SIGMOD 2017) describes: concurrent requests through a normal API
+each pass a balance or capacity check before the other commits, so together they spend
+more than exists. The paper found 22 such vulnerabilities in 12 e-commerce applications,
+mostly from mis-scoped transactions and default isolation levels. Here the tests do not
+rely on timing: a third session holds the balance row, both requests start in their own
+PostgreSQL sessions, and `pg_blocking_pids` confirms each is waiting on the same
+`FOR UPDATE` lock before it is released.
 
 ## Project layout
 
@@ -108,7 +115,7 @@ Operator actions bind approval to current facts.
 ## Limits
 
 - The provider is a simulator; it retains payment keys and records closed payments to reject late requests.
-- Deployment has been exercised on one Linux host; cloud operation and high availability are untested.
+- Deployment has been exercised on one Linux host and on a local kind cluster. The Azure Terraform has been validated but never applied, so cloud operation and high availability are untested.
 - No real bank is connected.
 
 ## Docs
@@ -118,3 +125,5 @@ Operator actions bind approval to current facts.
 - [Projection repair](docs/MAINTENANCE.md)
 - [Backup and restore](docs/BACKUP-RESTORE.md)
 - [Approval workflow](docs/OPERATOR-ACTIONS.md)
+- [Kubernetes on kind: monitoring, alert and fault drills](docs/KUBERNETES.md)
+- [Azure Terraform (validated, not applied)](docs/AZURE.md)

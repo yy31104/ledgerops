@@ -141,7 +141,8 @@ class ReadOnlyAPI:
             raise ValueError("tool is not in the read-only allowlist")
         route, scope = TOOLS[tool]
         if "{}" in route:
-            route = route.format(str(UUID(object_id)))
+            object_id = str(UUID(object_id))
+            route = route.format(object_id)
         elif object_id is not None:
             raise ValueError("tool does not accept an object ID")
         current = self.identity()
