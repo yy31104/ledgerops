@@ -28,17 +28,33 @@ def test_draft_is_two_thirds_dev_and_contains_injection_and_no_answer():
     assert any(r["category"] == "no-answer" for r in rows)
 
 
-def test_public_manifest_preserves_original_questions_and_split_ids():
+def test_public_manifest_binds_reviewed_dev_labels_and_preserves_split_ids():
     manifest = json.loads(DEFAULT_QUESTIONS.with_name("manifest.json").read_text())
     original_sha = "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5"
-    assert hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest() == original_sha
-    assert manifest["sha256"] == original_sha
+    reviewed_sha = "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c"
+    assert hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest() == reviewed_sha
+    assert manifest["sha256"] == reviewed_sha
+    assert manifest["previous_sha256"] == original_sha
     rows = [json.loads(row) for row in DEFAULT_QUESTIONS.read_text().splitlines()]
     assert {split: sum(row["split"] == split for row in rows) for split in ("dev", "test")} == {
         "dev": manifest["dev"],
         "test": manifest["test"],
     }
     check_freeze_record(DEFAULT_QUESTIONS)
+
+
+def test_original_test_split_records_remain_byte_identical():
+    records = (
+        b"\n".join(
+            line
+            for line in DEFAULT_QUESTIONS.read_bytes().splitlines()
+            if json.loads(line)["split"] == "test"
+        )
+        + b"\n"
+    )
+    assert hashlib.sha256(records).hexdigest() == (
+        "57d2941665849b7a8cd853ce17518cf98daa0d872907f89242d9fe979ef18929"
+    )
 
 
 @pytest.mark.parametrize("record_name", ["review.json", "manifest.json"])
