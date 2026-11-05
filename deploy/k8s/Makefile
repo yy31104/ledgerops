@@ -21,7 +21,7 @@ docker save --platform $(PLATFORM) $(1) | docker exec -i $(NODE) \
 endef
 
 .PHONY: help cluster preload images secrets deploy bootstrap ready up status dashboards \
-        alert-status fault-kill-worker fault-db-down fault-db-restore validate down
+        alert-status fault-kill-worker fault-db-down fault-db-restore verify validate down
 
 help:
 	@grep -E '^[a-z-]+:' Makefile | cut -d: -f1
@@ -36,20 +36,17 @@ preload:
 	docker tag $(POSTGRES_DIGEST) $(POSTGRES_IMAGE)
 	for image in $(POSTGRES_IMAGE) $(THIRD_PARTY); do $(call load,$$image) || exit 1; done
 
-# Reuses ops/linux/stack.py + Dockerfile unchanged (runtime and proxy targets). stack.py
-# refuses to reuse a state file or context, so every build gets its own directory.
+# Runtime and proxy targets of the unchanged ops/linux/Dockerfile, built from the
+# context ops/linux/stack.py prepares. Behind a TLS-intercepting proxy, pass
+# EXTRA_CA_CERT=/path/to/ca.pem (used only through a BuildKit secret mount).
+EXTRA_CA_CERT ?=
 images:
-	set -e; build="$(CURDIR)/.generated/build-$$(date +%Y%m%d%H%M%S)"; \
-	python3 $(ROOT)/ops/linux/stack.py --project ledgerops-k8s --state "$$build/stack.json" \
-	  build --source $(ROOT) --context "$$build/context" --allow-dirty; \
-	image() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["environment"][sys.argv[2]])' "$$build/stack.json" "$$1"; }; \
-	docker tag "$$(image LEDGEROPS_IMAGE)" ledgerops-local:k8s; \
-	docker tag "$$(image LEDGEROPS_PROXY_IMAGE)" ledgerops-local-proxy:k8s
+	python3 scripts/build_images.py $(if $(EXTRA_CA_CERT),--extra-ca-cert $(EXTRA_CA_CERT))
 	for image in ledgerops-local:k8s ledgerops-local-proxy:k8s; do $(call load,$$image) || exit 1; done
 
 secrets:
 	$(KUBECTL) apply -f base/namespace.yaml
-	cd $(ROOT) && uv run --locked python deploy/k8s/scripts/secrets.py
+	cd $(ROOT) && uv run --locked python deploy/k8s/scripts/generate_secrets.py
 
 deploy:
 	$(KUBECTL) apply -k .
@@ -76,12 +73,10 @@ dashboards:
 alert-status:
 	$(KUBECTL) -n $(NS) exec deploy/prometheus -- wget -qO- http://127.0.0.1:9090/api/v1/alerts
 
-# SIGKILL only the worker process (not the provider) from the kind node's PID view.
+# SIGKILL only the worker (not the provider) while its PUT is in flight; checks that the
+# payout still settles with exactly one provider effect. See scripts/fault-kill-worker.sh.
 fault-kill-worker:
-	docker exec $(NODE) pkill -KILL -f 'ledgerops.worker'
-	sleep 5
-	$(KUBECTL) -n $(NS) get pod -l app=dispatch \
-	  -o jsonpath='{range .items[0].status.containerStatuses[*]}{.name}={.restartCount}{"\n"}{end}'
+	NS=$(NS) NODE=$(NODE) KUBECTL=$(KUBECTL) ./scripts/fault-kill-worker.sh
 
 # Disconnect the database: scale PostgreSQL to zero. The data PVC is kept.
 fault-db-down:
@@ -92,8 +87,18 @@ fault-db-restore:
 	$(KUBECTL) -n $(NS) rollout status statefulset/postgres --timeout=120s
 	$(KUBECTL) -n $(NS) wait --for=condition=ready pod -l app=api --timeout=120s
 
+# Independent check of the whole ledger (ops/linux/bootstrap.py inspect) as a one-off Job.
+verify:
+	$(KUBECTL) -n $(NS) delete job verify --ignore-not-found
+	$(KUBECTL) apply -f jobs/verify.yaml
+	$(KUBECTL) -n $(NS) wait --for=condition=complete job/verify --timeout=180s
+	$(KUBECTL) -n $(NS) logs job/verify -c inspect --tail=1 | python3 -c 'import json,sys; \
+	  r = json.load(sys.stdin)["report"]; \
+	  print({k: r[k] for k in ("healthy", "verification_complete", "structure_ok", "projection_ok", "request_intent_ok", "issue_count")})'
+
 validate:
 	$(KUBECTL) kustomize . | kubeconform -strict -summary -ignore-missing-schemas
+	kubeconform -strict -summary jobs/verify.yaml
 
 down:
 	kind delete cluster --name $(CLUSTER)

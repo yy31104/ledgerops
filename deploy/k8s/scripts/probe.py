@@ -6,6 +6,7 @@ Stdlib only. Tokens come from the seed output on a PVC; they are never logged or
 import http.client
 import json
 import os
+import signal
 import ssl
 import threading
 import time
@@ -68,6 +69,8 @@ def call(context, token, route, path):
 
 
 def main():
+    # PID 1 ignores SIGTERM unless it installs a handler; exit promptly on rollout.
+    signal.signal(signal.SIGTERM, lambda *_: os._exit(0))
     context = ssl.create_default_context(cafile="/run/ca/ca.crt")
     threading.Thread(
         target=ThreadingHTTPServer(("0.0.0.0", 9100), Metrics).serve_forever, daemon=True

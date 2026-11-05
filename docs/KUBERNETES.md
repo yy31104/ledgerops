@@ -3,7 +3,7 @@
 A local, synthetic deployment of the API, payout worker, provider simulator and
 PostgreSQL on [kind](https://kind.sigs.k8s.io/), with Prometheus, Grafana, one
 latency/error dashboard and a triggerable alert. Nothing here touches a cloud
-account, and no secret is committed: `scripts/secrets.py` generates random values
+account, and no secret is committed: `scripts/generate_secrets.py` generates random values
 and pipes them straight into `kubectl apply`.
 
 Files live in [`deploy/k8s/`](../deploy/k8s). Run targets from the repository root

@@ -14,7 +14,7 @@ configMapGenerator:
   - name: api-caddy
     files: [base/Caddyfile]
   - name: synthetic-probe
-    files: [scripts/probe.py]
+    files: [scripts/probe.py, scripts/drill.py]
   - name: prometheus-config
     files: [monitoring/prometheus.yml, monitoring/alerts.yml]
   - name: grafana-dashboards

@@ -70,7 +70,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(caddy_http_request_duration_seconds_count{code=~\"5..\"}[1m])) / sum(rate(caddy_http_request_duration_seconds_count[1m]))",
+          "expr": "(sum(rate(caddy_http_request_duration_seconds_count{code=~\"5..\"}[1m])) or vector(0)) / sum(rate(caddy_http_request_duration_seconds_count[1m]))",
           "legendFormat": "5xx ratio"
         }
       ]
@@ -126,7 +126,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(ledgerops_probe_requests_total{code=~\"5..|connect_error\"}[1m])) / sum(rate(ledgerops_probe_requests_total[1m]))",
+          "expr": "(sum(rate(ledgerops_probe_requests_total{code=~\"5..|connect_error\"}[1m])) or vector(0)) / sum(rate(ledgerops_probe_requests_total[1m]))",
           "legendFormat": "error ratio"
         },
         {
