@@ -43,7 +43,7 @@ Theory and Optimistic Implementations for Distributed Transactions*, MIT, 1999.
   not only on the final balances.
 - The model covers only balance rows in purchase and reversal admission. Extending it
   to payout holds needs the payout SQL markers and a model for the `reserved` column.
-- Recognising statements by SQL text is brittle. The non-empty-history assertion
+- Recognising statements by SQL text is brittle. The teardown assertion that some committed transaction both read and wrote a balance
   turns a silent mismatch into a failure.
 - About 10 seconds are added to `make test`.
 
