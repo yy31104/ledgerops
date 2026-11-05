@@ -52,7 +52,8 @@ The full unchanged core suite passed **1697 tests**. The real API acceptance pai
 passed **2 tests**. Dedicated PostgreSQL integration passed **9 tests**, covering
 index plans, immutable corpus publication, concurrent draft identity, interrupted
 node recovery, changed intent/evidence/expiry, identity rotation and HTTP resume.
-Default assistant tests passed **74 tests**, the real-model test passed **1 test**,
+After the retrieval quality update, default assistant tests passed **94 tests**,
+the real-model test passed **1 test**,
 and the panel build/type check and **2 stream-parser tests** passed. CI results are
 reported on the product PR.
 

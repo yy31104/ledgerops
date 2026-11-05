@@ -20,7 +20,9 @@ PostgreSQL may prefer a sequential scan for a small corpus; an available index d
 not prove every query used it. The integration test checks the HNSW execution plan.
 An exact pgvector path disables index scans only in its own read-only transaction,
 giving an independent recall reference. RRF combines keyword and vector ranks with
-k=60 and depth=50, without comparing incompatible raw scores.
+k=10 and depth=50, without comparing incompatible raw scores. The historical
+baseline used k=60; [RETRIEVAL-QUALITY-V2.md](RETRIEVAL-QUALITY-V2.md) records the
+development-only selection and subsequent new holdout validation.
 
 Run a complete local experiment without configuring credentials:
 

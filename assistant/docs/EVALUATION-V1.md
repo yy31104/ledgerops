@@ -1,5 +1,9 @@
 # PostgreSQL retrieval comparison (v1)
 
+Historical k=60 evidence. Reproduce with `--fusion legacy`. The current k=10
+configuration and independently authored new holdout are documented in
+[RETRIEVAL-QUALITY-V2.md](RETRIEVAL-QUALITY-V2.md).
+
 This is a real local bge-small / PostgreSQL 18 / pgvector 0.8.7 run. Generation uses the fake provider. The 60-question set is automatically frozen with owner review deferred; 40 development questions contain 32 answerable retrieval cases. The 20-question holdout has not been used to tune settings.
 
 | Method | Recall@5 | MRR@10 | nDCG@5 | Mean ms |

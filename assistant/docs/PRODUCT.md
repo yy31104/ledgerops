@@ -169,8 +169,9 @@ access and retention.
 
 Experiments use local MLflow SQLite and artifacts under `assistant/.cache/mlflow`.
 CI preserves evaluation JSON and MLflow records for seven days. Its quality gate
-uses the development split only and compares Recall with committed FTS/vector/
-hybrid baselines; changed labels/model or hashing substitutes fail.
-[EVALUATION-V1.md](EVALUATION-V1.md) reports the single held-out run. Fake answers
+uses the development split only and compares Recall, MRR, nDCG and actual
+five-chunk source-section coverage with committed FTS/vector/hybrid baselines.
+Changed labels/model, corpus or fusion settings and hashing substitutes fail.
+[RETRIEVAL-QUALITY-V2.md](RETRIEVAL-QUALITY-V2.md) reports the new held-out run. Fake answers
 and synthetic security tests establish neither real-model answer quality nor
 comprehensive injection resistance.

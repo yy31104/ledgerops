@@ -30,12 +30,15 @@ This stops the dedicated stack and retains database/model-cache volumes. See
 
 ## Evidence and limits
 
-The frozen 60-question set has 40 development and 20 held-out questions. On the
-12 held-out document questions, Recall@5 is **0.4167 for PostgreSQL FTS, 0.5000 for
-vectors and 0.3333 for hybrid**. These results do not justify claiming that fusion
-improves generalization. Labels are agent-authored and human review was deferred.
-Fake generation tests plumbing and permissions; real-model answer quality and
-subscription inference remain unverified.
+The original set has 40 development and 20 held-out questions. A development-only
+fusion study selected RRF k=10, then froze code/configuration before evaluating a
+new 60-question retrieval holdout. On that same new set, Recall@5 is **0.8639 for
+FTS, 0.8361 for vectors, 0.8639 for old hybrid and 0.8889 for selected hybrid**.
+MRR slightly trails the old hybrid; actual five-chunk coverage has wider
+uncertainty. See [RETRIEVAL-QUALITY-V2.md](docs/RETRIEVAL-QUALITY-V2.md) for component
+rank traces, topic-cluster intervals, per-question regressions and audit limits.
+Agent-authored labels remain unreviewed by humans. Fake generation tests plumbing
+and permissions; real-model answer quality and subscription usage remain unverified.
 
 Citation checks reject unknown passage IDs and uncited answers. They establish
 provenance, not semantic entailment. Closed read tools and the upstream's current
@@ -52,7 +55,7 @@ uv run --locked ruff format --check .
 uv run --locked python -m pytest
 uv run --locked python -m pytest -m postgres
 uv run --locked python scripts/evaluate_local.py --split dev \
-  --baseline eval/results/v1-postgres-dev.json --output .cache/report.json
+  --baseline eval/results/v2-postgres-dev.json --output .cache/report.json
 npm --prefix web ci
 npm --prefix web run build
 npm --prefix web test
@@ -70,6 +73,7 @@ real authenticated API acceptance tests, the panel build and a Compose smoke tes
 | [BASELINE.md](docs/BASELINE.md) | Three reproduced incidents and manual investigation |
 | [POSTGRES.md](docs/POSTGRES.md) | Corpus snapshots, HNSW, FTS, RRF and MLflow |
 | [EVALUATION-V1.md](docs/EVALUATION-V1.md) | Development and held-out comparison |
+| [RETRIEVAL-QUALITY-V2.md](docs/RETRIEVAL-QUALITY-V2.md) | Fusion diagnosis and new frozen holdout |
 | [PROVIDERS.md](docs/PROVIDERS.md) | Fake, OpenAI API, Ollama and local ChatGPT SDK adapter |
 | [AGENT.md](docs/AGENT.md) | Caller identity, read tools, budgets and retries |
 | [HUMAN-REVIEW.md](docs/HUMAN-REVIEW.md) | Durable drafts, resume and console handoff |
