@@ -105,7 +105,7 @@ jobs:
           MLFLOW_DISABLE_AGENT_HINT: "1"
         run: |
           uv run --locked python scripts/evaluate_local.py --split dev \
-            --baseline eval/results/v2-postgres-dev.json --output .cache/ci-evaluation.json
+            --baseline eval/results/v3-main-docs-dev.json --output .cache/ci-evaluation.json
 
       - name: Preserve evaluation and MLflow records
         if: always()

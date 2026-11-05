@@ -30,6 +30,12 @@ This stops the dedicated stack and retains database/model-cache volumes. See
 
 ## Evidence and limits
 
+Current CI uses an explicit 21-file corpus and the reviewed main-docs development
+baseline, [v3-main-docs-dev.json](eval/results/v3-main-docs-dev.json). New documents
+are not indexed automatically; approved-file edits require label review and a new
+baseline. The [main integration comparison](docs/RETRIEVAL-QUALITY-V2.md#current-main-document-integration)
+records the remaining v1-011 missing-source regression and the lower Recall.
+
 The original set has 40 development and 20 held-out questions. A development-only
 fusion study selected RRF k=10, then froze code/configuration before evaluating a
 new 60-question retrieval holdout. On that same new set, Recall@5 is **0.8639 for
@@ -37,6 +43,8 @@ FTS, 0.8361 for vectors, 0.8639 for old hybrid and 0.8889 for selected hybrid**.
 MRR slightly trails the old hybrid; actual five-chunk coverage has wider
 uncertainty. See [RETRIEVAL-QUALITY-V2.md](docs/RETRIEVAL-QUALITY-V2.md) for component
 rank traces, topic-cluster intervals, per-question regressions and audit limits.
+These held-out scores apply to the historical 175-chunk corpus, not the current
+main-document revision. The current refresh uses fake generation only.
 Labels are synthetic and not independently human-reviewed. Fake generation tests
 plumbing and permissions. A limited real-subscription smoke test does not establish
 answer quality or comprehensive injection resistance.
@@ -62,7 +70,7 @@ uv run --locked ruff format --check .
 uv run --locked python -m pytest
 uv run --locked python -m pytest -m postgres
 uv run --locked python scripts/evaluate_local.py --split dev \
-  --baseline eval/results/v2-postgres-dev.json --output .cache/report.json
+  --baseline eval/results/v3-main-docs-dev.json --output .cache/report.json
 npm --prefix web ci
 npm --prefix web run build
 npm --prefix web test
