@@ -37,8 +37,16 @@ def db(db, history_recorder, request, tmp_path):
     request.node.history_path = path
     if history_recorder.expect_anomalies:
         return  # the test checks its own (deliberately broken) history
-    report = check(load_history(path))
-    assert report["stats"]["committed"] >= 1, "recording observed no committed balance transaction"
+    recorded = load_history(path)
+    # Guard against a vacuous pass: if either SQL marker stops matching, reads or writes
+    # vanish from the history and no committed read-modify-write would remain.
+    assert any(
+        txn["status"] == "ok"
+        and any(op[0] == "r" for op in txn["ops"])
+        and any(op[0] == "w" for op in txn["ops"])
+        for txn in recorded
+    ), "recording observed no committed balance read-modify-write"
+    report = check(recorded)
     assert report["valid"], f"isolation anomalies in recorded history {path}: {report['anomalies']}"
 
 

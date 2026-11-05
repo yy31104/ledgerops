@@ -77,16 +77,18 @@ The CLI prints a JSON report and exits with 1 if it finds anomalies.
    The committed history is clean, but the loser raises `CheckViolation` instead of
    committing the retained 422 refusal that the real implementation produces.
 3. To see the guard against vacuous recording, change `WRITE_MARK` in `recorder.py` to
-   any other text and rerun `test_existing_concurrency.py`. Each teardown fails with
-   "observed no committed balance transaction" or reports reads with no writes. A
-   recorder that silently stops matching cannot pass as "no anomalies".
+   any other text and rerun `test_existing_concurrency.py`. The test bodies still pass,
+   but each teardown errors with "recording observed no committed balance
+   read-modify-write". A recorder that silently stops matching cannot pass as "no
+   anomalies". This was checked while writing this directory.
 
 ## Limits
 
 - Only `ledger.account_balance` rows touched by purchase and reversal admission are
   recorded. Payout holds (`reserved`), journals and identity rows are not modelled.
-- Statements are recognised by SQL text. If admission's SQL changes, the
-  "committed >= 1" teardown assertion fails instead of silently passing.
+- Statements are recognised by SQL text. If admission's SQL changes, the teardown
+  assertion that at least one committed transaction both read and wrote a balance
+  fails instead of silently passing.
 - Versions written by fixture code are not recorded; they act as external writes.
   Across such gaps, edges are still valid ordering constraints, but the edge type
   may be approximate.
