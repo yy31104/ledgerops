@@ -1,7 +1,5 @@
 # LedgerOps
 
-![LedgerOps — A timeout is not a failed payment.](https://readme-typing-svg.demolab.com?font=JetBrains+Mono&size=24&duration=2800&pause=1100&color=36B7A8&width=720&height=70&lines=LedgerOps;A+timeout+is+not+a+failed+payment.)
-
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-36B7A8?style=flat-square&labelColor=17202A&logo=python&logoColor=white)
 ![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-36B7A8?style=flat-square&labelColor=17202A&logo=postgresql&logoColor=white)
 [![CI](https://github.com/yy31104/ledgerops/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yy31104/ledgerops/actions/workflows/ci.yml?query=branch%3Amain)
@@ -117,7 +115,7 @@ Operator actions bind approval to current facts.
 ## Limits
 
 - The provider is a simulator; it retains payment keys and records closed payments to reject late requests.
-- Deployment has been exercised on one Linux host; cloud operation and high availability are untested.
+- Deployment has been exercised on one Linux host and on a local kind cluster. The Azure Terraform has been validated but never applied, so cloud operation and high availability are untested.
 - No real bank is connected.
 
 ## Docs
@@ -127,3 +125,5 @@ Operator actions bind approval to current facts.
 - [Projection repair](docs/MAINTENANCE.md)
 - [Backup and restore](docs/BACKUP-RESTORE.md)
 - [Approval workflow](docs/OPERATOR-ACTIONS.md)
+- [Kubernetes on kind: monitoring, alert and fault drills](docs/KUBERNETES.md)
+- [Azure Terraform (validated, not applied)](docs/AZURE.md)
