@@ -4,3 +4,6 @@
 *.tfvars
 !example.tfvars
 crash.log
+# Generated from an offline, unauthenticated provider mirror (linux_amd64 only).
+# Regenerate with network access via `terraform init` + `terraform providers lock` before committing one.
+.terraform.lock.hcl
