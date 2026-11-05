@@ -5,12 +5,14 @@ ROOT := $(abspath ../..)
 KUBECTL ?= kubectl
 NODE := $(CLUSTER)-control-plane
 PLATFORM ?= linux/$(shell docker version --format '{{.Server.Arch}}' 2>/dev/null)
-# Every image is pulled on the host and loaded into the node; the cluster never pulls
-# (works behind proxies the kind node cannot reach). PostgreSQL stays pinned to the same
-# digest as ops/linux and the tests; the node sees it as the local alias below.
-POSTGRES_DIGEST := postgres@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
-POSTGRES_IMAGE := ledgerops-postgres:18.6
-THIRD_PARTY := prom/prometheus:v3.5.0 grafana/grafana:12.1.1
+# Every image is pulled on the host by digest, tagged with the name the manifests use
+# (all imagePullPolicy: Never) and loaded into the node; the cluster never pulls, which
+# also works behind proxies the kind node cannot reach. PostgreSQL is the same digest as
+# ops/linux and tests/conftest.py.
+PINNED := \
+  postgres@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722=ledgerops-postgres:18.6 \
+  prom/prometheus@sha256:63805ebb8d2b3920190daf1cb14a60871b16fd38bed42b857a3182bc621f4996=prom/prometheus:v3.5.0 \
+  grafana/grafana@sha256:a1701c2180249361737a99a01bc770db39381640e4d631825d38ff4535efa47d=grafana/grafana:12.1.1
 
 # `kind load docker-image` imports with --all-platforms, which fails for multi-platform
 # images under Docker's containerd image store ("content digest ... not found": only
@@ -30,11 +32,11 @@ cluster:
 	kind get clusters | grep -qx $(CLUSTER) || kind create cluster --config kind-config.yaml
 
 preload:
-	for image in $(POSTGRES_DIGEST) $(THIRD_PARTY); do \
-	  docker image inspect $$image >/dev/null 2>&1 || docker pull $$image || exit 1; \
+	for pair in $(PINNED); do \
+	  digest=$${pair%%=*}; name=$${pair#*=}; \
+	  docker image inspect $$digest >/dev/null 2>&1 || docker pull $$digest || exit 1; \
+	  docker tag $$digest $$name && $(call load,$$name) || exit 1; \
 	done
-	docker tag $(POSTGRES_DIGEST) $(POSTGRES_IMAGE)
-	for image in $(POSTGRES_IMAGE) $(THIRD_PARTY); do $(call load,$$image) || exit 1; done
 
 # Runtime and proxy targets of the unchanged ops/linux/Dockerfile, built from the
 # context ops/linux/stack.py prepares. Behind a TLS-intercepting proxy, pass

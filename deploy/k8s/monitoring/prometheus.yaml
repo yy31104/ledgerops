@@ -38,7 +38,8 @@ spec:
         seccompProfile: {type: RuntimeDefault}
       containers:
         - name: prometheus
-          image: prom/prometheus:v3.5.0
+          image: prom/prometheus:v3.5.0  # digest pinned in Makefile PINNED
+          imagePullPolicy: Never
           args: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.path=/prometheus, --storage.tsdb.retention.time=1d]
           ports: [{containerPort: 9090}]
           readinessProbe: {httpGet: {path: /-/ready, port: 9090}, periodSeconds: 5}

@@ -34,7 +34,8 @@ spec:
         seccompProfile: {type: RuntimeDefault}
       containers:
         - name: grafana
-          image: grafana/grafana:12.1.1
+          image: grafana/grafana:12.1.1  # digest pinned in Makefile PINNED
+          imagePullPolicy: Never
           env:
             # Admin password comes from a locally generated Secret; anonymous viewers are read-only.
             - name: GF_SECURITY_ADMIN_PASSWORD
