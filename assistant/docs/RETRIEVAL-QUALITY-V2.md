@@ -547,4 +547,5 @@ uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
 
 MLflow runs: old/old 491666f45c7747ca8b4fb4f14e08317f; current/old
 4f20daf31a154d738c9c4149cc932ad9; current/reviewed
-6ed9499f026c42e49c3bf714bb2db81b. Raw generation records are not committed.
+6ed9499f026c42e49c3bf714bb2db81b. The reviewed fake-generation baseline is
+committed; no real-model generation was run for this refresh.
