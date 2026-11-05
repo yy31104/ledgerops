@@ -1,0 +1,8 @@
+{
+  "status": "completed",
+  "created_at": "2026-11-05T13:59:10.294597+00:00",
+  "freeze_sha256": "7a2cccac673f52729adceb9f1612b7cc3bf5052ef522fa0be777094625ccadf5",
+  "output": "holdout-full.json",
+  "result_sha256": "668eff0d77c179d5884879bea021dda38ff4c0a3bec0eee2170b96775de472c5",
+  "mlflow_run_id": "6347aab5d58246388dc43119a07b8ff4"
+}

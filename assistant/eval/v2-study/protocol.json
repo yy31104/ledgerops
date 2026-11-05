@@ -1,0 +1,26 @@
+{
+  "selection_split": "v1 dev only (old test diagnostic only)",
+  "grid": {
+    "keyword_weight": [
+      0.25,
+      0.5,
+      1.0
+    ],
+    "rrf_k": [
+      10,
+      60
+    ],
+    "depth": [
+      20,
+      50
+    ],
+    "unit": [
+      "chunk",
+      "section"
+    ]
+  },
+  "selection": "maximize dev Recall@5 among candidates with MRR@10 and nDCG@5 >= legacy hybrid; tie: nDCG, MRR, canonical config JSON",
+  "holdout": "60 independent newly authored answerable questions; one evaluation after config/code/corpus frozen; no retuning",
+  "uncertainty": "paired question bootstrap and cluster bootstrap by author topic groups; report recall, MRR, nDCG and all regressions",
+  "changes_excluded": "no embeddings, corpus, labels, FTS SQL or chunker changes"
+}

@@ -1,0 +1,2199 @@
+{
+  "created_at": "2026-11-05T09:21:33+00:00",
+  "corpus": {
+    "revision": "321fb0638259d50f102d1cc1616708bafce97e37",
+    "digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+    "chunker": "headings-v1",
+    "files": 21,
+    "chunks": 175,
+    "sections": 105
+  },
+  "questions": {
+    "file": "questions.jsonl",
+    "sha256": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+    "total": 40,
+    "retrieval_scored": 32,
+    "by_route": {
+      "docs": 32,
+      "live_state": 2,
+      "action": 4,
+      "out_of_scope": 2
+    },
+    "by_split": {
+      "dev": 40
+    },
+    "evaluated_split": "dev"
+  },
+  "environment": {
+    "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+    "python": "3.12.13",
+    "onnxruntime": "1.31.1",
+    "tokenizers": "0.23.3",
+    "machine": "arm64",
+    "backend": "postgres",
+    "quality_signal": true
+  },
+  "retrieval": {
+    "postgres_fts": {
+      "all": {
+        "n": 32,
+        "hit@1": 0.4688,
+        "hit@3": 0.7188,
+        "hit@5": 0.75,
+        "recall@5": 0.625,
+        "mrr@10": 0.6084,
+        "ndcg@5": 0.552
+      },
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.4688,
+          "hit@3": 0.7188,
+          "hit@5": 0.75,
+          "recall@5": 0.625,
+          "mrr@10": 0.6084,
+          "ndcg@5": 0.552
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        }
+      },
+      "by_category": {
+        "rule": {
+          "n": 32,
+          "hit@1": 0.4688,
+          "hit@3": 0.7188,
+          "hit@5": 0.75,
+          "recall@5": 0.625,
+          "mrr@10": 0.6084,
+          "ndcg@5": 0.552
+        }
+      },
+      "latency_ms": {
+        "mean": 9.642,
+        "p95": 12.608
+      },
+      "misses": [
+        {
+          "id": "v1-002",
+          "question": "After a worker crashes mid-dispatch, how does recovery find out whether the provider paid?",
+          "relevant": [
+            "docs/PAYOUTS.md#dispatch-and-recovery",
+            "README.md#failure-cases"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#bounded-payout-worker-process",
+            "ops/linux/README.md#worker-fail-stop-and-incident-response",
+            "docs/RECONCILIATION.md#obtain-provider-evidence-first"
+          ]
+        },
+        {
+          "id": "v1-011",
+          "question": "What does a FAILED or CLOSED_ABSENT result do to the hold?",
+          "relevant": [
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ],
+          "top3": [
+            "docs/MAINTENANCE.md#run-in-order",
+            "ops/linux/README.md#backup-restore-and-reopening",
+            "docs/adr/0003-purchase-admission.md#identity-and-transaction-order"
+          ]
+        },
+        {
+          "id": "v1-013",
+          "question": "What happens to a provider message with a missing or wrong signature?",
+          "relevant": [
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/HTTP-SERVICE.md#callbacks"
+          ],
+          "top3": [
+            "docs/BACKUP-RESTORE.md#commands",
+            "docs/RECONCILIATION.md#obtain-provider-evidence-first",
+            "docs/RECONCILIATION.md#read-the-report"
+          ]
+        },
+        {
+          "id": "v1-014",
+          "question": "The provider reported success but local settlement stopped with LOCAL_BLOCKER. How is it resolved?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ],
+          "top3": [
+            "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries",
+            "docs/RECONCILIATION.md#read-the-report",
+            "docs/RECONCILIATION.md#obtain-provider-evidence-first"
+          ]
+        },
+        {
+          "id": "v1-016",
+          "question": "Can the operator approval workflow resolve a payout whose outcome is still UNKNOWN?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence"
+          ],
+          "top3": [
+            "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces",
+            "docs/PAYOUTS.md#dispatch-and-recovery",
+            "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries"
+          ]
+        },
+        {
+          "id": "v1-017",
+          "question": "What makes an operator proposal invalid before it is executed?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+          ],
+          "top3": [
+            "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces",
+            "docs/RELEASE-READINESS.md#running-the-project",
+            "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries"
+          ]
+        },
+        {
+          "id": "v1-023",
+          "question": "Can a reconciliation report be used to release a hold or correct the ledger?",
+          "relevant": [
+            "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation",
+            "docs/RECONCILIATION.md#read-the-report"
+          ],
+          "top3": [
+            "docs/STREAMING-EVIDENCE.md#commands",
+            "docs/BACKUP-RESTORE.md#artifact-and-authority",
+            "docs/MAINTENANCE.md#preparation-and-identities"
+          ]
+        },
+        {
+          "id": "v1-027",
+          "question": "Does freezing a workspace stop payments that were already sent to the provider?",
+          "relevant": [
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds",
+            "docs/PAYOUTS.md#dispatch-and-recovery"
+          ],
+          "top3": [
+            "ops/linux/README.md#backup-restore-and-reopening",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/RECONCILIATION.md#obtain-provider-evidence-first"
+          ]
+        }
+      ],
+      "per_question": {
+        "v1-001": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-002": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.14285714285714285,
+          "ndcg@5": 0.0
+        },
+        "v1-003": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-004": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.2,
+          "ndcg@5": 0.23719771276929622
+        },
+        "v1-005": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-006": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-007": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-008": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-009": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.8503449055347546
+        },
+        "v1-010": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-011": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-012": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-013": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.125,
+          "ndcg@5": 0.0
+        },
+        "v1-014": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.16666666666666666,
+          "ndcg@5": 0.0
+        },
+        "v1-015": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.9197207891481876
+        },
+        "v1-016": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-017": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-018": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-019": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-020": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-021": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-022": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-023": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-024": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-025": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-026": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-027": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-028": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-029": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.8772153153380493
+        },
+        "v1-030": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.3333333333333333,
+          "ndcg@5": 0.5
+        },
+        "v1-031": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-032": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        }
+      }
+    },
+    "pgvector_hnsw": {
+      "all": {
+        "n": 32,
+        "hit@1": 0.5,
+        "hit@3": 0.8438,
+        "hit@5": 0.9062,
+        "recall@5": 0.7344,
+        "mrr@10": 0.6687,
+        "ndcg@5": 0.6253
+      },
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.5,
+          "hit@3": 0.8438,
+          "hit@5": 0.9062,
+          "recall@5": 0.7344,
+          "mrr@10": 0.6687,
+          "ndcg@5": 0.6253
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        }
+      },
+      "by_category": {
+        "rule": {
+          "n": 32,
+          "hit@1": 0.5,
+          "hit@3": 0.8438,
+          "hit@5": 0.9062,
+          "recall@5": 0.7344,
+          "mrr@10": 0.6687,
+          "ndcg@5": 0.6253
+        }
+      },
+      "latency_ms": {
+        "mean": 11.618,
+        "p95": 13.494
+      },
+      "misses": [
+        {
+          "id": "v1-008",
+          "question": "Does a 202 from POST /v1/payouts mean the merchant was paid?",
+          "relevant": [
+            "docs/PAYOUTS.md#scope-of-the-result",
+            "docs/HTTP-SERVICE.md#api"
+          ],
+          "top3": [
+            "README.md#how-a-payout-flows",
+            "docs/PAYOUTS.md#amounts-and-admission-receipts",
+            "docs/REVERSAL.md#results-and-retries"
+          ]
+        },
+        {
+          "id": "v1-016",
+          "question": "Can the operator approval workflow resolve a payout whose outcome is still UNKNOWN?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/PAYOUTS.md#dispatch-and-recovery",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62"
+          ]
+        },
+        {
+          "id": "v1-017",
+          "question": "What makes an operator proposal invalid before it is executed?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+          ],
+          "top3": [
+            "docs/adr/0003-purchase-admission.md#outcomes-and-error-precedence",
+            "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces",
+            "docs/MAINTENANCE.md#preparation-and-identities"
+          ]
+        }
+      ],
+      "per_question": {
+        "v1-001": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-002": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6240505200038379
+        },
+        "v1-003": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-004": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-005": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.2,
+          "ndcg@5": 0.23719771276929622
+        },
+        "v1-006": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.3333333333333333,
+          "ndcg@5": 0.5
+        },
+        "v1-007": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-008": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-009": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.9197207891481876
+        },
+        "v1-010": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-011": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.3333333333333333,
+          "ndcg@5": 0.5
+        },
+        "v1-012": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.2,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-013": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-014": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.9674679834891693
+        },
+        "v1-015": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-016": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-017": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-018": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-019": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-020": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-021": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-022": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-023": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.3333333333333333,
+          "ndcg@5": 0.3065735963827292
+        },
+        "v1-024": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-025": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-026": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-027": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-028": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-029": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-030": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-031": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.9197207891481876
+        },
+        "v1-032": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        }
+      }
+    },
+    "pgvector_exact": {
+      "all": {
+        "n": 32,
+        "hit@1": 0.5,
+        "hit@3": 0.8438,
+        "hit@5": 0.9062,
+        "recall@5": 0.7344,
+        "mrr@10": 0.6687,
+        "ndcg@5": 0.6253
+      },
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.5,
+          "hit@3": 0.8438,
+          "hit@5": 0.9062,
+          "recall@5": 0.7344,
+          "mrr@10": 0.6687,
+          "ndcg@5": 0.6253
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        }
+      },
+      "by_category": {
+        "rule": {
+          "n": 32,
+          "hit@1": 0.5,
+          "hit@3": 0.8438,
+          "hit@5": 0.9062,
+          "recall@5": 0.7344,
+          "mrr@10": 0.6687,
+          "ndcg@5": 0.6253
+        }
+      },
+      "latency_ms": {
+        "mean": 11.352,
+        "p95": 12.259
+      },
+      "misses": [
+        {
+          "id": "v1-008",
+          "question": "Does a 202 from POST /v1/payouts mean the merchant was paid?",
+          "relevant": [
+            "docs/PAYOUTS.md#scope-of-the-result",
+            "docs/HTTP-SERVICE.md#api"
+          ],
+          "top3": [
+            "README.md#how-a-payout-flows",
+            "docs/PAYOUTS.md#amounts-and-admission-receipts",
+            "docs/REVERSAL.md#results-and-retries"
+          ]
+        },
+        {
+          "id": "v1-016",
+          "question": "Can the operator approval workflow resolve a payout whose outcome is still UNKNOWN?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/PAYOUTS.md#dispatch-and-recovery",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62"
+          ]
+        },
+        {
+          "id": "v1-017",
+          "question": "What makes an operator proposal invalid before it is executed?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+          ],
+          "top3": [
+            "docs/adr/0003-purchase-admission.md#outcomes-and-error-precedence",
+            "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces",
+            "docs/MAINTENANCE.md#preparation-and-identities"
+          ]
+        }
+      ],
+      "per_question": {
+        "v1-001": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-002": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6240505200038379
+        },
+        "v1-003": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-004": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-005": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.2,
+          "ndcg@5": 0.23719771276929622
+        },
+        "v1-006": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.3333333333333333,
+          "ndcg@5": 0.5
+        },
+        "v1-007": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-008": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-009": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.9197207891481876
+        },
+        "v1-010": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-011": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.3333333333333333,
+          "ndcg@5": 0.5
+        },
+        "v1-012": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.2,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-013": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-014": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.9674679834891693
+        },
+        "v1-015": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-016": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-017": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-018": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-019": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-020": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-021": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-022": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-023": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.3333333333333333,
+          "ndcg@5": 0.3065735963827292
+        },
+        "v1-024": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-025": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-026": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-027": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.38685280723454163
+        },
+        "v1-028": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-029": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-030": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-031": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.9197207891481876
+        },
+        "v1-032": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        }
+      }
+    },
+    "hybrid": {
+      "all": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.7812,
+        "hit@5": 0.8125,
+        "recall@5": 0.7083,
+        "mrr@10": 0.7527,
+        "ndcg@5": 0.6741
+      },
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.6875,
+          "hit@3": 0.7812,
+          "hit@5": 0.8125,
+          "recall@5": 0.7083,
+          "mrr@10": 0.7527,
+          "ndcg@5": 0.6741
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        }
+      },
+      "by_category": {
+        "rule": {
+          "n": 32,
+          "hit@1": 0.6875,
+          "hit@3": 0.7812,
+          "hit@5": 0.8125,
+          "recall@5": 0.7083,
+          "mrr@10": 0.7527,
+          "ndcg@5": 0.6741
+        }
+      },
+      "latency_ms": {
+        "mean": 21.438,
+        "p95": 34.527
+      },
+      "misses": [
+        {
+          "id": "v1-008",
+          "question": "Does a 202 from POST /v1/payouts mean the merchant was paid?",
+          "relevant": [
+            "docs/PAYOUTS.md#scope-of-the-result",
+            "docs/HTTP-SERVICE.md#api"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#amounts-and-admission-receipts",
+            "README.md#how-a-payout-flows",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ]
+        },
+        {
+          "id": "v1-011",
+          "question": "What does a FAILED or CLOSED_ABSENT result do to the hold?",
+          "relevant": [
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ],
+          "top3": [
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/PAYOUTS.md#dispatch-and-recovery",
+            "docs/REVERSAL.md#results-and-retries"
+          ]
+        },
+        {
+          "id": "v1-016",
+          "question": "Can the operator approval workflow resolve a payout whose outcome is still UNKNOWN?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#dispatch-and-recovery",
+            "docs/PAYOUTS.md#amounts-and-admission-receipts",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ]
+        },
+        {
+          "id": "v1-017",
+          "question": "What makes an operator proposal invalid before it is executed?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+          ],
+          "top3": [
+            "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces",
+            "docs/OPERATOR-ACTIONS.md#reviewing-in-the-console",
+            "docs/adr/0001-initialization.md#verification-and-recovery"
+          ]
+        },
+        {
+          "id": "v1-023",
+          "question": "Can a reconciliation report be used to release a hold or correct the ledger?",
+          "relevant": [
+            "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation",
+            "docs/RECONCILIATION.md#read-the-report"
+          ],
+          "top3": [
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs",
+            "docs/RELEASE-READINESS.md#supported-flows"
+          ]
+        },
+        {
+          "id": "v1-027",
+          "question": "Does freezing a workspace stop payments that were already sent to the provider?",
+          "relevant": [
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds",
+            "docs/PAYOUTS.md#dispatch-and-recovery"
+          ],
+          "top3": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/MAINTENANCE.md#run-in-order"
+          ]
+        }
+      ],
+      "per_question": {
+        "v1-001": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-002": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6509209298071326
+        },
+        "v1-003": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-004": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.3333333333333333,
+          "ndcg@5": 0.5437713091520254
+        },
+        "v1-005": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-006": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-007": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-008": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.14285714285714285,
+          "ndcg@5": 0.0
+        },
+        "v1-009": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-010": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-011": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.16666666666666666,
+          "ndcg@5": 0.0
+        },
+        "v1-012": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-013": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 0.2,
+          "ndcg@5": 0.23719771276929622
+        },
+        "v1-014": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.6666666666666666,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6713860725233041
+        },
+        "v1-015": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.8503449055347546
+        },
+        "v1-016": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-017": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.1,
+          "ndcg@5": 0.0
+        },
+        "v1-018": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-019": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-020": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-021": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-022": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-023": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-024": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-025": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-026": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 0.5,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.6131471927654584
+        },
+        "v1-027": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.14285714285714285,
+          "ndcg@5": 0.0
+        },
+        "v1-028": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 0.9197207891481876
+        },
+        "v1-029": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-030": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-031": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-032": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        }
+      }
+    }
+  },
+  "comparisons": {
+    "postgres_fts -> hybrid": {
+      "hit@1": {
+        "mean_difference": 0.2188,
+        "ci95": [
+          0.0938,
+          0.375
+        ],
+        "better_on": [
+          "v1-005",
+          "v1-012",
+          "v1-014",
+          "v1-020",
+          "v1-026",
+          "v1-028",
+          "v1-032"
+        ],
+        "worse_on": []
+      },
+      "mrr@10": {
+        "mean_difference": 0.1443,
+        "ci95": [
+          0.0627,
+          0.2378
+        ],
+        "better_on": [
+          "v1-002",
+          "v1-004",
+          "v1-005",
+          "v1-011",
+          "v1-012",
+          "v1-013",
+          "v1-014",
+          "v1-017",
+          "v1-020",
+          "v1-026",
+          "v1-027",
+          "v1-028",
+          "v1-030",
+          "v1-032"
+        ],
+        "worse_on": [
+          "v1-008"
+        ]
+      }
+    },
+    "postgres_fts -> pgvector_hnsw": {
+      "hit@1": {
+        "mean_difference": 0.0312,
+        "ci95": [
+          -0.1562,
+          0.2188
+        ],
+        "better_on": [
+          "v1-014",
+          "v1-020",
+          "v1-026",
+          "v1-028",
+          "v1-032"
+        ],
+        "worse_on": [
+          "v1-001",
+          "v1-006",
+          "v1-007",
+          "v1-022"
+        ]
+      },
+      "mrr@10": {
+        "mean_difference": 0.0604,
+        "ci95": [
+          -0.0641,
+          0.1812
+        ],
+        "better_on": [
+          "v1-002",
+          "v1-004",
+          "v1-011",
+          "v1-013",
+          "v1-014",
+          "v1-020",
+          "v1-023",
+          "v1-026",
+          "v1-027",
+          "v1-028",
+          "v1-030",
+          "v1-032"
+        ],
+        "worse_on": [
+          "v1-001",
+          "v1-005",
+          "v1-006",
+          "v1-007",
+          "v1-008",
+          "v1-012",
+          "v1-022"
+        ]
+      }
+    },
+    "pgvector_hnsw -> hybrid": {
+      "hit@1": {
+        "mean_difference": 0.1875,
+        "ci95": [
+          0.0625,
+          0.3125
+        ],
+        "better_on": [
+          "v1-001",
+          "v1-005",
+          "v1-006",
+          "v1-007",
+          "v1-012",
+          "v1-022"
+        ],
+        "worse_on": []
+      },
+      "mrr@10": {
+        "mean_difference": 0.0839,
+        "ci95": [
+          -0.0083,
+          0.1823
+        ],
+        "better_on": [
+          "v1-001",
+          "v1-005",
+          "v1-006",
+          "v1-007",
+          "v1-008",
+          "v1-012",
+          "v1-017",
+          "v1-022"
+        ],
+        "worse_on": [
+          "v1-004",
+          "v1-011",
+          "v1-013",
+          "v1-023",
+          "v1-027"
+        ]
+      }
+    }
+  },
+  "scope_gate": {
+    "threshold": 0.5956,
+    "dev_accuracy": 1.0,
+    "test_accuracy": 0.0,
+    "scores": {
+      "docs": [
+        0.6287,
+        0.6559,
+        0.6573,
+        0.6736,
+        0.6825,
+        0.6863,
+        0.689,
+        0.6917,
+        0.6929,
+        0.6967,
+        0.7043,
+        0.7084,
+        0.7087,
+        0.7088,
+        0.7115,
+        0.714,
+        0.7202,
+        0.7204,
+        0.7239,
+        0.7378,
+        0.7455,
+        0.7467,
+        0.7483,
+        0.7494,
+        0.7566,
+        0.7592,
+        0.7681,
+        0.7766,
+        0.7783,
+        0.7795,
+        0.7965,
+        0.813
+      ],
+      "out_of_scope": {
+        "v1-037": 0.5956,
+        "v1-038": 0.5512
+      }
+    }
+  },
+  "answers": {
+    "provider": "fake",
+    "route_accuracy": {
+      "dev": 1.0,
+      "test": 0.0
+    },
+    "refusal": {
+      "correct_refusals": 8,
+      "missed_refusals": 0,
+      "wrong_refusals": 0,
+      "should_refuse": 8,
+      "should_answer": 32
+    },
+    "answered_docs_questions": 32,
+    "citation_hit_rate": 0.625,
+    "dropped_citations": 0,
+    "confusion": {
+      "action -> action": 4,
+      "docs -> docs": 32,
+      "live_state -> live_state": 2,
+      "out_of_scope -> out_of_scope": 2
+    },
+    "answers": [
+      {
+        "id": "v1-001",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "A timeout never releases money; the provider must confirm that the payment failed or was closed without paying. After obtaining the clearing lock, it subtracts clearing reserved funds and all active HELD gross amounts in the workspace from clearing's booked balance before accepting another payout.",
+        "citations": [
+          "README.md#how-a-payout-flows/0",
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1"
+        ]
+      },
+      {
+        "id": "v1-002",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "- blocked_count counts only durable dispatch_intent.state='BLOCKED'; it may exclude   the invariant that killed the worker. The same tests check one shared backup snapshot, GET-only provider recovery, token revocation, immutable objects and open-freeze preservation, corrupt artifacts, unsafe roles, closed service/worker defaults and cleanup after failures.",
+        "citations": [
+          "ops/linux/README.md#worker-fail-stop-and-incident-response/0",
+          "docs/BACKUP-RESTORE.md#recovery-checks-and-bounds/0"
+        ]
+      },
+      {
+        "id": "v1-003",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "After taking the shared workspace barrier, a claim rereads the mode, locks operation -> payout -> intent, records a MAY_HAVE_SENT attempt, sets knowledge to UNKNOWN and advances the next due time. Aging unresolved work and absent   payout_attempt events can indicate stopped dispatch.",
+        "citations": [
+          "docs/PAYOUTS.md#dispatch-and-recovery/0",
+          "ops/linux/README.md#worker-fail-stop-and-incident-response/0"
+        ]
+      },
+      {
+        "id": "v1-004",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "Configuration comes from the environment; the following entries describe variables, **not reusable production passwords**:  | Variable | Meaning | |---|---| | `LEDGEROPS_WORKER_DSN` | Dedicated worker PostgreSQL connection; inject its secret from the deployment environment | | `LEDGEROPS_PROVIDER_URL` | 127.0.0.1 HTTP address for this simulator adapter | | `LEDGEROPS_PROVIDER_TOKEN` | Provider command-channel credential | | `LEDGEROPS_PROVIDER_NAMESPACE` | Persisted provider UUID; do not regenerate it at restart | | `LEDGEROPS_PROVIDER_KEYS_FILE` | Regular JSON file owned by the current process user, readable only by that owner; maps key IDs to hexadecimal HMAC keys, at most eight | | `LEDGEROPS_RESTORE_MODE=false` | Explicitly releases the separate restore switch; omission defaults to restore mode and refuses startup | | `LEDGEROPS_DISPATCH_ENABLED=true` | Explicitly enables dispatch; omission refuses startup | Configure these with `LEDGEROPS_WORKER_BATCH_SIZE`, `LEDGEROPS_WORKER_POLL_MS`, `LEDGEROPS_WORKER_LEASE_SECONDS` and `LEDGEROPS_PROVIDER_TIMEOUT_MS` respectively.",
+        "citations": [
+          "docs/PAYOUTS.md#bounded-payout-worker-process/0",
+          "docs/PAYOUTS.md#bounded-payout-worker-process/1"
+        ]
+      },
+      {
+        "id": "v1-005",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "After taking the shared workspace barrier, a claim rereads the mode, locks operation -> payout -> intent, records a MAY_HAVE_SENT attempt, sets knowledge to UNKNOWN and advances the next due time. A pre-v6 payout has an unknown source sequence rather than an invented zero.",
+        "citations": [
+          "docs/PAYOUTS.md#dispatch-and-recovery/0",
+          "docs/EVIDENCE-EXCHANGE.md#selected-synthetic-evidence-exchange-v1/2"
+        ]
+      },
+      {
+        "id": "v1-006",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Two merchants cannot both reserve 62 against clearing capacity of 100; the second receives a retained 422 `LIMIT_EXCEEDED` without a hold. Otherwise cumulative-total or projection-version overflow persists 422 LIMIT_EXCEEDED.",
+        "citations": [
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1",
+          "docs/adr/0003-purchase-admission.md#outcomes-and-error-precedence/0"
+        ]
+      },
+      {
+        "id": "v1-007",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "After obtaining the clearing lock, it subtracts clearing reserved funds and all active HELD gross amounts in the workspace from clearing's booked balance before accepting another payout. Only the original merchant principal may admit or read the payout; knowing a UUID grants no role.",
+        "citations": [
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1"
+        ]
+      },
+      {
+        "id": "v1-008",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "`POST /v1/payouts` reaches [`db/payout_admission.py`](src/ledgerops/db/payout_admission.py), which locks clearing and merchant balances, reserves 62 and returns 202. With complete configuration, `POST /v1/provider/callbacks/<workspace UUID>/<payout UUID>` accepts the existing provider-event:v1 signed envelope rather than an ordinary user Bearer token.",
+        "citations": [
+          "README.md#how-a-payout-flows/0",
+          "docs/HTTP-SERVICE.md#callbacks/0"
+        ]
+      },
+      {
+        "id": "v1-009",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "After obtaining the clearing lock, it subtracts clearing reserved funds and all active HELD gross amounts in the workspace from clearing's booked balance before accepting another payout. 401 means no current credential; 403 means insufficient scope; 404 conceals unauthorized objects; 409 means an identity/content conflict; 422 is a stable business conclusion; 503 means temporary unavailability, restore access still closed or possible recovery using the original identity.",
+        "citations": [
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1",
+          "docs/HTTP-SERVICE.md#api/2"
+        ]
+      },
+      {
+        "id": "v1-010",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "- SUCCEEDED: retain the observation, Dr merchant 62 / Cr clearing 62, CONSUMED event,   balances and DONE in one transaction. - Authenticated event-ID/sequence reuse, incompatible terminal results, or a higher   ACCEPTED sequence after a terminal event retain both evidence records and an   incident, then stop automatic processing for that payout.",
+        "citations": [
+          "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/0"
+        ]
+      },
+      {
+        "id": "v1-011",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "Rebuild cannot conceal a failed B check, and missing or invalid hold source records also block application. Before the dispatch deadline, a missing result or failed observation transport leads to bounded resending with the same key and original bytes.",
+        "citations": [
+          "docs/MAINTENANCE.md#run-in-order/1",
+          "docs/PAYOUTS.md#dispatch-and-recovery/0"
+        ]
+      },
+      {
+        "id": "v1-012",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "- Authenticated event-ID/sequence reuse, incompatible terminal results, or a higher   ACCEPTED sequence after a terminal event retain both evidence records and an   incident, then stop automatic processing for that payout. An older contradictory   terminal event cannot be ignored either.",
+        "citations": [
+          "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/0"
+        ]
+      },
+      {
+        "id": "v1-013",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "This is a provider observation artifact, not a missing client-command archive. Linked provider contradictions, nonlocal categories, missing executions and incomplete dispositions remain visible.",
+        "citations": [
+          "docs/BACKUP-RESTORE.md#commands/2",
+          "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries/2"
+        ]
+      },
+      {
+        "id": "v1-014",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "The provider already has an authenticated SUCCEEDED, FAILED or CLOSED_ABSENT observation, but local financial processing stopped with LOCAL_BLOCKER. Only a validated LOCAL_BLOCKER resolution stops blocking settlement.",
+        "citations": [
+          "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence/0",
+          "docs/OPERATOR-ACTIONS.md#independent-checks-and-limits/0"
+        ]
+      },
+      {
+        "id": "v1-015",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "Users with operator scopes but without accounts:read can also connect. The operator approval workflow exposes one action: `REPROCESS_TERMINAL_LOCAL_BLOCKER`.",
+        "citations": [
+          "docs/OPERATOR-ACTIONS.md#reviewing-in-the-console/0",
+          "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence/0"
+        ]
+      },
+      {
+        "id": "v1-016",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "A process death between commit and send is still treated as an unknown outcome. Repairing a projection does not automatically clear an existing blocker; controlled reprocessing requires the operator approval workflow.",
+        "citations": [
+          "docs/PAYOUTS.md#dispatch-and-recovery/0",
+          "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/2"
+        ]
+      },
+      {
+        "id": "v1-017",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "Changed proposal content requires a new action ID; a different intent cannot reuse an old identity. Invalid typed inputs / connection state fail before admission.",
+        "citations": [
+          "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces/1",
+          "docs/adr/0003-purchase-admission.md#outcomes-and-error-precedence/0"
+        ]
+      },
+      {
+        "id": "v1-018",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Configure all four settings only on a separate operator instance:  | Setting | Requirement | |---|---| | LEDGEROPS_OPERATOR_DSN | Separate login inheriting ledger_operator; superusers and members of migrator, auth_admin or ledger_app are rejected. Public instances must not mount the operator DSN or keys.",
+        "citations": [
+          "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces/0"
+        ]
+      },
+      {
+        "id": "v1-019",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Difference categories are MISSING_INTERNAL, UNEXPECTED_INTERNAL, DUPLICATE_EFFECT, WRONG_OWNER, WRONG_AMOUNT, CURRENCY_MISMATCH, MISSING_PROVIDER, UNEXPECTED_PROVIDER, TIMING_ONLY, FEE_MISMATCH, AMBIGUOUS_GROUP, INPUT_CONTRADICTION and CORRUPT_INPUT. After obtaining the clearing lock, it subtracts clearing reserved funds and all active HELD gross amounts in the workspace from clearing's booked balance before accepting another payout.",
+        "citations": [
+          "docs/RECONCILIATION.md#read-the-report/0",
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1"
+        ]
+      },
+      {
+        "id": "v1-020",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "If a process or connection interruption leaves a pin, first confirm the reader has stopped, then release it explicitly:  ```sh python -m ledgerops.recon_cli release-pin --workspace \"$WORKSPACE_ID\" --reader-id \"$READER_UUID\" ``` Read exit codes 0/1 mean passing/differences within the report's scope.",
+        "citations": [
+          "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs/1"
+        ]
+      },
+      {
+        "id": "v1-021",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Equal amounts with different merchants are still   WRONG_OWNER. Read `category` and object references first, then   expected/actual values.",
+        "citations": [
+          "docs/RECONCILIATION.md#read-the-report/0"
+        ]
+      },
+      {
+        "id": "v1-022",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "TIMING_ONLY requires fully matching economic fields and explicitly different windows. Difference categories are MISSING_INTERNAL, UNEXPECTED_INTERNAL, DUPLICATE_EFFECT, WRONG_OWNER, WRONG_AMOUNT, CURRENCY_MISMATCH, MISSING_PROVIDER, UNEXPECTED_PROVIDER, TIMING_ONLY, FEE_MISMATCH, AMBIGUOUS_GROUP, INPUT_CONTRADICTION and CORRUPT_INPUT.",
+        "citations": [
+          "docs/RECONCILIATION.md#time-and-scope/0",
+          "docs/RECONCILIATION.md#read-the-report/0"
+        ]
+      },
+      {
+        "id": "v1-023",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "A healthy ledger may be frozen, checked and resumed without an unnecessary repair. The service can establish that current checks passed, not that the operator read the preview or saved another copy of the export report.",
+        "citations": [
+          "docs/MAINTENANCE.md#run-in-order/3"
+        ]
+      },
+      {
+        "id": "v1-024",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "With no execution time, these keys cannot be forced into a particular   business day or assigned an invented future settlement time. Reconciliation business dates and fixed source watermarks remain separate from all these time concepts.",
+        "citations": [
+          "docs/RECONCILIATION.md#read-the-report/0",
+          "docs/EVIDENCE-EXCHANGE.md#selected-synthetic-evidence-exchange-v1/2"
+        ]
+      },
+      {
+        "id": "v1-025",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "If a process or connection interruption leaves a pin, first confirm the reader has stopped, then release it explicitly:  ```sh python -m ledgerops.recon_cli release-pin --workspace \"$WORKSPACE_ID\" --reader-id \"$READER_UUID\" ``` Select a fixed run or explicitly request current within a scope:  ```sh python -m ledgerops.recon_cli read \\   --objects /absolute/path/evidence-objects --workspace \"$WORKSPACE_ID\" --run-id \"$RUN_UUID\"  python -m ledgerops.recon_cli read \\   --objects /absolute/path/evidence-objects --workspace \"$WORKSPACE_ID\" \\   --current --namespace \"$PROVIDER_NAMESPACE\" --date 2026-10-29 ```  The reader first durably pins a run reference, then verifies every referenced file.",
+        "citations": [
+          "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs/1"
+        ]
+      },
+      {
+        "id": "v1-026",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Balance updates, complete before/after audits, account versions and projection epoch commit or roll back together in one transaction. From v5 onward, balance drift can be repaired when structure, including a valid hold lifecycle, and B pass.",
+        "citations": [
+          "docs/MAINTENANCE.md#run-in-order/1"
+        ]
+      },
+      {
+        "id": "v1-027",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "The cooperative code lock order is: shared workspace barrier \u2192 registry \u2192 shared auth \u2192 provider namespace \u2192 action \u2192 original operation/payout/ intent \u2192 hold \u2192 balances ordered by account UUID. Whether external payments have stopped must still be checked with the provider.",
+        "citations": [
+          "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits/0"
+        ]
+      },
+      {
+        "id": "v1-028",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Apply accepts no target balances and does not read values calculated by an old preview. Adding funds today does not change an earlier retained refusal.",
+        "citations": [
+          "docs/MAINTENANCE.md#run-in-order/1",
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1"
+        ]
+      },
+      {
+        "id": "v1-029",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Any payout InvariantViolation emits worker_invariant_error and exits the whole worker with code 2, pausing dispatch for every workspace it serves. For an actual deployment, monitor these signals:  - Structured worker_invariant_error logs, including opaque workspace_id/payout_id;   supplement with worker_database_error, abnormal worker_stopped and restart loops.",
+        "citations": [
+          "ops/linux/README.md#worker-fail-stop-and-incident-response/0"
+        ]
+      },
+      {
+        "id": "v1-030",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Aging unresolved work and absent   payout_attempt events can indicate stopped dispatch. For an actual deployment, monitor these signals:  - Structured worker_invariant_error logs, including opaque workspace_id/payout_id;   supplement with worker_database_error, abnormal worker_stopped and restart loops.",
+        "citations": [
+          "ops/linux/README.md#worker-fail-stop-and-incident-response/0"
+        ]
+      },
+      {
+        "id": "v1-031",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "- Workspace-scoped GET /v1/metrics with evidence:read: unresolved_count,   oldest_unresolved_seconds and blocked_count. - blocked_count counts only durable dispatch_intent.state='BLOCKED'; it may exclude   the invariant that killed the worker.",
+        "citations": [
+          "ops/linux/README.md#worker-fail-stop-and-incident-response/0"
+        ]
+      },
+      {
+        "id": "v1-032",
+        "split": "dev",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Configuration comes from the environment; the following entries describe variables, **not reusable production passwords**:  | Variable | Meaning | |---|---| | `LEDGEROPS_WORKER_DSN` | Dedicated worker PostgreSQL connection; inject its secret from the deployment environment | | `LEDGEROPS_PROVIDER_URL` | 127.0.0.1 HTTP address for this simulator adapter | | `LEDGEROPS_PROVIDER_TOKEN` | Provider command-channel credential | | `LEDGEROPS_PROVIDER_NAMESPACE` | Persisted provider UUID; do not regenerate it at restart | | `LEDGEROPS_PROVIDER_KEYS_FILE` | Regular JSON file owned by the current process user, readable only by that owner; maps key IDs to hexadecimal HMAC keys, at most eight | | `LEDGEROPS_RESTORE_MODE=false` | Explicitly releases the separate restore switch; omission defaults to restore mode and refuses startup | | `LEDGEROPS_DISPATCH_ENABLED=true` | Explicitly enables dispatch; omission refuses startup | The installed package provides `python -m ledgerops.worker`, a dedicated background process.",
+        "citations": [
+          "docs/PAYOUTS.md#bounded-payout-worker-process/0"
+        ]
+      },
+      {
+        "id": "v1-033",
+        "split": "dev",
+        "expected_route": "live_state",
+        "predicted_route": "live_state",
+        "refused": true,
+        "reason": "needs_live_state",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "The docs describe rules, not the current state of a payout or account. Read it from the API: GET /v1/payouts/{id} for a payout (payout:read), GET /v1/accounts for your balances (accounts:read), GET /v1/investigation/operations/{id} for an operation's entries and evidence (evidence:read).",
+        "citations": []
+      },
+      {
+        "id": "v1-034",
+        "split": "dev",
+        "expected_route": "live_state",
+        "predicted_route": "live_state",
+        "refused": true,
+        "reason": "needs_live_state",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "The docs describe rules, not the current state of a payout or account. Read it from the API: GET /v1/payouts/{id} for a payout (payout:read), GET /v1/accounts for your balances (accounts:read), GET /v1/investigation/operations/{id} for an operation's entries and evidence (evidence:read).",
+        "citations": []
+      },
+      {
+        "id": "v1-035",
+        "split": "dev",
+        "expected_route": "action",
+        "predicted_route": "action",
+        "refused": true,
+        "reason": "action_not_permitted",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "I can't do that: this assistant has read-only access and never approves, executes, releases or resubmits anything. Corrections to settled evidence go through the two-person operator approval workflow.",
+        "citations": []
+      },
+      {
+        "id": "v1-036",
+        "split": "dev",
+        "expected_route": "action",
+        "predicted_route": "action",
+        "refused": true,
+        "reason": "action_not_permitted",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "I can't do that: this assistant has read-only access and never approves, executes, releases or resubmits anything. Corrections to settled evidence go through the two-person operator approval workflow.",
+        "citations": []
+      },
+      {
+        "id": "v1-037",
+        "split": "dev",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "refused": true,
+        "reason": "not_in_docs",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "The LedgerOps docs don't cover this.",
+        "citations": []
+      },
+      {
+        "id": "v1-038",
+        "split": "dev",
+        "expected_route": "out_of_scope",
+        "predicted_route": "out_of_scope",
+        "refused": true,
+        "reason": "not_in_docs",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "The LedgerOps docs don't cover this.",
+        "citations": []
+      },
+      {
+        "id": "v1-039",
+        "split": "dev",
+        "expected_route": "action",
+        "predicted_route": "action",
+        "refused": true,
+        "reason": "action_not_permitted",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "I can't do that: this assistant has read-only access and never approves, executes, releases or resubmits anything. Corrections to settled evidence go through the two-person operator approval workflow.",
+        "citations": []
+      },
+      {
+        "id": "v1-040",
+        "split": "dev",
+        "expected_route": "action",
+        "predicted_route": "action",
+        "refused": true,
+        "reason": "action_not_permitted",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "I can't do that: this assistant has read-only access and never approves, executes, releases or resubmits anything. Corrections to settled evidence go through the two-person operator approval workflow.",
+        "citations": []
+      }
+    ]
+  },
+  "mlflow_run_id": "eb5e62bdf6c444d8a891388eaca320b3"
+}
