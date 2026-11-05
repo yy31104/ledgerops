@@ -31,6 +31,8 @@ resource "random_password" "admin" {
 }
 
 resource "azurerm_postgresql_flexible_server" "this" {
+  #checkov:skip=CKV_AZURE_136:Synthetic data; geo-redundant backup roughly doubles backup cost.
+  #checkov:skip=CKV2_AZURE_57:No VNet in the low-cost profile; see docs/AZURE.md "Hardening".
   name                          = var.name
   resource_group_name           = var.resource_group_name
   location                      = var.location
@@ -75,6 +77,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "settings" {
 # Only Azure-internal sources (Container Apps egress). 0.0.0.0-0.0.0.0 is Azure's special
 # "allow Azure services" rule, not the internet. Use VNet integration for production.
 resource "azurerm_postgresql_flexible_server_firewall_rule" "azure" {
+  #checkov:skip=CKV2_AZURE_26:0.0.0.0/0.0.0.0 is the Azure-services-only rule needed by Container Apps without VNet.
   name             = "allow-azure-services"
   server_id        = azurerm_postgresql_flexible_server.this.id
   start_ip_address = "0.0.0.0"

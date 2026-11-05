@@ -35,6 +35,8 @@ locals {
 }
 
 resource "azurerm_key_vault" "this" {
+  #checkov:skip=CKV_AZURE_189:Cost tradeoff; default_action=Deny limits access to listed IPs. Use a private endpoint for real data.
+  #checkov:skip=CKV2_AZURE_32:No VNet in the low-cost profile; see docs/AZURE.md "Hardening".
   name                       = var.name
   resource_group_name        = var.resource_group_name
   location                   = var.location
