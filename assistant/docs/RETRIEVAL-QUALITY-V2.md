@@ -299,6 +299,21 @@ These are development measurements over 32 documentation questions:
 | Largest serialized bytes | 9952 | 18000 |
 | Mean labeled-section coverage | 0.7031 | 0.8594 |
 
+An ablation separates section diversity from neighboring source chunks at similar
+mean bytes for the first two rows:
+
+| Provided context | Mean bytes | Section coverage |
+|---|---:|---:|
+| Raw five chunks | 8369 | 0.7031 |
+| Five distinct-section anchors only | 8306 | 0.7812 |
+| Anchors + introductions + neighbors | 17720 | 0.8594 |
+
+About half the coverage gain comes from distinct-section selection, with almost
+no byte increase. The other half comes from introductions and neighbors, with
+roughly twice the document bytes. Diversity alone supplies the coverage gain for
+v1-004/011/015/028; v1-001/008/017/019 require neighboring chunks. Of the three
+factually improved answers, v1-017 and v1-019 depend on those neighbors.
+
 All five retrievers' original per-question ranking metrics match #18 exactly.
 Historical `context_recall@5` continues to describe the raw five chunks.
 Expanded-context section coverage is recorded separately under `context.stats`;
@@ -316,6 +331,81 @@ uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
   --split dev --context expanded --output assistant/.cache/context-expanded.json
 ```
 
+
+<details>
+<summary>Reproduce the ablation from saved development reports</summary>
+
+The first five `context_chunks` in this recorded expanded run are its five
+distinct-section anchors; all five fit the budget. The following calculation
+uses those anchors and the unchanged source chunks, without calling a model or
+changing retrieval. Generate the two reports with the fake-provider commands
+above, then run from the repository root:
+
+```sh
+uv run --project assistant --locked python - \
+  assistant/.cache/context-raw.json \
+  assistant/.cache/context-expanded.json <<'PY'
+import hashlib
+import json
+import statistics
+import sys
+from dataclasses import asdict
+from pathlib import Path
+
+from ledgerops_assistant.corpus import load_corpus
+from ledgerops_assistant.evaluation import DEFAULT_QUESTIONS
+
+corpus = load_corpus()
+chunks = corpus.by_id()
+questions = {
+    q["id"]: q
+    for q in (json.loads(line) for line in DEFAULT_QUESTIONS.read_text().splitlines())
+    if q["split"] == "dev" and q["expected_route"] == "docs"
+}
+raw, expanded = [json.loads(Path(p).read_text()) for p in sys.argv[1:]]
+question_sha = hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest()
+assert raw["context"]["policy"] == "raw-five-chunks"
+assert expanded["context"]["policy"] == "section-neighbors-v1"
+for report in (raw, expanded):
+    assert report["questions"]["evaluated_split"] == "dev"
+    assert report["questions"]["sha256"] == question_sha
+    assert report["corpus"]["digest"] == corpus.digest
+
+def measure(report, anchors_only=False):
+    rows = {r["id"]: r for r in report["answers"]["answers"]}
+    sizes, coverage = [], {}
+    for key, q in questions.items():
+        ids = rows[key]["context_chunks"]
+        if anchors_only:
+            ids = ids[:5]
+            assert len(ids) == len({chunks[i].section_id for i in ids}) == 5
+        provided = [chunks[i] for i in ids]
+        sizes.append(len(json.dumps([asdict(c) for c in provided]).encode()))
+        relevant = set(q["relevant_sections"])
+        coverage[key] = len({c.section_id for c in provided} & relevant) / len(relevant)
+    return statistics.mean(sizes), statistics.mean(coverage.values()), coverage
+
+before, anchors, full = measure(raw), measure(expanded, True), measure(expanded)
+print("| Provided context | Mean bytes | Section coverage |")
+print("|---|---:|---:|")
+for name, result in [
+    ("Raw five chunks", before),
+    ("Five distinct-section anchors only", anchors),
+    ("Anchors + introductions + neighbors", full),
+]:
+    print(f"| {name} | {result[0]:.0f} | {result[1]:.4f} |")
+print("Diversity sufficient:", [
+    key for key in questions
+    if anchors[2][key] > before[2][key] and full[2][key] == anchors[2][key]
+])
+print("Neighbors required:", [
+    key for key in questions if full[2][key] > anchors[2][key]
+])
+PY
+```
+
+</details>
+
 The normal CLI, service and development evaluator use expanded context. The
 evaluator's `--context raw` option preserves the previous generation input policy;
 it does not change ranking. MLflow records the context policy, budget, source
@@ -325,9 +415,7 @@ The policy was developed against known development failures and is not an unseen
 quality result. The v2 holdout was already consumed before this change and was not
 rerun or used to select expansion settings. Questions, labels, selection.json and
 freeze.json remain unchanged. Source additions change application code hashes; use
-the recorded historical revision for exact v2-study reproduction. Real-model
-answer records and factual checks are retained with the associated PR rather than
-adding another large evaluation artifact to the public tree.
+the recorded historical revision for exact v2-study reproduction.
 
 
 ### Real generation and fact review
@@ -357,6 +445,9 @@ existing required facts:
   while its callback-specific 401/no-quarantine answer matches the supplied source.
 - v1-024 omits the 23/25-hour DST detail even though the source is supplied.
   v1-014 refers to two-actor review but leaves propose/approve sequencing implicit.
+  Both details were also missing from the #18 answers; neither omission is a
+  regression introduced here. Compared with #18, three answers add missing required
+  facts, and no answer loses a previously supplied required fact.
 
 These remaining omissions prevent treating citation or route agreement as
 complete-answer accuracy. This is a non-blind development audit, not independent
@@ -366,6 +457,4 @@ cheaper subscription-inference claim follows from this experiment.
 
 MLflow runs: raw context `50ca4b8b95dc460abd594d3b619b2eb4`, expanded fake generation
 `fc5f6ef20ebc48db829f7245f4d3a46c`, expanded subscription generation
-`a660384db52f42ff96826e1c7c9813a7`. Generation records remain in the private
-portfolio evidence directory and the associated PR records their location and
-verification; current public guides retain the compact results and limitations.
+`a660384db52f42ff96826e1c7c9813a7`. Raw generation records are not committed.

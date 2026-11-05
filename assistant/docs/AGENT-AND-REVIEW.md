@@ -32,6 +32,13 @@ not an invoice. Local subscription use consumes plan quota, with no dollar estim
 derived from the subscription fee. Cancellation prevents subsequent work;
 provider deadlines bound in-flight requests and terminate the SDK subprocess group.
 
+For documentation-only agent calls, the conservative input reservation increases
+by about 70% with expanded context (roughly 13 KB to 23 KB for planning calls,
+including prompt/framing allowance). This is a byte-based token upper bound, not
+measured token usage. With token prices configured for `openai_api`, fewer model
+calls can fit within the default `max_cost_usd=0.10`. Default limits and the
+planning-stage document budget are unchanged.
+
 Generation context uses distinct source sections, section introductions and
 neighboring chunks from the same document snapshot. The document pack is bounded
 to 18 KB serialized JSON. As API observations grow, planning and answering drop
