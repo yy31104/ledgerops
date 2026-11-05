@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from ledgerops_assistant.agent import Agent, Limits, OperatorContext
+from ledgerops_assistant.agent import ANSWER_PROMPT, Agent, Limits, OperatorContext
 from ledgerops_assistant.providers.fake import FakeProvider
 from ledgerops_assistant.retrieval import BM25Retriever
 from ledgerops_assistant.tools import ReadOnlyAPI
@@ -96,6 +96,17 @@ def test_steps_cost_and_cancellation_stop_subsequent_calls(tiny_corpus):
     )
     state = agent.run("Investigate payout", client())
     assert state["observations"] == [] and state["result"]["refused"]
+
+
+def test_cost_reservation_uses_a_conservative_utf8_byte_bound(tiny_corpus):
+    limits = Limits(input_usd_per_million=2, output_usd_per_million=3)
+    agent = Agent(BM25Retriever(tiny_corpus), FakeProvider(), limits=limits)
+    message = "\u00e9" * 100
+    input_bound = len(message.encode("utf-8")) + len(ANSWER_PROMPT.encode("utf-8")) + 4096
+    expected = (input_bound * 2 + limits.max_output_tokens * 3) / 1e6
+    assert agent._reserve({"cost_usd": 0}, message) == expected
+    with pytest.raises(ValueError, match="cost_limit"):
+        agent._reserve({"cost_usd": limits.max_cost_usd - expected / 2}, message)
 
 
 def test_revocation_after_read_prevents_answer(tiny_corpus):

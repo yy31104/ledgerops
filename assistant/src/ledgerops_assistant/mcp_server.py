@@ -49,6 +49,11 @@ def build_server(origin=None, token_file=None):
         raise ValueError("configure a fixed assistant origin")
     if url.scheme == "http" and url.hostname not in ("localhost", "127.0.0.1", "::1"):
         raise ValueError("plaintext MCP transport is local only")
+    provider = os.environ.get("LEDGEROPS_ASSISTANT_MCP_PROVIDER", "fake")
+    if provider not in ("fake", "openai_api", "ollama"):
+        raise ValueError(
+            "MCP provider must be fake, openai_api or ollama; subscription is CLI only"
+        )
     token_file = token_file or os.environ.get("LEDGEROPS_ASSISTANT_TOKEN_FILE")
     if not token_file:
         raise ValueError("set LEDGEROPS_ASSISTANT_TOKEN_FILE to an owner-private credential file")
@@ -71,7 +76,8 @@ def build_server(origin=None, token_file=None):
                     "POST",
                     origin.rstrip("/") + "/v1/assist",
                     headers={"Authorization": "Bearer " + token},
-                    json={"question": question, "request_id": str(uuid4()), "provider": "fake"},
+                    # The HTTP service independently rejects providers it has not enabled.
+                    json={"question": question, "request_id": str(uuid4()), "provider": provider},
                 ) as response:
                     if response.status_code != 200:
                         return {"refused": True, "reason": "assistant_access_unavailable"}

@@ -12,6 +12,8 @@ from langgraph.types import Command, interrupt
 from ledgerops_assistant.drafts import DraftIntent, DraftStore, WorkflowConflict, digest
 from ledgerops_assistant.tools import AuthenticationRequired
 
+DRAFT_EVIDENCE_TOOLS = frozenset({"payout", "operation", "investigation"})
+
 
 class WorkflowState(TypedDict, total=False):
     question: str
@@ -40,6 +42,7 @@ def fingerprint(observations):
             "sha256": digest({"status": o["status"], "data": o.get("data")}),
         }
         for o in observations
+        if o["tool"] in DRAFT_EVIDENCE_TOOLS
     ]
 
 
@@ -162,11 +165,14 @@ class DraftWorkflow:
             return {"status": "dismissed"}
         if self.store.expired(runtime.context.owner_key, state["request_id"]):
             raise WorkflowConflict("draft expired; start a new request for fresh review")
+        # Metrics/accounts may inform an answer, but do not support a payout draft.
+        # Filter saved evidence as well so older paused checkpoints can be reviewed.
+        evidence = [o for o in state["evidence"] if o["tool"] in DRAFT_EVIDENCE_TOOLS]
         current = [
             runtime.context.client.read(o["tool"], o["object_id"], runtime.context.owner_key)
-            for o in state["evidence"]
+            for o in evidence
         ]
-        if fingerprint(current) != state["evidence"]:
+        if fingerprint(current) != evidence:
             raise WorkflowConflict("evidence changed; fresh review is required")
         self._authorized(runtime.context)
         return {"status": "handoff_ready"}

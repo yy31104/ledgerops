@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "status": "frozen_synthetic",
+  "sha256": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+  "dev": 40,
+  "test": 20,
+  "labels": "Synthetic documentation-grounded labels; not independently human-reviewed.",
+  "holdout_policy": "Settings are selected on development questions only; exposed holdout results are not tuning targets."
+}

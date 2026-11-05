@@ -16,7 +16,7 @@ from pathlib import Path
 CHUNKER_VERSION = "headings-v1"
 MAX_WORDS = 220
 
-# Operator-facing docs only. assistant/ is excluded on purpose: BASELINE.md describes the
+# Operator-facing docs only. assistant/ is excluded on purpose: PRODUCT.md describes the
 # evaluation scenarios and their correct answers, so indexing it would leak the answers.
 CORPUS_GLOBS = ("README.md", "docs/*.md", "docs/adr/*.md", "ops/linux/README.md")
 

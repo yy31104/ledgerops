@@ -256,18 +256,24 @@ def _version(package: str) -> str:
         return "not installed"
 
 
+def check_freeze_record(questions_path: Path) -> None:
+    record_path = questions_path.with_name("manifest.json")
+    if not record_path.exists():
+        record_path = questions_path.with_name("review.json")
+    record = json.loads(record_path.read_text()) if record_path.exists() else {}
+    if (
+        record.get("status") not in ("approved", "frozen_unreviewed", "frozen_synthetic")
+        or record.get("sha256") != hashlib.sha256(questions_path.read_bytes()).hexdigest()
+    ):
+        raise ValueError("holdout requires a frozen record for this exact question set")
+
+
 def run(args) -> dict:
     corpus = load_corpus()
     questions_path = Path(args.questions)
     all_questions = load_questions(questions_path, corpus.section_ids())
     if args.split != "dev":
-        review_path = questions_path.with_name("review.json")
-        review = json.loads(review_path.read_text()) if review_path.exists() else {}
-        if (
-            review.get("status") not in ("approved", "frozen_unreviewed")
-            or review.get("sha256") != hashlib.sha256(questions_path.read_bytes()).hexdigest()
-        ):
-            raise ValueError("holdout requires a frozen record for this exact question set")
+        check_freeze_record(questions_path)
     questions = [q for q in all_questions if args.split == "all" or q["split"] == args.split]
     docs_questions = [q for q in questions if q["expected_route"] == routing.DOCS]
 

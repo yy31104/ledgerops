@@ -37,8 +37,9 @@ FTS, 0.8361 for vectors, 0.8639 for old hybrid and 0.8889 for selected hybrid**.
 MRR slightly trails the old hybrid; actual five-chunk coverage has wider
 uncertainty. See [RETRIEVAL-QUALITY-V2.md](docs/RETRIEVAL-QUALITY-V2.md) for component
 rank traces, topic-cluster intervals, per-question regressions and audit limits.
-Agent-authored labels remain unreviewed by humans. Fake generation tests plumbing
-and permissions; real-model answer quality and subscription usage remain unverified.
+Labels are synthetic and not independently human-reviewed. Fake generation tests
+plumbing and permissions. A limited real-subscription smoke test does not establish
+answer quality or comprehensive injection resistance.
 
 Citation checks reject unknown passage IDs and uncited answers. They establish
 provenance, not semantic entailment. Closed read tools and the upstream's current
@@ -70,16 +71,7 @@ real authenticated API acceptance tests, the panel build and a Compose smoke tes
 
 | Guide | Contents |
 |---|---|
-| [BASELINE.md](docs/BASELINE.md) | Three reproduced incidents and manual investigation |
-| [POSTGRES.md](docs/POSTGRES.md) | Corpus snapshots, HNSW, FTS, RRF and MLflow |
-| [EVALUATION-V1.md](docs/EVALUATION-V1.md) | Development and held-out comparison |
-| [RETRIEVAL-QUALITY-V2.md](docs/RETRIEVAL-QUALITY-V2.md) | Fusion diagnosis and new frozen holdout |
+| [RETRIEVAL-QUALITY-V2.md](docs/RETRIEVAL-QUALITY-V2.md) | Retrieval architecture, reproduction, historical comparison and new holdout |
+| [AGENT-AND-REVIEW.md](docs/AGENT-AND-REVIEW.md) | Caller permissions, bounded tools, durable drafts and console handoff |
+| [PRODUCT.md](docs/PRODUCT.md) | Local setup, HTTP/SSE, MCP, telemetry and verification |
 | [PROVIDERS.md](docs/PROVIDERS.md) | Fake, OpenAI API, Ollama and local ChatGPT SDK adapter |
-| [AGENT.md](docs/AGENT.md) | Caller identity, read tools, budgets and retries |
-| [HUMAN-REVIEW.md](docs/HUMAN-REVIEW.md) | Durable drafts, resume and console handoff |
-| [PRODUCT.md](docs/PRODUCT.md) | Local product, HTTP, MCP and operating boundaries |
-| [VERIFICATION.md](docs/VERIFICATION.md) | Executed checks and remaining limits |
-| [PR-REVIEW.md](docs/PR-REVIEW.md) | Permission, recovery, transport and public-hygiene review |
-
-[EVALUATION.md](docs/EVALUATION.md) preserves the historical v0 in-memory/BM25
-experiment; it is not a PostgreSQL FTS result.

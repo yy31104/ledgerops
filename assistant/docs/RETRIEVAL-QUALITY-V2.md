@@ -12,7 +12,10 @@ baseline. Ties used nDCG, then MRR, then canonical configuration JSON.
 The grid tested keyword weights 0.25/0.5/1.0, constants 10/60, depths 20/50 and
 chunk/section voting. Weighted or section-level fusion did not win under that
 predeclared rule. They remain explicit experiment options, not silent production
-changes. Every trial was recorded in local MLflow with its configuration.
+changes. Every trial was recorded in local MLflow with its configuration. The published
+`selection.json` predates the `context_recall@5` metric, so its grid omits that
+column. Selection used only Recall, MRR and nDCG; the missing column did not change
+the selected configuration.
 
 Development Recall@5 changes from **0.7083 to 0.7812**, MRR from 0.7527 to 0.7531,
 and nDCG from 0.6741 to 0.7048. These are selection scores on previously tuned,
@@ -70,21 +73,18 @@ this selection.
 ## New held-out comparison
 
 The new set has **60 answerable questions, 29 topic groups and 20 source documents**:
-44 reasoning/paraphrase questions and 16 precise code/command questions. A separate
-author read only the indexed documentation and corpus-ID rules, without old
-questions, rankings, retrieval implementation or candidate settings.
-
-Another agent checked all labels and 137 exact evidence quotes. Its semantic
-review completed before an agent-inventory response exposed old-development
-summaries; subsequent edits were limited to previously identified whitespace and
-one question ambiguity correction. No new-holdout scores existed then. This
-exposure is disclosed in the manifest. Neither agent review is human review.
+44 reasoning/paraphrase questions and 16 precise code/command questions. The
+questions and documentation-grounded labels are synthetic and have not been
+independently human-reviewed. Source validation checked 137 exact evidence quotes
+before exposure to earlier development metrics and protocol critiques. Later edits
+were limited to previously identified quote corrections, one disambiguation and
+metadata; new-holdout scores were unavailable. The manifest retains that limitation.
 There are no exact normalized question duplicates against either older set;
 semantic overlap of documented facts cannot be excluded.
 
 Commit `1f0e7ca` freezes the chosen configuration, new question hash, corpus/model
 identity and hashes of 12 relevant implementation/dependency files before the
-first validation. The optimizer did not inspect new question/label content before
+first validation. Configuration selection used only development questions before
 that freeze. A canonical exclusive attempt record prevents silently overwriting or
 rerunning validation under another output name. No parameter, label or ranking
 code was changed after seeing the new scores.
@@ -100,6 +100,21 @@ code was changed after seeing the new scores.
 Mean retrieval latency was 21.0 ms for selected hybrid and 21.3 ms for old hybrid
 on this local run, compared with 12.6 ms for vectors. These are retrieval timings,
 not end-to-end service latency or scale measurements.
+
+## Distribution and scope of the result
+
+The new holdout differs substantially from the development questions: its questions
+average approximately **26 words**, versus **11** in development. Approximately
+**33%** concern operational documents, versus **97%** in development. The remainder
+covers the wider indexed documentation, including engineering and protocol rules.
+
+The comparison therefore concerns a broader general-document question distribution.
+At most it supports a limited non-regression conclusion for retrieval coverage on
+that benchmark, with the MRR tradeoff below. It does **not** demonstrate better
+answers to short operator questions. The set contains only answerable retrieval
+questions; it does not validate refusals, live investigation or prompt-injection
+resistance. The distribution shift is also why absolute scores from the older
+holdout cannot measure an improvement.
 
 ## Uncertainty and failures
 
@@ -128,7 +143,7 @@ Absolute scores on this new set must not be compared with 0.3333 on the old
 coverage and labels differ. Only same-question comparisons above are meaningful.
 This remains a synthetic closed-document benchmark. It does not measure real
 operator queries, real-model prose, semantic citation entailment or injection safety.
-No paid or subscription inference was used.
+This retrieval study used no paid or subscription inference.
 
 ## Evidence and reproduction
 
@@ -136,7 +151,7 @@ No paid or subscription inference was used.
 - [Component-rank diagnosis](../eval/v2-study/diagnosis.json)
 - [Frozen code/configuration](../eval/v2-study/freeze.json)
 - [Questions and source annotations](../eval/v2-holdout/questions.jsonl)
-- [Author/audit disclosure](../eval/v2-holdout/manifest.json)
+- [Dataset provenance and limitations](../eval/v2-holdout/manifest.json)
 - [Compact held-out report](../eval/results/v2-postgres-holdout.json)
 - [Per-question scores](../eval/results/v2-postgres-holdout.csv)
 
@@ -163,7 +178,10 @@ uv run --project assistant --locked python assistant/scripts/retrieval_study.py 
 
 The published attempt record is deliberately consumed. For an explicitly labelled
 reproduction (not another unseen validation), copy `freeze.json` into a fresh local
-directory and run the following from the same frozen source/dependency revision:
+directory and run the following from the same frozen source/dependency revision
+(`1f0e7ca`, also unchanged through PR #17). Subsequent metadata-loader cleanup
+changes the historical evaluation file hash without changing ranking/scoring; it
+does not rewrite the original freeze or claim that the new commit has its hash:
 
 ```sh
 uv run --project assistant --locked python assistant/scripts/retrieval_study.py validate \
@@ -176,3 +194,70 @@ CI uses only the existing development questions. It now rejects decreases in
 Recall, MRR, nDCG and actual five-chunk section coverage, and rejects changes to
 label/model identity, corpus digest or fusion configuration. The newly exposed
 holdout is not a CI tuning target. Future optimization needs another unseen set.
+
+
+## Retrieval storage and local experiments
+
+The assistant owns a dedicated database, separate from the financial ledger.
+`001_rag.sql` publishes immutable corpus snapshots with 384-dimensional vectors,
+a cosine HNSW index (`m=16`, `ef_construction=64`) and an English tsvector/GIN
+index. The snapshot identity binds corpus digest and pinned embedding identity;
+embedding runs outside the transaction, then a complete snapshot publishes
+atomically. Concurrent indexers cannot publish half a corpus.
+
+Keyword retrieval uses `websearch_to_tsquery` with OR between normalized terms and
+`ts_rank_cd`: PostgreSQL FTS, not BM25. HNSW uses `ef_search=100` and strict iterative
+scans for corpus filtering. An exact path disables index scans in its own read-only
+transaction. Small-corpus queries may still choose sequential scans, so the
+integration suite separately checks an HNSW execution plan. Equal RRF component
+weights combine ranks instead of incompatible raw scores.
+
+The migration owner may install pgvector. The runtime has USAGE/SELECT on RAG
+schemas plus CRUD on its dedicated workflow/checkpoint records, without financial
+schema access. Never give this package a ledger database credential. Set
+`LEDGEROPS_ASSISTANT_DATABASE_URL` for a persistent dedicated DB and
+`LEDGEROPS_ASSISTANT_CORPUS_ROOT` for an installed package's document root.
+
+Without a supplied DSN, `scripts/evaluate_local.py` creates an isolated disposable
+Docker database with a temporary password and removes only that container. All
+experiments write local MLflow SQLite/artifacts under `.cache/mlflow`; no tracking
+service receives them. Read records with `MlflowClient`, or point a separately
+installed MLflow UI at that database. The existing development-only command above
+reproduces the CI quality gate with pinned public local embeddings and fake answers.
+
+## Historical 60-question comparison
+
+The earlier synthetic set remains in `eval/v1-draft/questions.jsonl`, with 40
+development and 20 held-out questions. Of these, 32 and 12 respectively are scored
+for retrieval; remaining cases test routing/refusal. Its public manifest binds the
+unchanged question bytes and declares that labels are not independently
+human-reviewed. The original k=60 development and held-out runs are retained for
+comparison, not as new tuning targets.
+
+| Split | Method | Recall@5 | MRR@10 | nDCG@5 |
+|---|---|---:|---:|---:|
+| Development | PostgreSQL FTS | 0.6250 | 0.6084 | 0.5520 |
+| Development | HNSW/exact vectors | 0.7344 | 0.6687 | 0.6253 |
+| Development | Old hybrid, k=60 | 0.7083 | 0.7527 | 0.6741 |
+| Held out | PostgreSQL FTS | 0.4167 | 0.1944 | 0.2494 |
+| Held out | HNSW/exact vectors | 0.5000 | 0.3750 | 0.4129 |
+| Held out | Old hybrid, k=60 | 0.3333 | 0.2989 | 0.2718 |
+
+The historical held-out generation used a fake sentence copier: route accuracy was
+17/20, correct refusals 5/8 and relevant-section citation hits 2/12. These expose
+failures; they do not demonstrate factual accuracy or injection resistance. The
+sample is too small for broad rankings. HNSW/exact agreement on 175 chunks is not
+an approximate-search benchmark at scale. Raw reports retain corpus/model/label
+identities and MLflow IDs:
+[v1 development](../eval/results/v1-postgres-dev.json),
+[v1 held out](../eval/results/v1-postgres-holdout.json).
+
+The still-supported in-memory CLI is a prototype: its keyword method is BM25 and
+its unchanged scope heuristic came from an older synthetic calibration set. Those
+obsolete questions/results are archived rather than presented as current evidence.
+The PostgreSQL service and its quality gate use the preserved development set and
+the configuration described above.
+
+References: [pgvector](https://github.com/pgvector/pgvector),
+[PostgreSQL text search](https://www.postgresql.org/docs/current/textsearch-controls.html),
+[MLflow tracking](https://mlflow.org/docs/latest/ml/tracking/).

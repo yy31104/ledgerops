@@ -95,6 +95,7 @@ def test_sdk_worker_is_ephemeral_and_denies_escalation(monkeypatch, capsys, acco
         "apps._default.enabled=false",
     }
     assert seen["ephemeral"] and seen["approval_mode"] == "never"
+    assert seen["run"]["effort"] == "low"
     assert seen["sandbox"] == "read-only" and seen["run"]["output_schema"] == ANSWER_SCHEMA
     assert json.loads(capsys.readouterr().out)["usage"]["billing"] == "chatgpt_plan"
 

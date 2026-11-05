@@ -2,7 +2,9 @@
 
 import os
 from dataclasses import dataclass, field
+from ipaddress import ip_address
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from ledgerops_assistant.agent import Limits
 
@@ -17,6 +19,31 @@ class Settings:
     web_dist: Path = Path(__file__).resolve().parents[2] / "web" / "dist"
     demo_token: str = field(default="", repr=False)
     limits: Limits = field(default_factory=Limits)
+
+    def __post_init__(self):
+        if not self.demo_token:
+            return
+        try:
+            url = urlsplit(self.api_origin)
+            host = url.hostname
+            loopback = host == "localhost" or (
+                bool(host) and "%" not in host and ip_address(host).is_loopback
+            )
+            valid = (
+                loopback
+                and url.scheme in ("http", "https")
+                and (url.scheme == "https" or host in ("localhost", "127.0.0.1", "::1"))
+                and not url.username
+                and not url.password
+                and not url.query
+                and not url.fragment
+                and url.path in ("", "/")
+                and url.port != 0
+            )
+        except (TypeError, ValueError):
+            valid = False
+        if not valid:
+            raise ValueError("a demo token requires a loopback API origin")
 
     @classmethod
     def environment(cls):

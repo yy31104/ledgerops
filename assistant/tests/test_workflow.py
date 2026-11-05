@@ -8,13 +8,14 @@ import psycopg
 import pytest
 from langgraph.checkpoint.postgres import PostgresSaver
 
+from ledgerops_assistant import workflow as workflow_module
 from ledgerops_assistant.agent import Agent
-from ledgerops_assistant.drafts import DraftIntent, DraftStore, WorkflowConflict, setup
+from ledgerops_assistant.drafts import DraftIntent, DraftStore, WorkflowConflict, digest, setup
 from ledgerops_assistant.providers.base import Draft
 from ledgerops_assistant.providers.fake import FakeProvider
 from ledgerops_assistant.retrieval import BM25Retriever
 from ledgerops_assistant.tools import AuthenticationRequired, ReadOnlyAPI
-from ledgerops_assistant.workflow import DraftWorkflow, WorkflowContext
+from ledgerops_assistant.workflow import DraftWorkflow, WorkflowContext, fingerprint
 
 PAYOUT = "40000000-0000-0000-0000-000000000003"
 OBSERVATION = "40000000-0000-0000-0000-000000000004"
@@ -457,3 +458,111 @@ def test_concurrent_full_invocations_serialize_and_preserve_the_draft(
             ).fetchone()[0]
             == 1
         )
+
+
+def test_draft_fingerprints_exclude_unrelated_workspace_observations():
+    tools = ["metrics", "accounts", "payout", "operation", "investigation"]
+    observations = [
+        {"tool": tool, "object_id": None, "status": "ok", "data": {"value": tool}} for tool in tools
+    ]
+    assert [item["tool"] for item in fingerprint(observations)] == tools[2:]
+
+
+def with_metrics(dsn, corpus):
+    """Exercise the optional model-selected metrics read through the real graph/client."""
+    workflow, model = create(dsn, corpus)
+    data, metrics, reads = case(), {"oldest_unresolved_seconds": "10"}, []
+    data["payout"].update(
+        {
+            "dispatch_state": "BLOCKED",
+            "next_due_at": "2026-11-05T00:00:00+00:00",
+            "gross_minor": "100",
+        }
+    )
+
+    def handler(request):
+        if request.url.path == "/v1/me":
+            return httpx.Response(200, json=OWNER)
+        assert request.method == "GET"
+        reads.append(request.url.path)
+        value = (
+            metrics
+            if request.url.path == "/v1/metrics"
+            else data
+            if request.url.path.startswith("/v1/investigation/")
+            else data["payout"]
+        )
+        return httpx.Response(200, json=value)
+
+    def plan(state):
+        done = {o["tool"] for o in state["observations"]}
+        tool = next(
+            (t for t in ["metrics", "payout", "operation", "investigation"] if t not in done),
+            "finish",
+        )
+        return {"tool": tool, "object_id": None if tool in ("metrics", "finish") else PAYOUT}
+
+    workflow.agent.planner = plan
+    api = ReadOnlyAPI("http://127.0.0.1:8080", TOKEN, transport=httpx.MockTransport(handler))
+    return workflow, model, api, data, metrics, reads
+
+
+@pytest.mark.postgres
+@pytest.mark.parametrize("changed", [None, "gross_minor", "next_due_at", "investigation"])
+def test_metrics_age_does_not_stale_draft_but_business_evidence_does(pg_dsn, tiny_corpus, changed):
+    workflow, model, api, data, metrics, reads = with_metrics(pg_dsn, tiny_corpus)
+    thread, _, paused = begin(workflow, api)
+    assert paused["status"] == "awaiting_review"
+    assert [o["tool"] for o in paused["investigation"]["observations"]] == [
+        "metrics",
+        "payout",
+        "operation",
+        "investigation",
+    ]
+    assert [o["tool"] for o in paused["evidence"]] == ["payout", "operation", "investigation"]
+    original = paused["draft"]
+    metrics["oldest_unresolved_seconds"] = "43"
+    if changed == "investigation":
+        data["current_reconciliation_references"][0]["evidence_epoch"] = "8"
+    elif changed:
+        data["payout"][changed] = "101" if changed == "gross_minor" else "2026-11-06T00:00:00+00:00"
+    before_review = len(reads)
+    decision = {"continue": True, "draft_sha256": original["draft_sha256"]}
+    if changed:
+        with pytest.raises(WorkflowConflict, match="evidence changed"):
+            workflow.invoke(thread, api, decision=decision)
+    else:
+        resumed = workflow.invoke(thread, api, decision=decision)
+        assert resumed["status"] == "handoff_ready" and resumed["draft"] == original
+    assert "/v1/metrics" not in reads[before_review:]
+    assert model.calls == 1
+
+
+@pytest.mark.postgres
+def test_older_checkpoint_with_metrics_can_resume_without_recreating_draft(
+    pg_dsn, tiny_corpus, monkeypatch
+):
+    workflow, model, api, _, metrics, reads = with_metrics(pg_dsn, tiny_corpus)
+
+    def old_fingerprint(observations):
+        return [
+            {
+                "tool": o["tool"],
+                "object_id": o["object_id"],
+                "sha256": digest({"status": o["status"], "data": o.get("data")}),
+            }
+            for o in observations
+        ]
+
+    monkeypatch.setattr(workflow_module, "fingerprint", old_fingerprint)
+    thread, _, paused = begin(workflow, api)
+    assert paused["evidence"][0]["tool"] == "metrics"
+    monkeypatch.setattr(workflow_module, "fingerprint", fingerprint)
+    metrics["oldest_unresolved_seconds"] = "43"
+    before_review = len(reads)
+    restarted = DraftWorkflow(pg_dsn, workflow.agent)
+    resumed = restarted.invoke(
+        thread, api, decision={"continue": True, "draft_sha256": paused["draft"]["draft_sha256"]}
+    )
+    assert resumed["status"] == "handoff_ready" and resumed["draft"] == paused["draft"]
+    assert "/v1/metrics" not in reads[before_review:] and model.calls == 1

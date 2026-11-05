@@ -15,7 +15,8 @@ from ledgerops_assistant.evaluation import CACHE_DIR
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import BM25Retriever, HybridRetriever, VectorRetriever
 
-# Chosen on the dev split of eval/questions.jsonl; see docs/EVALUATION.md.
+# Historical memory-only scope heuristic; not the PostgreSQL retrieval selection.
+# Its original synthetic calibration set is archived; the threshold is unchanged.
 DEFAULT_GATE = 0.61
 
 

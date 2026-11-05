@@ -131,11 +131,14 @@ class Agent:
         return None
 
     def _reserve(self, state, message):
-        size = len(message.encode()) + len(ANSWER_PROMPT.encode()) + 4096
-        if size > self.limits.max_input_bytes:
+        # Reserve one input token per UTF-8 byte, plus a framing allowance. This
+        # intentionally overestimates token usage; API prices remain per token.
+        input_bytes_with_allowance = len(message.encode()) + len(ANSWER_PROMPT.encode()) + 4096
+        if input_bytes_with_allowance > self.limits.max_input_bytes:
             raise ValueError("context_limit")
+        input_token_upper_bound = input_bytes_with_allowance
         cost = (
-            size * self.limits.input_usd_per_million
+            input_token_upper_bound * self.limits.input_usd_per_million
             + self.limits.max_output_tokens * self.limits.output_usd_per_million
         ) / 1e6
         if state["cost_usd"] + cost > self.limits.max_cost_usd:
