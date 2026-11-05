@@ -110,6 +110,12 @@ def test_missing_auth_provider_override_and_large_body_fail_closed(tiny_corpus):
         )
         assert (
             client.post(
+                "/v1/assist", headers=HEADERS, json={**body, "provider": "ollama"}
+            ).status_code
+            == 400
+        )
+        assert (
+            client.post(
                 "/v1/assist", headers=HEADERS, json={**body, "url": "https://example.invalid"}
             ).status_code
             == 422

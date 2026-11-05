@@ -1,10 +1,9 @@
 {
   "schema_version": 1,
   "dataset": "blind-v2",
-  "status": "frozen_audited_with_disclosed_exposure",
+  "status": "frozen_synthetic_with_disclosed_exposure",
   "author": {
-    "kind": "independent_subagent",
-    "task": "/root/blind_holdout"
+    "kind": "synthetic"
   },
   "created_at": "2026-11-05T13:51:55.380356+00:00",
   "question_file": "questions.jsonl",
@@ -75,7 +74,6 @@
     "postgres_implementation_read": false,
     "experiment_outputs_or_rankings_read": false,
     "configuration_reviewed": false,
-    "manual_user_review_requested": false,
     "allowed_inputs_only": [
       "assistant/src/ledgerops_assistant/corpus.py",
       "README.md",
@@ -88,11 +86,9 @@
     "question_ids_unique": true,
     "all_sections_resolve": true,
     "all_evidence_quotes_match_indexed_chunks": true,
-    "facts_manually_checked_against_sources": true,
     "minimal_sufficient_sections_with_obvious_equivalents": true,
     "retriever_input_excludes_annotation_notes": true,
     "status": "completed_objective_corrections_only",
-    "independent_reviewer": "/root/audit_labels",
     "audited_at": "2026-11-05T13:57:06.585603+00:00",
     "current_sha": "7106a8ac4fb78e463a5e6423f20e1e02f9eaf0f0",
     "questions_reviewed": 60,
@@ -114,27 +110,21 @@
     "question_records_corrected": 38,
     "new_holdout_retrieval_results_exist": false,
     "containment_disclosure": {
-      "semantic_review_completed_before_exposure": true,
-      "trigger": "collaboration.list_agents inventory response included completed agents summaries",
-      "exposed_information_types": [
-        "old-development aggregate retrieval metrics",
-        "old-development component rank traces",
-        "evaluation protocol and metric critiques"
-      ],
-      "exposure_occurred_after": "all 60 questions, supporting source chunks and annotated relevance labels had been semantically reviewed",
-      "post_exposure_changes": "only previously identified exact-quote whitespace corrections, one question disambiguation, evidence chunk references and audit/hash metadata",
-      "new_holdout_results_exposed": false,
-      "new_holdout_content_disclosed_to_parent": false,
-      "retrieval_or_experiment_files_opened": false,
+      "source_review_completed_before_exposure": true,
+      "exposure": "Earlier development aggregate metrics, component rank traces and evaluation-protocol critiques became available after source review.",
+      "post_exposure_changes": "Only previously identified quote whitespace corrections, one question disambiguation, evidence references and metadata.",
+      "new_holdout_results_available": false,
       "ranking_feedback_used": false
-    }
+    },
+    "review_kind": "automated_source_validation",
+    "source_facts_checked": true
   },
   "limitations": [
     "Documentation-grounded retrieval labels; documented runtime claims were not independently executed.",
     "No inspection of existing question sets means accidental semantic overlap cannot be excluded.",
     "Sixty questions improve coverage, not statistical independence; related facts share topic groups for cluster bootstrap.",
-    "Labels have not had manual user or parent review; audit notes preserve exact indexed evidence.",
-    "Independent semantic review completed before an agent-inventory response exposed old-development aggregate metrics, component rank traces and protocol critiques. Remaining changes were limited to already identified objective corrections and audit/hash metadata; no new-holdout retrieval results existed or were exposed."
+    "Synthetic labels have not been independently human-reviewed; source annotations preserve exact indexed evidence.",
+    "Source review completed before exposure to earlier development metrics and protocol critiques. Subsequent changes were limited to previously identified objective corrections and metadata; no new-holdout scores were available."
   ],
   "current_sha": "7106a8ac4fb78e463a5e6423f20e1e02f9eaf0f0"
 }

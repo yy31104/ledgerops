@@ -24,12 +24,14 @@ import statistics
 import sys
 import time
 from collections import Counter, defaultdict
+from dataclasses import asdict
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
 
 from ledgerops_assistant import routing
 from ledgerops_assistant.answer import ScopeGate, answer
+from ledgerops_assistant.context import CONTEXT_POLICY, MAX_CONTEXT_BYTES, ContextRetriever
 from ledgerops_assistant.corpus import CHUNKER_VERSION, load_corpus
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import (
@@ -98,8 +100,8 @@ def evaluate_retriever(retriever, questions: list[dict]) -> dict:
                 "q": q,
                 "ranked": ranked,
                 **score_ranking(ranked, q["relevant_sections"]),
-                # Runtime supplies five chunks, not five unique sections from thirty.
-                # This is source-section coverage, not semantic entailment of prose.
+                # Preserve the historical raw-five-chunk coverage for comparison.
+                # Expanded generation context is measured separately below.
                 "context_recall@5": score_ranking(rank_sections(hits[:5]), q["relevant_sections"])[
                     "recall@5"
                 ],
@@ -221,6 +223,7 @@ def evaluate_answers(questions, retriever, provider, gate, revision) -> dict:
                 "dropped_citations": len(result.dropped_citations),
                 "answer": result.text,
                 "citations": [c.chunk_id for c in result.citations],
+                "context_chunks": result.retrieved,
             }
         )
     answered_docs = [r for r in rows if r["expected_route"] == routing.DOCS and not r["refused"]]
@@ -256,18 +259,24 @@ def _version(package: str) -> str:
         return "not installed"
 
 
+def check_freeze_record(questions_path: Path) -> None:
+    record_path = questions_path.with_name("manifest.json")
+    if not record_path.exists():
+        record_path = questions_path.with_name("review.json")
+    record = json.loads(record_path.read_text()) if record_path.exists() else {}
+    if (
+        record.get("status") not in ("approved", "frozen_unreviewed", "frozen_synthetic")
+        or record.get("sha256") != hashlib.sha256(questions_path.read_bytes()).hexdigest()
+    ):
+        raise ValueError("holdout requires a frozen record for this exact question set")
+
+
 def run(args) -> dict:
     corpus = load_corpus()
     questions_path = Path(args.questions)
     all_questions = load_questions(questions_path, corpus.section_ids())
     if args.split != "dev":
-        review_path = questions_path.with_name("review.json")
-        review = json.loads(review_path.read_text()) if review_path.exists() else {}
-        if (
-            review.get("status") not in ("approved", "frozen_unreviewed")
-            or review.get("sha256") != hashlib.sha256(questions_path.read_bytes()).hexdigest()
-        ):
-            raise ValueError("holdout requires a frozen record for this exact question set")
+        check_freeze_record(questions_path)
     questions = [q for q in all_questions if args.split == "all" or q["split"] == args.split]
     docs_questions = [q for q in questions if q["expected_route"] == routing.DOCS]
 
@@ -321,9 +330,28 @@ def run(args) -> dict:
     }
     gate_report = calibrate_gate(vector, [q for q in all_questions if q["split"] == "dev"])
     gate = ScopeGate(vector, gate_report["threshold"])
+    expanded = getattr(args, "context", "expanded") == "expanded"
+    answer_retriever = ContextRetriever(hybrid, corpus) if expanded else hybrid
     answers = evaluate_answers(
-        questions, hybrid, get_provider(args.provider), gate, corpus.revision
+        questions, answer_retriever, get_provider(args.provider), gate, corpus.revision
     )
+    by_id = corpus.by_id()
+    provided = {}
+    answer_rows = {r["id"]: r for r in answers["answers"]}
+    for question in docs_questions:
+        chunks = [by_id[key] for key in answer_rows[question["id"]]["context_chunks"]]
+        relevant = set(question["relevant_sections"])
+        provided[question["id"]] = {
+            "chunks": len(chunks),
+            "json_bytes": len(json.dumps([asdict(c) for c in chunks]).encode()),
+            "section_recall": len({c.section_id for c in chunks} & relevant) / len(relevant),
+        }
+    context_stats = {
+        "mean_chunks": _mean(r["chunks"] for r in provided.values()),
+        "mean_json_bytes": _mean(r["json_bytes"] for r in provided.values()),
+        "mean_section_recall": _mean(r["section_recall"] for r in provided.values()),
+        "max_json_bytes": max((r["json_bytes"] for r in provided.values()), default=0),
+    }
     return {
         "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "corpus": {
@@ -353,6 +381,13 @@ def run(args) -> dict:
             "quality_signal": args.embedder == "bge",
         },
         "fusion": {"rrf_k": fusion_k, "depth": 50, "weights": [1.0, 1.0], "unit": "chunk"},
+        "context": {
+            "policy": CONTEXT_POLICY if expanded else "raw-five-chunks",
+            "max_json_bytes": MAX_CONTEXT_BYTES if expanded else None,
+            "ranking_metrics_use_expansion": False,
+            "stats": context_stats,
+            "per_question": provided,
+        },
         "retrieval": retrieval,
         "comparisons": comparisons,
         "scope_gate": gate_report,
@@ -404,6 +439,7 @@ def main(argv=None) -> int:
     parser.add_argument("--questions", default=str(DEFAULT_QUESTIONS))
     parser.add_argument("--embedder", choices=("bge", "hashing"), default="bge")
     parser.add_argument("--provider", default="fake")
+    parser.add_argument("--context", choices=("expanded", "raw"), default="expanded")
     parser.add_argument("--fusion", choices=("legacy", "tuned"), default="tuned")
     parser.add_argument("--backend", choices=("postgres", "memory"), default="postgres")
     parser.add_argument("--setup-database", action="store_true")

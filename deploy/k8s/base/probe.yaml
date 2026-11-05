@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synthetic-probe
+  labels: {app: synthetic-probe}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: synthetic-probe}}
+  template:
+    metadata:
+      labels: {app: synthetic-probe}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9100"
+    spec:
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: probe
+          image: ledgerops-local:k8s
+          imagePullPolicy: Never
+          command: [python, /opt/probe/probe.py]
+          ports: [{containerPort: 9100, name: metrics}]
+          readinessProbe: {httpGet: {path: /metrics, port: 9100}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /metrics, port: 9100}, periodSeconds: 20}
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 200m, memory: 64Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: script, mountPath: /opt/probe, readOnly: true}
+            - {name: output, mountPath: /run/bootstrap, readOnly: true}
+            - {name: ca, mountPath: /run/ca, readOnly: true}
+      volumes:
+        - name: script
+          configMap: {name: synthetic-probe}
+        - name: output
+          persistentVolumeClaim: {claimName: bootstrap-output}
+        - name: ca
+          secret: {secretName: ledgerops-api-ca}
