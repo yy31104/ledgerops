@@ -1,0 +1,16 @@
+.git
+**/.git
+**/.env
+**/.env.*
+**/.venv
+**/__pycache__
+**/.cache
+**/.pytest_cache
+**/.ruff_cache
+**/node_modules
+**/dist
+**/build
+**/*.pyc
+**/.DS_Store
+assistant/eval
+assistant/scenarios

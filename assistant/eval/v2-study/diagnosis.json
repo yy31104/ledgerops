@@ -1,0 +1,1024 @@
+{
+  "scope": {
+    "purpose": "Evidence-only dev diagnosis of three fixed configurations; no retuning or selection changes.",
+    "split": "dev",
+    "n_retrieval_questions": 32,
+    "new_or_blind_holdout_accessed": false,
+    "inputs_sha256": {
+      "assistant/.cache/study-v2/dev-rankings.json": "8aee1055c7cf3f8e583dffde19f60b11dc19123d2556f3f63deb7857a4b49019",
+      "assistant/eval/v1-draft/questions.jsonl": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+      "assistant/eval/results/v1-postgres-dev.json": "0c1cd2392ed347cb14dac666d21af4dd049129c937f08cfdfcf19b61df8d3afb"
+    },
+    "corpus": {
+      "revision": "321fb0638259d50f102d1cc1616708bafce97e37",
+      "digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+      "chunker": "headings-v1",
+      "files": 21,
+      "chunks": 175,
+      "sections": 105
+    },
+    "component_depth": 50,
+    "fusion": {
+      "legacy_k60": {
+        "weights": [
+          1,
+          1
+        ],
+        "rrf_k": 60,
+        "unit": "chunk"
+      },
+      "selected_k10": {
+        "weights": [
+          1,
+          1
+        ],
+        "rrf_k": 10,
+        "unit": "chunk"
+      }
+    }
+  },
+  "definitions": {
+    "reported": "Metrics computed on first five unique sections from first30 returned chunks, matching evaluation.py; MRR uses first10 sections.",
+    "runtime_five_chunk_label_recall": "Fraction of gold section IDs represented in actual first5 chunks, matching answer.py passage count; does not evaluate fact availability within that chunk, scope gating, generation or answer correctness.",
+    "repeated_section_slots": "Distinct chunk IDs from a section already represented earlier; repeated-section slots = chunks minus unique sections. These are not repeated identical chunk IDs.",
+    "null_component_rank": "Absent from cached top50; actual deeper rank versus no match cannot be distinguished.",
+    "section_ranks": "Ranks after deduplicating the full cached/reconstructed candidate list; reported metrics still truncate chunks to30."
+  },
+  "mechanisms": {
+    "legacy_overlap_dominance": {
+      "minimum_two_list_score": 0.01818181818181818,
+      "maximum_one_list_score": 0.01639344262295082,
+      "proof": "2/110 > 1/61, so every chunk returned by both top50 components outranks every single-list chunk.",
+      "k10_effect": "2/60 < 1/11, so overlap no longer automatically dominates a strong one-list candidate."
+    },
+    "lexical_attribution_limit": "Component ranks and fused consequences are proven by this trace; no per-term FTS ablation was performed.",
+    "duplicate_effect_limit": "Repeated sections consume runtime passage slots and component ranks. Every dev result has at least five unique sections in its first30, so the30-chunk cutoff does not itself prevent filling section@5 here."
+  },
+  "verification": {
+    "vector_and_legacy_all_per_question_metrics_reproduced_cached_dev_report": true,
+    "absolute_tolerance": 1e-12,
+    "selected_k10_matches_parent_reported_recall_mrr_ndcg": true
+  },
+  "aggregate_dev_diagnostics": {
+    "vector": {
+      "n": 32,
+      "reported_section_at5_from30": {
+        "hit@1": 0.5,
+        "hit@5": 0.90625,
+        "recall@5": 0.734375,
+        "mrr@10": 0.66875,
+        "ndcg@5": 0.625321766017294
+      },
+      "runtime_five_chunk_label_recall": 0.71875,
+      "runtime_five_chunk_label_hit": 0.90625,
+      "repeated_section_slots_top5_total": 26,
+      "repeated_section_slots_top30_total": 215,
+      "questions_with_repeated_sections_top5": 21,
+      "min_unique_sections_top30": 19,
+      "runtime_vs_reported_recall_gap_questions": [
+        {
+          "id": "v1-002",
+          "runtime_recall": 0.5,
+          "reported_section_recall": 1.0
+        }
+      ]
+    },
+    "legacy_k60": {
+      "n": 32,
+      "reported_section_at5_from30": {
+        "hit@1": 0.6875,
+        "hit@5": 0.8125,
+        "recall@5": 0.7083333333333334,
+        "mrr@10": 0.7526785714285714,
+        "ndcg@5": 0.6740627323854204
+      },
+      "runtime_five_chunk_label_recall": 0.6770833333333334,
+      "runtime_five_chunk_label_hit": 0.8125,
+      "repeated_section_slots_top5_total": 26,
+      "repeated_section_slots_top30_total": 213,
+      "questions_with_repeated_sections_top5": 21,
+      "min_unique_sections_top30": 19,
+      "runtime_vs_reported_recall_gap_questions": [
+        {
+          "id": "v1-004",
+          "runtime_recall": 0.5,
+          "reported_section_recall": 1.0
+        },
+        {
+          "id": "v1-015",
+          "runtime_recall": 0.5,
+          "reported_section_recall": 1.0
+        }
+      ]
+    },
+    "selected_k10": {
+      "n": 32,
+      "reported_section_at5_from30": {
+        "hit@1": 0.6875,
+        "hit@5": 0.90625,
+        "recall@5": 0.78125,
+        "mrr@10": 0.753125,
+        "ndcg@5": 0.7048330288695923
+      },
+      "runtime_five_chunk_label_recall": 0.703125,
+      "runtime_five_chunk_label_hit": 0.875,
+      "repeated_section_slots_top5_total": 24,
+      "repeated_section_slots_top30_total": 215,
+      "questions_with_repeated_sections_top5": 19,
+      "min_unique_sections_top30": 19,
+      "runtime_vs_reported_recall_gap_questions": [
+        {
+          "id": "v1-004",
+          "runtime_recall": 0.5,
+          "reported_section_recall": 1.0
+        },
+        {
+          "id": "v1-011",
+          "runtime_recall": 0.0,
+          "reported_section_recall": 1.0
+        },
+        {
+          "id": "v1-015",
+          "runtime_recall": 0.5,
+          "reported_section_recall": 1.0
+        },
+        {
+          "id": "v1-028",
+          "runtime_recall": 0.5,
+          "reported_section_recall": 1.0
+        }
+      ]
+    }
+  },
+  "per_loss_attribution": [
+    {
+      "id": "v1-011",
+      "question": "What does a FAILED or CLOSED_ABSENT result do to the hold?",
+      "labelled_relevant_sections": [
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+      ],
+      "proven_attribution": "The first labelled chunk is authenticated-observations /2: vector rank4, FTS rank37. Legacy demotes it to chunk8/section6. Maintenance run-in-order /3,/1,/2 occupy three of the first four chunks, leaving two repeated-section slots in the runtime five. Five distinct distractor sections still outrank the gold section after deduplication, so repetition alone does not explain section Recall@5. k10 moves gold to chunk7/section5: reported Recall@5 recovers, but actual five runtime chunks still contain zero gold sections. The literal FAILED/CLOSED_ABSENT release rule is in /0 (vector38, absent FTS50), while /2 discusses local blockers; the section label awards a hit to /2 despite that fact mismatch.",
+      "shared_candidate_chunks": 26,
+      "methods": {
+        "vector": {
+          "reported": {
+            "hit@1": 0.0,
+            "hit@5": 1.0,
+            "recall@5": 1.0,
+            "mrr@10": 0.3333333333333333,
+            "ndcg@5": 0.5
+          },
+          "runtime_five_chunk_label_recall": 1.0,
+          "first_five_chunks": [
+            "docs/MAINTENANCE.md#run-in-order/3",
+            "docs/PAYOUTS.md#dispatch-and-recovery/0",
+            "docs/MAINTENANCE.md#run-in-order/1",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/2",
+            "docs/REVERSAL.md#results-and-retries/1"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/PAYOUTS.md#dispatch-and-recovery",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/REVERSAL.md#results-and-retries",
+            "docs/MAINTENANCE.md#failures-and-retries"
+          ],
+          "labelled_section_ranks": {
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007": 3
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 4,
+            "repeated_section_slots": 1,
+            "repeated_sections": {
+              "docs/MAINTENANCE.md#run-in-order": 2
+            }
+          }
+        },
+        "legacy_k60": {
+          "reported": {
+            "hit@1": 0.0,
+            "hit@5": 0.0,
+            "recall@5": 0.0,
+            "mrr@10": 0.16666666666666666,
+            "ndcg@5": 0.0
+          },
+          "runtime_five_chunk_label_recall": 0.0,
+          "first_five_chunks": [
+            "docs/MAINTENANCE.md#run-in-order/3",
+            "docs/MAINTENANCE.md#run-in-order/1",
+            "docs/PAYOUTS.md#dispatch-and-recovery/0",
+            "docs/MAINTENANCE.md#run-in-order/2",
+            "docs/REVERSAL.md#results-and-retries/0"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/PAYOUTS.md#dispatch-and-recovery",
+            "docs/REVERSAL.md#results-and-retries",
+            "docs/adr/0003-purchase-admission.md#identity-and-transaction-order",
+            "docs/PAYOUTS.md#roles-migrations-and-rebuilds"
+          ],
+          "labelled_section_ranks": {
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007": 6
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 3,
+            "repeated_section_slots": 2,
+            "repeated_sections": {
+              "docs/MAINTENANCE.md#run-in-order": 3
+            }
+          }
+        },
+        "selected_k10": {
+          "reported": {
+            "hit@1": 0.0,
+            "hit@5": 1.0,
+            "recall@5": 1.0,
+            "mrr@10": 0.2,
+            "ndcg@5": 0.38685280723454163
+          },
+          "runtime_five_chunk_label_recall": 0.0,
+          "first_five_chunks": [
+            "docs/MAINTENANCE.md#run-in-order/3",
+            "docs/MAINTENANCE.md#run-in-order/1",
+            "docs/PAYOUTS.md#dispatch-and-recovery/0",
+            "docs/MAINTENANCE.md#run-in-order/2",
+            "docs/REVERSAL.md#results-and-retries/0"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/PAYOUTS.md#dispatch-and-recovery",
+            "docs/REVERSAL.md#results-and-retries",
+            "docs/adr/0003-purchase-admission.md#identity-and-transaction-order",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ],
+          "labelled_section_ranks": {
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007": 5
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 3,
+            "repeated_section_slots": 2,
+            "repeated_sections": {
+              "docs/MAINTENANCE.md#run-in-order": 3
+            }
+          }
+        }
+      },
+      "component_and_fused_rank_evidence": [
+        {
+          "chunk_id": "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/2",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": {
+              "rank": 37,
+              "score": 0.23076923
+            },
+            "pgvector_hnsw": {
+              "rank": 4,
+              "score": 0.6936205077684846
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 4,
+              "score": 0.6936205077684846
+            },
+            "legacy_k60": {
+              "chunk_rank": 8,
+              "score": 0.025934278350515462
+            },
+            "selected_k10": {
+              "chunk_rank": 7,
+              "score": 0.09270516717325228
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/0",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": null,
+            "pgvector_hnsw": {
+              "rank": 38,
+              "score": 0.6483528984118873
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 38,
+              "score": 0.6483528984118873
+            },
+            "legacy_k60": {
+              "chunk_rank": 58,
+              "score": 0.01020408163265306
+            },
+            "selected_k10": {
+              "chunk_rank": 58,
+              "score": 0.020833333333333332
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "v1-014",
+      "question": "The provider reported success but local settlement stopped with LOCAL_BLOCKER. How is it resolved?",
+      "labelled_relevant_sections": [
+        "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence",
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62",
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+      ],
+      "proven_attribution": "The example section first appears in vector2 (/0, FTS18); legacy demotes /0 to chunk/section6, below export files /2 (FTS1/vector9), backup commands /4 (9/4), authenticated-observations /2 (12/5), and independent-checks (11/7). Another example chunk /2 is vector3 but absent FTS50: legacy places all 27 shared candidates above it, making it chunk28. Thus legacy loses one of three labelled sections. Its first five chunks have five distinct sections, so this loss is ranking-driven rather than duplicate slots at the output cutoff. k10 puts example /0 at4 and authenticated-observations /2 at5, restoring all three labels in the runtime five. The procedural repair steps are in example /1 (vector14/FTS35), outside all runtime five lists; section coverage does not prove all required facts are present.",
+      "shared_candidate_chunks": 27,
+      "methods": {
+        "vector": {
+          "reported": {
+            "hit@1": 1.0,
+            "hit@5": 1.0,
+            "recall@5": 1.0,
+            "mrr@10": 1.0,
+            "ndcg@5": 0.9674679834891693
+          },
+          "runtime_five_chunk_label_recall": 1.0,
+          "first_five_chunks": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence/0",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62/0",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62/2",
+            "docs/BACKUP-RESTORE.md#commands/4",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/2"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62",
+            "docs/BACKUP-RESTORE.md#commands",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "ops/linux/README.md#worker-fail-stop-and-incident-response"
+          ],
+          "labelled_section_ranks": {
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence": 1,
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62": 2,
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007": 4
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 4,
+            "repeated_section_slots": 1,
+            "repeated_sections": {
+              "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62": 2
+            }
+          }
+        },
+        "legacy_k60": {
+          "reported": {
+            "hit@1": 1.0,
+            "hit@5": 1.0,
+            "recall@5": 0.6666666666666666,
+            "mrr@10": 1.0,
+            "ndcg@5": 0.6713860725233041
+          },
+          "runtime_five_chunk_label_recall": 0.6666666666666666,
+          "first_five_chunks": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence/0",
+            "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries/2",
+            "docs/BACKUP-RESTORE.md#commands/4",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/2",
+            "docs/OPERATOR-ACTIONS.md#independent-checks-and-limits/0"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence",
+            "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries",
+            "docs/BACKUP-RESTORE.md#commands",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/OPERATOR-ACTIONS.md#independent-checks-and-limits"
+          ],
+          "labelled_section_ranks": {
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence": 1,
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62": 6,
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007": 4
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 5,
+            "repeated_section_slots": 0,
+            "repeated_sections": {}
+          }
+        },
+        "selected_k10": {
+          "reported": {
+            "hit@1": 1.0,
+            "hit@5": 1.0,
+            "recall@5": 1.0,
+            "mrr@10": 1.0,
+            "ndcg@5": 0.8529278650606567
+          },
+          "runtime_five_chunk_label_recall": 1.0,
+          "first_five_chunks": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence/0",
+            "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries/2",
+            "docs/BACKUP-RESTORE.md#commands/4",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62/0",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/2"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence",
+            "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries",
+            "docs/BACKUP-RESTORE.md#commands",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ],
+          "labelled_section_ranks": {
+            "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence": 1,
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62": 4,
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007": 5
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 5,
+            "repeated_section_slots": 0,
+            "repeated_sections": {}
+          }
+        }
+      },
+      "component_and_fused_rank_evidence": [
+        {
+          "chunk_id": "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence/0",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": {
+              "rank": 6,
+              "score": 0.5
+            },
+            "pgvector_hnsw": {
+              "rank": 1,
+              "score": 0.7454553690824146
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 1,
+              "score": 0.7454553690824146
+            },
+            "legacy_k60": {
+              "chunk_rank": 1,
+              "score": 0.031544957774465976
+            },
+            "selected_k10": {
+              "chunk_rank": 1,
+              "score": 0.1534090909090909
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/2",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": {
+              "rank": 12,
+              "score": 0.4117647
+            },
+            "pgvector_hnsw": {
+              "rank": 5,
+              "score": 0.7076516995014787
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 5,
+              "score": 0.7076516995014787
+            },
+            "legacy_k60": {
+              "chunk_rank": 4,
+              "score": 0.029273504273504274
+            },
+            "selected_k10": {
+              "chunk_rank": 5,
+              "score": 0.11212121212121212
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62/0",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": {
+              "rank": 18,
+              "score": 0.375
+            },
+            "pgvector_hnsw": {
+              "rank": 2,
+              "score": 0.7169998119473358
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 2,
+              "score": 0.7169998119473358
+            },
+            "legacy_k60": {
+              "chunk_rank": 6,
+              "score": 0.028949545078577336
+            },
+            "selected_k10": {
+              "chunk_rank": 4,
+              "score": 0.11904761904761904
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/1",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": {
+              "rank": 19,
+              "score": 0.375
+            },
+            "pgvector_hnsw": {
+              "rank": 42,
+              "score": 0.6261206046414747
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 42,
+              "score": 0.6261206046414747
+            },
+            "legacy_k60": {
+              "chunk_rank": 24,
+              "score": 0.022462149416728715
+            },
+            "selected_k10": {
+              "chunk_rank": 27,
+              "score": 0.05371352785145889
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62/1",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": {
+              "rank": 35,
+              "score": 0.2857143
+            },
+            "pgvector_hnsw": {
+              "rank": 14,
+              "score": 0.6515249013900803
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 14,
+              "score": 0.6515249013900803
+            },
+            "legacy_k60": {
+              "chunk_rank": 15,
+              "score": 0.024039829302987197
+            },
+            "selected_k10": {
+              "chunk_rank": 16,
+              "score": 0.06388888888888888
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62/2",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": null,
+            "pgvector_hnsw": {
+              "rank": 3,
+              "score": 0.7154404351377759
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 3,
+              "score": 0.7154404351377759
+            },
+            "legacy_k60": {
+              "chunk_rank": 28,
+              "score": 0.015873015873015872
+            },
+            "selected_k10": {
+              "chunk_rank": 14,
+              "score": 0.07692307692307693
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "v1-023",
+      "question": "Can a reconciliation report be used to release a hold or correct the ledger?",
+      "labelled_relevant_sections": [
+        "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation",
+        "docs/RECONCILIATION.md#read-the-report"
+      ],
+      "proven_attribution": "read-the-report /0 is vector4 but absent FTS50. Legacy gives it only 1/64; all 27 shared candidates plus the FTS-only artifact-and-authority /2 (FTS2) outrank it, making it chunk29/section22. The other gold section, reconciliation title /0, is vector27/FTS39 and reaches only legacy chunk22/section17. Maintenance occupies two of legacy first five chunks. k10 moves read-the-report to chunk15/section12, still outside both cutoffs. Unlabelled publish-read-and-recover /0 remains rank2 for both fused methods and explicitly states the recon role cannot write balances, entries or holds; the gold set incompletely describes potentially sufficient evidence.",
+      "shared_candidate_chunks": 27,
+      "methods": {
+        "vector": {
+          "reported": {
+            "hit@1": 0.0,
+            "hit@5": 1.0,
+            "recall@5": 0.5,
+            "mrr@10": 0.3333333333333333,
+            "ndcg@5": 0.3065735963827292
+          },
+          "runtime_five_chunk_label_recall": 0.5,
+          "first_five_chunks": [
+            "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs/0",
+            "docs/MAINTENANCE.md#run-in-order/3",
+            "docs/MAINTENANCE.md#run-in-order/1",
+            "docs/RECONCILIATION.md#read-the-report/0",
+            "docs/MAINTENANCE.md#run-in-order/2"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs",
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/RECONCILIATION.md#read-the-report",
+            "docs/REVERSAL.md#locks-uniqueness-and-independent-verification",
+            "docs/RECONCILIATION.md#capture-a-local-export-then-compare-offline"
+          ],
+          "labelled_section_ranks": {
+            "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation": 20,
+            "docs/RECONCILIATION.md#read-the-report": 3
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 3,
+            "repeated_section_slots": 2,
+            "repeated_sections": {
+              "docs/MAINTENANCE.md#run-in-order": 3
+            }
+          }
+        },
+        "legacy_k60": {
+          "reported": {
+            "hit@1": 0.0,
+            "hit@5": 0.0,
+            "recall@5": 0.0,
+            "mrr@10": 0.0,
+            "ndcg@5": 0.0
+          },
+          "runtime_five_chunk_label_recall": 0.0,
+          "first_five_chunks": [
+            "docs/MAINTENANCE.md#run-in-order/3",
+            "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs/0",
+            "docs/MAINTENANCE.md#run-in-order/1",
+            "docs/RELEASE-READINESS.md#supported-flows/0",
+            "docs/STREAMING-EVIDENCE.md#commands/0"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs",
+            "docs/RELEASE-READINESS.md#supported-flows",
+            "docs/STREAMING-EVIDENCE.md#commands",
+            "docs/MAINTENANCE-CAPACITY.md#large-source-maintenance"
+          ],
+          "labelled_section_ranks": {
+            "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation": 17,
+            "docs/RECONCILIATION.md#read-the-report": 22
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 4,
+            "repeated_section_slots": 1,
+            "repeated_sections": {
+              "docs/MAINTENANCE.md#run-in-order": 2
+            }
+          }
+        },
+        "selected_k10": {
+          "reported": {
+            "hit@1": 0.0,
+            "hit@5": 0.0,
+            "recall@5": 0.0,
+            "mrr@10": 0.0,
+            "ndcg@5": 0.0
+          },
+          "runtime_five_chunk_label_recall": 0.0,
+          "first_five_chunks": [
+            "docs/MAINTENANCE.md#run-in-order/3",
+            "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs/0",
+            "docs/STREAMING-EVIDENCE.md#commands/0",
+            "docs/MAINTENANCE.md#run-in-order/1",
+            "docs/RELEASE-READINESS.md#supported-flows/0"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs",
+            "docs/STREAMING-EVIDENCE.md#commands",
+            "docs/RELEASE-READINESS.md#supported-flows",
+            "docs/MAINTENANCE.md#preparation-and-identities"
+          ],
+          "labelled_section_ranks": {
+            "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation": 22,
+            "docs/RECONCILIATION.md#read-the-report": 12
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 4,
+            "repeated_section_slots": 1,
+            "repeated_sections": {
+              "docs/MAINTENANCE.md#run-in-order": 2
+            }
+          }
+        }
+      },
+      "component_and_fused_rank_evidence": [
+        {
+          "chunk_id": "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation/0",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": {
+              "rank": 39,
+              "score": 0.2857143
+            },
+            "pgvector_hnsw": {
+              "rank": 27,
+              "score": 0.6883754134178162
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 27,
+              "score": 0.6883754134178162
+            },
+            "legacy_k60": {
+              "chunk_rank": 22,
+              "score": 0.021595262974573322
+            },
+            "selected_k10": {
+              "chunk_rank": 27,
+              "score": 0.047435190292333146
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/RECONCILIATION.md#read-the-report/0",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": null,
+            "pgvector_hnsw": {
+              "rank": 4,
+              "score": 0.7407484871372133
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 4,
+              "score": 0.7407484871372133
+            },
+            "legacy_k60": {
+              "chunk_rank": 29,
+              "score": 0.015625
+            },
+            "selected_k10": {
+              "chunk_rank": 15,
+              "score": 0.07142857142857142
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "v1-027",
+      "question": "Does freezing a workspace stop payments that were already sent to the provider?",
+      "labelled_relevant_sections": [
+        "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds",
+        "docs/PAYOUTS.md#dispatch-and-recovery"
+      ],
+      "proven_attribution": "The labelled maintenance title /0 is vector2/FTS16. Legacy demotes it to chunk/section7, below unlabelled backup /4 (FTS1/vector15), old-bundle compatibility /1 (11/5), and worker incident-response /1 (7/9). The labelled dispatch /1 is vector7/FTS20 and becomes legacy chunk9/section8. Neither vector nor legacy repeats a section in its first five, so this loss is ranking-driven. k10 restores the maintenance title to chunk/section5 while dispatch /1 remains chunk11/section10. Unlabelled authenticated-observations /1 is fused rank2 and explicitly says already in-flight external calls are not recalled.",
+      "shared_candidate_chunks": 29,
+      "methods": {
+        "vector": {
+          "reported": {
+            "hit@1": 0.0,
+            "hit@5": 1.0,
+            "recall@5": 0.5,
+            "mrr@10": 0.5,
+            "ndcg@5": 0.38685280723454163
+          },
+          "runtime_five_chunk_label_recall": 0.5,
+          "first_five_chunks": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits/0",
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds/0",
+            "docs/MAINTENANCE.md#run-in-order/0",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/1",
+            "docs/MAINTENANCE.md#old-bundle-compatibility-and-scope/1"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits",
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds",
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/MAINTENANCE.md#old-bundle-compatibility-and-scope"
+          ],
+          "labelled_section_ranks": {
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds": 2,
+            "docs/PAYOUTS.md#dispatch-and-recovery": 7
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 5,
+            "repeated_section_slots": 0,
+            "repeated_sections": {}
+          }
+        },
+        "legacy_k60": {
+          "reported": {
+            "hit@1": 0.0,
+            "hit@5": 0.0,
+            "recall@5": 0.0,
+            "mrr@10": 0.14285714285714285,
+            "ndcg@5": 0.0
+          },
+          "runtime_five_chunk_label_recall": 0.0,
+          "first_five_chunks": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits/0",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/1",
+            "docs/MAINTENANCE.md#run-in-order/0",
+            "ops/linux/README.md#backup-restore-and-reopening/4",
+            "docs/MAINTENANCE.md#old-bundle-compatibility-and-scope/1"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/MAINTENANCE.md#run-in-order",
+            "ops/linux/README.md#backup-restore-and-reopening",
+            "docs/MAINTENANCE.md#old-bundle-compatibility-and-scope"
+          ],
+          "labelled_section_ranks": {
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds": 7,
+            "docs/PAYOUTS.md#dispatch-and-recovery": 8
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 5,
+            "repeated_section_slots": 0,
+            "repeated_sections": {}
+          }
+        },
+        "selected_k10": {
+          "reported": {
+            "hit@1": 0.0,
+            "hit@5": 1.0,
+            "recall@5": 0.5,
+            "mrr@10": 0.2,
+            "ndcg@5": 0.23719771276929622
+          },
+          "runtime_five_chunk_label_recall": 0.5,
+          "first_five_chunks": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits/0",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/1",
+            "docs/MAINTENANCE.md#run-in-order/0",
+            "ops/linux/README.md#backup-restore-and-reopening/4",
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds/0"
+          ],
+          "first_five_unique_sections_from30": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/MAINTENANCE.md#run-in-order",
+            "ops/linux/README.md#backup-restore-and-reopening",
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds"
+          ],
+          "labelled_section_ranks": {
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds": 5,
+            "docs/PAYOUTS.md#dispatch-and-recovery": 10
+          },
+          "duplicates_top5": {
+            "chunks": 5,
+            "unique_chunk_ids": 5,
+            "unique_sections": 5,
+            "repeated_section_slots": 0,
+            "repeated_sections": {}
+          }
+        }
+      },
+      "component_and_fused_rank_evidence": [
+        {
+          "chunk_id": "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds/0",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": {
+              "rank": 16,
+              "score": 0.4117647
+            },
+            "pgvector_hnsw": {
+              "rank": 2,
+              "score": 0.7679070968683318
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 2,
+              "score": 0.7679070968683318
+            },
+            "legacy_k60": {
+              "chunk_rank": 7,
+              "score": 0.02928692699490662
+            },
+            "selected_k10": {
+              "chunk_rank": 5,
+              "score": 0.12179487179487179
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/PAYOUTS.md#dispatch-and-recovery/1",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": {
+              "rank": 20,
+              "score": 0.4117647
+            },
+            "pgvector_hnsw": {
+              "rank": 7,
+              "score": 0.7315178353499089
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 7,
+              "score": 0.7315178353499089
+            },
+            "legacy_k60": {
+              "chunk_rank": 9,
+              "score": 0.027425373134328357
+            },
+            "selected_k10": {
+              "chunk_rank": 11,
+              "score": 0.09215686274509804
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/PAYOUTS.md#dispatch-and-recovery/0",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": null,
+            "pgvector_hnsw": {
+              "rank": 12,
+              "score": 0.6969503164291382
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 12,
+              "score": 0.6969503164291382
+            },
+            "legacy_k60": {
+              "chunk_rank": 33,
+              "score": 0.013888888888888888
+            },
+            "selected_k10": {
+              "chunk_rank": 29,
+              "score": 0.045454545454545456
+            }
+          }
+        },
+        {
+          "chunk_id": "docs/PAYOUTS.md#dispatch-and-recovery/2",
+          "labelled_relevant_section": true,
+          "component": {
+            "postgres_fts": null,
+            "pgvector_hnsw": {
+              "rank": 32,
+              "score": 0.6614442861941043
+            }
+          },
+          "result": {
+            "vector": {
+              "chunk_rank": 32,
+              "score": 0.6614442861941043
+            },
+            "legacy_k60": {
+              "chunk_rank": 49,
+              "score": 0.010869565217391304
+            },
+            "selected_k10": {
+              "chunk_rank": 49,
+              "score": 0.023809523809523808
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "integrity": "Detailed IDs are the four legacy Recall@5 losses from the existing dev report. k10 was selected by the parent dev-only predeclared grid. No new holdout was read or used for choices. Original labels are preserved; ambiguous supporting evidence is reported, not relabelled.",
+  "source_rankings_sha256": "8aee1055c7cf3f8e583dffde19f60b11dc19123d2556f3f63deb7857a4b49019"
+}

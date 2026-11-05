@@ -1,0 +1,28 @@
+{
+	admin off
+	auto_https disable_redirects
+	metrics
+	servers {
+		protocols h1 h2
+		timeouts {
+			read_body 10s
+			read_header 5s
+			write 45s
+			idle 30s
+		}
+	}
+}
+# TLS terminates in the pod; the API trusts only 127.0.0.1 for X-Forwarded-Proto.
+:8443 {
+	tls /certs/tls.crt /certs/tls.key
+	reverse_proxy 127.0.0.1:8080 {
+		transport http {
+			dial_timeout 3s
+			response_header_timeout 40s
+		}
+	}
+}
+# Prometheus scrapes per-request latency/status histograms here (plain HTTP, in-cluster only).
+http://:9180 {
+	metrics /metrics
+}

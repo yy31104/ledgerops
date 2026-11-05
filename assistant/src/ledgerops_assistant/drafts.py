@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from importlib.resources import files
@@ -42,8 +43,14 @@ class DraftIntent:
             raise ValueError("invalid draft fields")
         values = {k: str(UUID(data[k])) for k in ("payout_id", "observation_id", "evidence_run_id")}
         reason, ttl = data["reason"], data.get("ttl_seconds", 900)
-        if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 512:
-            raise ValueError("reason must contain 1 to 512 characters")
+        if (
+            not isinstance(reason, str)
+            # Unicode White_Space plus C0 separators and BOM, shared with the panel.
+            or re.fullmatch(r"[\s\ufeff]*", reason)
+            or "\0" in reason
+            or len(reason.encode("utf-8")) > 256
+        ):
+            raise ValueError("reason must be nonblank, contain no NUL, and fit in 256 UTF-8 bytes")
         if type(ttl) is not int or not 1 <= ttl <= 3600:
             raise ValueError("draft TTL must be 1 to 3600 seconds")
         return cls(**values, reason=reason, ttl_seconds=ttl)
@@ -58,7 +65,9 @@ def setup(dsn):
 
 class DraftStore:
     def __init__(self, dsn):
-        self.dsn = dsn
+        self.dsn = psycopg.conninfo.make_conninfo(
+            dsn, connect_timeout=3, options="-c statement_timeout=5000 -c lock_timeout=3000"
+        )
 
     def register(self, thread_key, request):
         hashed = digest(request)

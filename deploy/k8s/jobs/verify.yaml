@@ -1,0 +1,58 @@
+# On-demand independent verification (`make verify`), not part of the kustomization.
+# Runs ops/linux/bootstrap.py `inspect`: exports the ledger as the read-only
+# ledger_evidence_reader role, then verifies structure, balances, holds and request
+# intent from the export alone. Fails unless healthy and verification_complete.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: verify
+  namespace: ledgerops
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels: {app: verify}
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      initContainers:
+        - name: copy-secrets
+          image: ledgerops-local:k8s
+          imagePullPolicy: Never
+          command: [sh, -c, "cp /secret/* /run/ledgerops/ && chmod 0600 /run/ledgerops/*"]
+          resources: {requests: {cpu: 10m, memory: 16Mi}, limits: {cpu: 100m, memory: 32Mi}}
+          securityContext: &container
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: secret, mountPath: /secret, readOnly: true}
+            - {name: private, mountPath: /run/ledgerops}
+      containers:
+        - name: inspect
+          image: ledgerops-local:k8s
+          imagePullPolicy: Never
+          args: [bootstrap, inspect]
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: "1", memory: 512Mi}}
+          securityContext: *container
+          volumeMounts:
+            - {name: private, mountPath: /run/ledgerops, readOnly: true}
+            - {name: scratch, mountPath: /var/lib/ledgerops-scratch}
+            - {name: inputs, mountPath: /var/lib/ledgerops-inputs}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: secret
+          secret: {secretName: ledgerops-bootstrap, defaultMode: 0440}
+        - name: private
+          emptyDir: {medium: Memory, sizeLimit: 1Mi}
+        - name: scratch
+          emptyDir: {sizeLimit: 3Gi}
+        - name: inputs
+          emptyDir: {sizeLimit: 256Mi}
+        - name: tmp
+          emptyDir: {medium: Memory, sizeLimit: 32Mi}

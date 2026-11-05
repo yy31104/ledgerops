@@ -3,7 +3,7 @@ import json
 import httpx
 import pytest
 
-from ledgerops_assistant.tools import AuthenticationRequired, ReadOnlyAPI
+from ledgerops_assistant.tools import APIUnavailable, AuthenticationRequired, ReadOnlyAPI
 
 TOKEN = "lo1_" + "a" * 43
 OBJECT = "40000000-0000-0000-0000-000000000003"
@@ -100,7 +100,7 @@ def test_writes_urls_redirects_and_missing_scopes_are_blocked():
     assert client.read("payout", OBJECT, owner)["status"] == "forbidden"
     assert set(seen) == {"/v1/me"}
     redirect = api(lambda r: httpx.Response(302, headers={"Location": "https://example.invalid"}))
-    with pytest.raises(AuthenticationRequired):
+    with pytest.raises(APIUnavailable):
         redirect.identity()
 
 
@@ -115,3 +115,19 @@ def test_large_payload_is_not_silently_truncated():
     assert (
         client.read("payout", OBJECT, client.identity().owner_key)["status"] == "response_too_large"
     )
+
+
+def test_uuid_aliases_have_canonical_routes_and_evidence_identity():
+    canonical = "40000000-abcd-4000-8000-000000000003"
+    seen = []
+
+    def handler(request):
+        seen.append(request.url.path)
+        return httpx.Response(
+            200, json=IDENTITY if request.url.path == "/v1/me" else {"knowledge": "UNKNOWN"}
+        )
+
+    client = api(handler)
+    result = client.read("payout", canonical.upper(), client.identity().owner_key)
+    assert seen[-1] == "/v1/payouts/" + canonical
+    assert result["object_id"] == canonical

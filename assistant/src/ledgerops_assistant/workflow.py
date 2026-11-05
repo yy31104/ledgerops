@@ -12,6 +12,8 @@ from langgraph.types import Command, interrupt
 from ledgerops_assistant.drafts import DraftIntent, DraftStore, WorkflowConflict, digest
 from ledgerops_assistant.tools import AuthenticationRequired
 
+DRAFT_EVIDENCE_TOOLS = frozenset({"payout", "operation", "investigation"})
+
 
 class WorkflowState(TypedDict, total=False):
     question: str
@@ -29,6 +31,7 @@ class WorkflowContext:
     client: object
     owner_key: str
     cancel: object = None
+    on_charge: object = None
 
 
 def fingerprint(observations):
@@ -39,12 +42,14 @@ def fingerprint(observations):
             "sha256": digest({"status": o["status"], "data": o.get("data")}),
         }
         for o in observations
+        if o["tool"] in DRAFT_EVIDENCE_TOOLS
     ]
 
 
 class DraftWorkflow:
     def __init__(self, dsn, agent):
-        self.dsn, self.agent, self.store = dsn, agent, DraftStore(dsn)
+        self.agent, self.store = agent, DraftStore(dsn)
+        self.dsn = self.store.dsn
 
     def _authorized(self, context):
         identity = context.client.identity()
@@ -54,7 +59,12 @@ class DraftWorkflow:
     def _investigate(self, state, runtime: Runtime[WorkflowContext]):
         intent = DraftIntent.parse(state["intent"])
         question = f"Investigate payout {intent.payout_id} for a draft. {state['question']}"
-        result = self.agent.run(question, runtime.context.client, cancel=runtime.context.cancel)
+        result = self.agent.run(
+            question,
+            runtime.context.client,
+            cancel=runtime.context.cancel,
+            on_charge=runtime.context.on_charge,
+        )
         return {"investigation": result, "evidence": fingerprint(result["observations"])}
 
     def _prepare(self, state, runtime: Runtime[WorkflowContext]):
@@ -62,42 +72,73 @@ class DraftWorkflow:
             return {"status": "cancelled"}
         self._authorized(runtime.context)
         intent = DraftIntent.parse(state["intent"])
+        investigation = state["investigation"]
+        if investigation.get("result", {}).get("refused") is not False:
+            return {"status": "refused", "reason": "investigation_refused"}
         cases = [
-            o["data"]
-            for o in state["investigation"]["observations"]
+            o
+            for o in investigation["observations"]
             if o["tool"] == "investigation" and o["status"] == "ok"
         ]
         if not cases:
             return {"status": "refused", "reason": "no_authorized_investigation"}
-        case = cases[0]
+        selected = cases[0]
+        case = selected.get("data")
+        refused = {"status": "refused", "reason": "incomplete_or_ineligible_evidence"}
+        if not isinstance(case, dict):
+            return refused
+        payout, operation = case.get("payout"), case.get("operation")
+        if (
+            selected.get("object_id") != intent.payout_id
+            or not isinstance(payout, dict)
+            or payout.get("operation_id") != intent.payout_id
+            or (
+                "operation" in case
+                and (
+                    not isinstance(operation, dict)
+                    or operation.get("operation_id") != intent.payout_id
+                )
+            )
+        ):
+            return refused
+        projections = (
+            "recent_observations",
+            "recent_incidents",
+            "current_reconciliation_references",
+        )
+        if any(
+            not isinstance(case.get(k), list) or not all(isinstance(item, dict) for item in case[k])
+            for k in projections
+        ) or any(
+            case.get(k) is not False
+            for k in ("observations_have_more", "incidents_have_more", "reconciliations_have_more")
+        ):
+            return refused
         observation = next(
             (
                 o
-                for o in case.get("recent_observations", [])
+                for o in case["recent_observations"]
                 if o.get("observation_id") == intent.observation_id
             ),
             {},
         )
-        local = any(
+        local = bool(case["recent_incidents"]) and all(
             i.get("category") == "LOCAL_BLOCKER"
             and i.get("observation_id") == intent.observation_id
-            for i in case.get("recent_incidents", [])
+            for i in case["recent_incidents"]
         )
         run = any(
             r.get("run_id") == intent.evidence_run_id
-            for r in case.get("current_reconciliation_references", [])
-        )
-        more = any(
-            case.get(k, True)
-            for k in ("observations_have_more", "incidents_have_more", "reconciliations_have_more")
+            for r in case["current_reconciliation_references"]
         )
         if (
             observation.get("state") not in ("SUCCEEDED", "FAILED", "CLOSED_ABSENT")
             or not local
             or not run
-            or more
         ):
-            return {"status": "refused", "reason": "incomplete_or_ineligible_evidence"}
+            return refused
+        # These projection checks only screen local drafts. The operator console
+        # independently verifies authoritative evidence and financial eligibility.
         draft = self.store.get_or_create(
             runtime.context.owner_key, state["request_id"], intent, state["evidence"]
         )
@@ -124,11 +165,14 @@ class DraftWorkflow:
             return {"status": "dismissed"}
         if self.store.expired(runtime.context.owner_key, state["request_id"]):
             raise WorkflowConflict("draft expired; start a new request for fresh review")
+        # Metrics/accounts may inform an answer, but do not support a payout draft.
+        # Filter saved evidence as well so older paused checkpoints can be reviewed.
+        evidence = [o for o in state["evidence"] if o["tool"] in DRAFT_EVIDENCE_TOOLS]
         current = [
             runtime.context.client.read(o["tool"], o["object_id"], runtime.context.owner_key)
-            for o in state["evidence"]
+            for o in evidence
         ]
-        if fingerprint(current) != state["evidence"]:
+        if fingerprint(current) != evidence:
             raise WorkflowConflict("evidence changed; fresh review is required")
         self._authorized(runtime.context)
         return {"status": "handoff_ready"}
@@ -156,9 +200,10 @@ class DraftWorkflow:
         intent=None,
         decision=None,
         cancel=None,
+        on_charge=None,
     ):
         identity = client.identity()
-        context = WorkflowContext(client, identity.owner_key, cancel)
+        context = WorkflowContext(client, identity.owner_key, cancel, on_charge)
         self._authorized(context)
         key = f"{identity.owner_key}/{UUID(thread_id)}"
         config = {"configurable": {"thread_id": key}, "recursion_limit": 30}
@@ -174,8 +219,12 @@ class DraftWorkflow:
                 }
                 self.store.register(key, initial)
                 if previous.values:
-                    return dict(previous.values)
-                output = graph.invoke(initial, config, context=context, durability="sync")
+                    if previous.next and not previous.interrupts:
+                        output = graph.invoke(None, config, context=context, durability="sync")
+                    else:
+                        return dict(previous.values)
+                else:
+                    output = graph.invoke(initial, config, context=context, durability="sync")
             else:
                 if not previous.values:
                     raise WorkflowConflict("workflow is unavailable for this identity")

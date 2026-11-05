@@ -29,8 +29,19 @@ def log_experiment(report: dict, directory: Path) -> str:
             "quality_signal": report["environment"]["quality_signal"],
         }.items():
             client.log_param(run_id, key, value)
+        if "fusion" in report:
+            import json
+
+            client.log_param(run_id, "fusion", json.dumps(report["fusion"], sort_keys=True))
+        if "context" in report:
+            client.log_param(run_id, "context_policy", report["context"]["policy"])
+            client.log_param(run_id, "context_max_json_bytes", report["context"]["max_json_bytes"])
+            for name, value in report["context"].get("stats", {}).items():
+                client.log_metric(run_id, f"context.{name}", value)
         for method, result in report["retrieval"].items():
             for split, metrics in result["by_split"].items():
+                if not metrics["n"]:
+                    continue
                 for metric, value in metrics.items():
                     client.log_metric(
                         run_id, f"{method}.{split}.{metric.replace('@', '_at_')}", value
