@@ -5,11 +5,13 @@ Stdlib only. Tokens come from the seed output on a PVC; they are never logged or
 
 import http.client
 import json
+import os
 import ssl
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+SEED_OUTPUT = "/run/bootstrap/acceptance.json"
 BUCKETS = (0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0)
 LOCK = threading.Lock()
 COUNTS = {}
@@ -70,7 +72,10 @@ def main():
     threading.Thread(
         target=ThreadingHTTPServer(("0.0.0.0", 9100), Metrics).serve_forever, daemon=True
     ).start()
-    with open("/run/bootstrap/acceptance.json", "rb") as stream:
+    # The bootstrap Job writes this after provisioning; wait instead of crash-looping.
+    while not os.path.exists(SEED_OUTPUT):
+        time.sleep(2)
+    with open(SEED_OUTPUT, "rb") as stream:
         state = json.load(stream)
     token = state["tokens"]["customer"]
     while True:

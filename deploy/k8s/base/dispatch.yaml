@@ -55,9 +55,13 @@ spec:
           image: ledgerops-local:k8s
           imagePullPolicy: Never
           args: [provider]
-          readinessProbe: &providerprobe
-            tcpSocket: {host: 127.0.0.1, port: 8765}
+          # The simulator listens only on the Pod's loopback. A tcpSocket probe with
+          # host 127.0.0.1 would test the node's loopback instead, so probe from inside.
+          readinessProbe:
+            exec:
+              command: [python, -c, "import socket; socket.create_connection(('127.0.0.1', 8765), 2).close()"]
             periodSeconds: 5
+            timeoutSeconds: 5
           livenessProbe:
             exec:
               command: [python, -c, "import socket; socket.create_connection(('127.0.0.1', 8765), 2).close()"]

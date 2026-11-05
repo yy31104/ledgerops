@@ -1,10 +1,17 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: ledgerops
+# Clamp pod oom_score_adj to containerd's own value. Without this, hosts that cannot
+# lower oom_score_adj (no CAP_SYS_RESOURCE, e.g. rootless Docker or some sandboxed VMs)
+# fail every control-plane sandbox with "runc create failed: unable to start container
+# process: can't get final child's PID from pipe: EOF", because kubelet asks for -998.
+# On ordinary hosts containerd already runs at a lower score, so nothing changes.
+containerdConfigPatches:
+  - |-
+    [plugins."io.containerd.grpc.v1.cri"]
+      restrict_oom_score_adj = true
 nodes:
   - role: control-plane
-    extraPortMappings:
-      # Grafana and Prometheus are reached with kubectl port-forward; nothing is bound publicly.
-      - containerPort: 30443
-        hostPort: 18443
-        listenAddress: 127.0.0.1
+    # kind v0.30.0's published node image for Kubernetes v1.34.0. Pinned by digest.
+    # Grafana and Prometheus are reached with kubectl port-forward; no host ports are bound.
+    image: kindest/node:v1.34.0@sha256:7416a61b42b1662ca6ca89f02028ac133a309a2a30ba309614e8ec94d976dc5a

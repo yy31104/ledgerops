@@ -29,8 +29,11 @@ spec:
       terminationGracePeriodSeconds: 50
       containers:
         - name: postgres
-          # Same digest as ops/linux/compose.yaml and tests/conftest.py (PostgreSQL 18.6).
-          image: postgres@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+          # Local alias created by `make preload` from the pinned digest used by
+          # ops/linux/compose.yaml and tests/conftest.py (PostgreSQL 18.6):
+          # postgres@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
+          image: ledgerops-postgres:18.6
+          imagePullPolicy: Never
           args: [postgres, -c, max_connections=40, -c, shared_buffers=32MB, -c, max_wal_size=128MB]
           env:
             - {name: POSTGRES_PASSWORD_FILE, value: /run/postgres-secret/password}
