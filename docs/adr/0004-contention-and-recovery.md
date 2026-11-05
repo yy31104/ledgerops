@@ -97,9 +97,16 @@ The rejected alternatives make the reason for the order clear:
 The persistent key is what lets a restarted worker ask a question it can safely
 repeat. Without it, "did my last message arrive?" has no safe answer.
 
-Evidence: `tests/integration/test_payout_worker_process.py` kills the worker after
-the provider pays and checks for one provider effect. `test_payout_dispatch.py` and
-`test_payout_resolution_faults.py` cover lost responses and late completions.
+Evidence, all in `tests/integration/`:
+
+| Claim | Test |
+|---|---|
+| A crash after the provider paid recovers with the same key and one external effect | `test_payout_worker_process.py::test_sigkill_after_provider_commit_recovers_same_key_and_exactly_one_external_effect` |
+| The network call starts only after the MAY_HAVE_SENT claim has committed | `test_payout_dispatch.py::test_network_begins_only_after_claim_is_committed_and_no_financial_transaction_is_open` |
+| An abandoned claim is recovered by LOOKUP, not by a new PUT | `test_payout_dispatch.py::test_abandoned_claim_is_due_after_lease_and_recovers_by_lookup_not_new_put` |
+| A late reply from an old attempt cannot overwrite a newer claim | `test_payout_dispatch.py::test_late_old_attempt_completion_cannot_replace_a_newer_claim` |
+| Transport failures keep the hold | `test_payout_dispatch.py::test_transport_failures_keep_hold_and_store_transport_fact` |
+| A close after the deadline prevents a late PUT from paying | `test_payout_worker_process.py::test_kill_after_durable_claim_before_provider_receives_then_close_tombstone_prevents_late_put` |
 
 Helland's model also lets entities be repartitioned, which LedgerOps does not need on
 one PostgreSQL. Only the idempotent-message and tentative-operation parts are used.
