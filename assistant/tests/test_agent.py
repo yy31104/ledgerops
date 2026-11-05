@@ -254,3 +254,64 @@ def test_billed_generation_requires_prices(tiny_corpus):
     paid = type("PaidProvider", (), {"name": "openai:example"})()
     with pytest.raises(ValueError, match="prices"):
         Agent(BM25Retriever(tiny_corpus), paid)
+
+
+@pytest.mark.parametrize("node", ["_decide", "_answer"])
+@pytest.mark.parametrize("api_size", [0, 7000])
+def test_document_expansion_keeps_api_evidence_and_citation_checks(tiny_corpus, node, api_size):
+    from dataclasses import replace
+
+    from ledgerops_assistant.corpus import Chunk
+
+    recorded = []
+
+    class Model:
+        name = "recording"
+
+        def generate(self, instructions, message, schema, **kwargs):
+            recorded.append(message)
+            if "tool" in schema["properties"]:
+                return json.dumps({"tool": "finish", "object_id": None}), {}
+            return json.dumps(
+                {
+                    "answer": "An unsupported claim",
+                    "citations": ["docs/pruned.md#last/0"],
+                    "refused": False,
+                    "refusal_reason": "none",
+                }
+            ), {}
+
+    api = client()
+    owner = api.identity().owner_key
+    observation = api.read("payout", OBJECT, owner)
+    observation["data"]["marker"] = "KEEP_AUTHORIZED_API_EVIDENCE"
+    observation["data"]["extra"] = "x" * api_size
+    docs = [
+        tiny_corpus.chunks[0],
+        replace(tiny_corpus.chunks[0], chunk_id="docs/large.md#x/0", text="x" * 7000),
+        Chunk(
+            "docs/pruned.md#last/0", "docs/pruned.md#last", "docs/pruned.md", "Last", "Last", "Last"
+        ),
+    ]
+    state = {
+        "question": "Explain this payout evidence",
+        "steps": 0,
+        "cost_usd": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "documents": [asdict(d) for d in docs],
+        "observations": [observation],
+    }
+    agent = Agent(BM25Retriever(tiny_corpus), Model(), limits=Limits(max_input_bytes=6500))
+    context = OperatorContext(api, owner, threading.Event(), float("inf"))
+    result = getattr(agent, node)(state, SimpleNamespace(context=context))
+    if api_size:
+        assert not recorded and result["result"]["reason"] == "model_or_budget_error"
+        return
+    assert len(recorded) == 1 and "KEEP_AUTHORIZED_API_EVIDENCE" in recorded[0]
+    assert "docs/pruned.md#last/0" not in recorded[0]
+    assert len(state["documents"]) == 3
+    if node == "_answer":
+        assert result["result"]["refused"] and result["result"]["reason"] == "ungrounded"
+    else:
+        assert result["next"] == "answer"

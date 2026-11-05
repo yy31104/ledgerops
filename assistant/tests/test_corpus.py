@@ -1,6 +1,53 @@
 from ledgerops_assistant.corpus import MAX_WORDS, chunk_markdown, slug
 
 
+def test_explicit_corpus_does_not_auto_index_new_documents(tmp_path, monkeypatch):
+    from ledgerops_assistant import corpus as module
+
+    monkeypatch.setattr(module, "CORPUS_FILES", ("README.md",))
+    (tmp_path / "README.md").write_text("# Operations\n\nAn approved rule.\n")
+    before = module.load_corpus(tmp_path)
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "AZURE.md").write_text("# Deployment\n\nNot reviewed for retrieval.\n")
+    assert module.load_corpus(tmp_path).digest == before.digest
+    assert set(before.file_digests) == {"README.md"}
+
+
+def test_required_corpus_document_cannot_silently_disappear(tmp_path, monkeypatch):
+    import pytest
+
+    from ledgerops_assistant import corpus as module
+
+    monkeypatch.setattr(module, "CORPUS_FILES", ("README.md",))
+    with pytest.raises(FileNotFoundError, match="reviewed corpus file"):
+        module.load_corpus(tmp_path)
+
+
+def test_explicit_corpus_rejects_escaping_symlinks(tmp_path, monkeypatch):
+    import pytest
+
+    from ledgerops_assistant import corpus as module
+
+    monkeypatch.setattr(module, "CORPUS_FILES", ("README.md",))
+    (tmp_path / "outside.md").write_text("# Outside\n\nNot allowed.\n")
+    (tmp_path / "root").mkdir()
+    (tmp_path / "root" / "README.md").symlink_to(tmp_path / "outside.md")
+    with pytest.raises(ValueError, match="outside"):
+        module.load_corpus(tmp_path / "root")
+
+
+def test_current_corpus_keeps_deployment_and_rename_proposals_out(corpus):
+    excluded = {
+        "docs/AZURE.md",
+        "docs/KUBERNETES.md",
+        "docs/adr/0005-client-history-checking.md",
+        "docs/RENAME-PROPOSAL.md",
+    }
+    assert not excluded.intersection(corpus.file_digests)
+    assert "README.md" in corpus.file_digests
+    assert "docs/adr/0004-contention-and-recovery.md" in corpus.file_digests
+
+
 def test_slug_matches_github_anchor_rules():
     assert slug("Dispatch and recovery") == "dispatch-and-recovery"
     assert slug("Authenticated observations and one-time resolution (007)") == (

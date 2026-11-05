@@ -7,6 +7,7 @@ import sys
 import psycopg
 from psycopg import sql
 
+from ledgerops_assistant.context import ContextRetriever
 from ledgerops_assistant.corpus import load_corpus
 from ledgerops_assistant.drafts import setup as setup_drafts
 from ledgerops_assistant.embeddings import BgeSmallEmbedder, HashingEmbedder
@@ -39,7 +40,7 @@ def retriever_for(settings):
         PostgresRetriever(settings.database_url, key, embedder, method="vector"),
     )
     retriever.revision = found[0]
-    return retriever
+    return ContextRetriever(retriever, corpus)
 
 
 def initialize(settings):
