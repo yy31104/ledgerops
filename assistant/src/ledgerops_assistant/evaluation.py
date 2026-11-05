@@ -93,10 +93,21 @@ def evaluate_retriever(retriever, questions: list[dict]) -> dict:
         hits = retriever.search(q["question"], 30)
         latencies.append((time.perf_counter() - started) * 1000)
         ranked = rank_sections(hits)
-        rows.append({"q": q, "ranked": ranked, **score_ranking(ranked, q["relevant_sections"])})
+        rows.append(
+            {
+                "q": q,
+                "ranked": ranked,
+                **score_ranking(ranked, q["relevant_sections"]),
+                # Runtime supplies five chunks, not five unique sections from thirty.
+                # This is source-section coverage, not semantic entailment of prose.
+                "context_recall@5": score_ranking(rank_sections(hits[:5]), q["relevant_sections"])[
+                    "recall@5"
+                ],
+            }
+        )
 
     def summarize(subset):
-        keys = ("hit@1", "hit@3", "hit@5", "recall@5", "mrr@10", "ndcg@5")
+        keys = ("hit@1", "hit@3", "hit@5", "recall@5", "mrr@10", "ndcg@5", "context_recall@5")
         return {"n": len(subset), **{k: _mean(r[k] for r in subset) for k in keys}}
 
     by_split = {s: summarize([r for r in rows if r["q"]["split"] == s]) for s in ("dev", "test")}
@@ -125,7 +136,8 @@ def evaluate_retriever(retriever, questions: list[dict]) -> dict:
         ],
         "per_question": {
             r["q"]["id"]: {
-                key: r[key] for key in ("hit@1", "hit@5", "recall@5", "mrr@10", "ndcg@5")
+                key: r[key]
+                for key in ("hit@1", "hit@5", "recall@5", "mrr@10", "ndcg@5", "context_recall@5")
             }
             for r in rows
         },
@@ -286,7 +298,9 @@ def run(args) -> dict:
         keyword = BM25Retriever(corpus)
         vector = VectorRetriever(corpus, embedder, cache_dir=CACHE_DIR)
         methods = {"bm25": keyword, "vector": vector}
-    hybrid = HybridRetriever(keyword, vector)
+    fusion_k = 60 if getattr(args, "fusion", "tuned") == "legacy" else 10
+    hybrid = HybridRetriever(keyword, vector, rrf_k=fusion_k)
+    methods["legacy_hybrid"] = HybridRetriever(keyword, vector, rrf_k=60)
     methods["hybrid"] = hybrid
     if ablation is not None and args.backend == "memory":
         methods["vector_no_instruction"] = VectorRetriever(corpus, ablation, cache_dir=CACHE_DIR)
@@ -338,6 +352,7 @@ def run(args) -> dict:
             "backend": args.backend,
             "quality_signal": args.embedder == "bge",
         },
+        "fusion": {"rrf_k": fusion_k, "depth": 50, "weights": [1.0, 1.0], "unit": "chunk"},
         "retrieval": retrieval,
         "comparisons": comparisons,
         "scope_gate": gate_report,
@@ -389,6 +404,7 @@ def main(argv=None) -> int:
     parser.add_argument("--questions", default=str(DEFAULT_QUESTIONS))
     parser.add_argument("--embedder", choices=("bge", "hashing"), default="bge")
     parser.add_argument("--provider", default="fake")
+    parser.add_argument("--fusion", choices=("legacy", "tuned"), default="tuned")
     parser.add_argument("--backend", choices=("postgres", "memory"), default="postgres")
     parser.add_argument("--setup-database", action="store_true")
     parser.add_argument("--split", choices=("dev", "test", "all"), default="dev")

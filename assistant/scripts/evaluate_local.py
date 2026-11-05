@@ -6,6 +6,7 @@ import secrets
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from uuid import uuid4
 
 import psycopg
@@ -21,7 +22,8 @@ def docker(*args):
     ).stdout.strip()
 
 
-if __name__ == "__main__":
+@contextmanager
+def temporary_database():
     name = "ledgerops-assistant-eval-" + uuid4().hex[:12]
     password = secrets.token_urlsafe(24)
     docker(
@@ -47,7 +49,12 @@ if __name__ == "__main__":
                 time.sleep(0.25)
         else:
             raise RuntimeError("disposable evaluation database did not become ready")
-        os.environ["LEDGEROPS_ASSISTANT_DATABASE_URL"] = dsn
-        sys.exit(main([*sys.argv[1:], "--backend", "postgres", "--setup-database"]))
+        yield dsn
     finally:
         docker("rm", "--force", name)
+
+
+if __name__ == "__main__":
+    with temporary_database() as dsn:
+        os.environ["LEDGEROPS_ASSISTANT_DATABASE_URL"] = dsn
+        sys.exit(main([*sys.argv[1:], "--backend", "postgres", "--setup-database"]))

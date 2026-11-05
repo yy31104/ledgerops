@@ -29,6 +29,10 @@ def log_experiment(report: dict, directory: Path) -> str:
             "quality_signal": report["environment"]["quality_signal"],
         }.items():
             client.log_param(run_id, key, value)
+        if "fusion" in report:
+            import json
+
+            client.log_param(run_id, "fusion", json.dumps(report["fusion"], sort_keys=True))
         for method, result in report["retrieval"].items():
             for split, metrics in result["by_split"].items():
                 if not metrics["n"]:
