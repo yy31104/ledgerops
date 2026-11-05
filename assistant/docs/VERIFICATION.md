@@ -49,12 +49,13 @@ python3 assistant/scripts/compose.py up
 ```
 
 The full unchanged core suite passed **1697 tests**. The real API acceptance pair
-passed **2 tests**. Dedicated PostgreSQL integration passed **9 tests**, covering
+passed **2 tests**. Dedicated PostgreSQL integration passed **42 tests**, covering
 index plans, immutable corpus publication, concurrent draft identity, interrupted
 node recovery, changed intent/evidence/expiry, identity rotation and HTTP resume.
-After the retrieval quality update, default assistant tests passed **94 tests**,
+After the pending-PR review fixes, default assistant tests passed **105 tests**,
 the real-model test passed **1 test**,
-and the panel build/type check and **2 stream-parser tests** passed. CI results are
+and the panel build/type check, **2 stream-parser tests** and **1 reason-validation
+test** passed. CI results are
 reported on the product PR.
 
 CI runs core checks/tests, baseline snapshot verification, authenticated agent and
@@ -79,8 +80,10 @@ Evaluation JSON and MLflow records are retained as CI artifacts for seven days.
 
 ## Remaining evidence limits
 
-The held-out comparison is weak: hybrid Recall@5 is 0.3333 versus vectors 0.5000.
-The 60 synthetic labels have not been independently reviewed. Real-model answer
+The historical v1 holdout was weak: hybrid Recall@5 was 0.3333 versus vectors 0.5000.
+The newer frozen retrieval study is documented in
+[RETRIEVAL-QUALITY-V2.md](RETRIEVAL-QUALITY-V2.md). Labels remain synthetic and
+human-unreviewed. Real-model answer
 quality, semantic citation entailment, actual ChatGPT plan usage and production
 load/distributed admission were not validated. The local SDK adapter has mocked
 contract tests, not an independently verified OS sandbox. No paid inference,

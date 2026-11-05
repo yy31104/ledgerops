@@ -11,6 +11,9 @@ the upstream API is still the authorization authority. A 401 stops the run, 403 
 a scope denial, 404 remains ambiguous, and 429/timeouts have bounded attempts and
 backoff. Oversized/malformed responses fail explicitly. Recent lists are bounded.
 Credentials live in runtime context and never enter graph state or model prompts.
+Before each planning inference, the graph also rechecks current ownership and
+all scopes needed by successful cached observations, before sending evidence to
+the configured model or reserving more cost.
 
 Limits cap steps, context bytes, output tokens, HTTP attempts and wall time. Billed
 API mode requires explicit token prices, reserves an input-byte/framing/output-cap

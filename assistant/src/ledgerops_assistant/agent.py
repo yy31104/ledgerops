@@ -167,6 +167,13 @@ class Agent:
     def _decide(self, state, runtime: Runtime[OperatorContext]):
         if reason := self._guard(state, runtime.context):
             return {"next": "end", "result": refusal(reason)}
+        try:
+            self._authorize_evidence(state, runtime.context)
+        except (AuthenticationRequired, APIUnavailable) as error:
+            reason = (
+                error.reason if isinstance(error, APIUnavailable) else "authentication_required"
+            )
+            return {"next": "end", "result": refusal(reason)}
         message = json.dumps(
             {
                 "question": state["question"],
@@ -212,6 +219,8 @@ class Agent:
     def _read(self, state, runtime: Runtime[OperatorContext]):
         if runtime.context.cancel.is_set():
             return {"next": "end", "result": refusal("cancelled")}
+        if time.monotonic() >= runtime.context.deadline:
+            return {"next": "end", "result": refusal("deadline_exceeded")}
         call = state["tool_call"]
         try:
             result = runtime.context.client.read(

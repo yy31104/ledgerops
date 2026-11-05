@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { reasonError } from "./draft-intent";
 import type { Draft, Send, Session } from "./types";
 
 const initial = {
@@ -29,8 +30,13 @@ export function DraftPanel({
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const ids = useRef<{ thread: string; request: string } | null>(null);
+  const invalidReason = reasonError(intent.reason);
   async function prepare(event: React.FormEvent) {
     event.preventDefault();
+    if (invalidReason) {
+      setError(invalidReason);
+      return;
+    }
     setBusy(true);
     setError("");
     ids.current ??= {
@@ -108,12 +114,19 @@ export function DraftPanel({
           <textarea
             required
             value={intent.reason}
-            maxLength={512}
+            maxLength={256}
             onChange={(e) => setIntent({ ...intent, reason: e.target.value })}
           />
+          <small>
+            {invalidReason ??
+              "Up to 256 UTF-8 bytes; the exact text is reviewed."}
+          </small>
         </label>
         <div className="actions">
-          <button className="secondary" disabled={busy || !!value?.draft}>
+          <button
+            className="secondary"
+            disabled={busy || !!value?.draft || !!invalidReason}
+          >
             {busy ? "Preparing…" : "Prepare draft"}
           </button>
           {busy && ids.current ? (

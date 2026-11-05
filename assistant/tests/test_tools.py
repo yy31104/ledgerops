@@ -115,3 +115,19 @@ def test_large_payload_is_not_silently_truncated():
     assert (
         client.read("payout", OBJECT, client.identity().owner_key)["status"] == "response_too_large"
     )
+
+
+def test_uuid_aliases_have_canonical_routes_and_evidence_identity():
+    canonical = "40000000-abcd-4000-8000-000000000003"
+    seen = []
+
+    def handler(request):
+        seen.append(request.url.path)
+        return httpx.Response(
+            200, json=IDENTITY if request.url.path == "/v1/me" else {"knowledge": "UNKNOWN"}
+        )
+
+    client = api(handler)
+    result = client.read("payout", canonical.upper(), client.identity().owner_key)
+    assert seen[-1] == "/v1/payouts/" + canonical
+    assert result["object_id"] == canonical

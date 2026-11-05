@@ -42,8 +42,13 @@ class DraftIntent:
             raise ValueError("invalid draft fields")
         values = {k: str(UUID(data[k])) for k in ("payout_id", "observation_id", "evidence_run_id")}
         reason, ttl = data["reason"], data.get("ttl_seconds", 900)
-        if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 512:
-            raise ValueError("reason must contain 1 to 512 characters")
+        if (
+            not isinstance(reason, str)
+            or not reason.strip()
+            or "\0" in reason
+            or len(reason.encode("utf-8")) > 256
+        ):
+            raise ValueError("reason must be nonblank, contain no NUL, and fit in 256 UTF-8 bytes")
         if type(ttl) is not int or not 1 <= ttl <= 3600:
             raise ValueError("draft TTL must be 1 to 3600 seconds")
         return cls(**values, reason=reason, ttl_seconds=ttl)

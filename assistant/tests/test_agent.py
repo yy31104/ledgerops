@@ -1,5 +1,6 @@
 import json
 import threading
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -35,6 +36,23 @@ def client(handler=None):
             )
         ),
     )
+
+
+class ScriptedProvider:
+    name = "openai:scripted"
+
+    def __init__(self, on_generate=None):
+        self.messages = []
+        self.on_generate = on_generate
+
+    def generate(self, instructions, message, schema, **kwargs):
+        self.messages.append(message)
+        if self.on_generate:
+            self.on_generate()
+        return json.dumps({"tool": "payout", "object_id": OBJECT}), {
+            "input_tokens": 10,
+            "output_tokens": 5,
+        }
 
 
 def test_fake_model_reads_and_cites_without_persisting_token(tiny_corpus):
@@ -93,6 +111,87 @@ def test_revocation_after_read_prevents_answer(tiny_corpus):
         f"Is payout {OBJECT} paid?", client(handler)
     )
     assert state["result"]["reason"] == "authentication_required"
+    assert state["steps"] == len(state["observations"]) == 1
+
+
+@pytest.mark.parametrize(
+    "change,reason",
+    [
+        ("revoked", "authentication_required"),
+        ("scope", "authentication_required"),
+        ("workspace_id", "authentication_required"),
+        ("actor_id", "authentication_required"),
+        ("client_id", "authentication_required"),
+        ("unavailable", "upstream_unavailable"),
+    ],
+)
+def test_current_authorization_blocks_next_planning_disclosure(tiny_corpus, change, reason):
+    read = False
+    marker = "protected-planning-marker"
+    requests = []
+
+    def handler(request):
+        nonlocal read
+        requests.append(request.url.path)
+        if request.url.path != "/v1/me":
+            read = True
+            return httpx.Response(200, json={"knowledge": marker})
+        if not read:
+            return httpx.Response(200, json=IDENTITY)
+        if change == "revoked":
+            return httpx.Response(401)
+        if change == "unavailable":
+            return httpx.Response(503)
+        current = {**IDENTITY}
+        if change == "scope":
+            current["scopes"] = [s for s in IDENTITY["scopes"] if s != "payout:read"]
+        else:
+            current[change] = "00000000-0000-0000-0000-000000000004"
+        return httpx.Response(200, json=current)
+
+    provider, charges = ScriptedProvider(), []
+    state = Agent(
+        BM25Retriever(tiny_corpus),
+        provider,
+        limits=Limits(input_usd_per_million=1, output_usd_per_million=1),
+    ).run("Investigate this payout", client(handler), on_charge=charges.append)
+
+    assert state["observations"][0]["data"]["knowledge"] == marker
+    assert state["result"]["reason"] == reason
+    assert state["result"]["refused"] and state["steps"] == 1
+    assert len(provider.messages) == len(charges) == 1
+    assert all(marker not in message for message in provider.messages)
+    assert charges[0] > 0 and state["cost_usd"] == charges[0]
+    assert requests.count("/v1/payouts/" + OBJECT) == 1
+
+
+@pytest.mark.parametrize("cancelled", [False, True])
+def test_planner_finishing_after_deadline_cannot_start_read(tiny_corpus, monkeypatch, cancelled):
+    now, requests, charges = 0, [], []
+    cancel = threading.Event()
+    monkeypatch.setattr("ledgerops_assistant.agent.time", SimpleNamespace(monotonic=lambda: now))
+
+    def finish_planning():
+        nonlocal now
+        now = 61
+        if cancelled:
+            cancel.set()
+
+    def handler(request):
+        requests.append(request.url.path)
+        return httpx.Response(200, json=IDENTITY)
+
+    provider = ScriptedProvider(finish_planning)
+    state = Agent(
+        BM25Retriever(tiny_corpus),
+        provider,
+        limits=Limits(input_usd_per_million=1, output_usd_per_million=1),
+    ).run("Investigate this payout", client(handler), cancel=cancel, on_charge=charges.append)
+
+    assert state["result"]["reason"] == ("cancelled" if cancelled else "deadline_exceeded")
+    assert state["observations"] == [] and set(requests) == {"/v1/me"}
+    assert len(provider.messages) == len(charges) == state["steps"] == 1
+    assert state["cost_usd"] == charges[0]
 
 
 def test_billed_generation_requires_prices(tiny_corpus):

@@ -79,6 +79,7 @@ real authenticated API acceptance tests, the panel build and a Compose smoke tes
 | [HUMAN-REVIEW.md](docs/HUMAN-REVIEW.md) | Durable drafts, resume and console handoff |
 | [PRODUCT.md](docs/PRODUCT.md) | Local product, HTTP, MCP and operating boundaries |
 | [VERIFICATION.md](docs/VERIFICATION.md) | Executed checks and remaining limits |
+| [PR-REVIEW.md](docs/PR-REVIEW.md) | Permission, recovery, transport and public-hygiene review |
 
 [EVALUATION.md](docs/EVALUATION.md) preserves the historical v0 in-memory/BM25
 experiment; it is not a PostgreSQL FTS result.

@@ -30,6 +30,12 @@ insufficient. References/hashes do not prove source authenticity. The local
 `draft_sha256` binds this review only; it is never used as `proposal_sha256` to
 approve a ledger action.
 
+Preparation rejects a refused investigation and binds its selected object,
+payout and optional operation IDs to the requested payout. Incomplete/malformed
+projections or incompatible incident lists are refused. Reasons preserve their
+exact bytes and must be nonblank, NUL-free and no more than 256 UTF-8 bytes,
+matching the console's byte bound.
+
 Cross-process session advisory locks serialize a workflow invocation without a
 transaction spanning network/model work. They live in the assistant database.
 No financial database transaction, core approval code or existing console changes.
