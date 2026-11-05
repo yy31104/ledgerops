@@ -11,6 +11,10 @@ test("reason matches the console's raw UTF-8 byte and NUL limits", () => {
     "é".repeat(129),
     "😀".repeat(65),
     "x\0y",
+    "\ufeff",
+    "\u001c",
+    "\u0085",
+    " \ufeff\t\u001c",
     " ".repeat(256),
     " ".repeat(256) + "x",
   ]) {

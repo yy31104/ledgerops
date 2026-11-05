@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from importlib.resources import files
@@ -44,7 +45,8 @@ class DraftIntent:
         reason, ttl = data["reason"], data.get("ttl_seconds", 900)
         if (
             not isinstance(reason, str)
-            or not reason.strip()
+            # Unicode White_Space plus C0 separators and BOM, shared with the panel.
+            or re.fullmatch(r"[\s\ufeff]*", reason)
             or "\0" in reason
             or len(reason.encode("utf-8")) > 256
         ):

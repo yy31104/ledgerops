@@ -1,6 +1,6 @@
 export function reasonError(reason: string): string | null {
   if (
-    !reason.trim() ||
+    /^[\p{White_Space}\u001c-\u001f\ufeff]*$/u.test(reason) ||
     reason.includes("\0") ||
     new TextEncoder().encode(reason).length > 256
   ) {

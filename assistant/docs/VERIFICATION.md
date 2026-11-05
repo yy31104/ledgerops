@@ -49,10 +49,10 @@ python3 assistant/scripts/compose.py up
 ```
 
 The full unchanged core suite passed **1697 tests**. The real API acceptance pair
-passed **2 tests**. Dedicated PostgreSQL integration passed **42 tests**, covering
+passed **2 tests**. Dedicated PostgreSQL integration passed **46 tests**, covering
 index plans, immutable corpus publication, concurrent draft identity, interrupted
 node recovery, changed intent/evidence/expiry, identity rotation and HTTP resume.
-After the pending-PR review fixes, default assistant tests passed **105 tests**,
+After the pending-PR review fixes, default assistant tests passed **109 tests**,
 the real-model test passed **1 test**,
 and the panel build/type check, **2 stream-parser tests** and **1 reason-validation
 test** passed. CI results are

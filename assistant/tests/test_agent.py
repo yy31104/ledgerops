@@ -1,11 +1,12 @@
 import json
 import threading
+from dataclasses import asdict
 from types import SimpleNamespace
 
 import httpx
 import pytest
 
-from ledgerops_assistant.agent import Agent, Limits
+from ledgerops_assistant.agent import Agent, Limits, OperatorContext
 from ledgerops_assistant.providers.fake import FakeProvider
 from ledgerops_assistant.retrieval import BM25Retriever
 from ledgerops_assistant.tools import ReadOnlyAPI
@@ -192,6 +193,50 @@ def test_planner_finishing_after_deadline_cannot_start_read(tiny_corpus, monkeyp
     assert state["observations"] == [] and set(requests) == {"/v1/me"}
     assert len(provider.messages) == len(charges) == state["steps"] == 1
     assert state["cost_usd"] == charges[0]
+
+
+@pytest.mark.parametrize("node", ["_decide", "_answer"])
+@pytest.mark.parametrize("reason", ["deadline_exceeded", "cancelled"])
+def test_identity_lookup_stopping_run_cannot_reserve_or_infer(
+    tiny_corpus, monkeypatch, node, reason
+):
+    now, requests, charges, reserves = 0, [], [], []
+    cancel = threading.Event()
+    monkeypatch.setattr("ledgerops_assistant.agent.time", SimpleNamespace(monotonic=lambda: now))
+
+    def handler(request):
+        nonlocal now
+        requests.append(request.url.path)
+        if len(requests) == 2:
+            if reason == "deadline_exceeded":
+                now = 61
+            else:
+                cancel.set()
+        return httpx.Response(200, json=IDENTITY)
+
+    api, provider = client(handler), ScriptedProvider()
+    context = OperatorContext(api, api.identity().owner_key, cancel, 60, charges.append)
+    agent = Agent(
+        BM25Retriever(tiny_corpus),
+        provider,
+        limits=Limits(input_usd_per_million=1, output_usd_per_million=1),
+    )
+    monkeypatch.setattr(agent, "_reserve", lambda *args: reserves.append(args) or 0)
+    state = {
+        "question": "Inspect the payout evidence",
+        "steps": 0,
+        "cost_usd": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "observations": [],
+        "documents": [asdict(tiny_corpus.chunks[0])],
+    }
+
+    result = getattr(agent, node)(state, SimpleNamespace(context=context))
+
+    assert result["result"]["refused"] and result["result"]["reason"] == reason
+    assert requests == ["/v1/me", "/v1/me"]
+    assert provider.messages == charges == reserves == []
 
 
 def test_billed_generation_requires_prices(tiny_corpus):

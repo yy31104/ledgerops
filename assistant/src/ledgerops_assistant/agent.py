@@ -174,6 +174,8 @@ class Agent:
                 error.reason if isinstance(error, APIUnavailable) else "authentication_required"
             )
             return {"next": "end", "result": refusal(reason)}
+        if reason := self._guard(state, runtime.context):
+            return {"next": "end", "result": refusal(reason)}
         message = json.dumps(
             {
                 "question": state["question"],
@@ -253,6 +255,8 @@ class Agent:
             reason = (
                 error.reason if isinstance(error, APIUnavailable) else "authentication_required"
             )
+            return {"result": refusal(reason)}
+        if reason := self._guard(state, runtime.context):
             return {"result": refusal(reason)}
         chunks = [Chunk(**d) for d in state["documents"]]
         for item in state["observations"]:

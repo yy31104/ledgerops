@@ -230,6 +230,10 @@ def test_draft_input_cannot_choose_identity_or_write_capability(extra):
         ("x\0y", False),
         ("", False),
         (" \t\n", False),
+        ("\ufeff", False),
+        ("\u001c", False),
+        ("\u0085", False),
+        (" \ufeff\t\u001c", False),
     ],
 )
 def test_reason_contract_preserves_raw_reviewed_bytes(pg_dsn, tiny_corpus, reason, valid):

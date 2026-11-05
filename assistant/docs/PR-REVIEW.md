@@ -36,12 +36,15 @@ lower-privilege read, cross-owner leak or financial mutation.
    one call, with no post-removal disclosure and the same safe final refusal.
    Revocation, scope narrowing, actor/workspace/client changes and unavailable
    identity have regression tests. A late/cancelled planner cannot start another
-   API read.
+   API read. Both planning and answer nodes recheck cancellation/deadline after
+   the potentially blocking identity lookup, before reserving or generating.
 2. **Match the console reason contract.** Require nonblank text, no NUL and at most
    256 raw UTF-8 bytes. Previously 512 stripped characters were allowed, so 257
    ASCII characters, 129 two-byte characters or a NUL could create a draft that the
    actual proposal API rejected. Preserve the original reviewed text instead of
-   silently trimming it. Browser validation uses the same byte/NUL rule.
+   trimming it. The old implementation also retained the raw text; the correction
+   applies to validation. Browser/backend share the byte/NUL rule and treat
+   Unicode White_Space, C0 separators U+001C–001F and BOM as blank.
 3. **Bind eligible evidence to the requested payout.** Require the selected
    investigation's object ID, payout operation ID and any supplied operation ID
    to match the normalized intent. Tool metadata now canonicalizes valid UUID
@@ -89,8 +92,8 @@ bundles, which include machine-specific metadata, remain outside the public repo
 ## Verification
 
 - Core `make check` and full `make test`: **1697 passed**.
-- Assistant default suite: **105 passed**; PostgreSQL/real-encoder selection:
-  **43 passed**.
+- Assistant default suite: **109 passed**; PostgreSQL/real-encoder selection:
+  **47 passed**.
 - Baseline snapshots: **3 passed**; real authenticated API/handoff acceptance:
   **2 passed**.
 - React type/production build and **3 frontend tests** passed.
