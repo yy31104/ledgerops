@@ -1,1 +1,0 @@
-"""Authenticated bounded HTTP adapters."""
