@@ -20,8 +20,8 @@ images:
 	mkdir -p .generated
 	python3 $(ROOT)/ops/linux/stack.py --project ledgerops-k8s --state $(STATE) \
 	  build --source $(ROOT) --context $(CURDIR)/.generated/context --allow-dirty
-	docker tag "$$(python3 -c "import json;print(json.load(open('$(STATE)'))['image'])")" ledgerops-local:k8s
-	docker tag "$$(python3 -c "import json;print(json.load(open('$(STATE)'))['proxy_image'])")" ledgerops-local-proxy:k8s
+	docker tag "$$(python3 -c "import json;print(json.load(open('$(STATE)'))['environment']['LEDGEROPS_IMAGE'])")" ledgerops-local:k8s
+	docker tag "$$(python3 -c "import json;print(json.load(open('$(STATE)'))['environment']['LEDGEROPS_PROXY_IMAGE'])")" ledgerops-local-proxy:k8s
 	kind load docker-image --name $(CLUSTER) ledgerops-local:k8s ledgerops-local-proxy:k8s
 
 secrets:

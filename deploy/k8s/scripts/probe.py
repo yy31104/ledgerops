@@ -31,9 +31,10 @@ def render():
             lines.append(f'ledgerops_probe_requests_total{{route="{route}",code="{code}"}} {value}')
         lines.append("# TYPE ledgerops_probe_duration_seconds histogram")
         for route, (buckets, total, count) in sorted(HIST.items()):
+            bucket = "ledgerops_probe_duration_seconds_bucket"
             for le, value in zip(BUCKETS, buckets, strict=True):
-                lines.append(f'ledgerops_probe_duration_seconds_bucket{{route="{route}",le="{le}"}} {value}')
-            lines.append(f'ledgerops_probe_duration_seconds_bucket{{route="{route}",le="+Inf"}} {count}')
+                lines.append(f'{bucket}{{route="{route}",le="{le}"}} {value}')
+            lines.append(f'{bucket}{{route="{route}",le="+Inf"}} {count}')
             lines.append(f'ledgerops_probe_duration_seconds_sum{{route="{route}"}} {total}')
             lines.append(f'ledgerops_probe_duration_seconds_count{{route="{route}"}} {count}')
     return ("\n".join(lines) + "\n").encode()

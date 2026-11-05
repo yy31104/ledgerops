@@ -95,7 +95,8 @@ def certificates():
             directory, "x509", "-req", "-in", "tls.csr", "-CA", "ca.crt", "-CAkey", "ca.key",
             "-CAcreateserial", "-days", "30", "-extfile", "ext", "-out", "tls.crt",
         )  # fmt: skip
-        return {name: Path(directory, name).read_bytes() for name in ("ca.crt", "tls.crt", "tls.key")}
+        names = ("ca.crt", "tls.crt", "tls.key")
+        return {name: Path(directory, name).read_bytes() for name in names}
 
 
 def main():
@@ -154,7 +155,10 @@ def main():
     certs = certificates()
     items = [
         secret("ledgerops-postgres", {"password": state["passwords"]["postgres"].encode()}),
-        secret("ledgerops-api", {"profile.json": profile(api), "payout-policy.json": canonical(policy)}),
+        secret(
+            "ledgerops-api",
+            {"profile.json": profile(api), "payout-policy.json": canonical(policy)},
+        ),
         secret("ledgerops-worker", {"profile.json": profile(worker), "provider-keys.json": keys}),
         secret("ledgerops-provider", {"profile.json": profile(provider)}),
         secret("ledgerops-api-tls", {"tls.crt": certs["tls.crt"], "tls.key": certs["tls.key"]}),
