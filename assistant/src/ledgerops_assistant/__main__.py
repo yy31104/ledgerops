@@ -10,12 +10,14 @@ import os
 import sys
 
 from ledgerops_assistant.answer import ScopeGate, answer
+from ledgerops_assistant.context import ContextRetriever
 from ledgerops_assistant.corpus import load_corpus
 from ledgerops_assistant.evaluation import CACHE_DIR
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import BM25Retriever, HybridRetriever, VectorRetriever
 
-# Chosen on the dev split of eval/questions.jsonl; see docs/EVALUATION.md.
+# Historical memory-only scope heuristic; not the PostgreSQL retrieval selection.
+# Its original synthetic calibration set is archived; the threshold is unchanged.
 DEFAULT_GATE = 0.61
 
 
@@ -57,7 +59,7 @@ def main(argv=None) -> int:
     retriever = {"bm25": bm25, "vector": vector, "hybrid": HybridRetriever(bm25, vector)}
     result = answer(
         args.question,
-        retriever[args.method],
+        ContextRetriever(retriever[args.method], corpus),
         get_provider(args.provider),
         gate=ScopeGate(vector, args.gate),
         revision=corpus.revision,

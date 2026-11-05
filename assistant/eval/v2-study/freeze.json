@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-11-05T13:58:34.370932+00:00",
+  "status": "frozen_before_first_holdout_run",
+  "parent_commit": "7106a8ac4fb78e463a5e6423f20e1e02f9eaf0f0",
+  "selected_config": {
+    "weights": [
+      1.0,
+      1.0
+    ],
+    "rrf_k": 10,
+    "depth": 50,
+    "unit": "chunk"
+  },
+  "corpus_digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+  "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+  "holdout_sha256": "653bf40dcdc1117bd42c165710b028b27622359a8c546129db7d901626396677",
+  "code_sha256": {
+    "src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec",
+    "src/ledgerops_assistant/evaluation.py": "4b133d8289e3dfc531bf207ea20a354a96b6521201fc833662ce616cea972b1f",
+    "src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+    "src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+    "src/ledgerops_assistant/corpus.py": "7d7c55672ae25effeab6332e6ddf715b2bbb60948de196eeef3e2653362a6625",
+    "src/ledgerops_assistant/tracking.py": "fe6d4719855e8eec307d71eac13f89d6abed71f8b75c0096920b6f9a02cee11f",
+    "src/ledgerops_assistant/quality_gate.py": "6dbc681cd672a6bd71b35a74afcb7f7ed3f26bb19be7549c1f4673b66114ffdc",
+    "src/ledgerops_assistant/sql/001_rag.sql": "26d7f0cbbc57a305c5239f5079d6853b7d3e8ca8fbde8273e7b611b308805488",
+    "scripts/retrieval_study.py": "7bb8389c333e85bd74c993627e96bb1f32bb13d7f896627d20f554b2cef3da35",
+    "scripts/evaluate_local.py": "4df7f0aedf1ecb9e5b2e21bc2c9b0d9b177902693983983cb89d651766b6e0d4",
+    "uv.lock": "f0dfa90a8091fb88a21827f8230a24fefcf4a5fee92de788343f4448d62f367d",
+    "pyproject.toml": "7e7377427772e40d6801f5cc9cf0c3f1b69134fe6df402aeeae1b54617e1fec6"
+  },
+  "selection_sha256": "40da09786dc7c07131c8dbd27920f77c011c1ba921a716039dfa2e4b060cb72f",
+  "primary_metric": "section Recall@5",
+  "comparisons": [
+    "legacy_hybrid",
+    "pgvector_hnsw"
+  ],
+  "uncertainty": "paired topic-cluster CI primary; question bootstrap supplementary",
+  "context_metric": "section coverage in the actual first five chunks; not semantic entailment",
+  "no_retuning_after_validation": true
+}

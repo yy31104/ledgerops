@@ -4,7 +4,7 @@ import { readEvents } from "./sse.ts";
 
 test("parses fragmented UTF-8, CRLF, keepalives and multiline data", async () => {
   const bytes = new TextEncoder().encode(
-    ": ping\r\n\r\nevent: text\r\ndata: 你好\r\ndata: evidence\r\n\r\n",
+    ": ping\r\n\r\nevent: text\r\ndata: \u4f60\u597d\r\ndata: evidence\r\n\r\n",
   );
   const body = new ReadableStream<Uint8Array>({
     start(controller) {
@@ -14,7 +14,7 @@ test("parses fragmented UTF-8, CRLF, keepalives and multiline data", async () =>
   });
   const events = [];
   for await (const event of readEvents(body)) events.push(event);
-  assert.deepEqual(events, [{ event: "text", data: "你好\nevidence" }]);
+  assert.deepEqual(events, [{ event: "text", data: "\u4f60\u597d\nevidence" }]);
 });
 
 test("an incomplete final frame is an error, never a completed answer", async () => {

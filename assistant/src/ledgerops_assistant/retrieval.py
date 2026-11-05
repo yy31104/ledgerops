@@ -131,26 +131,67 @@ class HybridRetriever:
     """Reciprocal rank fusion: score = sum over methods of 1 / (k + rank).
 
     RRF uses ranks, not raw scores, so BM25's unbounded scores and cosine similarities
-    never need to be put on one scale. k = 60 is the constant from the original paper
-    (Cormack, Clarke and Buettcher, SIGIR 2009); it keeps one method's first place from
-    outweighing broad agreement further down.
+    never need to be put on one scale. The original paper selected k=60 on its own
+    pilot data. Here k=10 was selected on the frozen v1 development questions;
+    the larger constant over-promoted weak agreement in two deep candidate lists.
+    Keep k=60 explicit when reproducing the historical baseline.
     """
 
     name = "hybrid"
 
-    def __init__(self, *retrievers: Retriever, rrf_k: int = 60, depth: int = 50):
+    def __init__(
+        self,
+        *retrievers: Retriever,
+        rrf_k: int = 10,
+        depth: int = 50,
+        weights: tuple[float, ...] | None = None,
+        unit: str = "chunk",
+    ):
         self.retrievers, self.rrf_k, self.depth = retrievers, rrf_k, depth
+        self.weights = weights if weights is not None else (1.0,) * len(retrievers)
+        if (
+            len(self.weights) != len(retrievers)
+            or not self.weights
+            or any(not math.isfinite(w) or w <= 0 for w in self.weights)
+            or rrf_k < 0
+            or not 1 <= depth <= 100
+            or unit not in ("chunk", "section")
+        ):
+            raise ValueError("invalid fusion configuration")
+        self.unit = unit
 
     def search(self, query: str, k: int = 10) -> list[Hit]:
-        fused: dict[str, float] = {}
-        chunks: dict[str, Chunk] = {}
-        for retriever in self.retrievers:
-            for rank, hit in enumerate(retriever.search(query, self.depth), start=1):
-                cid = hit.chunk.chunk_id
-                fused[cid] = fused.get(cid, 0.0) + 1.0 / (self.rrf_k + rank)
-                chunks[cid] = hit.chunk
-        order = sorted(fused, key=lambda cid: (-fused[cid], cid))[:k]
-        return [Hit(chunks[cid], fused[cid]) for cid in order]
+        return fuse_rankings(
+            [r.search(query, self.depth) for r in self.retrievers],
+            k=k,
+            rrf_k=self.rrf_k,
+            weights=self.weights,
+            unit=self.unit,
+        )
+
+
+def fuse_rankings(rankings, *, k, rrf_k, weights, unit):
+    """Fuse chunks or first occurrences of sections; return a supplied passage.
+
+    Section voting counts each section once per retriever. Its representative is
+    the chunk with the largest individual weighted vote (chunk ID breaks ties).
+    No text is fabricated or joined across citation IDs.
+    """
+    fused, representatives = {}, {}
+    for hits, weight in zip(rankings, weights, strict=True):
+        seen = set()
+        for hit in hits:
+            key = hit.chunk.section_id if unit == "section" else hit.chunk.chunk_id
+            if key in seen:
+                continue
+            seen.add(key)
+            vote = weight / (rrf_k + len(seen))
+            fused[key] = fused.get(key, 0.0) + vote
+            choice = (-vote, hit.chunk.chunk_id)
+            if key not in representatives or choice < representatives[key][0]:
+                representatives[key] = (choice, hit.chunk)
+    order = sorted(fused, key=lambda key: (-fused[key], key))[:k]
+    return [Hit(representatives[key][1], fused[key]) for key in order]
 
 
 def rank_sections(hits: list[Hit]) -> list[str]:

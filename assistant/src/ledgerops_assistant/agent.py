@@ -12,6 +12,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.runtime import Runtime
 
 from ledgerops_assistant import routing
+from ledgerops_assistant.context import retrieve_passages
 from ledgerops_assistant.corpus import Chunk
 from ledgerops_assistant.providers.base import ANSWER_SCHEMA, parse_draft, user_message
 from ledgerops_assistant.tools import TOOLS, APIUnavailable, AuthenticationRequired, ReadOnlyAPI
@@ -130,12 +131,29 @@ class Agent:
             return "step_limit"
         return None
 
+    @staticmethod
+    def _input_bytes(message):
+        return len(message.encode()) + len(ANSWER_PROMPT.encode()) + 4096
+
+    def _fit_documents(self, documents, build_message):
+        documents = list(documents)
+        message = build_message(documents)
+        # Keep API observations intact. Drop whole trailing document additions,
+        # preserving citation identities and the existing total request bound.
+        while documents and self._input_bytes(message) > self.limits.max_input_bytes:
+            documents.pop()
+            message = build_message(documents)
+        return documents, message
+
     def _reserve(self, state, message):
-        size = len(message.encode()) + len(ANSWER_PROMPT.encode()) + 4096
-        if size > self.limits.max_input_bytes:
+        # Reserve one input token per UTF-8 byte, plus a framing allowance. This
+        # intentionally overestimates token usage; API prices remain per token.
+        input_bytes_with_allowance = self._input_bytes(message)
+        if input_bytes_with_allowance > self.limits.max_input_bytes:
             raise ValueError("context_limit")
+        input_token_upper_bound = input_bytes_with_allowance
         cost = (
-            size * self.limits.input_usd_per_million
+            input_token_upper_bound * self.limits.input_usd_per_million
             + self.limits.max_output_tokens * self.limits.output_usd_per_million
         ) / 1e6
         if state["cost_usd"] + cost > self.limits.max_cost_usd:
@@ -167,13 +185,25 @@ class Agent:
     def _decide(self, state, runtime: Runtime[OperatorContext]):
         if reason := self._guard(state, runtime.context):
             return {"next": "end", "result": refusal(reason)}
-        message = json.dumps(
-            {
-                "question": state["question"],
-                "evidence": state["observations"],
-                "documentation": state["documents"],
-                "tools": list(TOOLS),
-            }
+        try:
+            self._authorize_evidence(state, runtime.context)
+        except (AuthenticationRequired, APIUnavailable) as error:
+            reason = (
+                error.reason if isinstance(error, APIUnavailable) else "authentication_required"
+            )
+            return {"next": "end", "result": refusal(reason)}
+        if reason := self._guard(state, runtime.context):
+            return {"next": "end", "result": refusal(reason)}
+        _, message = self._fit_documents(
+            state["documents"],
+            lambda documents: json.dumps(
+                {
+                    "question": state["question"],
+                    "evidence": state["observations"],
+                    "documentation": documents,
+                    "tools": list(TOOLS),
+                }
+            ),
         )
         reserved, usage = 0, {}
         try:
@@ -212,6 +242,8 @@ class Agent:
     def _read(self, state, runtime: Runtime[OperatorContext]):
         if runtime.context.cancel.is_set():
             return {"next": "end", "result": refusal("cancelled")}
+        if time.monotonic() >= runtime.context.deadline:
+            return {"next": "end", "result": refusal("deadline_exceeded")}
         call = state["tool_call"]
         try:
             result = runtime.context.client.read(
@@ -245,9 +277,11 @@ class Agent:
                 error.reason if isinstance(error, APIUnavailable) else "authentication_required"
             )
             return {"result": refusal(reason)}
-        chunks = [Chunk(**d) for d in state["documents"]]
+        if reason := self._guard(state, runtime.context):
+            return {"result": refusal(reason)}
+        api_chunks = []
         for item in state["observations"]:
-            chunks.append(
+            api_chunks.append(
                 Chunk(
                     item["source_id"],
                     item["endpoint"],
@@ -257,11 +291,17 @@ class Agent:
                     "Live API observation\n\n" + json.dumps(item),
                 )
             )
+        documents, message = self._fit_documents(
+            state["documents"],
+            lambda documents: user_message(
+                state["question"], [Chunk(**d) for d in documents] + api_chunks
+            ),
+        )
+        chunks = [Chunk(**d) for d in documents] + api_chunks
         if not chunks:
             return {"result": refusal("no_evidence")}
         reserved = 0
         try:
-            message = user_message(state["question"], chunks)
             reserved = self._reserve(state, message)
             if runtime.context.on_charge:
                 runtime.context.on_charge(reserved)
@@ -339,7 +379,7 @@ class Agent:
             input_tokens=0,
             output_tokens=0,
             observations=[],
-            documents=[asdict(h.chunk) for h in self.retriever.search(question, 5)],
+            documents=[asdict(c) for c in retrieve_passages(self.retriever, question, 5)],
         )
         context = OperatorContext(
             client,
