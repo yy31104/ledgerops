@@ -6,6 +6,7 @@ between runs, so tests can assert on exact output. It cannot paraphrase, combine
 or notice that a passage is off-topic, so its answers say nothing about answer quality.
 """
 
+import json
 import re
 
 from ledgerops_assistant.corpus import Chunk
@@ -17,6 +18,24 @@ class FakeProvider:
     name = "fake"
 
     def draft(self, question: str, passages: list[Chunk]) -> Draft:
+        # Scripted live summaries improve the fake demo, not measured model quality.
+        for chunk in passages:
+            if not chunk.chunk_id.startswith("api:"):
+                continue
+            observation = json.loads(chunk.body)
+            if observation.get("tool") == "payout" and observation.get("status") == "ok":
+                data = observation["data"]
+                if "knowledge" in data:
+                    text = f"Current API observation: {data['knowledge']}."
+                    if "reservation_state" in data:
+                        text += f" Reservation: {data['reservation_state']}."
+                    if "gross_minor" in data:
+                        text += f" Reserved gross amount: {data['gross_minor']} minor units."
+                    text += (
+                        " This is a caller-scoped observation at the stated time. "
+                        "Recent lists are bounded."
+                    )
+                    return Draft(text, [chunk.chunk_id])
         wanted = set(tokenize(question))
         candidates = []
         for rank, chunk in enumerate(passages):

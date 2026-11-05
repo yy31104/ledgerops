@@ -29,6 +29,7 @@ class WorkflowContext:
     client: object
     owner_key: str
     cancel: object = None
+    on_charge: object = None
 
 
 def fingerprint(observations):
@@ -44,7 +45,8 @@ def fingerprint(observations):
 
 class DraftWorkflow:
     def __init__(self, dsn, agent):
-        self.dsn, self.agent, self.store = dsn, agent, DraftStore(dsn)
+        self.agent, self.store = agent, DraftStore(dsn)
+        self.dsn = self.store.dsn
 
     def _authorized(self, context):
         identity = context.client.identity()
@@ -54,7 +56,12 @@ class DraftWorkflow:
     def _investigate(self, state, runtime: Runtime[WorkflowContext]):
         intent = DraftIntent.parse(state["intent"])
         question = f"Investigate payout {intent.payout_id} for a draft. {state['question']}"
-        result = self.agent.run(question, runtime.context.client, cancel=runtime.context.cancel)
+        result = self.agent.run(
+            question,
+            runtime.context.client,
+            cancel=runtime.context.cancel,
+            on_charge=runtime.context.on_charge,
+        )
         return {"investigation": result, "evidence": fingerprint(result["observations"])}
 
     def _prepare(self, state, runtime: Runtime[WorkflowContext]):
@@ -156,9 +163,10 @@ class DraftWorkflow:
         intent=None,
         decision=None,
         cancel=None,
+        on_charge=None,
     ):
         identity = client.identity()
-        context = WorkflowContext(client, identity.owner_key, cancel)
+        context = WorkflowContext(client, identity.owner_key, cancel, on_charge)
         self._authorized(context)
         key = f"{identity.owner_key}/{UUID(thread_id)}"
         config = {"configurable": {"thread_id": key}, "recursion_limit": 30}
@@ -174,8 +182,12 @@ class DraftWorkflow:
                 }
                 self.store.register(key, initial)
                 if previous.values:
-                    return dict(previous.values)
-                output = graph.invoke(initial, config, context=context, durability="sync")
+                    if previous.next and not previous.interrupts:
+                        output = graph.invoke(None, config, context=context, durability="sync")
+                    else:
+                        return dict(previous.values)
+                else:
+                    output = graph.invoke(initial, config, context=context, durability="sync")
             else:
                 if not previous.values:
                     raise WorkflowConflict("workflow is unavailable for this identity")

@@ -58,7 +58,9 @@ def setup(dsn):
 
 class DraftStore:
     def __init__(self, dsn):
-        self.dsn = dsn
+        self.dsn = psycopg.conninfo.make_conninfo(
+            dsn, connect_timeout=3, options="-c statement_timeout=5000 -c lock_timeout=3000"
+        )
 
     def register(self, thread_key, request):
         hashed = digest(request)

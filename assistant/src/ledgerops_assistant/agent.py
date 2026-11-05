@@ -14,7 +14,7 @@ from langgraph.runtime import Runtime
 from ledgerops_assistant import routing
 from ledgerops_assistant.corpus import Chunk
 from ledgerops_assistant.providers.base import ANSWER_SCHEMA, parse_draft, user_message
-from ledgerops_assistant.tools import TOOLS, AuthenticationRequired, ReadOnlyAPI
+from ledgerops_assistant.tools import TOOLS, APIUnavailable, AuthenticationRequired, ReadOnlyAPI
 
 PLAN_SCHEMA = {
     "type": "object",
@@ -73,6 +73,7 @@ class OperatorContext:
     owner_key: str
     cancel: threading.Event
     deadline: float
+    on_charge: object = None
 
 
 class AgentState(TypedDict, total=False):
@@ -102,6 +103,7 @@ def refusal(reason):
 class Agent:
     def __init__(self, retriever, provider, *, limits=None, planner=None):
         self.retriever, self.provider = retriever, provider
+        self.revision = getattr(retriever, "revision", "unknown")
         self.limits, self.planner = limits or Limits(), planner
         if provider.name.startswith("openai:") and (
             self.limits.input_usd_per_million <= 0 or self.limits.output_usd_per_million <= 0
@@ -176,6 +178,8 @@ class Agent:
         reserved, usage = 0, {}
         try:
             reserved = self._reserve(state, message)
+            if runtime.context.on_charge:
+                runtime.context.on_charge(reserved)
             if self.planner:
                 decision = self.planner(state)
             elif self.provider.name == "fake":
@@ -213,8 +217,11 @@ class Agent:
             result = runtime.context.client.read(
                 call["tool"], call["object_id"], runtime.context.owner_key
             )
-        except AuthenticationRequired:
-            return {"next": "end", "result": refusal("authentication_required")}
+        except (AuthenticationRequired, APIUnavailable) as error:
+            reason = (
+                error.reason if isinstance(error, APIUnavailable) else "authentication_required"
+            )
+            return {"next": "end", "result": refusal(reason)}
         except (ValueError, TypeError, AttributeError):
             return {"next": "end", "result": refusal("invalid_tool_arguments")}
         return {"observations": [*state["observations"], result], "next": "decide"}
@@ -233,8 +240,11 @@ class Agent:
             return {"result": refusal(reason)}
         try:
             self._authorize_evidence(state, runtime.context)
-        except AuthenticationRequired:
-            return {"result": refusal("authentication_required")}
+        except (AuthenticationRequired, APIUnavailable) as error:
+            reason = (
+                error.reason if isinstance(error, APIUnavailable) else "authentication_required"
+            )
+            return {"result": refusal(reason)}
         chunks = [Chunk(**d) for d in state["documents"]]
         for item in state["observations"]:
             chunks.append(
@@ -253,6 +263,8 @@ class Agent:
         try:
             message = user_message(state["question"], chunks)
             reserved = self._reserve(state, message)
+            if runtime.context.on_charge:
+                runtime.context.on_charge(reserved)
             if self.provider.name == "fake":
                 draft = self.provider.draft(state["question"], chunks)
             else:
@@ -265,15 +277,25 @@ class Agent:
                 "cost_usd": state["cost_usd"] + reserved,
             }
         given = {c.chunk_id: c for c in chunks}
+        billing = {
+            "steps": state["steps"] + 1,
+            "cost_usd": state["cost_usd"] + reserved,
+            "input_tokens": state["input_tokens"] + int(draft.usage.get("input_tokens") or 0),
+            "output_tokens": state["output_tokens"] + int(draft.usage.get("output_tokens") or 0),
+        }
+        observed = {o["source_id"]: o["observed_at"] for o in state["observations"]}
         cited = [given[c] for c in dict.fromkeys(draft.citations) if c in given]
         if not cited and not draft.refused:
-            return {"result": refusal("ungrounded")}
+            return {**billing, "result": refusal("ungrounded")}
         if runtime.context.cancel.is_set():
-            return {"result": refusal("cancelled")}
+            return {**billing, "result": refusal("cancelled")}
         try:
             self._authorize_evidence(state, runtime.context)
-        except AuthenticationRequired:
-            return {"result": refusal("authentication_required")}
+        except (AuthenticationRequired, APIUnavailable) as error:
+            reason = (
+                error.reason if isinstance(error, APIUnavailable) else "authentication_required"
+            )
+            return {**billing, "result": refusal(reason)}
         return {
             "steps": state["steps"] + 1,
             "cost_usd": state["cost_usd"] + reserved,
@@ -289,6 +311,7 @@ class Agent:
                         "section_id": c.section_id,
                         "path": c.path,
                         "excerpt": c.body[:800],
+                        "revision": observed.get(c.chunk_id, self.revision),
                     }
                     for c in cited
                 ],
@@ -297,7 +320,7 @@ class Agent:
             },
         }
 
-    def run(self, question, client, *, cancel=None):
+    def run(self, question, client, *, cancel=None, on_event=None, on_charge=None):
         identity = client.identity()
         if routing.classify(question) == routing.ACTION:
             return {
@@ -323,5 +346,16 @@ class Agent:
             identity.owner_key,
             cancel or threading.Event(),
             time.monotonic() + self.limits.deadline_seconds,
+            on_charge,
         )
-        return self.graph.invoke(initial, {"recursion_limit": 40}, context=context)
+        if on_event is None:
+            return self.graph.invoke(initial, {"recursion_limit": 40}, context=context)
+        latest = initial
+        for mode, data in self.graph.stream(
+            initial, {"recursion_limit": 40}, context=context, stream_mode=["updates", "values"]
+        ):
+            if mode == "values":
+                latest = data
+            else:
+                on_event({"phase": next(iter(data)), "steps": latest.get("steps", 0)})
+        return latest

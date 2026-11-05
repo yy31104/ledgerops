@@ -172,12 +172,13 @@ def calibrate_gate(gate_retriever, questions: list[dict]) -> dict:
         right = sum((s >= threshold) == (q["expected_route"] == routing.DOCS) for q, s in rows)
         return right / len(rows) if rows else 0.0
 
+    test_rows = [r for r in scored if r[0]["split"] == "test"]
     candidates = sorted({round(s, 4) for _, s in dev})
     best = max(candidates, key=lambda t: (accuracy(dev, t), -t))
     return {
         "threshold": best,
         "dev_accuracy": round(accuracy(dev, best), 4),
-        "test_accuracy": round(accuracy([r for r in scored if r[0]["split"] == "test"], best), 4),
+        "test_accuracy": round(accuracy(test_rows, best), 4) if test_rows else None,
         "scores": {
             "docs": sorted(round(s, 4) for q, s in scored if q["expected_route"] == routing.DOCS),
             "out_of_scope": {
@@ -219,6 +220,7 @@ def evaluate_answers(questions, retriever, provider, gate, revision) -> dict:
                 r["expected_route"] == r["predicted_route"] for r in rows if r["split"] == split
             )
             for split in ("dev", "test")
+            if any(r["split"] == split for r in rows)
         },
         "refusal": {
             "correct_refusals": sum(r["refused"] and r["should_refuse"] for r in rows),
@@ -265,7 +267,7 @@ def run(args) -> dict:
     else:
         from ledgerops_assistant.embeddings import HashingEmbedder
 
-        embedder, ablation = HashingEmbedder(), None
+        embedder, ablation = HashingEmbedder(384 if args.backend == "postgres" else 512), None
 
     if args.backend == "postgres":
         from ledgerops_assistant.postgres import PostgresRetriever, index_corpus, setup
@@ -373,9 +375,9 @@ def summary(report: dict) -> str:
     lines += [
         "",
         f"Scope gate: cosine >= {gate['threshold']} (dev accuracy {gate['dev_accuracy']:.2f}, "
-        f"test {gate['test_accuracy']:.2f}).",
-        f"Routes (provider {ans['provider']}): dev {ans['route_accuracy']['dev']:.2f}, "
-        f"test {ans['route_accuracy']['test']:.2f}. Refusals: {ans['refusal']}.",
+        f"test {gate['test_accuracy'] if gate['test_accuracy'] is not None else 'not evaluated'}).",
+        f"Routes (provider {ans['provider']}): {ans['route_accuracy']}. "
+        f"Refusals: {ans['refusal']}.",
         f"Answered docs questions citing a relevant section: {ans['citation_hit_rate']:.2f} "
         f"of {ans['answered_docs_questions']}.",
     ]

@@ -3,7 +3,7 @@ import json
 import httpx
 import pytest
 
-from ledgerops_assistant.tools import AuthenticationRequired, ReadOnlyAPI
+from ledgerops_assistant.tools import APIUnavailable, AuthenticationRequired, ReadOnlyAPI
 
 TOKEN = "lo1_" + "a" * 43
 OBJECT = "40000000-0000-0000-0000-000000000003"
@@ -100,7 +100,7 @@ def test_writes_urls_redirects_and_missing_scopes_are_blocked():
     assert client.read("payout", OBJECT, owner)["status"] == "forbidden"
     assert set(seen) == {"/v1/me"}
     redirect = api(lambda r: httpx.Response(302, headers={"Location": "https://example.invalid"}))
-    with pytest.raises(AuthenticationRequired):
+    with pytest.raises(APIUnavailable):
         redirect.identity()
 
 

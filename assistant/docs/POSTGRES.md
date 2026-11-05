@@ -2,6 +2,8 @@
 
 The assistant owns a separate database. Its migration account may install pgvector;
 the runtime login receives only USAGE on `assistant_rag` and SELECT on its tables.
+The product additionally grants CRUD on its dedicated workflow/checkpoint tables;
+it grants no financial database access.
 No ledger database login belongs in this package. SQL lives in the package as forward
 migrations; never edit a migration after it has been released.
 

@@ -96,6 +96,7 @@ class HashingEmbedder:
 
     def __init__(self, dimensions: int = 512):
         self.dimensions = dimensions
+        self.name = f"hashing-{dimensions}"
 
     def _vector(self, text: str) -> np.ndarray:
         vector = np.zeros(self.dimensions, dtype=np.float32)

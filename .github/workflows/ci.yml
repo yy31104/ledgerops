@@ -56,7 +56,8 @@ jobs:
       - name: Fake agent against the authenticated API
         run: |
           uv run --project assistant --locked --with-editable . --with gunicorn==26.2.0 \
-            python -m pytest -c pyproject.toml -p tests.conftest -q assistant/scenarios/agent_acceptance.py
+            python -m pytest -c pyproject.toml -p tests.conftest -q \
+              assistant/scenarios/agent_acceptance.py assistant/scenarios/handoff_acceptance.py
 
   assistant:
     name: Operator assistant
@@ -105,3 +106,38 @@ jobs:
         run: |
           uv run --locked python scripts/evaluate_local.py --split dev \
             --baseline eval/results/v1-postgres-dev.json --output .cache/ci-evaluation.json
+
+      - name: Preserve evaluation and MLflow records
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: retrieval-experiment
+          path: |
+            assistant/.cache/ci-evaluation.json
+            assistant/.cache/mlflow
+          retention-days: 7
+
+  panel:
+    name: React panel and local Compose
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+      - name: Build and test React
+        working-directory: assistant/web
+        run: |
+          npm ci
+          npm run build
+          npm test
+      - name: Start the local demo with stand-in embeddings
+        run: python3 assistant/scripts/compose.py up --hashing
+      - name: Check local readiness
+        run: curl --fail --silent http://127.0.0.1:8088/health/ready
+      - name: Stop the local demo
+        if: always()
+        run: python3 assistant/scripts/compose.py down

@@ -31,6 +31,8 @@ def log_experiment(report: dict, directory: Path) -> str:
             client.log_param(run_id, key, value)
         for method, result in report["retrieval"].items():
             for split, metrics in result["by_split"].items():
+                if not metrics["n"]:
+                    continue
                 for metric, value in metrics.items():
                     client.log_metric(
                         run_id, f"{method}.{split}.{metric.replace('@', '_at_')}", value

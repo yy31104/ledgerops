@@ -5,13 +5,14 @@ from uuid import uuid4
 import httpx
 import psycopg
 import pytest
+from langgraph.checkpoint.postgres import PostgresSaver
 
 from ledgerops_assistant.agent import Agent
 from ledgerops_assistant.drafts import DraftIntent, DraftStore, WorkflowConflict, setup
 from ledgerops_assistant.providers.fake import FakeProvider
 from ledgerops_assistant.retrieval import BM25Retriever
 from ledgerops_assistant.tools import AuthenticationRequired, ReadOnlyAPI
-from ledgerops_assistant.workflow import DraftWorkflow
+from ledgerops_assistant.workflow import DraftWorkflow, WorkflowContext
 
 PAYOUT = "40000000-0000-0000-0000-000000000003"
 OBSERVATION = "40000000-0000-0000-0000-000000000004"
@@ -90,7 +91,9 @@ def test_restart_resume_and_repeat_preserve_one_draft(pg_dsn, tiny_corpus):
     assert paused["status"] == "awaiting_review" and model.calls == 1
     restarted = DraftWorkflow(pg_dsn, workflow.agent)
     decision = {"continue": True, "draft_sha256": paused["draft"]["draft_sha256"]}
-    resumed = restarted.invoke(thread, api, decision=decision)
+    rotated = client(case())
+    rotated.token = "lo1_" + "r" * 43
+    resumed = restarted.invoke(thread, rotated, decision=decision)
     assert resumed["status"] == "handoff_ready" and model.calls == 1
     assert restarted.invoke(thread, api, decision=decision)["draft"] == paused["draft"]
     with pytest.raises(WorkflowConflict):
@@ -149,6 +152,29 @@ def test_concurrent_node_replay_cannot_create_another_action(pg_dsn):
         store.get_or_create(
             "owner", request, DraftIntent.parse({**INTENT, "reason": "changed"}), []
         )
+
+
+@pytest.mark.postgres
+def test_crash_gap_after_prepare_resumes_to_same_draft(pg_dsn, tiny_corpus):
+    workflow, model = create(pg_dsn, tiny_corpus)
+    api = client(case())
+    identity = api.identity()
+    thread, request_id = str(uuid4()), str(uuid4())
+    key = identity.owner_key + "/" + thread
+    initial = {"question": "Inspect a terminal blocker", "request_id": request_id, "intent": INTENT}
+    config = {"configurable": {"thread_id": key}}
+    with PostgresSaver.from_conn_string(pg_dsn) as saver:
+        graph = workflow._graph(saver)
+        prepared = graph.invoke(
+            initial,
+            config,
+            context=WorkflowContext(api, identity.owner_key),
+            interrupt_before=["review"],
+            durability="sync",
+        )
+    recovered = workflow.invoke(thread, api, **initial)
+    assert recovered["status"] == "awaiting_review"
+    assert recovered["draft"] == prepared["draft"] and model.calls == 1
 
 
 @pytest.mark.postgres

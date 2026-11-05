@@ -25,6 +25,12 @@ class AuthenticationRequired(Exception):
     pass
 
 
+class APIUnavailable(Exception):
+    def __init__(self, reason):
+        self.reason = reason
+        super().__init__(reason)
+
+
 @dataclass(frozen=True)
 class Identity:
     workspace_id: str
@@ -119,7 +125,7 @@ class ReadOnlyAPI:
     def identity(self) -> Identity:
         result = self._get("/v1/me")
         if result["status"] != "ok":
-            raise AuthenticationRequired("current identity cannot be verified")
+            raise APIUnavailable(result["status"])
         data = result["data"]
         try:
             ids = [str(UUID(data[k])) for k in ("workspace_id", "actor_id", "client_id")]

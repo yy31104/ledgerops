@@ -1,0 +1,84 @@
+name: ledgerops-assistant
+
+x-image: &image
+  image: ledgerops-assistant:local
+  build:
+    context: ..
+    dockerfile: assistant/Dockerfile
+
+services:
+  postgres:
+    image: pgvector/pgvector@sha256:c29f30688a9ad961691bdf0ec1650717cc132a5814619d80f80463d6e4c42e47
+    environment:
+      POSTGRES_DB: assistant
+      POSTGRES_PASSWORD: ${ASSISTANT_OWNER_PASSWORD:?run scripts/compose.py up}
+    volumes:
+      - assistant-db:/var/lib/postgresql
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d assistant"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    mem_limit: 512m
+
+  initialize:
+    <<: *image
+    command: [python, -m, ledgerops_assistant.runtime, init]
+    environment:
+      LEDGEROPS_ASSISTANT_DATABASE_URL: postgresql://postgres:${ASSISTANT_OWNER_PASSWORD}@postgres:5432/assistant
+      ASSISTANT_RUNTIME_PASSWORD: ${ASSISTANT_RUNTIME_PASSWORD:?run scripts/compose.py up}
+      LEDGEROPS_ASSISTANT_EMBEDDER: ${LEDGEROPS_ASSISTANT_EMBEDDER:-bge}
+    volumes:
+      - model-cache:/app/cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    mem_limit: 768m
+
+  demo-api:
+    <<: *image
+    command: [python, -m, ledgerops_assistant.demo_api]
+    environment:
+      LEDGEROPS_ASSISTANT_DEMO_TOKEN: ${LEDGEROPS_ASSISTANT_DEMO_TOKEN:?run scripts/compose.py up}
+    ports:
+      - "127.0.0.1:8088:8088"
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health/live')"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 128m
+
+  api:
+    <<: *image
+    # The synthetic upstream shares loopback with the assistant; no plaintext token
+    # is sent across an exposed host port. Real upstreams use an explicit HTTPS origin.
+    network_mode: service:demo-api
+    environment:
+      LEDGEROPS_ASSISTANT_DATABASE_URL: postgresql://assistant_runtime:${ASSISTANT_RUNTIME_PASSWORD}@postgres:5432/assistant
+      LEDGEROPS_ASSISTANT_API_ORIGIN: http://127.0.0.1:8090
+      LEDGEROPS_ASSISTANT_DEMO_TOKEN: ${LEDGEROPS_ASSISTANT_DEMO_TOKEN}
+      LEDGEROPS_ASSISTANT_EMBEDDER: ${LEDGEROPS_ASSISTANT_EMBEDDER:-bge}
+      LEDGEROPS_ASSISTANT_PROVIDERS: fake
+    volumes:
+      - model-cache:/app/cache
+    depends_on:
+      initialize:
+        condition: service_completed_successfully
+      demo-api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/health/ready')"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 768m
+
+volumes:
+  assistant-db:
+  model-cache:
