@@ -40,4 +40,3 @@ facts of another development question. Links alone are not sufficient labels.
   key_facts, routes and test-split records are unchanged.
 - The prior baseline remains eval/results/v2-postgres-dev.json as historical
   evidence; current CI uses a separate main-docs baseline.
-

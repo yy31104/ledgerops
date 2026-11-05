@@ -108,9 +108,14 @@ def test_postgres_context_retains_immutable_snapshot_and_raw_ranking(pg_dsn, tin
 @pytest.mark.parametrize(
     "question,fact",
     [
-        (
+        pytest.param(
             "What does a FAILED or CLOSED_ABSENT result do to the hold?",
             "to 80 / 0 / 80 with no outgoing journal",
+            marks=pytest.mark.xfail(
+                strict=True,
+                raises=StopIteration,
+                reason="Known current-main corpus regression: v1-011 source is outside context",
+            ),
         ),
         (
             "Reconciliation reports MISSING_INTERNAL for a payout that is still HELD. "

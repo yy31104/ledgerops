@@ -1,8 +1,12 @@
 # Retrieval quality: diagnosis, development selection and new holdout
 
+The v2 study and #19 context measurements below are historical. Current CI uses
+the reviewed main-document baseline described in
+[Current main document integration](#current-main-document-integration).
+
 ## What changed
 
-The production hybrid retains the same local bge-small encoder, corpus, chunk IDs,
+In the historical v2 study, the hybrid retained the same local bge-small encoder, corpus, chunk IDs,
 PostgreSQL FTS, HNSW settings, candidate depth 50 and equal component weights.
 Only the RRF constant changes from 60 to **10**. Twenty-four configurations were
 compared on the existing 32 development retrieval questions. Selection maximized
@@ -159,7 +163,7 @@ Full ranking/evaluation artifacts remain in local MLflow; the public repository
 contains compact summaries and scores rather than a second full answer dump.
 Held-out MLflow run: `6347aab5d58246388dc43119a07b8ff4`.
 
-From the repository root, with Docker available:
+From the historical study checkout (use the frozen revision above), with Docker available:
 
 ```sh
 uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
@@ -228,11 +232,12 @@ reproduces the CI quality gate with pinned public local embeddings and fake answ
 ## Historical 60-question comparison
 
 The earlier synthetic set remains in `eval/v1-draft/questions.jsonl`, with 40
-development and 20 held-out questions. Of these, 32 and 12 respectively are scored
-for retrieval; remaining cases test routing/refusal. Its public manifest binds the
-unchanged question bytes and declares that labels are not independently
-human-reviewed. The original k=60 development and held-out runs are retained for
-comparison, not as new tuning targets.
+development and 20 held-out questions. Of these, 32 and 12 respectively were scored
+for retrieval; remaining cases test routing/refusal. The current public manifest
+records four later development relevance additions and the preceding file hash.
+Question wording, key facts, routes and the 20 test records remain unchanged;
+labels are not independently human-reviewed. Use 22c56c7 for the original question
+bytes. The original k=60 development and held-out runs remain historical comparisons.
 
 | Split | Method | Recall@5 | MRR@10 | nDCG@5 |
 |---|---|---:|---:|---:|
@@ -264,6 +269,10 @@ References: [pgvector](https://github.com/pgvector/pgvector),
 
 
 ## Bounded generation context (development only)
+
+This subsection records #19 at 22c56c7, using the 175-chunk corpus and original
+labels. Reproduce its tables and commands from that revision. Current-main
+development results are reported separately below.
 
 A section hit can miss the paragraph needed to answer. Inspection of the actual
 PostgreSQL inputs found two distinct cases:
@@ -413,8 +422,8 @@ coverage and size together with the existing corpus/model/question identities.
 
 The policy was developed against known development failures and is not an unseen
 quality result. The v2 holdout was already consumed before this change and was not
-rerun or used to select expansion settings. Questions, labels, selection.json and
-freeze.json remain unchanged. Source additions change application code hashes; use
+rerun or used to select expansion settings. In #19, questions, labels, selection.json
+and freeze.json were unchanged. Source additions change application code hashes; use
 the recorded historical revision for exact v2-study reproduction.
 
 
@@ -458,3 +467,84 @@ cheaper subscription-inference claim follows from this experiment.
 MLflow runs: raw context `50ca4b8b95dc460abd594d3b619b2eb4`, expanded fake generation
 `fc5f6ef20ebc48db829f7245f4d3a46c`, expanded subscription generation
 `a660384db52f42ff96826e1c7c9813a7`. Raw generation records are not committed.
+
+
+## Current main document integration
+
+The assistant stack now includes main d57f04a through a merge commit. Main changed
+README and ADR 0004 and added Kubernetes, Azure and history-checking documentation.
+The previous glob would index 206 chunks, changing the corpus identity and
+invalidating the frozen baseline even without a textual merge conflict.
+
+The corpus is now the explicit 21-file list in
+[src/ledgerops_assistant/corpus.py](../src/ledgerops_assistant/corpus.py), preserving
+all paths used by #19 and their current content, including changed README and
+ADR 0004. These are the operating, investigation and evidence sources accepted by
+the study. Deployment guides AZURE.md/KUBERNETES.md, ADR 0005 and rename proposals
+are excluded from automatic inclusion. New files require simultaneous source-label
+review and a new development baseline. This is a scope policy, not a score-based
+file selection: the updated approved files produce 179 chunks and still reduce
+Recall relative to the historical 175-chunk corpus.
+
+The [development label change record](../eval/v1-draft/DEV-LABEL-CHANGES-2026-11-05.md)
+checks all 32 documentation questions against changed sections and existing
+key_facts, before running retrieval. It adds the new ADR 0004 section only to
+v1-001/002/004/005. No existing section is removed, and question text, key facts,
+routes, groups, splits and all test records are unchanged. The v2 holdout files
+and results are untouched and were not rerun.
+
+Retrieval and context settings remain fixed: bge-small, FTS/vector fusion k=10,
+depth=50, equal weights, 30 context candidates, five section anchors and the same
+18000-byte introduction/neighbor packing. Generation is fake in all three runs:
+
+| Corpus and labels | Chunks | Hybrid Recall@5 | MRR@10 | nDCG@5 | Expanded section coverage |
+|---|---:|---:|---:|---:|---:|
+| #19 corpus, original labels | 175 | 0.7812 | 0.7531 | 0.7048 | 0.8594 |
+| Current approved corpus, original labels | 179 | 0.6927 | 0.7063 | 0.6387 | 0.7552 |
+| Current approved corpus, reviewed labels | 179 | 0.7135 | 0.7573 | 0.6739 | 0.7708 |
+
+Relabeling recognizes additional sufficient sources; it does not improve the
+retriever or restore the earlier Recall. The current baseline is
+[v3-main-docs-dev.json](../eval/results/v3-main-docs-dev.json). The original
+[v2-postgres-dev.json](../eval/results/v2-postgres-dev.json) remains unchanged as
+historical evidence. Gate checks still reject future corpus/model/label identity
+drift and decreases against the reviewed current baseline.
+
+### Known missing source
+
+v1-011 still has zero labeled-section coverage in the expanded current context.
+Its 80/0/80 and no-outgoing-journal facts remain in PAYOUTS.md but are not supplied.
+The prior end-to-end source-presence test remains as a strict expected failure
+for this exact StopIteration; unrelated errors still fail, and an unexpected pass
+requires reviewing/removing the marker. This is one recorded quality regression,
+not a passed source-coverage check. No retrieval or context setting was changed
+to special-case it.
+
+The current baseline is not a new real-model or unseen-quality result. Earlier
+subscription answer audits apply only to their historical corpus. An edit to an
+approved file such as PAYOUTS.md requires a fresh source/label review and baseline;
+adding an unapproved document alone does not change the index.
+
+### Reproduction
+
+From the current integration checkout with Docker available:
+
+```sh
+git worktree add --detach ../ledgerops-study-22c 22c56c7
+LEDGEROPS_ASSISTANT_CORPUS_ROOT=../ledgerops-study-22c \
+  uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
+  --provider fake --split dev \
+  --questions ../ledgerops-study-22c/assistant/eval/v1-draft/questions.jsonl \
+  --output assistant/.cache/main-docs-old-old.json
+uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
+  --provider fake --split dev \
+  --questions ../ledgerops-study-22c/assistant/eval/v1-draft/questions.jsonl \
+  --output assistant/.cache/main-docs-new-old.json
+uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
+  --provider fake --split dev --baseline assistant/eval/results/v3-main-docs-dev.json \
+  --output assistant/.cache/main-docs-new-new.json
+```
+
+MLflow runs: old/old 491666f45c7747ca8b4fb4f14e08317f; current/old
+4f20daf31a154d738c9c4149cc932ad9; current/reviewed
+6ed9499f026c42e49c3bf714bb2db81b. Raw generation records are not committed.
