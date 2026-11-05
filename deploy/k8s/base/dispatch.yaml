@@ -1,0 +1,110 @@
+# The provider simulator binds 127.0.0.1:8765 and checks Host=127.0.0.1:8765, so the worker
+# must share its network namespace: one Pod, two containers (the K8s form of
+# `network_mode: service:provider` in ops/linux/compose.yaml). The worker cannot mount SQLite.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: provider-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources: {requests: {storage: 256Mi}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dispatch
+  labels: {app: dispatch}
+spec:
+  replicas: 1
+  # Recreate: never run two workers or two SQLite writers against the same provider history.
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: dispatch}}
+  template:
+    metadata:
+      labels: {app: dispatch}
+    spec:
+      terminationGracePeriodSeconds: 50
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      initContainers:
+        - name: copy-secrets
+          image: ledgerops-local:k8s
+          imagePullPolicy: Never
+          command:
+            - sh
+            - -c
+            - >-
+              mkdir -p /private/worker /private/provider &&
+              cp /secret-worker/* /private/worker/ && cp /secret-provider/* /private/provider/ &&
+              chmod 0600 /private/worker/* /private/provider/*
+          resources: {requests: {cpu: 10m, memory: 16Mi}, limits: {cpu: 100m, memory: 32Mi}}
+          securityContext: &container
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: secret-worker, mountPath: /secret-worker, readOnly: true}
+            - {name: secret-provider, mountPath: /secret-provider, readOnly: true}
+            - {name: private, mountPath: /private}
+      containers:
+        - name: provider
+          image: ledgerops-local:k8s
+          imagePullPolicy: Never
+          args: [provider]
+          # The simulator listens only on the Pod's loopback. A tcpSocket probe with
+          # host 127.0.0.1 would test the node's loopback instead, so probe from inside.
+          readinessProbe:
+            exec:
+              command: [python, -c, "import socket; socket.create_connection(('127.0.0.1', 8765), 2).close()"]
+            periodSeconds: 5
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command: [python, -c, "import socket; socket.create_connection(('127.0.0.1', 8765), 2).close()"]
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 192Mi}
+          securityContext: *container
+          volumeMounts:
+            - {name: private, mountPath: /run/ledgerops, subPath: provider, readOnly: true}
+            - {name: provider-data, mountPath: /var/lib/ledgerops-provider}
+            - {name: tmp, mountPath: /tmp}
+        - name: worker
+          image: ledgerops-local:k8s
+          imagePullPolicy: Never
+          args: [worker]
+          env:
+            - {name: LEDGEROPS_RESTORE_MODE, value: "false"}
+            - {name: LEDGEROPS_DISPATCH_ENABLED, value: "true"}
+          # The worker has no HTTP port. Liveness = the process is running (kubelet restarts it on
+          # exit, including the fail-stop exit code 2). Readiness is not meaningful for a queue worker.
+          livenessProbe:
+            exec: {command: [python, -c, "import os; os.kill(1, 0)"]}
+            periodSeconds: 20
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 192Mi}
+          securityContext: *container
+          volumeMounts:
+            - {name: private, mountPath: /run/ledgerops, subPath: worker, readOnly: true}
+            - {name: tmp-worker, mountPath: /tmp}
+      volumes:
+        - name: secret-worker
+          secret: {secretName: ledgerops-worker, defaultMode: 0440}
+        - name: secret-provider
+          secret: {secretName: ledgerops-provider, defaultMode: 0440}
+        - name: private
+          emptyDir: {medium: Memory, sizeLimit: 1Mi}
+        - name: provider-data
+          persistentVolumeClaim: {claimName: provider-data}
+        - name: tmp
+          emptyDir: {medium: Memory, sizeLimit: 32Mi}
+        - name: tmp-worker
+          emptyDir: {medium: Memory, sizeLimit: 32Mi}
