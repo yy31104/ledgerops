@@ -35,3 +35,23 @@ def test_gate_rejects_wiring_metrics_and_relabelled_questions():
         new[path[0]][path[1]] = value
         with pytest.raises(ValueError):
             check_regression(new, old)
+
+
+@pytest.mark.parametrize("metric", ["mrr@10", "ndcg@5", "context_recall@5"])
+def test_gate_checks_ranking_and_runtime_coverage_when_baselined(metric):
+    old = baseline()
+    old["retrieval"]["hybrid"]["by_split"]["dev"][metric] = 0.7
+    new = deepcopy(old)
+    new["retrieval"]["hybrid"]["by_split"]["dev"][metric] = 0.69
+    with pytest.raises(ValueError, match="regression"):
+        check_regression(new, old)
+
+
+def test_gate_rejects_fusion_or_corpus_drift():
+    old = baseline()
+    old.update(fusion={"rrf_k": 10}, corpus={"digest": "frozen"})
+    for key in ("fusion", "corpus"):
+        new = deepcopy(old)
+        new[key] = {}
+        with pytest.raises(ValueError, match="changed"):
+            check_regression(new, old)

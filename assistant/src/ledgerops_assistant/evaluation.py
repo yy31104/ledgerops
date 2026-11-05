@@ -24,12 +24,14 @@ import statistics
 import sys
 import time
 from collections import Counter, defaultdict
+from dataclasses import asdict
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
 
 from ledgerops_assistant import routing
 from ledgerops_assistant.answer import ScopeGate, answer
+from ledgerops_assistant.context import CONTEXT_POLICY, MAX_CONTEXT_BYTES, ContextRetriever
 from ledgerops_assistant.corpus import CHUNKER_VERSION, load_corpus
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import (
@@ -93,10 +95,21 @@ def evaluate_retriever(retriever, questions: list[dict]) -> dict:
         hits = retriever.search(q["question"], 30)
         latencies.append((time.perf_counter() - started) * 1000)
         ranked = rank_sections(hits)
-        rows.append({"q": q, "ranked": ranked, **score_ranking(ranked, q["relevant_sections"])})
+        rows.append(
+            {
+                "q": q,
+                "ranked": ranked,
+                **score_ranking(ranked, q["relevant_sections"]),
+                # Preserve the historical raw-five-chunk coverage for comparison.
+                # Expanded generation context is measured separately below.
+                "context_recall@5": score_ranking(rank_sections(hits[:5]), q["relevant_sections"])[
+                    "recall@5"
+                ],
+            }
+        )
 
     def summarize(subset):
-        keys = ("hit@1", "hit@3", "hit@5", "recall@5", "mrr@10", "ndcg@5")
+        keys = ("hit@1", "hit@3", "hit@5", "recall@5", "mrr@10", "ndcg@5", "context_recall@5")
         return {"n": len(subset), **{k: _mean(r[k] for r in subset) for k in keys}}
 
     by_split = {s: summarize([r for r in rows if r["q"]["split"] == s]) for s in ("dev", "test")}
@@ -125,7 +138,8 @@ def evaluate_retriever(retriever, questions: list[dict]) -> dict:
         ],
         "per_question": {
             r["q"]["id"]: {
-                key: r[key] for key in ("hit@1", "hit@5", "recall@5", "mrr@10", "ndcg@5")
+                key: r[key]
+                for key in ("hit@1", "hit@5", "recall@5", "mrr@10", "ndcg@5", "context_recall@5")
             }
             for r in rows
         },
@@ -172,12 +186,13 @@ def calibrate_gate(gate_retriever, questions: list[dict]) -> dict:
         right = sum((s >= threshold) == (q["expected_route"] == routing.DOCS) for q, s in rows)
         return right / len(rows) if rows else 0.0
 
+    test_rows = [r for r in scored if r[0]["split"] == "test"]
     candidates = sorted({round(s, 4) for _, s in dev})
     best = max(candidates, key=lambda t: (accuracy(dev, t), -t))
     return {
         "threshold": best,
         "dev_accuracy": round(accuracy(dev, best), 4),
-        "test_accuracy": round(accuracy([r for r in scored if r[0]["split"] == "test"], best), 4),
+        "test_accuracy": round(accuracy(test_rows, best), 4) if test_rows else None,
         "scores": {
             "docs": sorted(round(s, 4) for q, s in scored if q["expected_route"] == routing.DOCS),
             "out_of_scope": {
@@ -208,6 +223,7 @@ def evaluate_answers(questions, retriever, provider, gate, revision) -> dict:
                 "dropped_citations": len(result.dropped_citations),
                 "answer": result.text,
                 "citations": [c.chunk_id for c in result.citations],
+                "context_chunks": result.retrieved,
             }
         )
     answered_docs = [r for r in rows if r["expected_route"] == routing.DOCS and not r["refused"]]
@@ -219,6 +235,7 @@ def evaluate_answers(questions, retriever, provider, gate, revision) -> dict:
                 r["expected_route"] == r["predicted_route"] for r in rows if r["split"] == split
             )
             for split in ("dev", "test")
+            if any(r["split"] == split for r in rows)
         },
         "refusal": {
             "correct_refusals": sum(r["refused"] and r["should_refuse"] for r in rows),
@@ -242,18 +259,24 @@ def _version(package: str) -> str:
         return "not installed"
 
 
+def check_freeze_record(questions_path: Path) -> None:
+    record_path = questions_path.with_name("manifest.json")
+    if not record_path.exists():
+        record_path = questions_path.with_name("review.json")
+    record = json.loads(record_path.read_text()) if record_path.exists() else {}
+    if (
+        record.get("status") not in ("approved", "frozen_unreviewed", "frozen_synthetic")
+        or record.get("sha256") != hashlib.sha256(questions_path.read_bytes()).hexdigest()
+    ):
+        raise ValueError("holdout requires a frozen record for this exact question set")
+
+
 def run(args) -> dict:
     corpus = load_corpus()
     questions_path = Path(args.questions)
     all_questions = load_questions(questions_path, corpus.section_ids())
     if args.split != "dev":
-        review_path = questions_path.with_name("review.json")
-        review = json.loads(review_path.read_text()) if review_path.exists() else {}
-        if (
-            review.get("status") not in ("approved", "frozen_unreviewed")
-            or review.get("sha256") != hashlib.sha256(questions_path.read_bytes()).hexdigest()
-        ):
-            raise ValueError("holdout requires a frozen record for this exact question set")
+        check_freeze_record(questions_path)
     questions = [q for q in all_questions if args.split == "all" or q["split"] == args.split]
     docs_questions = [q for q in questions if q["expected_route"] == routing.DOCS]
 
@@ -265,7 +288,7 @@ def run(args) -> dict:
     else:
         from ledgerops_assistant.embeddings import HashingEmbedder
 
-        embedder, ablation = HashingEmbedder(), None
+        embedder, ablation = HashingEmbedder(384 if args.backend == "postgres" else 512), None
 
     if args.backend == "postgres":
         from ledgerops_assistant.postgres import PostgresRetriever, index_corpus, setup
@@ -284,7 +307,9 @@ def run(args) -> dict:
         keyword = BM25Retriever(corpus)
         vector = VectorRetriever(corpus, embedder, cache_dir=CACHE_DIR)
         methods = {"bm25": keyword, "vector": vector}
-    hybrid = HybridRetriever(keyword, vector)
+    fusion_k = 60 if getattr(args, "fusion", "tuned") == "legacy" else 10
+    hybrid = HybridRetriever(keyword, vector, rrf_k=fusion_k)
+    methods["legacy_hybrid"] = HybridRetriever(keyword, vector, rrf_k=60)
     methods["hybrid"] = hybrid
     if ablation is not None and args.backend == "memory":
         methods["vector_no_instruction"] = VectorRetriever(corpus, ablation, cache_dir=CACHE_DIR)
@@ -305,9 +330,28 @@ def run(args) -> dict:
     }
     gate_report = calibrate_gate(vector, [q for q in all_questions if q["split"] == "dev"])
     gate = ScopeGate(vector, gate_report["threshold"])
+    expanded = getattr(args, "context", "expanded") == "expanded"
+    answer_retriever = ContextRetriever(hybrid, corpus) if expanded else hybrid
     answers = evaluate_answers(
-        questions, hybrid, get_provider(args.provider), gate, corpus.revision
+        questions, answer_retriever, get_provider(args.provider), gate, corpus.revision
     )
+    by_id = corpus.by_id()
+    provided = {}
+    answer_rows = {r["id"]: r for r in answers["answers"]}
+    for question in docs_questions:
+        chunks = [by_id[key] for key in answer_rows[question["id"]]["context_chunks"]]
+        relevant = set(question["relevant_sections"])
+        provided[question["id"]] = {
+            "chunks": len(chunks),
+            "json_bytes": len(json.dumps([asdict(c) for c in chunks]).encode()),
+            "section_recall": len({c.section_id for c in chunks} & relevant) / len(relevant),
+        }
+    context_stats = {
+        "mean_chunks": _mean(r["chunks"] for r in provided.values()),
+        "mean_json_bytes": _mean(r["json_bytes"] for r in provided.values()),
+        "mean_section_recall": _mean(r["section_recall"] for r in provided.values()),
+        "max_json_bytes": max((r["json_bytes"] for r in provided.values()), default=0),
+    }
     return {
         "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "corpus": {
@@ -335,6 +379,14 @@ def run(args) -> dict:
             "machine": platform.machine(),
             "backend": args.backend,
             "quality_signal": args.embedder == "bge",
+        },
+        "fusion": {"rrf_k": fusion_k, "depth": 50, "weights": [1.0, 1.0], "unit": "chunk"},
+        "context": {
+            "policy": CONTEXT_POLICY if expanded else "raw-five-chunks",
+            "max_json_bytes": MAX_CONTEXT_BYTES if expanded else None,
+            "ranking_metrics_use_expansion": False,
+            "stats": context_stats,
+            "per_question": provided,
         },
         "retrieval": retrieval,
         "comparisons": comparisons,
@@ -373,9 +425,9 @@ def summary(report: dict) -> str:
     lines += [
         "",
         f"Scope gate: cosine >= {gate['threshold']} (dev accuracy {gate['dev_accuracy']:.2f}, "
-        f"test {gate['test_accuracy']:.2f}).",
-        f"Routes (provider {ans['provider']}): dev {ans['route_accuracy']['dev']:.2f}, "
-        f"test {ans['route_accuracy']['test']:.2f}. Refusals: {ans['refusal']}.",
+        f"test {gate['test_accuracy'] if gate['test_accuracy'] is not None else 'not evaluated'}).",
+        f"Routes (provider {ans['provider']}): {ans['route_accuracy']}. "
+        f"Refusals: {ans['refusal']}.",
         f"Answered docs questions citing a relevant section: {ans['citation_hit_rate']:.2f} "
         f"of {ans['answered_docs_questions']}.",
     ]
@@ -387,6 +439,8 @@ def main(argv=None) -> int:
     parser.add_argument("--questions", default=str(DEFAULT_QUESTIONS))
     parser.add_argument("--embedder", choices=("bge", "hashing"), default="bge")
     parser.add_argument("--provider", default="fake")
+    parser.add_argument("--context", choices=("expanded", "raw"), default="expanded")
+    parser.add_argument("--fusion", choices=("legacy", "tuned"), default="tuned")
     parser.add_argument("--backend", choices=("postgres", "memory"), default="postgres")
     parser.add_argument("--setup-database", action="store_true")
     parser.add_argument("--split", choices=("dev", "test", "all"), default="dev")

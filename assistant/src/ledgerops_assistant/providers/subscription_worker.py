@@ -43,6 +43,8 @@ def main():
                 ExternalMessage(tool_name="ledgerops_evidence", content=request["message"]),
                 output_schema=request["schema"],
                 approval_mode=ApprovalMode.deny_all,
+                # Short schema-constrained turns must fit the agent's call deadline.
+                effort="low",
             )
             if str(getattr(result.status, "value", result.status)) != "completed":
                 raise RuntimeError("Codex turn did not complete")

@@ -1,0 +1,565 @@
+{
+  "protocol": {
+    "selection_split": "v1 dev only (old test diagnostic only)",
+    "grid": {
+      "keyword_weight": [
+        0.25,
+        0.5,
+        1.0
+      ],
+      "rrf_k": [
+        10,
+        60
+      ],
+      "depth": [
+        20,
+        50
+      ],
+      "unit": [
+        "chunk",
+        "section"
+      ]
+    },
+    "selection": "maximize dev Recall@5 among candidates with MRR@10 and nDCG@5 >= legacy hybrid; tie: nDCG, MRR, canonical config JSON",
+    "holdout": "60 independent newly authored answerable questions; one evaluation after config/code/corpus frozen; no retuning",
+    "uncertainty": "paired question bootstrap and cluster bootstrap by author topic groups; report recall, MRR, nDCG and all regressions",
+    "changes_excluded": "no embeddings, corpus, labels, FTS SQL or chunker changes"
+  },
+  "legacy_dev": {
+    "n": 32,
+    "hit@1": 0.6875,
+    "hit@3": 0.7812,
+    "hit@5": 0.8125,
+    "recall@5": 0.7083,
+    "mrr@10": 0.7527,
+    "ndcg@5": 0.6741
+  },
+  "selected_config": {
+    "weights": [
+      1.0,
+      1.0
+    ],
+    "rrf_k": 10,
+    "depth": 50,
+    "unit": "chunk"
+  },
+  "selected_dev": {
+    "n": 32,
+    "hit@1": 0.6875,
+    "hit@3": 0.75,
+    "hit@5": 0.9062,
+    "recall@5": 0.7812,
+    "mrr@10": 0.7531,
+    "ndcg@5": 0.7048
+  },
+  "selected_mlflow_run_id": "f7e08ca98474418ea5fe44f761fc8b71",
+  "corpus_digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+  "questions_sha256": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+  "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+  "trials": [
+    {
+      "fusion": {
+        "weights": [
+          0.25,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 20,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5312,
+        "hit@3": 0.8438,
+        "hit@5": 0.9062,
+        "recall@5": 0.7656,
+        "mrr@10": 0.6823,
+        "ndcg@5": 0.6601
+      },
+      "mlflow_run_id": "ec458e7c6ba342e2b3fef5fb4a0d39fc"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.25,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 20,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5312,
+        "hit@3": 0.7812,
+        "hit@5": 0.9062,
+        "recall@5": 0.7812,
+        "mrr@10": 0.6771,
+        "ndcg@5": 0.6608
+      },
+      "mlflow_run_id": "3464e7203e214fc68d481c27a04c6284"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.25,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 50,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5312,
+        "hit@3": 0.8438,
+        "hit@5": 0.9062,
+        "recall@5": 0.75,
+        "mrr@10": 0.6823,
+        "ndcg@5": 0.6514
+      },
+      "mlflow_run_id": "f9f35f465ece4bc8a5e841c6b1acff33"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.25,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 50,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5312,
+        "hit@3": 0.7812,
+        "hit@5": 0.9062,
+        "recall@5": 0.75,
+        "mrr@10": 0.6755,
+        "ndcg@5": 0.6443
+      },
+      "mlflow_run_id": "2235c9fc7b7746bab46fd5538707a4be"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.25,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 20,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5625,
+        "hit@3": 0.7812,
+        "hit@5": 0.9062,
+        "recall@5": 0.7656,
+        "mrr@10": 0.6896,
+        "ndcg@5": 0.666
+      },
+      "mlflow_run_id": "094317e31f5f4f73bce565f0243f9f68"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.25,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 20,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5625,
+        "hit@3": 0.7812,
+        "hit@5": 0.9062,
+        "recall@5": 0.7969,
+        "mrr@10": 0.6896,
+        "ndcg@5": 0.6792
+      },
+      "mlflow_run_id": "fdc2370380904d9dad0f70faf38ffe3f"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.25,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 50,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5625,
+        "hit@3": 0.8125,
+        "hit@5": 0.875,
+        "recall@5": 0.7344,
+        "mrr@10": 0.691,
+        "ndcg@5": 0.6547
+      },
+      "mlflow_run_id": "7a5d759c2d814cfe915f61146d54b621"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.25,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 50,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5625,
+        "hit@3": 0.7812,
+        "hit@5": 0.875,
+        "recall@5": 0.7812,
+        "mrr@10": 0.688,
+        "ndcg@5": 0.6724
+      },
+      "mlflow_run_id": "7ec8a1baf7014c5e89e76be93963a854"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.5,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 20,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.625,
+        "hit@3": 0.8125,
+        "hit@5": 0.9062,
+        "recall@5": 0.7812,
+        "mrr@10": 0.7302,
+        "ndcg@5": 0.6929
+      },
+      "mlflow_run_id": "4c85b25d74354eb1b115e9f97dc1986c"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.5,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 20,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5625,
+        "hit@3": 0.8125,
+        "hit@5": 0.9062,
+        "recall@5": 0.7812,
+        "mrr@10": 0.6937,
+        "ndcg@5": 0.6739
+      },
+      "mlflow_run_id": "548aee2b1bd74aa38c08546c3416c8d8"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.5,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 50,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.625,
+        "hit@3": 0.8438,
+        "hit@5": 0.875,
+        "recall@5": 0.7656,
+        "mrr@10": 0.7373,
+        "ndcg@5": 0.6877
+      },
+      "mlflow_run_id": "f6e59da949df45e881da2bc8557df114"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.5,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 50,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5625,
+        "hit@3": 0.8125,
+        "hit@5": 0.875,
+        "recall@5": 0.7656,
+        "mrr@10": 0.6951,
+        "ndcg@5": 0.6665
+      },
+      "mlflow_run_id": "f83d7785325c4877aabe04144ff99a6b"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.5,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 20,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6562,
+        "hit@3": 0.8125,
+        "hit@5": 0.9062,
+        "recall@5": 0.7812,
+        "mrr@10": 0.7443,
+        "ndcg@5": 0.7017
+      },
+      "mlflow_run_id": "12143540fd5448949b5716cad3e03c46"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.5,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 20,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5938,
+        "hit@3": 0.8125,
+        "hit@5": 0.9062,
+        "recall@5": 0.7812,
+        "mrr@10": 0.7078,
+        "ndcg@5": 0.6801
+      },
+      "mlflow_run_id": "7325cbfaa5a549cab1d111c4e126365a"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.5,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 50,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6562,
+        "hit@3": 0.8125,
+        "hit@5": 0.875,
+        "recall@5": 0.7656,
+        "mrr@10": 0.7465,
+        "ndcg@5": 0.6957
+      },
+      "mlflow_run_id": "20b60a6a649b45f4a1a6e9b244523116"
+    },
+    {
+      "fusion": {
+        "weights": [
+          0.5,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 50,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.5938,
+        "hit@3": 0.8125,
+        "hit@5": 0.875,
+        "recall@5": 0.7656,
+        "mrr@10": 0.7031,
+        "ndcg@5": 0.6741
+      },
+      "mlflow_run_id": "e2441faaf7f3448f9d46654bef32edcf"
+    },
+    {
+      "fusion": {
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 20,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.75,
+        "hit@5": 0.8438,
+        "recall@5": 0.7344,
+        "mrr@10": 0.7526,
+        "ndcg@5": 0.6845
+      },
+      "mlflow_run_id": "3e2379c9b33d4dd7955356735be793d2"
+    },
+    {
+      "fusion": {
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 20,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.75,
+        "hit@5": 0.8438,
+        "recall@5": 0.7188,
+        "mrr@10": 0.748,
+        "ndcg@5": 0.6746
+      },
+      "mlflow_run_id": "238e95a2df2e4358b7036e7a34e59ae9"
+    },
+    {
+      "fusion": {
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 50,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.75,
+        "hit@5": 0.9062,
+        "recall@5": 0.7812,
+        "mrr@10": 0.7531,
+        "ndcg@5": 0.7048
+      },
+      "mlflow_run_id": "f7e08ca98474418ea5fe44f761fc8b71"
+    },
+    {
+      "fusion": {
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "rrf_k": 10,
+        "depth": 50,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.75,
+        "hit@5": 0.9062,
+        "recall@5": 0.7656,
+        "mrr@10": 0.7479,
+        "ndcg@5": 0.6949
+      },
+      "mlflow_run_id": "0f14bcab5f2c4c1c94e95b5bdb1117ca"
+    },
+    {
+      "fusion": {
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 20,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.7812,
+        "hit@5": 0.8125,
+        "recall@5": 0.7083,
+        "mrr@10": 0.7535,
+        "ndcg@5": 0.6741
+      },
+      "mlflow_run_id": "ac9e9a420ff44d64852b782198581101"
+    },
+    {
+      "fusion": {
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 20,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.75,
+        "hit@5": 0.8125,
+        "recall@5": 0.6927,
+        "mrr@10": 0.7462,
+        "ndcg@5": 0.6615
+      },
+      "mlflow_run_id": "6958d54e71004909aa5e81bac90d87c6"
+    },
+    {
+      "fusion": {
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 50,
+        "unit": "chunk"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.7812,
+        "hit@5": 0.8125,
+        "recall@5": 0.7083,
+        "mrr@10": 0.7527,
+        "ndcg@5": 0.6741
+      },
+      "mlflow_run_id": "5f9a6a0dc2704d5888084f6461f6d5cc"
+    },
+    {
+      "fusion": {
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "rrf_k": 60,
+        "depth": 50,
+        "unit": "section"
+      },
+      "metrics": {
+        "n": 32,
+        "hit@1": 0.6875,
+        "hit@3": 0.75,
+        "hit@5": 0.8125,
+        "recall@5": 0.6927,
+        "mrr@10": 0.7407,
+        "ndcg@5": 0.6615
+      },
+      "mlflow_run_id": "cb17b8871b56464ab2c1928670c4afd2"
+    }
+  ]
+}

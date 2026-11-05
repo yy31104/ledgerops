@@ -12,6 +12,21 @@ def test_ranking_metrics():
     assert scores["recall@5"] == 1.0 and scores["mrr@10"] == 0.5
 
 
+def test_report_distinguishes_unique_sections_from_five_runtime_chunks():
+    from ledgerops_assistant.corpus import Chunk
+    from ledgerops_assistant.retrieval import Hit
+
+    class Repeated:
+        def search(self, query, k):
+            return [
+                Hit(Chunk(f"d#a/{i}", "d#a", "d", "D", "a", "unrelated"), 1) for i in range(5)
+            ] + [Hit(Chunk("d#b/0", "d#b", "d", "D", "b", "answer"), 1)]
+
+    result = evaluation.evaluate_retriever(Repeated(), [_row(relevant_sections=["d#b"])])
+    assert result["all"]["recall@5"] == 1
+    assert result["all"]["context_recall@5"] == 0
+
+
 def test_committed_questions_are_valid_against_the_real_corpus(corpus):
     questions = load_questions(DEFAULT_QUESTIONS, corpus.section_ids())
     assert len(questions) >= 60
@@ -73,7 +88,7 @@ def test_full_run_with_hashing_embedder_and_fake_provider(tmp_path):
         == 0
     )
     report = json.loads(out.read_text())
-    assert set(report["retrieval"]) == {"bm25", "vector", "hybrid"}
+    assert set(report["retrieval"]) == {"bm25", "vector", "legacy_hybrid", "hybrid"}
     assert report["answers"]["refusal"]["wrong_refusals"] >= 0
     assert report["questions"]["retrieval_scored"] == sum(
         1

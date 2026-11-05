@@ -1,0 +1,75 @@
+# One-time administrator job: roles + migrations (provision), then synthetic seed.
+# The seed writes customer/merchant tokens to a PVC that only the synthetic probe mounts.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bootstrap-output
+spec:
+  accessModes: [ReadWriteOnce]
+  resources: {requests: {storage: 16Mi}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bootstrap
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels: {app: bootstrap}
+    spec:
+      restartPolicy: OnFailure
+      securityContext: &pod
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      initContainers:
+        - &copy
+          name: copy-secrets
+          image: ledgerops-local:k8s
+          imagePullPolicy: Never
+          # The launcher requires UID-owned mode-0600 files; Secret volumes are root-owned.
+          command: [sh, -c, "cp /secret/* /run/ledgerops/ && chmod 0600 /run/ledgerops/*"]
+          resources: {requests: {cpu: 10m, memory: 16Mi}, limits: {cpu: 100m, memory: 32Mi}}
+          securityContext: &container
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: secret, mountPath: /secret, readOnly: true}
+            - {name: private, mountPath: /run/ledgerops}
+        - name: provision
+          image: ledgerops-local:k8s
+          imagePullPolicy: Never
+          args: [bootstrap, provision]
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: "1", memory: 512Mi}}
+          securityContext: *container
+          volumeMounts: &mounts
+            - {name: private, mountPath: /run/ledgerops, readOnly: true}
+            - {name: output, mountPath: /run/bootstrap}
+            - {name: scratch, mountPath: /var/lib/ledgerops-scratch}
+            - {name: inputs, mountPath: /var/lib/ledgerops-inputs}
+            - {name: tmp, mountPath: /tmp}
+      containers:
+        - name: seed
+          image: ledgerops-local:k8s
+          imagePullPolicy: Never
+          args: [bootstrap, seed]
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: "1", memory: 512Mi}}
+          securityContext: *container
+          volumeMounts: *mounts
+      volumes:
+        - name: secret
+          secret: {secretName: ledgerops-bootstrap, defaultMode: 0440}
+        - name: private
+          emptyDir: {medium: Memory, sizeLimit: 1Mi}
+        - name: output
+          persistentVolumeClaim: {claimName: bootstrap-output}
+        - name: scratch
+          emptyDir: {sizeLimit: 3Gi}
+        - name: inputs
+          emptyDir: {sizeLimit: 64Mi}
+        - name: tmp
+          emptyDir: {medium: Memory, sizeLimit: 32Mi}
