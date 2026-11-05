@@ -41,6 +41,12 @@ Labels are synthetic and not independently human-reviewed. Fake generation tests
 plumbing and permissions. A limited real-subscription smoke test does not establish
 answer quality or comprehensive injection resistance.
 
+Those retrieval scores measure unchanged rankings. Generation now expands distinct
+source sections with their introductions and neighboring document chunks, bounded
+to 18 KB of serialized document context. This addresses conditions outside the
+initial five chunks; see the development-only context study in the retrieval guide.
+The previously used v2 holdout does not validate this new context policy.
+
 Citation checks reject unknown passage IDs and uncited answers. They establish
 provenance, not semantic entailment. Closed read tools and the upstream's current
 permissions enforce access; prompt filtering is supplemental. A local draft digest

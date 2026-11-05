@@ -261,3 +261,111 @@ the configuration described above.
 References: [pgvector](https://github.com/pgvector/pgvector),
 [PostgreSQL text search](https://www.postgresql.org/docs/current/textsearch-controls.html),
 [MLflow tracking](https://mlflow.org/docs/latest/ml/tracking/).
+
+
+## Bounded generation context (development only)
+
+A section hit can miss the paragraph needed to answer. Inspection of the actual
+PostgreSQL inputs found two distinct cases:
+
+- v1-011's raw five chunks contain three chunks from one maintenance section but
+  no authenticated-observation section. The section's first appearance among the
+  first five **distinct sections from 30 ranks** is not the same as supplying it in
+  the first five chunks.
+- v1-019 receives the one-chunk "Read the report" section. Its HELD rule is in the
+  adjacent **Time and scope heading**, not a later paragraph in the same section.
+
+Generation now uses policy `section-neighbors-v1`. Raw `search()` rankings are
+unchanged. From 30 candidates, select the first-ranked chunk of each of five distinct
+sections, retain those anchors, add each selected section's introductory chunk,
+then consider forward/backward neighbors at distances 1 and 2 in document order.
+Never cross a document boundary; only expand anchors matching the loaded immutable
+corpus snapshot. Deduplicate by chunk ID. Every supplied chunk retains its complete
+original text, heading and citation ID.
+
+The pack fits 18,000 bytes of serialized chunk JSON, including metadata. Whole
+chunks that do not fit are omitted; text is not cut under an unchanged citation
+ID. The agent additionally removes trailing document chunks when live API
+observations need space within its existing overall input bound. It preserves API
+observations, refuses if those alone exceed the bound, and validates citations
+against the passages actually sent.
+
+These are development measurements over 32 documentation questions:
+
+| Provided context | Raw five chunks | Expanded |
+|---|---:|---:|
+| Mean chunks | 5.00 | 11.28 |
+| Mean serialized bytes | 8369 | 17720 |
+| Largest serialized bytes | 9952 | 18000 |
+| Mean labeled-section coverage | 0.7031 | 0.8594 |
+
+All five retrievers' original per-question ranking metrics match #18 exactly.
+Historical `context_recall@5` continues to describe the raw five chunks.
+Expanded-context section coverage is recorded separately under `context.stats`;
+neither metric proves that each required fact is present or the answer is correct.
+Regression tests additionally check that the exact FAILED/CLOSED_ABSENT release
+rule and the HELD/MISSING_INTERNAL rule reach the answer provider with original
+citation IDs, through real PostgreSQL and the pinned local encoder.
+
+Reproduce the two context measurements using fake generation:
+
+```sh
+uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
+  --split dev --context raw --output assistant/.cache/context-raw.json
+uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
+  --split dev --context expanded --output assistant/.cache/context-expanded.json
+```
+
+The normal CLI, service and development evaluator use expanded context. The
+evaluator's `--context raw` option preserves the previous generation input policy;
+it does not change ranking. MLflow records the context policy, budget, source
+coverage and size together with the existing corpus/model/question identities.
+
+The policy was developed against known development failures and is not an unseen
+quality result. The v2 holdout was already consumed before this change and was not
+rerun or used to select expansion settings. Questions, labels, selection.json and
+freeze.json remain unchanged. Source additions change application code hashes; use
+the recorded historical revision for exact v2-study reproduction. Real-model
+answer records and factual checks are retained with the associated PR rather than
+adding another large evaluation artifact to the public tree.
+
+
+### Real generation and fact review
+
+One subsequent development run used the existing ChatGPT subscription, the pinned
+official SDK and the same low-effort/configured-model setting as #18. The context
+policy's source hashes were recorded before this run and remained unchanged.
+All questions, labels and ranking parameters stayed fixed.
+
+| Pipeline measure | Archived raw context | Expanded context |
+|---|---:|---:|
+| Route agreement | 39/40 | 40/40 |
+| Correct required refusals | 8/8 | 8/8 |
+| Wrong documentation refusals | 1 | 0 |
+| Answers citing a labeled section | 28/31 | 30/32 |
+
+Refusal results include deterministic routing/gating; citation overlap is not
+factual accuracy. The 32 documentation answers were also read against their
+existing required facts:
+
+- v1-011 now states release, merchant 80/0/80 and no outgoing journal.
+- v1-019 now states that a provider payment with a local HELD state remains
+  MISSING_INTERNAL, and asynchronous processing does not hide it.
+- v1-017 now includes the evidence/version/membership/restore/expiry invalidators.
+- v1-007 still omits the explicit new operation-ID/key requirement. v1-013 still
+  omits bounded quarantine: that general observation source is outside this pack,
+  while its callback-specific 401/no-quarantine answer matches the supplied source.
+- v1-024 omits the 23/25-hour DST detail even though the source is supplied.
+  v1-014 refers to two-actor review but leaves propose/approve sequencing implicit.
+
+These remaining omissions prevent treating citation or route agreement as
+complete-answer accuracy. This is a non-blind development audit, not independent
+human validation, and no labels were changed to improve the score. Context growth
+also costs input capacity: mean document bytes roughly double. No faster or
+cheaper subscription-inference claim follows from this experiment.
+
+MLflow runs: raw context `50ca4b8b95dc460abd594d3b619b2eb4`, expanded fake generation
+`fc5f6ef20ebc48db829f7245f4d3a46c`, expanded subscription generation
+`a660384db52f42ff96826e1c7c9813a7`. Generation records remain in the private
+portfolio evidence directory and the associated PR records their location and
+verification; current public guides retain the compact results and limitations.
