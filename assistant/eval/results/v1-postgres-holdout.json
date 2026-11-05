@@ -1,0 +1,1365 @@
+{
+  "created_at": "2026-11-05T11:23:27+00:00",
+  "corpus": {
+    "revision": "763928141964bb058bafb3d0f69e61f2559d42c0",
+    "digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+    "chunker": "headings-v1",
+    "files": 21,
+    "chunks": 175,
+    "sections": 105
+  },
+  "questions": {
+    "file": "questions.jsonl",
+    "sha256": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+    "total": 20,
+    "retrieval_scored": 12,
+    "by_route": {
+      "docs": 12,
+      "out_of_scope": 2,
+      "live_state": 2,
+      "action": 4
+    },
+    "by_split": {
+      "test": 20
+    },
+    "evaluated_split": "test"
+  },
+  "environment": {
+    "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+    "python": "3.12.13",
+    "onnxruntime": "1.31.1",
+    "tokenizers": "0.23.3",
+    "machine": "arm64",
+    "backend": "postgres",
+    "quality_signal": true
+  },
+  "retrieval": {
+    "postgres_fts": {
+      "all": {
+        "n": 12,
+        "hit@1": 0.0833,
+        "hit@3": 0.25,
+        "hit@5": 0.4167,
+        "recall@5": 0.4167,
+        "mrr@10": 0.1944,
+        "ndcg@5": 0.2494
+      },
+      "by_split": {
+        "dev": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "test": {
+          "n": 12,
+          "hit@1": 0.0833,
+          "hit@3": 0.25,
+          "hit@5": 0.4167,
+          "recall@5": 0.4167,
+          "mrr@10": 0.1944,
+          "ndcg@5": 0.2494
+        }
+      },
+      "by_category": {
+        "holdout-rule": {
+          "n": 12,
+          "hit@1": 0.0833,
+          "hit@3": 0.25,
+          "hit@5": 0.4167,
+          "recall@5": 0.4167,
+          "mrr@10": 0.1944,
+          "ndcg@5": 0.2494
+        }
+      },
+      "latency_ms": {
+        "mean": 10.703,
+        "p95": 12.375
+      },
+      "misses": [
+        {
+          "id": "v1-041",
+          "question": "Does the journal remain trustworthy if a balance projection drifts?",
+          "relevant": [
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds"
+          ],
+          "top3": [
+            "docs/adr/0001-initialization.md#trust-boundary-and-changed-guarantees",
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/RELEASE-READINESS.md#running-the-project"
+          ]
+        },
+        {
+          "id": "v1-042",
+          "question": "Is an unacknowledged provider request evidence that no money moved?",
+          "relevant": [
+            "docs/PAYOUTS.md#dispatch-and-recovery"
+          ],
+          "top3": [
+            "docs/RECONCILIATION.md#obtain-provider-evidence-first",
+            "docs/HTTP-SERVICE.md#resource-limits-and-shutdown",
+            "docs/BACKUP-RESTORE.md#commands"
+          ]
+        },
+        {
+          "id": "v1-045",
+          "question": "What does an empty recent-observations list establish about an old provider payment?",
+          "relevant": [
+            "docs/HTTP-SERVICE.md#api",
+            "docs/PAYOUTS.md#dispatch-and-recovery"
+          ],
+          "top3": [
+            "docs/RECONCILIATION.md#obtain-provider-evidence-first",
+            "docs/BACKUP-RESTORE.md#commands",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62"
+          ]
+        },
+        {
+          "id": "v1-046",
+          "question": "May a reconciliation report itself authorize releasing reserved funds?",
+          "relevant": [
+            "docs/RECONCILIATION.md#time-and-scope"
+          ],
+          "top3": [
+            "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries",
+            "docs/PAYOUTS.md#amounts-and-admission-receipts",
+            "docs/STREAMING-EVIDENCE.md#full-source-authority-reaches-approvals"
+          ]
+        },
+        {
+          "id": "v1-049",
+          "question": "Can the human checker approve a changed payload using an earlier review?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+          ],
+          "top3": [
+            "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces",
+            "ops/linux/README.md#backup-restore-and-reopening",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62"
+          ]
+        },
+        {
+          "id": "v1-050",
+          "question": "What does a successful provider observation do to the reserved gross amount?",
+          "relevant": [
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ],
+          "top3": [
+            "README.md#how-a-payout-flows",
+            "docs/RECONCILIATION.md#obtain-provider-evidence-first",
+            "docs/PAYOUTS.md#amounts-and-admission-receipts"
+          ]
+        },
+        {
+          "id": "v1-052",
+          "question": "Is the local provider a connected real bank?",
+          "relevant": [
+            "docs/RELEASE-READINESS.md#ledgerops-release-and-operating-guide"
+          ],
+          "top3": [
+            "docs/RECONCILIATION.md#obtain-provider-evidence-first",
+            "ops/linux/README.md#backup-restore-and-reopening",
+            "docs/BACKUP-RESTORE.md#local-backup-and-restore-contract"
+          ]
+        }
+      ],
+      "per_question": {
+        "v1-041": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-042": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-043": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-044": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-045": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-046": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-047": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.25,
+          "ndcg@5": 0.43067655807339306
+        },
+        "v1-048": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.25,
+          "ndcg@5": 0.43067655807339306
+        },
+        "v1-049": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-050": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-051": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.3333333333333333,
+          "ndcg@5": 0.5
+        },
+        "v1-052": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        }
+      }
+    },
+    "pgvector_hnsw": {
+      "all": {
+        "n": 12,
+        "hit@1": 0.25,
+        "hit@3": 0.5,
+        "hit@5": 0.5,
+        "recall@5": 0.5,
+        "mrr@10": 0.375,
+        "ndcg@5": 0.4129
+      },
+      "by_split": {
+        "dev": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "test": {
+          "n": 12,
+          "hit@1": 0.25,
+          "hit@3": 0.5,
+          "hit@5": 0.5,
+          "recall@5": 0.5,
+          "mrr@10": 0.375,
+          "ndcg@5": 0.4129
+        }
+      },
+      "by_category": {
+        "holdout-rule": {
+          "n": 12,
+          "hit@1": 0.25,
+          "hit@3": 0.5,
+          "hit@5": 0.5,
+          "recall@5": 0.5,
+          "mrr@10": 0.375,
+          "ndcg@5": 0.4129
+        }
+      },
+      "latency_ms": {
+        "mean": 14.995,
+        "p95": 17.196
+      },
+      "misses": [
+        {
+          "id": "v1-041",
+          "question": "Does the journal remain trustworthy if a balance projection drifts?",
+          "relevant": [
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds"
+          ],
+          "top3": [
+            "docs/adr/0001-initialization.md#trust-boundary-and-changed-guarantees",
+            "docs/EXPORT-AND-VERIFY.md#what-the-report-establishes",
+            "docs/MAINTENANCE.md#run-in-order"
+          ]
+        },
+        {
+          "id": "v1-046",
+          "question": "May a reconciliation report itself authorize releasing reserved funds?",
+          "relevant": [
+            "docs/RECONCILIATION.md#time-and-scope"
+          ],
+          "top3": [
+            "docs/EXPORT-AND-VERIFY.md#what-the-report-establishes",
+            "docs/RECONCILIATION.md#read-the-report",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ]
+        },
+        {
+          "id": "v1-047",
+          "question": "What response conceals an operation from a principal who does not own it?",
+          "relevant": [
+            "docs/HTTP-SERVICE.md#api"
+          ],
+          "top3": [
+            "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation",
+            "docs/adr/0003-purchase-admission.md#service-boundary-and-authorization",
+            "docs/REVERSAL.md#results-and-retries"
+          ]
+        },
+        {
+          "id": "v1-048",
+          "question": "How can an operator inspect the original admission receipt alongside entries?",
+          "relevant": [
+            "docs/HTTP-SERVICE.md#api"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/REVERSAL.md#disabled-original-customer",
+            "docs/adr/0003-purchase-admission.md#verification-scope"
+          ]
+        },
+        {
+          "id": "v1-049",
+          "question": "Can the human checker approve a changed payload using an earlier review?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+          ],
+          "top3": [
+            "docs/OPERATOR-ACTIONS.md#reviewing-in-the-console",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62",
+            "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces"
+          ]
+        },
+        {
+          "id": "v1-052",
+          "question": "Is the local provider a connected real bank?",
+          "relevant": [
+            "docs/RELEASE-READINESS.md#ledgerops-release-and-operating-guide"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#payout-admission-retained-instructions-and-dispatch",
+            "README.md#limits",
+            "docs/PAYOUTS.md#dispatch-and-recovery"
+          ]
+        }
+      ],
+      "per_question": {
+        "v1-041": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-042": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-043": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-044": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-045": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6934264036172708
+        },
+        "v1-046": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-047": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-048": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-049": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-050": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-051": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-052": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        }
+      }
+    },
+    "pgvector_exact": {
+      "all": {
+        "n": 12,
+        "hit@1": 0.25,
+        "hit@3": 0.5,
+        "hit@5": 0.5,
+        "recall@5": 0.5,
+        "mrr@10": 0.375,
+        "ndcg@5": 0.4129
+      },
+      "by_split": {
+        "dev": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "test": {
+          "n": 12,
+          "hit@1": 0.25,
+          "hit@3": 0.5,
+          "hit@5": 0.5,
+          "recall@5": 0.5,
+          "mrr@10": 0.375,
+          "ndcg@5": 0.4129
+        }
+      },
+      "by_category": {
+        "holdout-rule": {
+          "n": 12,
+          "hit@1": 0.25,
+          "hit@3": 0.5,
+          "hit@5": 0.5,
+          "recall@5": 0.5,
+          "mrr@10": 0.375,
+          "ndcg@5": 0.4129
+        }
+      },
+      "latency_ms": {
+        "mean": 16.677,
+        "p95": 22.475
+      },
+      "misses": [
+        {
+          "id": "v1-041",
+          "question": "Does the journal remain trustworthy if a balance projection drifts?",
+          "relevant": [
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds"
+          ],
+          "top3": [
+            "docs/adr/0001-initialization.md#trust-boundary-and-changed-guarantees",
+            "docs/EXPORT-AND-VERIFY.md#what-the-report-establishes",
+            "docs/MAINTENANCE.md#run-in-order"
+          ]
+        },
+        {
+          "id": "v1-046",
+          "question": "May a reconciliation report itself authorize releasing reserved funds?",
+          "relevant": [
+            "docs/RECONCILIATION.md#time-and-scope"
+          ],
+          "top3": [
+            "docs/EXPORT-AND-VERIFY.md#what-the-report-establishes",
+            "docs/RECONCILIATION.md#read-the-report",
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ]
+        },
+        {
+          "id": "v1-047",
+          "question": "What response conceals an operation from a principal who does not own it?",
+          "relevant": [
+            "docs/HTTP-SERVICE.md#api"
+          ],
+          "top3": [
+            "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation",
+            "docs/adr/0003-purchase-admission.md#service-boundary-and-authorization",
+            "docs/REVERSAL.md#results-and-retries"
+          ]
+        },
+        {
+          "id": "v1-048",
+          "question": "How can an operator inspect the original admission receipt alongside entries?",
+          "relevant": [
+            "docs/HTTP-SERVICE.md#api"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+            "docs/REVERSAL.md#disabled-original-customer",
+            "docs/adr/0003-purchase-admission.md#verification-scope"
+          ]
+        },
+        {
+          "id": "v1-049",
+          "question": "Can the human checker approve a changed payload using an earlier review?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+          ],
+          "top3": [
+            "docs/OPERATOR-ACTIONS.md#reviewing-in-the-console",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62",
+            "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces"
+          ]
+        },
+        {
+          "id": "v1-052",
+          "question": "Is the local provider a connected real bank?",
+          "relevant": [
+            "docs/RELEASE-READINESS.md#ledgerops-release-and-operating-guide"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#payout-admission-retained-instructions-and-dispatch",
+            "README.md#limits",
+            "docs/PAYOUTS.md#dispatch-and-recovery"
+          ]
+        }
+      ],
+      "per_question": {
+        "v1-041": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-042": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-043": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-044": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-045": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6934264036172708
+        },
+        "v1-046": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-047": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-048": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-049": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-050": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-051": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-052": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        }
+      }
+    },
+    "hybrid": {
+      "all": {
+        "n": 12,
+        "hit@1": 0.1667,
+        "hit@3": 0.3333,
+        "hit@5": 0.3333,
+        "recall@5": 0.3333,
+        "mrr@10": 0.2989,
+        "ndcg@5": 0.2718
+      },
+      "by_split": {
+        "dev": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "test": {
+          "n": 12,
+          "hit@1": 0.1667,
+          "hit@3": 0.3333,
+          "hit@5": 0.3333,
+          "recall@5": 0.3333,
+          "mrr@10": 0.2989,
+          "ndcg@5": 0.2718
+        }
+      },
+      "by_category": {
+        "holdout-rule": {
+          "n": 12,
+          "hit@1": 0.1667,
+          "hit@3": 0.3333,
+          "hit@5": 0.3333,
+          "recall@5": 0.3333,
+          "mrr@10": 0.2989,
+          "ndcg@5": 0.2718
+        }
+      },
+      "latency_ms": {
+        "mean": 26.296,
+        "p95": 31.224
+      },
+      "misses": [
+        {
+          "id": "v1-041",
+          "question": "Does the journal remain trustworthy if a balance projection drifts?",
+          "relevant": [
+            "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds"
+          ],
+          "top3": [
+            "docs/adr/0001-initialization.md#trust-boundary-and-changed-guarantees",
+            "docs/MAINTENANCE.md#run-in-order",
+            "docs/EXPORT-AND-VERIFY.md#what-the-report-establishes"
+          ]
+        },
+        {
+          "id": "v1-045",
+          "question": "What does an empty recent-observations list establish about an old provider payment?",
+          "relevant": [
+            "docs/HTTP-SERVICE.md#api",
+            "docs/PAYOUTS.md#dispatch-and-recovery"
+          ],
+          "top3": [
+            "docs/BACKUP-RESTORE.md#commands",
+            "docs/RECONCILIATION.md#obtain-provider-evidence-first",
+            "docs/RECONCILIATION.md#read-the-report"
+          ]
+        },
+        {
+          "id": "v1-046",
+          "question": "May a reconciliation report itself authorize releasing reserved funds?",
+          "relevant": [
+            "docs/RECONCILIATION.md#time-and-scope"
+          ],
+          "top3": [
+            "docs/EXPORT-AND-VERIFY.md#what-the-report-establishes",
+            "docs/PAYOUTS.md#amounts-and-admission-receipts",
+            "docs/RELEASE-READINESS.md#supported-flows"
+          ]
+        },
+        {
+          "id": "v1-047",
+          "question": "What response conceals an operation from a principal who does not own it?",
+          "relevant": [
+            "docs/HTTP-SERVICE.md#api"
+          ],
+          "top3": [
+            "docs/REVERSAL.md#results-and-retries",
+            "docs/RELEASE-READINESS.md#recovery-identity-and-operator-actions",
+            "docs/adr/0003-purchase-admission.md#service-boundary-and-authorization"
+          ]
+        },
+        {
+          "id": "v1-048",
+          "question": "How can an operator inspect the original admission receipt alongside entries?",
+          "relevant": [
+            "docs/HTTP-SERVICE.md#api"
+          ],
+          "top3": [
+            "docs/REVERSAL.md#results-and-retries",
+            "docs/REVERSAL.md#python-entry-point",
+            "docs/PAYOUTS.md#amounts-and-admission-receipts"
+          ]
+        },
+        {
+          "id": "v1-049",
+          "question": "Can the human checker approve a changed payload using an earlier review?",
+          "relevant": [
+            "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+          ],
+          "top3": [
+            "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces",
+            "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62",
+            "docs/OPERATOR-ACTIONS.md#reviewing-in-the-console"
+          ]
+        },
+        {
+          "id": "v1-050",
+          "question": "What does a successful provider observation do to the reserved gross amount?",
+          "relevant": [
+            "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+          ],
+          "top3": [
+            "docs/PAYOUTS.md#amounts-and-admission-receipts",
+            "README.md#how-a-payout-flows",
+            "docs/BACKUP-RESTORE.md#commands"
+          ]
+        },
+        {
+          "id": "v1-052",
+          "question": "Is the local provider a connected real bank?",
+          "relevant": [
+            "docs/RELEASE-READINESS.md#ledgerops-release-and-operating-guide"
+          ],
+          "top3": [
+            "docs/BACKUP-RESTORE.md#local-backup-and-restore-contract",
+            "docs/RELEASE-READINESS.md#scope-of-deployment-claims",
+            "docs/PAYOUTS.md#payout-admission-retained-instructions-and-dispatch"
+          ]
+        }
+      ],
+      "per_question": {
+        "v1-041": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-042": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-043": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-044": {
+          "hit@1": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 1.0,
+          "ndcg@5": 1.0
+        },
+        "v1-045": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.16666666666666666,
+          "ndcg@5": 0.0
+        },
+        "v1-046": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-047": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.16666666666666666,
+          "ndcg@5": 0.0
+        },
+        "v1-048": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.1111111111111111,
+          "ndcg@5": 0.0
+        },
+        "v1-049": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        },
+        "v1-050": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.14285714285714285,
+          "ndcg@5": 0.0
+        },
+        "v1-051": {
+          "hit@1": 0.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr@10": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "v1-052": {
+          "hit@1": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0
+        }
+      }
+    }
+  },
+  "comparisons": {
+    "postgres_fts -> hybrid": {
+      "hit@1": {
+        "mean_difference": 0.0833,
+        "ci95": [
+          0.0,
+          0.25
+        ],
+        "better_on": [
+          "v1-043"
+        ],
+        "worse_on": []
+      },
+      "mrr@10": {
+        "mean_difference": 0.1045,
+        "ci95": [
+          -0.002,
+          0.2246
+        ],
+        "better_on": [
+          "v1-042",
+          "v1-043",
+          "v1-045",
+          "v1-050",
+          "v1-051"
+        ],
+        "worse_on": [
+          "v1-047",
+          "v1-048"
+        ]
+      }
+    },
+    "postgres_fts -> pgvector_hnsw": {
+      "hit@1": {
+        "mean_difference": 0.1667,
+        "ci95": [
+          0.0,
+          0.4167
+        ],
+        "better_on": [
+          "v1-042",
+          "v1-050"
+        ],
+        "worse_on": []
+      },
+      "mrr@10": {
+        "mean_difference": 0.1806,
+        "ci95": [
+          -0.0347,
+          0.4236
+        ],
+        "better_on": [
+          "v1-042",
+          "v1-045",
+          "v1-050",
+          "v1-051"
+        ],
+        "worse_on": [
+          "v1-047",
+          "v1-048"
+        ]
+      }
+    },
+    "pgvector_hnsw -> hybrid": {
+      "hit@1": {
+        "mean_difference": -0.0833,
+        "ci95": [
+          -0.3333,
+          0.1667
+        ],
+        "better_on": [
+          "v1-043"
+        ],
+        "worse_on": [
+          "v1-042",
+          "v1-050"
+        ]
+      },
+      "mrr@10": {
+        "mean_difference": -0.0761,
+        "ci95": [
+          -0.2745,
+          0.0973
+        ],
+        "better_on": [
+          "v1-043",
+          "v1-047",
+          "v1-048"
+        ],
+        "worse_on": [
+          "v1-042",
+          "v1-045",
+          "v1-050"
+        ]
+      }
+    }
+  },
+  "scope_gate": {
+    "threshold": 0.5956,
+    "dev_accuracy": 1.0,
+    "test_accuracy": null,
+    "scores": {
+      "docs": [
+        0.6287,
+        0.6559,
+        0.6573,
+        0.6736,
+        0.6825,
+        0.6863,
+        0.689,
+        0.6917,
+        0.6929,
+        0.6967,
+        0.7043,
+        0.7084,
+        0.7087,
+        0.7088,
+        0.7115,
+        0.714,
+        0.7202,
+        0.7204,
+        0.7239,
+        0.7378,
+        0.7455,
+        0.7467,
+        0.7483,
+        0.7494,
+        0.7566,
+        0.7592,
+        0.7681,
+        0.7766,
+        0.7783,
+        0.7795,
+        0.7965,
+        0.813
+      ],
+      "out_of_scope": {
+        "v1-037": 0.5956,
+        "v1-038": 0.5512
+      }
+    }
+  },
+  "answers": {
+    "provider": "fake",
+    "route_accuracy": {
+      "test": 0.85
+    },
+    "refusal": {
+      "correct_refusals": 5,
+      "missed_refusals": 3,
+      "wrong_refusals": 0,
+      "should_refuse": 8,
+      "should_answer": 12
+    },
+    "answered_docs_questions": 12,
+    "citation_hit_rate": 0.1667,
+    "dropped_citations": 0,
+    "confusion": {
+      "action -> action": 4,
+      "docs -> docs": 12,
+      "live_state -> docs": 1,
+      "live_state -> live_state": 1,
+      "out_of_scope -> docs": 2
+    },
+    "answers": [
+      {
+        "id": "v1-041",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "If both journal and projection credit M2 instead of requested M1, the fold can agree: a hand-calculated frozen command must independently assert the intended merchant. This catches a transfer whose journal and balance projection agree on the wrong merchant.",
+        "citations": [
+          "docs/adr/0001-initialization.md#trust-boundary-and-changed-guarantees/0",
+          "README.md#design-notes/0"
+        ]
+      },
+      {
+        "id": "v1-042",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "A ledger export cannot generate independent provider evidence. This entry point sends no provider request.",
+        "citations": [
+          "docs/RECONCILIATION.md#obtain-provider-evidence-first/0",
+          "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence/0"
+        ]
+      },
+      {
+        "id": "v1-043",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Adding funds today does not change an earlier retained refusal. Two merchants cannot both reserve 62 against clearing capacity of 100; the second receives a retained 422 `LIMIT_EXCEEDED` without a hold.",
+        "citations": [
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1"
+        ]
+      },
+      {
+        "id": "v1-044",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": true,
+        "dropped_citations": 0,
+        "answer": "Two merchants cannot both reserve 62 against clearing capacity of 100; the second receives a retained 422 `LIMIT_EXCEEDED` without a hold. Unknown or blocked payouts remain committed capacity.",
+        "citations": [
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1"
+        ]
+      },
+      {
+        "id": "v1-045",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "All old verification keys needed by retained events must remain available; missing key material stops recovery. For provider investigation, provision the retained synthetic provider verification keys as an owner-only mode-0600 JSON file.",
+        "citations": [
+          "docs/BACKUP-RESTORE.md#commands/2"
+        ]
+      },
+      {
+        "id": "v1-046",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "This does not establish payment completion or verified external authenticity | | `rebuild_eligible` | Structure, B and reservation conditions pass; projection drift itself is eligible for repair | | `issues` | Affected objects, fields, expected values and actual values | | `unverified_intent_kinds` | Kinds without a canonical business-intent contract, such as the OPENING test fixture |  If a payload names M1 but entries and balances credit M2, A passes and B reports `WRONG_OWNER`. After obtaining the clearing lock, it subtracts clearing reserved funds and all active HELD gross amounts in the workspace from clearing's booked balance before accepting another payout.",
+        "citations": [
+          "docs/EXPORT-AND-VERIFY.md#what-the-report-establishes/0",
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1"
+        ]
+      },
+      {
+        "id": "v1-047",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "Identity-conflict handling also checks retained operation ownership first. workspace = WorkspaceId.parse(workspace_uuid) principal = Principal(workspace, ClientId.parse(client_uuid), ActorId.parse(merchant_actor_uuid)) command = ReversalCommand.from_payload(workspace, {     \"operation_id\": reversal_uuid,     \"original_operation_id\": original_purchase_uuid,     \"reason\": \"customer_refund\", }) key = RequestKey(workspace, principal.client_id, \"refund-transport-key\", \"reversal:v1\") result = submit_reversal(conn, principal, command, key) ```  Only the original merchant account's owner may initiate or read a reversal.",
+        "citations": [
+          "docs/REVERSAL.md#results-and-retries/0",
+          "docs/REVERSAL.md#python-entry-point/0"
+        ]
+      },
+      {
+        "id": "v1-048",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "Amount, currency and both accounts are verified against the successful original purchase; callers cannot override them. `get_payout_state(conn, principal, payout_id)` reads current progress separately; it does not rewrite the admission receipt.",
+        "citations": [
+          "docs/REVERSAL.md#python-entry-point/0",
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1"
+        ]
+      },
+      {
+        "id": "v1-049",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "409 means a version, evidence or another bound fact has changed; 422 means the business action cannot execute. Changed proposal content requires a new action ID; a different intent cannot reuse an old identity.",
+        "citations": [
+          "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces/1"
+        ]
+      },
+      {
+        "id": "v1-050",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "A payout of principal 60 with a fixed fee of 2 has a gross amount of 62. It increases the merchant's reserved amount from 0 to 62 and increments the balance version.",
+        "citations": [
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/0"
+        ]
+      },
+      {
+        "id": "v1-051",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "The same tests check one shared backup snapshot, GET-only provider recovery, token revocation, immutable objects and open-freeze preservation, corrupt artifacts, unsafe roles, closed service/worker defaults and cleanup after failures. They cover a provider payment after the snapshot and a missing admission before the snapshot: the first settles from retained evidence, while the second reports RESTORE_GAP without inventing a request key.",
+        "citations": [
+          "docs/BACKUP-RESTORE.md#recovery-checks-and-bounds/0"
+        ]
+      },
+      {
+        "id": "v1-052",
+        "split": "test",
+        "expected_route": "docs",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": false,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "It is not a real-bank recovery guarantee. The provider is a synthetic local protocol; its behavior does not establish a connection to a bank.",
+        "citations": [
+          "docs/BACKUP-RESTORE.md#local-backup-and-restore-contract/0",
+          "docs/PAYOUTS.md#payout-admission-retained-instructions-and-dispatch/0"
+        ]
+      },
+      {
+        "id": "v1-053",
+        "split": "test",
+        "expected_route": "out_of_scope",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "Business days use the Europe/Warsaw local calendar to produce half-open UTC windows. Payout events have no actual execution time, and settlement processing does not invent one.",
+        "citations": [
+          "docs/RECONCILIATION.md#time-and-scope/0"
+        ]
+      },
+      {
+        "id": "v1-054",
+        "split": "test",
+        "expected_route": "out_of_scope",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "A cross-workspace collision creates an incident only in the current workspace; linked observations stop subsequent processing of the other payout. Each export reads that evidence in its own single database snapshot; the workspace barrier does not freeze global evidence.",
+        "citations": [
+          "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/1"
+        ]
+      },
+      {
+        "id": "v1-055",
+        "split": "test",
+        "expected_route": "live_state",
+        "predicted_route": "live_state",
+        "refused": true,
+        "reason": "needs_live_state",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "The docs describe rules, not the current state of a payout or account. Read it from the API: GET /v1/payouts/{id} for a payout (payout:read), GET /v1/accounts for your balances (accounts:read), GET /v1/investigation/operations/{id} for an operation's entries and evidence (evidence:read).",
+        "citations": []
+      },
+      {
+        "id": "v1-056",
+        "split": "test",
+        "expected_route": "live_state",
+        "predicted_route": "docs",
+        "refused": false,
+        "reason": "none",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "Admission locks merchant and clearing balance rows in UUID order. After a customer buys 80 from an opening balance of 100, the customer has 20, the merchant has 80 and clearing assets remain 100.",
+        "citations": [
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/1",
+          "docs/PAYOUTS.md#amounts-and-admission-receipts/0"
+        ]
+      },
+      {
+        "id": "v1-057",
+        "split": "test",
+        "expected_route": "action",
+        "predicted_route": "action",
+        "refused": true,
+        "reason": "action_not_permitted",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "I can't do that: this assistant has read-only access and never approves, executes, releases or resubmits anything. Corrections to settled evidence go through the two-person operator approval workflow.",
+        "citations": []
+      },
+      {
+        "id": "v1-058",
+        "split": "test",
+        "expected_route": "action",
+        "predicted_route": "action",
+        "refused": true,
+        "reason": "action_not_permitted",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "I can't do that: this assistant has read-only access and never approves, executes, releases or resubmits anything. Corrections to settled evidence go through the two-person operator approval workflow.",
+        "citations": []
+      },
+      {
+        "id": "v1-059",
+        "split": "test",
+        "expected_route": "action",
+        "predicted_route": "action",
+        "refused": true,
+        "reason": "action_not_permitted",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "I can't do that: this assistant has read-only access and never approves, executes, releases or resubmits anything. Corrections to settled evidence go through the two-person operator approval workflow.",
+        "citations": []
+      },
+      {
+        "id": "v1-060",
+        "split": "test",
+        "expected_route": "action",
+        "predicted_route": "action",
+        "refused": true,
+        "reason": "action_not_permitted",
+        "should_refuse": true,
+        "cites_relevant": false,
+        "dropped_citations": 0,
+        "answer": "I can't do that: this assistant has read-only access and never approves, executes, releases or resubmits anything. Corrections to settled evidence go through the two-person operator approval workflow.",
+        "citations": []
+      }
+    ]
+  },
+  "mlflow_run_id": "87c1d475aee94d43a65bd48476514083"
+}

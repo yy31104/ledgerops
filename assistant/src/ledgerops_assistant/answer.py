@@ -15,9 +15,10 @@ Every refusal names its reason, so an evaluation can tell "refused correctly" fr
 from dataclasses import asdict, dataclass, field
 
 from ledgerops_assistant import routing
+from ledgerops_assistant.context import retrieve_passages
 from ledgerops_assistant.corpus import Chunk
 from ledgerops_assistant.providers.base import Provider
-from ledgerops_assistant.retrieval import Hit, Retriever
+from ledgerops_assistant.retrieval import Retriever
 
 LIVE_STATE_TEXT = (
     "The docs describe rules, not the current state of a payout or account. Read it from "
@@ -102,8 +103,7 @@ def answer(
     if route == routing.LIVE_STATE:
         return Answer(question, route, LIVE_STATE_TEXT, True, "needs_live_state")
 
-    hits: list[Hit] = retriever.search(question, top_n)
-    passages = [hit.chunk for hit in hits]
+    passages = retrieve_passages(retriever, question, top_n)
     retrieved = [chunk.chunk_id for chunk in passages]
     top_score = None
     if gate is not None:

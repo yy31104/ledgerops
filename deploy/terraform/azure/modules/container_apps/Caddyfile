@@ -1,0 +1,17 @@
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+# Container Apps terminates TLS and admits HTTPS only to this port.
+http://:8081 {
+	reverse_proxy 127.0.0.1:8080 {
+		# Replace the incoming value; Gunicorn trusts this loopback peer only.
+		header_up X-Forwarded-Proto https
+		transport http {
+			dial_timeout 3s
+			response_header_timeout 40s
+		}
+	}
+}

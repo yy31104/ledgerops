@@ -1,66 +1,91 @@
 # LedgerOps operator assistant
 
-An assistant for the person on call, not for the ledger. It answers questions such as
-"why was this payout refused?" or "does a timeout release the hold?" from the LedgerOps
-docs, and cites the section each answer comes from. It never approves, executes or
-releases anything; those stay in the two-person approval workflow.
+A separate package for investigating incidents with cited operating rules and
+caller-scoped API observations. It combines PostgreSQL FTS, pinned local bge-small
+embeddings, pgvector HNSW and RRF with a bounded LangGraph agent. Drafts pause with
+`interrupt()` and persist in dedicated PostgreSQL; the operator submits the
+reviewed payload through the existing LedgerOps console.
 
-It lives in this repository as a separate package so it can read the docs and replay
-real incidents without adding dependencies to the ledger.
+## Try the local product
 
-## How a question flows
+From the repository root, with Docker running:
 
-[`routing.py`](src/ledgerops_assistant/routing.py) refuses requests to act and sends
-questions about one payout's current state to the API →
-[`retrieval.py`](src/ledgerops_assistant/retrieval.py) ranks versioned doc chunks with PostgreSQL FTS,
-pgvector (HNSW or exact), and RRF; in-memory BM25 remains a comparison baseline →
-[`answer.py`](src/ledgerops_assistant/answer.py) refuses if nothing is close enough, asks
-the configured [provider](docs/PROVIDERS.md) for an answer, then removes any citation of
-a passage the provider was not given.
+```sh
+python3 assistant/scripts/compose.py up
+```
 
-The invariant: **an answer without a citation of a retrieved passage is never shown.** It
-becomes a refusal.
+Open <http://127.0.0.1:8088> and choose **Try synthetic demo**. The React panel shows
+progress, checked references, uncertainty and estimated cost. Case 04 prepares a
+draft for review. The demo uses a synthetic GET-only upstream and fake answer
+generation; retrieval uses the real pinned local encoder. The first start downloads
+public weights. Generated demo credentials stay in an ignored, owner-private
+`assistant/.env`. No model API key is required.
 
-## Results so far
+```sh
+python3 assistant/scripts/compose.py down
+```
 
-On 57 answerable questions, hybrid retrieval puts a relevant section first for 0.62–0.68
-of them and in the top five for 0.86–0.89. With this many questions, that is
-statistically indistinguishable from plain BM25. A cosine-similarity gate catches
-clearly unrelated questions but not payment-sounding ones such as "PayPal payouts". The
-details and the failures are in [EVALUATION.md](docs/EVALUATION.md).
+This stops the dedicated stack and retains database/model-cache volumes. See
+[PRODUCT.md](docs/PRODUCT.md) for setup, SSE, telemetry and the stdio MCP server.
 
-## Layout
+## Evidence and limits
 
-| Path | What |
-|---|---|
-| [`docs/BASELINE.md`](docs/BASELINE.md) | How an operator handles three incidents today, without AI |
-| [`scenarios/`](scenarios) | Those incidents reproduced on real PostgreSQL, with what the operator sees |
-| [`src/ledgerops_assistant/`](src/ledgerops_assistant) | Corpus, retrieval, routing, providers, evaluation |
-| [`eval/questions.jsonl`](eval/questions.jsonl) | 71 labelled questions (draft) |
-| [`docs/EVALUATION.md`](docs/EVALUATION.md) | What was measured and what it does not show |
-| [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | Model settings: fake, OpenAI API, Ollama, ChatGPT plan |
+Current CI uses an explicit 21-file corpus and the reviewed main-docs development
+baseline, [v3-main-docs-dev.json](eval/results/v3-main-docs-dev.json). New documents
+are not indexed automatically; approved-file edits require label review and a new
+baseline. The [main integration comparison](docs/RETRIEVAL-QUALITY-V2.md#current-main-document-integration)
+records the remaining v1-011 missing-source regression and the lower Recall.
 
-## Run
+The original set has 40 development and 20 held-out questions. A development-only
+fusion study selected RRF k=10, then froze code/configuration before evaluating a
+new 60-question retrieval holdout. On that same new set, Recall@5 is **0.8639 for
+FTS, 0.8361 for vectors, 0.8639 for old hybrid and 0.8889 for selected hybrid**.
+MRR slightly trails the old hybrid; actual five-chunk coverage has wider
+uncertainty. See [RETRIEVAL-QUALITY-V2.md](docs/RETRIEVAL-QUALITY-V2.md) for component
+rank traces, topic-cluster intervals, per-question regressions and audit limits.
+These held-out scores apply to the historical 175-chunk corpus, not the current
+main-document revision. The current refresh uses fake generation only.
+Labels are synthetic and not independently human-reviewed. Fake generation tests
+plumbing and permissions. A limited real-subscription smoke test does not establish
+answer quality or comprehensive injection resistance.
+
+Those retrieval scores measure unchanged rankings. Generation now expands distinct
+source sections with their introductions and neighboring document chunks, bounded
+to 18 KB of serialized document context. This addresses conditions outside the
+initial five chunks; see the development-only context study in the retrieval guide.
+The previously used v2 holdout does not validate this new context policy.
+
+Citation checks reject unknown passage IDs and uncited answers. They establish
+provenance, not semantic entailment. Closed read tools and the upstream's current
+permissions enforce access; prompt filtering is supplemental. A local draft digest
+is distinct from the console's authoritative proposal hash.
+
+## Develop and reproduce
 
 ```sh
 cd assistant
 uv sync --locked
-uv run --locked python scripts/evaluate_local.py --split dev --output .cache/report.json
-uv run --locked python -m ledgerops_assistant --backend memory "Does a timeout release a hold?"
+uv run --locked ruff check .
+uv run --locked ruff format --check .
 uv run --locked python -m pytest
+uv run --locked python -m pytest -m postgres
+uv run --locked python scripts/evaluate_local.py --split dev \
+  --baseline eval/results/v3-main-docs-dev.json --output .cache/report.json
+npm --prefix web ci
+npm --prefix web run build
+npm --prefix web test
 ```
 
-The first two commands download bge-small (about 134 MB) once. Tests use a stand-in
-embedder and the `fake` provider, so they run offline and free; `-m model` adds the one
-test that runs the real model.
+Default Python tests use fake generation and stand-in embeddings. PostgreSQL tests
+create their own disposable containers. Evaluation uses the pinned public encoder
+and records experiments in local MLflow. CI also runs the full LedgerOps suite,
+real authenticated API acceptance tests, the panel build and a Compose smoke test.
 
-Regenerate the incident snapshots from the repository root, with Docker running:
+## Guides
 
-```sh
-uv run --locked python -m pytest -c pyproject.toml -p tests.conftest -q assistant/scenarios/capture.py
-```
-
-Limits: answers come from the docs only. Reading live payout state through the API is
-the next step, and no answer quality has been measured with a real model yet.
-
-The current PostgreSQL evaluation and local MLflow workflow are in [POSTGRES.md](docs/POSTGRES.md) and [EVALUATION-V1.md](docs/EVALUATION-V1.md). The earlier results above remain historical v0 measurements. The current 60-question set has 40 development and 20 held-out questions; its owner review was deferred.
+| Guide | Contents |
+|---|---|
+| [RETRIEVAL-QUALITY-V2.md](docs/RETRIEVAL-QUALITY-V2.md) | Retrieval architecture, reproduction, historical comparison and new holdout |
+| [AGENT-AND-REVIEW.md](docs/AGENT-AND-REVIEW.md) | Caller permissions, bounded tools, durable drafts and console handoff |
+| [PRODUCT.md](docs/PRODUCT.md) | Local setup, HTTP/SSE, MCP, telemetry and verification |
+| [PROVIDERS.md](docs/PROVIDERS.md) | Fake, OpenAI API, Ollama and local ChatGPT SDK adapter |

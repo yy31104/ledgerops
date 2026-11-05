@@ -83,7 +83,7 @@ class PostgresRetriever:
             return []
         encoded = None if self.method == "fts" else _vector(self.embedder.embed_query(query))
         fields = "chunk_id,section_id,path,title,heading,body"
-        with psycopg.connect(self.dsn) as conn:
+        with psycopg.connect(self.dsn, connect_timeout=3) as conn:
             conn.execute("SET TRANSACTION READ ONLY")
             conn.execute("SET LOCAL statement_timeout = '5s'")
             if self.method == "fts":

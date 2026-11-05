@@ -1,52 +1,53 @@
-"""OpenAI's API with an API key: billed per token, the default for evaluation runs.
-
-Uses the Responses API with a strict JSON schema, so the reply always parses into the
-same fields. The model name has no default on purpose: pick one explicitly with
-LEDGEROPS_ASSISTANT_OPENAI_MODEL so a run records exactly what it measured.
-Requires the optional dependency: ``uv sync --extra openai``.
-"""
+"""Explicit API model, strict structured output and no automatic inference retries."""
 
 import os
 
-from ledgerops_assistant.corpus import Chunk
 from ledgerops_assistant.providers.base import (
     ANSWER_SCHEMA,
     SYSTEM_PROMPT,
-    Draft,
     parse_draft,
     user_message,
 )
 
 
 class OpenAIProvider:
-    def __init__(self, model: str | None = None, client=None):
+    def __init__(self, model=None, client=None):
         self.model = model or os.environ.get("LEDGEROPS_ASSISTANT_OPENAI_MODEL")
         if not self.model:
             raise ValueError("set LEDGEROPS_ASSISTANT_OPENAI_MODEL explicitly")
         if client is None:
-            from openai import OpenAI  # optional dependency
+            from openai import OpenAI
 
-            client = OpenAI()  # reads OPENAI_API_KEY from the environment
+            client = OpenAI(max_retries=0, timeout=30)
         self.client = client
         self.name = f"openai:{self.model}"
 
-    def draft(self, question: str, passages: list[Chunk]) -> Draft:
-        response = self.client.responses.create(
+    def generate(self, instructions, message, schema, *, timeout=30, max_output_tokens=512):
+        client = (
+            self.client.with_options(timeout=timeout)
+            if hasattr(self.client, "with_options")
+            else self.client
+        )
+        response = client.responses.create(
             model=self.model,
-            instructions=SYSTEM_PROMPT,
-            input=user_message(question, passages),
+            instructions=instructions,
+            input=message,
+            max_output_tokens=max_output_tokens,
             text={
                 "format": {
                     "type": "json_schema",
                     "name": "operator_answer",
-                    "schema": ANSWER_SCHEMA,
+                    "schema": schema,
                     "strict": True,
                 }
             },
         )
         usage = getattr(response, "usage", None)
-        counts = {
+        return response.output_text, {
             "input_tokens": getattr(usage, "input_tokens", None),
             "output_tokens": getattr(usage, "output_tokens", None),
         }
-        return parse_draft(response.output_text, counts)
+
+    def draft(self, question, passages):
+        raw, usage = self.generate(SYSTEM_PROMPT, user_message(question, passages), ANSWER_SCHEMA)
+        return parse_draft(raw, usage)
