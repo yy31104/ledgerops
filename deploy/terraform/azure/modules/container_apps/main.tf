@@ -92,9 +92,9 @@ resource "azurerm_container_app" "api" {
 
   ingress {
     external_enabled = true
-    target_port      = 8080
+    target_port      = 8081
     transport        = "http"
-    # Envoy terminates TLS and sets X-Forwarded-Proto; see docs/AZURE.md "Trusted proxy".
+    # Envoy terminates TLS, then the sidecar forwards over loopback to Gunicorn.
     allow_insecure_connections = false
     traffic_weight {
       latest_revision = true
@@ -157,6 +157,32 @@ resource "azurerm_container_app" "api" {
       volume_mounts {
         name = "private"
         path = "/run/ledgerops"
+      }
+    }
+
+    container {
+      name    = "https-proxy"
+      image   = "caddy:2.11.7-alpine@sha256:eb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb9b24d510f"
+      cpu     = 0.25
+      memory  = "0.5Gi"
+      command = ["/bin/sh", "-ec"]
+      args    = ["printf '%s' \"$CADDYFILE_BASE64\" | base64 -d > /tmp/Caddyfile; exec caddy run --config /tmp/Caddyfile --adapter caddyfile"]
+      env {
+        name  = "CADDYFILE_BASE64"
+        value = filebase64("${path.module}/Caddyfile")
+      }
+      liveness_probe {
+        transport = "TCP"
+        port      = 8081
+      }
+      readiness_probe {
+        transport = "HTTP"
+        port      = 8081
+        path      = "/health/ready"
+        header {
+          name  = "Host"
+          value = "localhost"
+        }
       }
     }
 
