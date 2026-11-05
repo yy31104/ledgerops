@@ -1,0 +1,19 @@
+groups:
+  - name: ledgerops
+    rules:
+      - alert: LedgerOpsApiErrorRateHigh
+        # Client-side SLI: counts 5xx AND connection failures (a NotReady API has no endpoints).
+        expr: |
+          sum(rate(ledgerops_probe_requests_total{code=~"5..|connect_error"}[1m]))
+            / sum(rate(ledgerops_probe_requests_total[1m])) > 0.05
+        for: 30s
+        labels: {severity: page}
+        annotations:
+          summary: "LedgerOps API error rate above 5% for 30s"
+          runbook: docs/KUBERNETES.md#fault-2-disconnect-the-database
+      - alert: LedgerOpsApiLatencyHigh
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(caddy_http_request_duration_seconds_bucket[2m]))) > 0.5
+        for: 2m
+        labels: {severity: ticket}
+        annotations: {summary: "LedgerOps API p95 latency above 500ms"}
