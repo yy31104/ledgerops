@@ -71,6 +71,39 @@ Independent fold and literal expected accounts remain the financial oracles.
 
 Process and wire-proxy tests exercise these schedules against PostgreSQL.
 
+## Payout dispatch without a distributed transaction
+
+The ledger database and the payment provider cannot share an atomic commit. Payout
+dispatch follows the approach in Pat Helland, *Life beyond Distributed Transactions:
+an Apostate's Opinion* (CIDR 2007; revised in ACM Queue 14(5), 2016). Each side
+commits only its own state. They agree through messages that may be retried, and the
+receiver keeps a durable memory of which messages it has already applied.
+
+| Helland's idea | LedgerOps mechanism |
+|---|---|
+| An entity is the unit of serializable state; work across entities is not atomic | The payout row (workspace + operation) is one entity; the provider's payment record is another. No transaction spans both |
+| Messages can be delivered more than once, so processing must be idempotent | The provider key `v1.<namespace>.<workspace>.<operation>` is derived from the business identity at admission, stored with `UNIQUE (provider_key)`, and reused on every PUT, LOOKUP and CLOSE. The provider stores the payment and its result under that key |
+| The sender records that it is about to send before sending | `claim_payout` commits a MAY_HAVE_SENT attempt and knowledge UNKNOWN **before** the network call. A crash after this commit is treated as "the payment may exist" |
+| Uncertainty is resolved by asking, not assuming | Recovery starts with LOOKUP using the same key. A timeout, HTTP 500 or NOT_FOUND before the deadline never means "not paid". After the deadline the worker asks the provider to close the payment if it is absent |
+| Tentative work is later confirmed or cancelled | The 62 hold is the tentative state. It is consumed only on confirmed success and released only on confirmed failure or a confirmed close without payment |
+
+The rejected alternatives make the reason for the order clear:
+
+- Sending first and recording afterwards loses the fact that a payment may exist if
+  the process dies in between.
+- Generating a fresh key per attempt turns a retry into a second payment.
+- Releasing the hold after a timeout pays out money that may already have left.
+
+The persistent key is what lets a restarted worker ask a question it can safely
+repeat. Without it, "did my last message arrive?" has no safe answer.
+
+Evidence: `tests/integration/test_payout_worker_process.py` kills the worker after
+the provider pays and checks for one provider effect. `test_payout_dispatch.py` and
+`test_payout_resolution_faults.py` cover lost responses and late completions.
+
+Helland's model also lets entities be repartitioned, which LedgerOps does not need on
+one PostgreSQL. Only the idempotent-message and tentative-operation parts are used.
+
 ## Limits
 
 These bounded experiments cover purchase retries and response-loss recovery at the
