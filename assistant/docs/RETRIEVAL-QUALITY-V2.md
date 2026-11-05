@@ -60,8 +60,9 @@ balances, entries and holds. For v1-011, a hit anywhere in the labelled section
 earns credit even when the required release rule is in another chunk. Old labels
 and results were preserved rather than revised to make an approach win.
 
-HNSW matches exact vector rankings on the development evidence and the new
-holdout; approximate-index error is not supported as the cause here. Three long
+HNSW matches exact vector retrieval metrics, including per-question scores, on
+the development evidence and the new holdout. This does not prove identical full
+rankings; approximate-index error is not supported as the cause here. Three long
 chunks exceed the encoder's token window, but that is a separate limitation.
 The exposed original 12-case holdout is diagnostic history and was not used for
 this selection.
@@ -152,9 +153,13 @@ uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
 ```
 
 To reproduce the old baseline, add `--fusion legacy` and compare against the
-historical v1 report. To reproduce the grid, copy `eval/v2-study/protocol.json`
-to `assistant/.cache/study-v2/protocol.json` and run
-`uv run --project assistant --locked python assistant/scripts/retrieval_study.py tune`.
+historical v1 report. To reproduce the grid:
+
+```sh
+mkdir -p assistant/.cache/study-v2
+cp assistant/eval/v2-study/protocol.json assistant/.cache/study-v2/protocol.json
+uv run --project assistant --locked python assistant/scripts/retrieval_study.py tune
+```
 
 The published attempt record is deliberately consumed. For an explicitly labelled
 reproduction (not another unseen validation), copy `freeze.json` into a fresh local
