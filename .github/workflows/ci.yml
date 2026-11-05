@@ -53,6 +53,11 @@ jobs:
           uv run --locked ruff format --check assistant/scenarios
           uv run --locked python -m pytest -c pyproject.toml -p tests.conftest -q assistant/scenarios/capture.py
 
+      - name: Fake agent against the authenticated API
+        run: |
+          uv run --project assistant --locked --with-editable . --with gunicorn==26.2.0 \
+            python -m pytest -c pyproject.toml -p tests.conftest -q assistant/scenarios/agent_acceptance.py
+
   assistant:
     name: Operator assistant
     runs-on: ubuntu-latest

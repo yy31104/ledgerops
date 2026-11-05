@@ -19,7 +19,9 @@ class SubscriptionProvider:
             raise ValueError("explicitly opt in with LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1")
         self.timeout = timeout
 
-    def generate(self, instructions: str, message: str, schema: dict) -> tuple[str, dict]:
+    def generate(
+        self, instructions: str, message: str, schema: dict, *, timeout=None, max_output_tokens=512
+    ) -> tuple[str, dict]:
         # Never read, copy or export auth.json. The official SDK owns authentication.
         env = {
             k: v for k, v in os.environ.items() if k not in ("OPENAI_API_KEY", "OPENAI_BASE_URL")
@@ -42,7 +44,7 @@ class SubscriptionProvider:
                         "schema": schema,
                     }
                 ),
-                timeout=self.timeout,
+                timeout=min(self.timeout, timeout) if timeout else self.timeout,
             )
         except subprocess.TimeoutExpired:
             os.killpg(proc.pid, signal.SIGKILL)
