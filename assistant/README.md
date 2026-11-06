@@ -6,6 +6,26 @@ embeddings, pgvector HNSW and RRF with a bounded LangGraph agent. Drafts pause w
 `interrupt()` and persist in dedicated PostgreSQL; the operator submits the
 reviewed payload through the existing LedgerOps console.
 
+On the current 21-file/179-chunk corpus, the once-run **v3 holdout** has default
+hybrid **Recall@5 0.8894 (95% section-cluster CI [0.8227, 0.9455])** over 58 audited
+documentation questions in 40 source-section groups. Three pre-freeze audit
+exclusions reduced the planned 60+12 set to 58+11. Non-documentation routing and
+refusal each succeed on **6/11**; an indirect action, one injection and three
+unsupported questions are incorrectly answered as documentation. Generation is
+fake; these are retrieval and routing measurements, not real-model answer quality.
+See [the full v3 report](docs/RETRIEVAL-QUALITY-V2.md#v3-holdout), including failures
+and all paired intervals. No policy or label was changed after this run.
+
+On the same corpus, the 32 development questions score Recall@5 **0.7135** with
+reviewed labels. The higher v3 result reflects a different question distribution,
+not a system improvement: each v3 question was written from one sampled passage;
+39/58 (67%) have a single relevant section versus 14/32 (44%), and 27/58 (47%)
+target documents outside PAYOUTS, RECONCILIATION and OPERATOR-ACTIONS versus 6/32
+(19%), following the preregistered quotas. V3 also scores higher within each of
+these strata. Under the [defined content-token overlap measure](docs/RETRIEVAL-QUALITY-V2.md#question-distribution-versus-development),
+word overlap is similar (0.6855 versus 0.6812). Neither synthetic set represents
+real operator traffic.
+
 ## Try the local product
 
 From the repository root, with Docker running:
@@ -36,24 +56,16 @@ are not indexed automatically; approved-file edits require label review and a ne
 baseline. The [main integration comparison](docs/RETRIEVAL-QUALITY-V2.md#current-main-document-integration)
 records the remaining v1-011 missing-source regression and the lower Recall.
 
-The original set has 40 development and 20 held-out questions. A development-only
-fusion study selected RRF k=10, then froze code/configuration before evaluating a
-new 60-question retrieval holdout. On that same new set, Recall@5 is **0.8639 for
-FTS, 0.8361 for vectors, 0.8639 for old hybrid and 0.8889 for selected hybrid**.
-MRR slightly trails the old hybrid; actual five-chunk coverage has wider
-uncertainty. See [RETRIEVAL-QUALITY-V2.md](docs/RETRIEVAL-QUALITY-V2.md) for component
-rank traces, topic-cluster intervals, per-question regressions and audit limits.
-These held-out scores apply to the historical 175-chunk corpus, not the current
-main-document revision. The current refresh uses fake generation only.
-Labels are synthetic and not independently human-reviewed. Fake generation tests
-plumbing and permissions. A limited real-subscription smoke test does not establish
-answer quality or comprehensive injection resistance.
+The previous 175-chunk v2 holdout and development-only context studies are
+preserved as [historical results](docs/RETRIEVAL-QUALITY-V2.md#new-held-out-comparison).
+They describe their original corpus snapshots. Current v3 uses synthetic labels,
+objective pre-freeze audit and fake generation; the author-only-bundle declaration
+is self-reported, and source facts overlap earlier sets. A limited historical
+subscription smoke test does not establish current real-model answer quality.
 
-Those retrieval scores measure unchanged rankings. Generation now expands distinct
-source sections with their introductions and neighboring document chunks, bounded
-to 18 KB of serialized document context. This addresses conditions outside the
-initial five chunks; see the development-only context study in the retrieval guide.
-The previously used v2 holdout does not validate this new context policy.
+Generation expands distinct source sections with introductions and neighboring
+chunks, bounded to 18 KB of serialized document context. The v3 artifact records
+the actual provided context separately from raw ranking coverage.
 
 Citation checks reject unknown passage IDs and uncited answers. They establish
 provenance, not semantic entailment. Closed read tools and the upstream's current
