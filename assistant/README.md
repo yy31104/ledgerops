@@ -16,6 +16,16 @@ fake; these are retrieval and routing measurements, not real-model answer qualit
 See [the full v3 report](docs/RETRIEVAL-QUALITY-V2.md#v3-holdout), including failures
 and all paired intervals. No policy or label was changed after this run.
 
+On the same corpus, the 32 development questions score Recall@5 **0.7135** with
+reviewed labels. The higher v3 result reflects a different question distribution,
+not a system improvement: each v3 question was written from one sampled passage;
+39/58 (67%) have a single relevant section versus 14/32 (44%), and 27/58 (47%)
+target documents outside PAYOUTS, RECONCILIATION and OPERATOR-ACTIONS versus 6/32
+(19%), following the preregistered quotas. V3 also scores higher within each of
+these strata. Under the [defined content-token overlap measure](docs/RETRIEVAL-QUALITY-V2.md#question-distribution-versus-development),
+word overlap is similar (0.6855 versus 0.6812). Neither synthetic set represents
+real operator traffic.
+
 ## Try the local product
 
 From the repository root, with Docker running:

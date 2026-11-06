@@ -50,6 +50,115 @@ pairs did not meet the joint high-text-overlap/equivalent-answer exclusion rule;
 the manifest discloses them. New question wording does not establish unseen-fact
 generalization. Labels remain synthetic and have no independent human review.
 
+### Question distribution versus development
+
+On this same corpus and unchanged default hybrid, the 32 reviewed development
+questions have Recall@5 **0.7135**, versus **0.8894** for the 58 retained v3
+questions. This compares question distributions, not a system improvement. Each
+v3 question was written from one sampled passage and asks for one concrete fact;
+development questions were written around operational scenarios. Neither
+synthetic set represents real operator traffic.
+
+V3 has 39/58 (67.24%) single-relevant-section questions, versus 14/32 (43.75%)
+in development. Its preregistered file quotas yield 27/58 (46.55%) questions whose
+primary target is outside PAYOUTS, RECONCILIATION and OPERATOR-ACTIONS, versus
+6/32 (18.75%) in development. V3 scores higher even within each coarse stratum:
+
+| Stratum | Development n | Development Recall@5 | V3 n | V3 Recall@5 |
+|---|---:|---:|---:|---:|
+| One relevant section | 14 | 0.7857 | 39 | 0.9487 |
+| Multiple relevant sections | 18 | 0.6574 | 19 | 0.7675 |
+| Core primary target | 26 | 0.7051 | 31 | 0.8462 |
+| Other primary target | 6 | 0.7500 | 27 | 0.9389 |
+
+These are descriptive post-hoc means from saved per-question results, with no
+new retrieval, bootstrap or parameter selection. The strata do not establish
+causal effects of question style or eliminate other differences in difficulty.
+
+For the file grouping, v3's primary target is its `source_chunk` file. Every v3
+row's first relevant section has that same file. Development has no source-chunk
+field, so its first labelled relevant-section file is the explicit target proxy.
+A question may still have supporting sections in other files. Single/multiple
+counts use the number of distinct `relevant_sections`; subgroup Recall is the
+unweighted mean of saved hybrid per-question Recall@5.
+
+Word overlap is defined as the fraction of a question's unique content tokens
+present in the union of **all** its labelled relevant-section texts, then averaged
+equally across questions. Tokenization lowercases and extracts `[a-z0-9_]+`, removes
+the frozen retriever's stopwords listed in the command below, and performs no
+stemming or underscore expansion. Relevant-section text includes every existing
+chunk's complete `text`, including its heading prefix. This definition gives
+**0.6855 for v3 and 0.6812 for development**. The similarity of these descriptive
+values does not support greater measured lexical overlap as an explanation for
+the Recall gap; overlap values depend on the stated token and section conventions.
+
+Recompute the tables and overlap from the existing files, from the repository
+root, without importing or calling a retriever, encoder or evaluator:
+
+```sh
+PYTHONPATH=assistant/src python3 - <<'PYCODE'
+import hashlib
+import json
+import re
+import statistics
+from collections import defaultdict
+from pathlib import Path
+from ledgerops_assistant.corpus import load_corpus
+
+stop = set((
+    "a an and are as at be been but by can could do does for from had has have how i if in "
+    "into is it its may me my of on or our should so than that the their then there these "
+    "this to was we were what when where which while who why will with would you your"
+).split())
+core = {f"docs/{name}.md" for name in
+        ["PAYOUTS", "RECONCILIATION", "OPERATOR-ACTIONS"]}
+def rows(path):
+    return [json.loads(line) for line in Path(path).read_text().splitlines()]
+def tokens(text):
+    return set(re.findall(r"[a-z0-9_]+", text.lower())) - stop
+
+dev = json.loads(Path("assistant/eval/results/v3-main-docs-dev.json").read_text())
+v3 = json.loads(Path("assistant/eval/results/v3-holdout.json").read_text())
+for path, saved in [("assistant/eval/v1-draft/questions.jsonl", dev),
+                    ("assistant/eval/v3-holdout/questions.jsonl", v3)]:
+    assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == saved["questions"]["sha256"]
+corpus = load_corpus(Path.cwd())
+assert corpus.digest == dev["corpus"]["digest"] == v3["corpus"]["digest"]
+sections = defaultdict(str)
+for chunk in corpus.chunks:
+    sections[chunk.section_id] += "\n" + chunk.text
+
+datasets = [
+    ("development", [q for q in rows("assistant/eval/v1-draft/questions.jsonl")
+                     if q["split"] == "dev" and q["expected_route"] == "docs"],
+     dev["retrieval"]["hybrid"]["per_question"]),
+    ("v3", [q for q in rows("assistant/eval/v3-holdout/questions.jsonl")
+            if q["expected_route"] == "docs"],
+     {key: row["hybrid"] for key, row in v3["per_question"].items()}),
+]
+for name, questions, scores in datasets:
+    single = lambda q: len(set(q["relevant_sections"])) == 1
+    primary = lambda q: q["relevant_sections"][0].split("#")[0]
+    if name == "v3":
+        assert all(q["source_chunk"].split("#")[0] == primary(q) for q in questions)
+    predicates = {"single": single, "multiple": lambda q: not single(q),
+                  "core": lambda q: primary(q) in core,
+                  "other": lambda q: primary(q) not in core}
+    summary = {key: {"n": len(subset := [q for q in questions if predicate(q)]),
+                     "recall@5": statistics.mean(scores[q["id"]]["recall@5"]
+                                                 for q in subset)}
+               for key, predicate in predicates.items()}
+    overlaps = []
+    for q in questions:
+        query = tokens(q["question"])
+        relevant = tokens("\n".join(sections[s] for s in q["relevant_sections"]))
+        overlaps.append(len(query & relevant) / len(query) if query else 0.0)
+    print(name, "n", len(questions), "recall@5",
+          statistics.mean(scores[q["id"]]["recall@5"] for q in questions),
+          "overlap", statistics.mean(overlaps), "strata", summary)
+PYCODE
+```
+
 ### Retrieval and context
 
 One batch used the pinned local bge-small encoder and PostgreSQL FTS/HNSW, with
