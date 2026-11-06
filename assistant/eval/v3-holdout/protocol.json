@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "study": "v3-fresh-holdout",
+  "phase": "preparation_only",
+  "source_commit": "c4d943c0b4f6a6220e9d34fbe4af89a34424e730",
+  "corpus_digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+  "source_files": [
+    "README.md",
+    "docs/ACTIVE-HOLD-INDEX.md",
+    "docs/AUTHENTICATION.md",
+    "docs/BACKUP-RESTORE.md",
+    "docs/EVIDENCE-EXCHANGE.md",
+    "docs/EXPORT-AND-VERIFY.md",
+    "docs/HTTP-SERVICE.md",
+    "docs/MAINTENANCE-CAPACITY.md",
+    "docs/MAINTENANCE.md",
+    "docs/OPERATOR-ACTIONS.md",
+    "docs/PAYOUTS.md",
+    "docs/RECONCILIATION.md",
+    "docs/RELEASE-READINESS.md",
+    "docs/REVERSAL.md",
+    "docs/STREAM10.md",
+    "docs/STREAMING-EVIDENCE.md",
+    "docs/adr/0001-initialization.md",
+    "docs/adr/0002-ledger-foundation.md",
+    "docs/adr/0003-purchase-admission.md",
+    "docs/adr/0004-contention-and-recovery.md",
+    "ops/linux/README.md"
+  ],
+  "source_file_count": 21,
+  "chunks": 179,
+  "prepared_sample_sha256": "f1646c1c7d9a04e6a02afe9f2d3b9a7a777ffb60b3ff22e95fa1299b29ec46e6",
+  "writing_guide_sha256": "457ac3bd6a29341040574209d105fbd40c6b9cfaf836290dca25cbcdb2bced58",
+  "passages_sha256": "7e04fbe4ee16792d6e7d4b0125dd5e429ae36477a92bd4b6c6d78ac9c606255b",
+  "frozen_runtime_sha256": {
+    "assistant/src/ledgerops_assistant/__init__.py": "558ddb6a98d1a8c6f55812dcf5edfa70f6ad8c49b866b42480fa415d0ede80e2",
+    "assistant/src/ledgerops_assistant/__main__.py": "a41d4cd5d8d43c563f3364813a4d6a3efdb059a9878e6445d2bb47174dd76696",
+    "assistant/src/ledgerops_assistant/agent.py": "79d9b352f6450664cdcf78c17636ecfd8d1f7c8a501486bce9fc0c976d788f9e",
+    "assistant/src/ledgerops_assistant/answer.py": "d87a4b4adca364f3c139e866566654bcd2e49c96b6e782fc029399c714cb956b",
+    "assistant/src/ledgerops_assistant/api.py": "30be37665a954f2f52d298bd706f676609df4feb0bdbfa58caa3b33b9657647a",
+    "assistant/src/ledgerops_assistant/context.py": "9127032559be547ffc8094504ef60f7fb1a5e0b5aa62de784371808fbc3dd77b",
+    "assistant/src/ledgerops_assistant/corpus.py": "d6bf496247fdb69382de7412c8cc70e1054d2f0a667e36c1d64127f3cc138790",
+    "assistant/src/ledgerops_assistant/demo_api.py": "d097a64c939df9700d20ef8c21a4cfdf04e88445e13e15e4d6d4bdf389a522df",
+    "assistant/src/ledgerops_assistant/drafts.py": "a76fd5c121eea4413c9577f252a474cc651c5aa053f4688ffe8e5914254e50b9",
+    "assistant/src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+    "assistant/src/ledgerops_assistant/evaluation.py": "b4e2c759de914a3728eacd72f5e620314c2e3c7824e2b264b54b8f5c3aecacff",
+    "assistant/src/ledgerops_assistant/mcp_server.py": "d31b5368faf18a2eb55ae2ee151da27a8608ec2f80a6d1223abf4c75b6886c6b",
+    "assistant/src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+    "assistant/src/ledgerops_assistant/providers/__init__.py": "a8046788a6586bcc6ad152f11388f588a371dbadd013dcaabd9308308ecddb53",
+    "assistant/src/ledgerops_assistant/providers/base.py": "1ee228db1f7b89db38025b6c6e39305b689afc20da521852a93c28ffcd57ff97",
+    "assistant/src/ledgerops_assistant/providers/fake.py": "1baee1326ab79d70ef2426ea26a08377d74c9cbc45acb779028094b753ba858a",
+    "assistant/src/ledgerops_assistant/providers/ollama.py": "ea97277f9603444837b3df7ec7247ea5707969b879f0e61c8f107d6ee16f9e70",
+    "assistant/src/ledgerops_assistant/providers/openai_api.py": "fec090efebf1cce73c28f3463d646a93a2aaa2908e1f989d40a2268e824a2cd2",
+    "assistant/src/ledgerops_assistant/providers/subscription.py": "cdb4c451e89356dd12eaeb90cfc7f9430eff043617faeb503ab4896c5cf0c591",
+    "assistant/src/ledgerops_assistant/providers/subscription_worker.py": "5901e8bc35b677d4c0d49c830adbdfd3687a8d8e5c55a75f1a26742ea2f2776f",
+    "assistant/src/ledgerops_assistant/quality_gate.py": "6dbc681cd672a6bd71b35a74afcb7f7ed3f26bb19be7549c1f4673b66114ffdc",
+    "assistant/src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec",
+    "assistant/src/ledgerops_assistant/routing.py": "139e4cd7793c68090fb98692fdd426f917c3a5c7dd44b42dfda90244806408db",
+    "assistant/src/ledgerops_assistant/runtime.py": "613733a45b89fd5b76587d4b8edbc46b1416dfd394d8d0b6758ae816cc63832c",
+    "assistant/src/ledgerops_assistant/settings.py": "eadb5f95f1c4a0f4d651b4cc8757e164133c316434cc6110694cc7bb33d6d141",
+    "assistant/src/ledgerops_assistant/sql/001_rag.sql": "26d7f0cbbc57a305c5239f5079d6853b7d3e8ca8fbde8273e7b611b308805488",
+    "assistant/src/ledgerops_assistant/sql/002_drafts.sql": "4b70c815e0d52d3a7047d102b4b9c0f4e11913effb074ba96c0640d7af5bc192",
+    "assistant/src/ledgerops_assistant/telemetry.py": "27b571609517177e1351a0375decf8b6c131fda2837e1cb31f429651c9d99c1b",
+    "assistant/src/ledgerops_assistant/tools.py": "bb7e8a0d439862f8b918e4653b4f484c519f2eae690715531047143ece54b370",
+    "assistant/src/ledgerops_assistant/tracking.py": "5b635425bb3c5387a072d6384cf4aaeaa75022db0457fd86d31a793b0ce54861",
+    "assistant/src/ledgerops_assistant/workflow.py": "7c0c115b2145cea60724cc31344868610feab7b8a6e2eb4c686dbca8a4466954",
+    "assistant/uv.lock": "f0dfa90a8091fb88a21827f8230a24fefcf4a5fee92de788343f4448d62f367d",
+    "assistant/pyproject.toml": "7e7377427772e40d6801f5cc9cf0c3f1b69134fe6df402aeeae1b54617e1fec6",
+    "assistant/eval/results/v3-main-docs-dev.json": "7ca9b87654aee579cb22b40f14dda6c85bfd05a9c86640a1db62dab8c5410fbd"
+  },
+  "preparation_constraints": [
+    "No questions are authored in this change.",
+    "Preparation invokes no retriever, embedder, generator, bootstrap or metric evaluation; v3 questions and metrics are neither run nor configured in this change.",
+    "Retrieval, context, corpus sources, baselines and CI configuration remain unchanged.",
+    "No v3 metric is added to CI; existing development checks remain unchanged.",
+    "v1-011 remains unfixed, including its existing strict expected-failure marker."
+  ],
+  "authoring": {
+    "sample_file": "sample.json",
+    "writing_guide": "WRITING-GUIDE.md",
+    "sampling_seed": 20261106,
+    "minimum_chunk_words": 40,
+    "ordered_eligible_chunks": 168,
+    "primary_chunks": 60,
+    "reserve_chunks": 108,
+    "oversampling_requirement": null,
+    "section_question_cap": null,
+    "allocation": [
+      {
+        "quota_group": "PAYOUTS",
+        "questions": 15
+      },
+      {
+        "quota_group": "RECONCILIATION",
+        "questions": 9
+      },
+      {
+        "quota_group": "OPERATOR-ACTIONS",
+        "questions": 7
+      },
+      {
+        "quota_group": "HTTP-SERVICE",
+        "questions": 6
+      },
+      {
+        "quota_group": "MAINTENANCE",
+        "questions": 5
+      },
+      {
+        "quota_group": "ops/linux/README",
+        "questions": 4
+      },
+      {
+        "quota_group": "README",
+        "questions": 2
+      },
+      {
+        "quota_group": "ADR-0004",
+        "questions": 2
+      },
+      {
+        "quota_group": "BACKUP-RESTORE",
+        "questions": 2
+      },
+      {
+        "quota_group": "AUTHENTICATION",
+        "questions": 2
+      },
+      {
+        "quota_group": "REVERSAL",
+        "questions": 2
+      },
+      {
+        "quota_group": "EXPORT-AND-VERIFY",
+        "questions": 2
+      },
+      {
+        "quota_group": "OTHER-NINE-FILE-POOL",
+        "questions": 2
+      }
+    ],
+    "initial_transfers": [
+      {
+        "from_group": "PAYOUTS",
+        "to_group": "RECONCILIATION",
+        "question_slots": 1,
+        "reason": "preceding quota group has fewer eligible chunks than its demanded quota"
+      }
+    ],
+    "replacement_policy": "first unused same-group reserve; if exhausted, first unused reserve in the next downstream group with reserves; no wraparound; log all skips, replacements and transfers",
+    "transfer_record": "all initial transfers in allocation_transfers; all author-time cross-group transfers in authoring_transfers, with authoring_events and final quotas updated in sample.json",
+    "documentation_word_range": [
+      6,
+      18
+    ],
+    "key_facts_per_documentation_question": [
+      1,
+      2
+    ],
+    "five_consecutive_source_words_forbidden": true,
+    "all_relevant_sections": "plain-text search across all 21 files; include every section explicitly stating any key fact; their union must cover all key facts",
+    "counts": {
+      "documentation": 60,
+      "action": 4,
+      "live_state": 3,
+      "out_of_scope": 3,
+      "injection": 2,
+      "total": 72
+    },
+    "all_splits": "test",
+    "cluster_key": "documentation group equals the accepted source chunk section_id, not an author topic or file",
+    "author_restrictions": [
+      "read only the supplied folder",
+      "no internet",
+      "plain text search only; no other programs",
+      "no earlier datasets, results, memories or conversations as factual sources"
+    ]
+  },
+  "freeze_before_evaluation": [
+    "Validate 72 unique sequential IDs and the exact 60/4/3/3/2 category counts without retrieval.",
+    "Validate unique accepted documentation chunks, 6-18-word questions, one or two facts, verbatim passage evidence, valid section labels, author search notes and every replacement/transfer.",
+    "Record final SHA256 hashes of questions.jsonl, AUTHOR-NOTES.md and sample.json, plus this protocol's commit, before any v3 retrieval output is seen.",
+    "Verify the corpus and frozen retrieval/context/runtime files still match this protocol. Do not change labels or configuration after the run starts."
+  ],
+  "evaluation": {
+    "run_limit": 1,
+    "provider": "fake",
+    "real_model_calls": false,
+    "backend": "postgres",
+    "ranking_request_chunks": 30,
+    "methods": {
+      "hybrid": {
+        "components": [
+          "postgres_fts",
+          "pgvector_hnsw"
+        ],
+        "rrf_k": 10,
+        "depth": 50,
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "unit": "chunk"
+      },
+      "legacy_hybrid": {
+        "components": [
+          "postgres_fts",
+          "pgvector_hnsw"
+        ],
+        "rrf_k": 60,
+        "depth": 50,
+        "weights": [
+          1.0,
+          1.0
+        ],
+        "unit": "chunk"
+      },
+      "pgvector_hnsw": {
+        "implementation": "unchanged PostgresRetriever(method=vector)"
+      },
+      "postgres_fts": {
+        "implementation": "unchanged PostgresRetriever(method=fts); English stemming, not BM25"
+      }
+    },
+    "embedding": {
+      "model": "BAAI/bge-small-en-v1.5",
+      "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+      "max_tokens": 512,
+      "query_instruction": "Represent this sentence for searching relevant passages: ",
+      "passage_instruction": null
+    },
+    "scope_gate": {
+      "threshold": 0.5956,
+      "source": "eval/results/v3-main-docs-dev.json",
+      "calibrate_on_v3": false,
+      "test_only_runner_requirement": "use this stored threshold explicitly; do not call the existing CLI in a way that recalibrates on test-only questions"
+    },
+    "context": {
+      "policy": "section-neighbors-v1",
+      "distinct_section_anchors": 5,
+      "candidate_chunks": 30,
+      "neighbor_distances": [
+        1,
+        2
+      ],
+      "include_section_introductions": true,
+      "max_serialized_document_bytes": 18000
+    },
+    "no_retuning": [
+      "no query/configuration grid",
+      "no post-run label changes",
+      "no scope-threshold recalibration",
+      "no corpus/source changes",
+      "no v1-011 fix",
+      "no real model generation",
+      "no repetition based on results"
+    ],
+    "execution_failure": "persist completed query outputs and disclose partial/failed execution; do not silently rerun a scored query or discard an unfavorable outcome"
+  },
+  "scoring": {
+    "retrieval_population": "exactly the 60 documentation questions; equal question weight; non-documentation excluded",
+    "ranking_unit": "deduplicate section IDs in returned-chunk order, keeping first occurrence; top k means first k distinct sections",
+    "relevance": "binary relevance against the complete authored relevant_sections union; no gains for repeated chunks from one section",
+    "primary": {
+      "method": "hybrid",
+      "metric": "recall@5",
+      "estimate": "mean over 60 questions of |top5_sections intersect relevant_sections| / |relevant_sections|",
+      "interval": "section-cluster bootstrap percentile 95%, 10000 resamples, fixed seed 20261106"
+    },
+    "secondary": {
+      "mrr@10": "mean reciprocal first relevant distinct-section rank within 10, zero if absent",
+      "ndcg@5": "binary DCG with 1/log2(rank+1), divided by ideal DCG for min(5, number of relevant sections)",
+      "hit@1": "mean indicator that a relevant section is ranked first",
+      "hit@5": "mean indicator that any relevant section occurs among five distinct sections",
+      "raw_five_chunk_coverage": "mean relevant-section recall from the first five raw chunks, before section deduplication or expansion",
+      "expanded_context_coverage": "mean relevant-section recall from the actual document chunk IDs provided by the unchanged expanded answer path; record chunk count and serialized bytes too"
+    },
+    "rounding": "retain full per-question precision through aggregation/bootstrap; round only display values",
+    "non_documentation": {
+      "provider": "fake",
+      "population": 12,
+      "report": [
+        "expected versus predicted route per question",
+        "refused flag and reason per question",
+        "route accuracy overall and by category",
+        "route confusion counts",
+        "correct and missed refusals"
+      ],
+      "expected_route_counts": {
+        "action": 6,
+        "live_state": 3,
+        "out_of_scope": 3
+      },
+      "expected_refusal": "all 12 under the documentation-answer evaluation path",
+      "limits": "fake results test routing/refusal plumbing, not real-model factual quality, comprehensive injection resistance or live API behavior"
+    }
+  },
+  "uncertainty": {
+    "resamples": 10000,
+    "confidence": 0.95,
+    "seed": 20261106,
+    "rng": "NumPy Generator(PCG64(20261106)), independently initialized for question and cluster procedures; same resampling indices reused across methods/metrics",
+    "ordering": "sort documentation IDs; sort unique source-section group IDs; retain all questions within each group",
+    "question_bootstrap": "sample 60 question IDs with replacement; preserve paired method scores for every sampled ID",
+    "section_cluster_bootstrap": "sample G source-section group IDs with replacement, G equal to the number of observed groups; include every member of each sampled group with multiplicity; compute the question-weighted mean over the resulting variable-size sample",
+    "interval": "2.5th and 97.5th percentiles with linear interpolation; no score rounding before percentiles",
+    "paired_comparisons": {
+      "contrasts": [
+        "hybrid - legacy_hybrid",
+        "hybrid - pgvector_hnsw",
+        "hybrid - postgres_fts"
+      ],
+      "metrics": [
+        "recall@5",
+        "mrr@10",
+        "hit@1"
+      ],
+      "procedures": [
+        "paired question bootstrap",
+        "paired source-section-cluster bootstrap"
+      ],
+      "statistic": "mean per-question hybrid-minus-comparator difference, using the same paired question/cluster draw for both methods",
+      "zero_rule": "if an interval includes zero (inclusive), report 'no detectable difference' for that interval; describe a consistent direction only when both paired procedures exclude zero in the same direction",
+      "multiplicity": "95% intervals are unadjusted descriptive comparisons, not family-wise confirmatory significance tests"
+    }
+  },
+  "reporting": [
+    "Publish all methods and all prespecified metrics regardless of outcome; no winner-only reporting.",
+    "Report primary section-cluster CI, section/group count and sizes, final file quotas, substitutions and any incomplete slots.",
+    "Report both paired interval procedures for every contrast/metric, including intervals containing zero.",
+    "Disclose shortfall transfers, author declarations/departures, code/corpus/question hashes and execution failures.",
+    "Do not present previous-corpus holdout results as current-corpus measurements; do not tune after this run.",
+    "Document that source-quota sampling and synthetic operator wording limit generalization; section clustering handles within-section dependence, not every possible source of dependence.",
+    "Log the later single evaluation's protocol/question/corpus/config hashes and raw per-question outputs in MLflow; no experiment is run during preparation."
+  ]
+}
