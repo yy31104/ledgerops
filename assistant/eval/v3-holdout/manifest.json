@@ -1,0 +1,335 @@
+{
+  "schema_version": 1,
+  "status": "frozen_synthetic",
+  "study": "v3-fresh-holdout",
+  "sha256": "a0ad5762c7b49d952ede287a22f4bceceb6daafc7da1950c446ce9c8c6a960ef",
+  "commit": "d069be329c0abf713be40c72e0a442a9290bf42b",
+  "commit_role": "audited code/protocol base; the self-referential freeze commit is resolved after commit and recorded in run.json and the result",
+  "source_commit": "c4d943c0b4f6a6220e9d34fbe4af89a34424e730",
+  "protocol_commit": "d069be329c0abf713be40c72e0a442a9290bf42b",
+  "protocol_sha256": "ca3d92f05dd7677e7748a98e0a9d9425a3f881a4301bd1eefc694068f63bd3a0",
+  "corpus_digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+  "corpus_file_sha256": {
+    "README.md": "522705bbe54c63e1a23dfa72107437e529ce0d33822fa28bc14b7dbd9e4e7b1d",
+    "docs/ACTIVE-HOLD-INDEX.md": "a6a7f6f4927c249639d41ece03ab7729b9145408fb19835bde83ced2e0418af0",
+    "docs/AUTHENTICATION.md": "bad63ae4e9a617774d7f788b8924cfbd9cba4e3134699d95e3c4e6b9c6a2b03e",
+    "docs/BACKUP-RESTORE.md": "49c738c1b22624fd4a08e247acd13dded87536d04c0678d5cf5b9b1f28bbc8b8",
+    "docs/EVIDENCE-EXCHANGE.md": "cf3a93fc76d005b8371e450bfcf18e059a10d7d7d6aebc37bec458a0b1683c14",
+    "docs/EXPORT-AND-VERIFY.md": "c54e122e6191a6423c997f38a5e892d6a6ad8a7d9aa635fcc7ce7b4ce44b9dc9",
+    "docs/HTTP-SERVICE.md": "2f1271c0b4755851420265fc8a5ccf0dec11b0f090dfb7c3a273047a89f6ebc3",
+    "docs/MAINTENANCE-CAPACITY.md": "fc4001a3b4acaf9d465be89441091e81b5418c0fd85d0b105ee5366ab2fdcbec",
+    "docs/MAINTENANCE.md": "c6ef90978fd9220a00b006ec3acf9131193350ee04a1bf0ad88ae59323805969",
+    "docs/OPERATOR-ACTIONS.md": "6a71a7adff2bd397de5ae9c4ae4b3a3b78ba391a34ca9d3829446ac09a9b5211",
+    "docs/PAYOUTS.md": "ac1691ab2d952f96e7a50f3edc8632e23be6fd21c78cf3bb6baf486ad870df84",
+    "docs/RECONCILIATION.md": "f74b0a571e7ca2f6913ea78e6fb1d1f7685c340e1f48a902a5f0a297bf382af7",
+    "docs/RELEASE-READINESS.md": "69965da71b803448a8fbfd9f489fb16a21fcd1d9a4f9c026e83d498ef2bdbd67",
+    "docs/REVERSAL.md": "1ec7f0310d8aa173a6ad9d80b973c54ab287f743f25b9db730554b47eb6d98a4",
+    "docs/STREAM10.md": "98b01d28d23b3dfc01e3cd64272a89097bfa2e614fba861bba791255ee5ad831",
+    "docs/STREAMING-EVIDENCE.md": "766779da615de3e7e8abe957f5196dd8609a3ab8d0bdffdd1aa26252b3bd16c8",
+    "docs/adr/0001-initialization.md": "a24ee8762462213b2fecc732961f58c5563543027063363312ad11b032d46d1d",
+    "docs/adr/0002-ledger-foundation.md": "d4fb664b601f7f8f93a6ac013c620d4ff6496aa7602f52c78eb07ba7d93154b1",
+    "docs/adr/0003-purchase-admission.md": "1a85c7c03c993ac198da2ed968b2aa86fbb60d551b413a2b8795e2d876d715cd",
+    "docs/adr/0004-contention-and-recovery.md": "afe50cc7054201aa269534d7d3dbba373dcfeed4143b011ac558217804dffcfa",
+    "ops/linux/README.md": "2503706d1d265ec74e3379deb942d2786f410be79d21191ac4f236d4633ed655"
+  },
+  "code_sha256": {
+    "assistant/src/ledgerops_assistant/__init__.py": "558ddb6a98d1a8c6f55812dcf5edfa70f6ad8c49b866b42480fa415d0ede80e2",
+    "assistant/src/ledgerops_assistant/__main__.py": "a41d4cd5d8d43c563f3364813a4d6a3efdb059a9878e6445d2bb47174dd76696",
+    "assistant/src/ledgerops_assistant/agent.py": "79d9b352f6450664cdcf78c17636ecfd8d1f7c8a501486bce9fc0c976d788f9e",
+    "assistant/src/ledgerops_assistant/answer.py": "d87a4b4adca364f3c139e866566654bcd2e49c96b6e782fc029399c714cb956b",
+    "assistant/src/ledgerops_assistant/api.py": "30be37665a954f2f52d298bd706f676609df4feb0bdbfa58caa3b33b9657647a",
+    "assistant/src/ledgerops_assistant/context.py": "9127032559be547ffc8094504ef60f7fb1a5e0b5aa62de784371808fbc3dd77b",
+    "assistant/src/ledgerops_assistant/corpus.py": "d6bf496247fdb69382de7412c8cc70e1054d2f0a667e36c1d64127f3cc138790",
+    "assistant/src/ledgerops_assistant/demo_api.py": "d097a64c939df9700d20ef8c21a4cfdf04e88445e13e15e4d6d4bdf389a522df",
+    "assistant/src/ledgerops_assistant/drafts.py": "a76fd5c121eea4413c9577f252a474cc651c5aa053f4688ffe8e5914254e50b9",
+    "assistant/src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+    "assistant/src/ledgerops_assistant/evaluation.py": "b4e2c759de914a3728eacd72f5e620314c2e3c7824e2b264b54b8f5c3aecacff",
+    "assistant/src/ledgerops_assistant/mcp_server.py": "d31b5368faf18a2eb55ae2ee151da27a8608ec2f80a6d1223abf4c75b6886c6b",
+    "assistant/src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+    "assistant/src/ledgerops_assistant/providers/__init__.py": "a8046788a6586bcc6ad152f11388f588a371dbadd013dcaabd9308308ecddb53",
+    "assistant/src/ledgerops_assistant/providers/base.py": "1ee228db1f7b89db38025b6c6e39305b689afc20da521852a93c28ffcd57ff97",
+    "assistant/src/ledgerops_assistant/providers/fake.py": "1baee1326ab79d70ef2426ea26a08377d74c9cbc45acb779028094b753ba858a",
+    "assistant/src/ledgerops_assistant/providers/ollama.py": "ea97277f9603444837b3df7ec7247ea5707969b879f0e61c8f107d6ee16f9e70",
+    "assistant/src/ledgerops_assistant/providers/openai_api.py": "fec090efebf1cce73c28f3463d646a93a2aaa2908e1f989d40a2268e824a2cd2",
+    "assistant/src/ledgerops_assistant/providers/subscription.py": "cdb4c451e89356dd12eaeb90cfc7f9430eff043617faeb503ab4896c5cf0c591",
+    "assistant/src/ledgerops_assistant/providers/subscription_worker.py": "5901e8bc35b677d4c0d49c830adbdfd3687a8d8e5c55a75f1a26742ea2f2776f",
+    "assistant/src/ledgerops_assistant/quality_gate.py": "6dbc681cd672a6bd71b35a74afcb7f7ed3f26bb19be7549c1f4673b66114ffdc",
+    "assistant/src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec",
+    "assistant/src/ledgerops_assistant/routing.py": "139e4cd7793c68090fb98692fdd426f917c3a5c7dd44b42dfda90244806408db",
+    "assistant/src/ledgerops_assistant/runtime.py": "613733a45b89fd5b76587d4b8edbc46b1416dfd394d8d0b6758ae816cc63832c",
+    "assistant/src/ledgerops_assistant/settings.py": "eadb5f95f1c4a0f4d651b4cc8757e164133c316434cc6110694cc7bb33d6d141",
+    "assistant/src/ledgerops_assistant/sql/001_rag.sql": "26d7f0cbbc57a305c5239f5079d6853b7d3e8ca8fbde8273e7b611b308805488",
+    "assistant/src/ledgerops_assistant/sql/002_drafts.sql": "4b70c815e0d52d3a7047d102b4b9c0f4e11913effb074ba96c0640d7af5bc192",
+    "assistant/src/ledgerops_assistant/telemetry.py": "27b571609517177e1351a0375decf8b6c131fda2837e1cb31f429651c9d99c1b",
+    "assistant/src/ledgerops_assistant/tools.py": "bb7e8a0d439862f8b918e4653b4f484c519f2eae690715531047143ece54b370",
+    "assistant/src/ledgerops_assistant/tracking.py": "5b635425bb3c5387a072d6384cf4aaeaa75022db0457fd86d31a793b0ce54861",
+    "assistant/src/ledgerops_assistant/workflow.py": "7c0c115b2145cea60724cc31344868610feab7b8a6e2eb4c686dbca8a4466954",
+    "assistant/uv.lock": "f0dfa90a8091fb88a21827f8230a24fefcf4a5fee92de788343f4448d62f367d",
+    "assistant/pyproject.toml": "7e7377427772e40d6801f5cc9cf0c3f1b69134fe6df402aeeae1b54617e1fec6",
+    "assistant/eval/results/v3-main-docs-dev.json": "7ca9b87654aee579cb22b40f14dda6c85bfd05a9c86640a1db62dab8c5410fbd",
+    "assistant/scripts/evaluate_v3.py": "781b6689bdfa71f4ef8a1ad64ab417d91ce44f73f02acfeebdca83ccb3eee83f",
+    "assistant/tests/test_v3_holdout.py": "c9570aa6e4a1a9806ce7a91b205a053a8d181153cd5429a87827fbb36c730c45"
+  },
+  "prepared_sample_sha256": "f1646c1c7d9a04e6a02afe9f2d3b9a7a777ffb60b3ff22e95fa1299b29ec46e6",
+  "source_questions_sha256": "fddbbad0ad49e8cf0edc1d52932e9ce774a2c79a08e84a118ecca70c2f84968e",
+  "author_notes_sha256": "4ab7f8a365a8837df4987b6e676c84e50c5d33bb1269f0cc9ee23b4783a81029",
+  "author_sample_sha256": "c343296bb3a00661d84b51bd95b88ee3f45d12ce17215a80e3a53f2a46dc47d6",
+  "audited_at": "2026-11-06T14:48:45+00:00",
+  "authored_by_category": {
+    "documentation": 60,
+    "action": 4,
+    "live_state": 3,
+    "out_of_scope": 3,
+    "injection": 2
+  },
+  "retained_by_category": {
+    "documentation": 58,
+    "action": 4,
+    "live_state": 2,
+    "out_of_scope": 3,
+    "injection": 2
+  },
+  "retained_by_source_file": {
+    "README.md": 2,
+    "docs/AUTHENTICATION.md": 2,
+    "docs/BACKUP-RESTORE.md": 1,
+    "docs/EXPORT-AND-VERIFY.md": 2,
+    "docs/HTTP-SERVICE.md": 6,
+    "docs/MAINTENANCE.md": 4,
+    "docs/OPERATOR-ACTIONS.md": 7,
+    "docs/PAYOUTS.md": 15,
+    "docs/RECONCILIATION.md": 9,
+    "docs/RELEASE-READINESS.md": 1,
+    "docs/REVERSAL.md": 2,
+    "docs/STREAMING-EVIDENCE.md": 1,
+    "docs/adr/0004-contention-and-recovery.md": 2,
+    "ops/linux/README.md": 4
+  },
+  "exclusions": [
+    {
+      "id": "v3-039",
+      "category": "documentation",
+      "reason": "Five consecutive source words copied into the question, violating the fixed paraphrase rule.",
+      "evidence": "account versions and projection epoch",
+      "source_sections": [
+        "docs/MAINTENANCE.md#run-in-order"
+      ]
+    },
+    {
+      "id": "v3-052",
+      "category": "documentation",
+      "reason": "Near duplicate of blind-v2-032: high short-question content-token containment and the same backup post-rename fsync/retained-artifact/no-overwrite decision.",
+      "prior_set": "v2-holdout",
+      "prior_id": "blind-v2-032",
+      "content_token_containment": 0.7778
+    },
+    {
+      "id": "v3-066",
+      "category": "live_state",
+      "reason": "Near duplicate of v1-034: current merchant available-balance lookup with only an entity-name substitution; same live-state information request.",
+      "prior_set": "v1-draft",
+      "prior_id": "v1-034",
+      "content_token_containment": 0.7143
+    }
+  ],
+  "permitted_corrections": [],
+  "protocol_deviations": [
+    "Pre-outcome objective audit removed v3-039 and v3-052; documentation population is 58 rather than the nominal 60. No replacement or question/fact rewrite was made.",
+    "Pre-outcome duplicate audit removed v3-066; non-documentation population is 11 rather than the nominal 12 (live_state 2 rather than 3).",
+    "All means and resampling populations use the retained questions, not an imputed nominal denominator. Original protocol.json remains unchanged; these audit exclusions were fixed before any retrieval output."
+  ],
+  "author_declaration": {
+    "source": "AUTHOR-NOTES.md; not committed",
+    "summary": "The author reports reading only the supplied bundle, using no network, earlier datasets/results/conversations, retrievers, embeddings, delegation or evaluation tools; only plain-text rg search was run. All 60 primary chunks were accepted without skips, replacements or transfers.",
+    "independently_verifiable": false,
+    "audit_discrepancy": "The author reported no five-word copying; static audit found the v3-039 violation and excluded it."
+  },
+  "audit": {
+    "retrieval_run_before_freeze": false,
+    "scope": "Static JSON/bytes/label/evidence checks, text similarity and manual question/fact comparison only. Dataset instruction strings were treated as data.",
+    "fields_complete": 72,
+    "unique_ids": 72,
+    "all_test_split": true,
+    "all_section_ids_exist": true,
+    "all_quotes_match_one_original_chunk_after_whitespace_normalization": true,
+    "quote_matching": "A quote must be an exact contiguous substring of one original chunk after collapsing whitespace; no punctuation, wording or case repair is allowed.",
+    "every_fact_has_evidence": true,
+    "documentation_word_lengths_valid": true,
+    "authored_primary_allocation_matches": true,
+    "authored_primary_unique": 60,
+    "factual_review": "All 60 authored fact statements were compared with their quoted passages in source context; no fact or question wording was changed.",
+    "final_quotas": "Original author quotas met; only the three documented audit deletions reduce final counts. Maintenance 4, backup/restore 1 and live_state 2 remain.",
+    "prior_question_files": {
+      "v1-draft": {
+        "sha256": "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c",
+        "count": 60
+      },
+      "v2-holdout": {
+        "sha256": "653bf40dcdc1117bd42c165710b028b27622359a8c546129db7d901626396677",
+        "count": 60
+      }
+    },
+    "near_duplicate_screen": {
+      "methods": "Case-insensitive alphanumeric question tokens; character SequenceMatcher, content-token Jaccard and short-text token containment, followed by manual fact/intent comparison. UUID-heavy false positives are explicitly rejected.",
+      "thresholds": {
+        "sequence": 0.6,
+        "content_jaccard": 0.45,
+        "short_text_containment": 0.6,
+        "minimum_shared_tokens_for_containment": 4,
+        "additional_fact_overlap_review": 0.3
+      },
+      "exclusion_rule": "High text overlap plus the same substantive required-fact/answer decision. Entity substitution alone does not make a live-state question new.",
+      "reviewed_candidates": [
+        {
+          "id": "v3-020",
+          "prior_id": "v1-024",
+          "prior_set": "v1-draft",
+          "question_similarity": {
+            "sequence": 0.4348,
+            "jaccard": 0.1429
+          },
+          "decision": "retained",
+          "reason": "Shared DST subfact but different question focus and low question-text similarity."
+        },
+        {
+          "id": "v3-065",
+          "prior_id": "v1-033",
+          "prior_set": "v1-draft",
+          "question_similarity": {
+            "sequence": 0.7742,
+            "jaccard": 0.4545
+          },
+          "decision": "retained",
+          "reason": "UUID characters inflate the screen; requested object attribute or operation differs. A shared route alone is not a duplicate."
+        },
+        {
+          "id": "v3-065",
+          "prior_id": "v1-035",
+          "prior_set": "v1-draft",
+          "question_similarity": {
+            "sequence": 0.6519,
+            "jaccard": 0.4545
+          },
+          "decision": "retained",
+          "reason": "UUID characters inflate the screen; requested object attribute or operation differs. A shared route alone is not a duplicate."
+        },
+        {
+          "id": "v3-065",
+          "prior_id": "v1-055",
+          "prior_set": "v1-draft",
+          "question_similarity": {
+            "sequence": 0.6917,
+            "jaccard": 0.1538
+          },
+          "decision": "retained",
+          "reason": "UUID characters inflate the screen; requested object attribute or operation differs. A shared route alone is not a duplicate."
+        },
+        {
+          "id": "v3-065",
+          "prior_id": "v1-057",
+          "prior_set": "v1-draft",
+          "question_similarity": {
+            "sequence": 0.6107,
+            "jaccard": 0.1667
+          },
+          "decision": "retained",
+          "reason": "UUID characters inflate the screen; requested object attribute or operation differs. A shared route alone is not a duplicate."
+        },
+        {
+          "id": "v3-067",
+          "prior_id": "v1-033",
+          "prior_set": "v1-draft",
+          "question_similarity": {
+            "sequence": 0.6721,
+            "jaccard": 0.2308
+          },
+          "decision": "retained",
+          "reason": "UUID characters inflate the screen; requested object attribute or operation differs. A shared route alone is not a duplicate."
+        },
+        {
+          "id": "v3-067",
+          "prior_id": "v1-035",
+          "prior_set": "v1-draft",
+          "question_similarity": {
+            "sequence": 0.6015,
+            "jaccard": 0.2308
+          },
+          "decision": "retained",
+          "reason": "UUID characters inflate the screen; requested object attribute or operation differs. A shared route alone is not a duplicate."
+        },
+        {
+          "id": "v3-067",
+          "prior_id": "v1-055",
+          "prior_set": "v1-draft",
+          "question_similarity": {
+            "sequence": 0.6412,
+            "jaccard": 0.0714
+          },
+          "decision": "retained",
+          "reason": "UUID characters inflate the screen; requested object attribute or operation differs. A shared route alone is not a duplicate."
+        },
+        {
+          "id": "v3-052",
+          "prior_id": "blind-v2-032",
+          "prior_set": "v2-holdout",
+          "content_token_containment": 0.7778,
+          "decision": "excluded",
+          "reason": "Same substantive question/answer decision with high short-text containment."
+        },
+        {
+          "id": "v3-065",
+          "prior_id": "v1-033",
+          "prior_set": "v1-draft",
+          "content_token_containment": 0.625,
+          "decision": "retained",
+          "reason": "UUID-character overlap; waiting status is not a paid-status or release-operation request."
+        },
+        {
+          "id": "v3-065",
+          "prior_id": "v1-035",
+          "prior_set": "v1-draft",
+          "content_token_containment": 0.625,
+          "decision": "retained",
+          "reason": "UUID-character overlap; waiting status is not a paid-status or release-operation request."
+        },
+        {
+          "id": "v3-066",
+          "prior_id": "v1-034",
+          "prior_set": "v1-draft",
+          "content_token_containment": 0.7143,
+          "decision": "excluded",
+          "reason": "Same substantive question/answer decision with high short-text containment."
+        }
+      ],
+      "known_fact_overlap_without_high_text_similarity": [
+        {
+          "id": "v3-020",
+          "prior_id": "v1-024",
+          "topic": "Warsaw DST window length; previous question centers on time zone"
+        },
+        {
+          "id": "v3-029",
+          "prior_id": "blind-v2-051",
+          "topic": "cross-date evidence-epoch invalidation"
+        },
+        {
+          "id": "v3-036",
+          "prior_id": "blind-v2-042",
+          "topic": "invalid callback signature; narrower question than prior multi-condition question"
+        },
+        {
+          "id": "v3-053",
+          "prior_id": "blind-v2-011",
+          "topic": "existing-token scopes after membership expansion"
+        },
+        {
+          "id": "v3-056",
+          "prior_id": "blind-v2-020",
+          "topic": "reason byte limit; subset of previous validation/canonicalization question"
+        }
+      ],
+      "limitation": "New wording is not new business-rule knowledge. The set shares source facts with previous sets; it does not establish unseen-fact generalization."
+    },
+    "byte_preservation": "Every retained JSONL line is byte-identical to its authored input line; only excluded lines were removed. IDs retain gaps for provenance."
+  }
+}

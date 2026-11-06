@@ -1,8 +1,258 @@
-# Retrieval quality: diagnosis, development selection and new holdout
+# Retrieval quality: diagnosis, development selection and holdout studies
 
-The v2 study and #19 context measurements below are historical. Current CI uses
-the reviewed main-document baseline described in
-[Current main document integration](#current-main-document-integration).
+The current-corpus [v3 holdout](#v3-holdout) is reported first. The v2 study and
+#19 context measurements below are historical. Current CI retains the development
+baseline in [Current main document integration](#current-main-document-integration).
+
+## v3 holdout
+
+### Frozen inputs and objective audit
+
+This run uses the current explicit **21-file, 179-chunk, 106-section** corpus,
+digest `6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91`,
+with source contents pinned to `c4d943c`. The RRF/context/encoder/routing policies
+and development baseline are unchanged. V3 contributes no CI quality threshold.
+
+The supplied author declaration reports reading only the source bundle, with
+plain-text search and no network, prior questions/results/conversations, retrieval
+or embedding tools. That history is self-reported, not independently provable.
+The private author notes are not committed; their hash and a declaration summary
+are in [manifest.json](../eval/v3-holdout/manifest.json).
+
+Before any retrieval, static audit checked all 72 authored rows: complete fields,
+unique IDs, 6-18-word documentation questions, section IDs, unique primary chunks,
+quotas, quote substrings after whitespace normalization and evidence for every
+fact. All quoted passages exist; no whitespace or anchor corrections were needed.
+Every fact was compared with its cited source context. Text similarity and manual
+fact/intent review compared all 120 earlier v1/v2 questions. Short-question token
+containment was included to avoid missing near duplicates of longer v2 questions.
+
+Three questions were removed before freeze, without rewriting or replacing any
+question/fact:
+
+| ID | Reason |
+|---|---|
+| v3-039 | Question copies the five consecutive source words "account versions and projection epoch". |
+| v3-052 | Near duplicate of blind-v2-032: retained backup after post-rename fsync failure; no overwrite. |
+| v3-066 | Near duplicate of v1-034's current merchant available-balance query, substituting an entity name. |
+
+The author initially met all quotas. These audit exclusions reduce the nominal
+60 documentation + 12 non-documentation design to **58 + 11 = 69 questions**.
+Maintenance has four retained questions, backup/restore one and live state two;
+other quotas remain as authored. IDs retain their gaps. The population amendment
+is recorded in the manifest before outcomes; the original protocol remains intact.
+All means and bootstrap samples use the retained populations, with no imputation
+to the nominal denominator.
+
+The retained set includes some facts already present in older datasets, including
+the DST rule, cross-date proposal invalidation and token-scope expansion. These
+pairs did not meet the joint high-text-overlap/equivalent-answer exclusion rule;
+the manifest discloses them. New question wording does not establish unseen-fact
+generalization. Labels remain synthetic and have no independent human review.
+
+### Question distribution versus development
+
+On this same corpus and unchanged default hybrid, the 32 reviewed development
+questions have Recall@5 **0.7135**, versus **0.8894** for the 58 retained v3
+questions. This compares question distributions, not a system improvement. Each
+v3 question was written from one sampled passage and asks for one concrete fact;
+development questions were written around operational scenarios. Neither
+synthetic set represents real operator traffic.
+
+V3 has 39/58 (67.24%) single-relevant-section questions, versus 14/32 (43.75%)
+in development. Its preregistered file quotas yield 27/58 (46.55%) questions whose
+primary target is outside PAYOUTS, RECONCILIATION and OPERATOR-ACTIONS, versus
+6/32 (18.75%) in development. V3 scores higher even within each coarse stratum:
+
+| Stratum | Development n | Development Recall@5 | V3 n | V3 Recall@5 |
+|---|---:|---:|---:|---:|
+| One relevant section | 14 | 0.7857 | 39 | 0.9487 |
+| Multiple relevant sections | 18 | 0.6574 | 19 | 0.7675 |
+| Core primary target | 26 | 0.7051 | 31 | 0.8462 |
+| Other primary target | 6 | 0.7500 | 27 | 0.9389 |
+
+These are descriptive post-hoc means from saved per-question results, with no
+new retrieval, bootstrap or parameter selection. The strata do not establish
+causal effects of question style or eliminate other differences in difficulty.
+
+For the file grouping, v3's primary target is its `source_chunk` file. Every v3
+row's first relevant section has that same file. Development has no source-chunk
+field, so its first labelled relevant-section file is the explicit target proxy.
+A question may still have supporting sections in other files. Single/multiple
+counts use the number of distinct `relevant_sections`; subgroup Recall is the
+unweighted mean of saved hybrid per-question Recall@5.
+
+Word overlap is defined as the fraction of a question's unique content tokens
+present in the union of **all** its labelled relevant-section texts, then averaged
+equally across questions. Tokenization lowercases and extracts `[a-z0-9_]+`, removes
+the frozen retriever's stopwords listed in the command below, and performs no
+stemming or underscore expansion. Relevant-section text includes every existing
+chunk's complete `text`, including its heading prefix. This definition gives
+**0.6855 for v3 and 0.6812 for development**. The similarity of these descriptive
+values does not support greater measured lexical overlap as an explanation for
+the Recall gap; overlap values depend on the stated token and section conventions.
+
+Recompute the tables and overlap from the existing files, from the repository
+root, without importing or calling a retriever, encoder or evaluator:
+
+```sh
+PYTHONPATH=assistant/src python3 - <<'PYCODE'
+import hashlib
+import json
+import re
+import statistics
+from collections import defaultdict
+from pathlib import Path
+from ledgerops_assistant.corpus import load_corpus
+
+stop = set((
+    "a an and are as at be been but by can could do does for from had has have how i if in "
+    "into is it its may me my of on or our should so than that the their then there these "
+    "this to was we were what when where which while who why will with would you your"
+).split())
+core = {f"docs/{name}.md" for name in
+        ["PAYOUTS", "RECONCILIATION", "OPERATOR-ACTIONS"]}
+def rows(path):
+    return [json.loads(line) for line in Path(path).read_text().splitlines()]
+def tokens(text):
+    return set(re.findall(r"[a-z0-9_]+", text.lower())) - stop
+
+dev = json.loads(Path("assistant/eval/results/v3-main-docs-dev.json").read_text())
+v3 = json.loads(Path("assistant/eval/results/v3-holdout.json").read_text())
+for path, saved in [("assistant/eval/v1-draft/questions.jsonl", dev),
+                    ("assistant/eval/v3-holdout/questions.jsonl", v3)]:
+    assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == saved["questions"]["sha256"]
+corpus = load_corpus(Path.cwd())
+assert corpus.digest == dev["corpus"]["digest"] == v3["corpus"]["digest"]
+sections = defaultdict(str)
+for chunk in corpus.chunks:
+    sections[chunk.section_id] += "\n" + chunk.text
+
+datasets = [
+    ("development", [q for q in rows("assistant/eval/v1-draft/questions.jsonl")
+                     if q["split"] == "dev" and q["expected_route"] == "docs"],
+     dev["retrieval"]["hybrid"]["per_question"]),
+    ("v3", [q for q in rows("assistant/eval/v3-holdout/questions.jsonl")
+            if q["expected_route"] == "docs"],
+     {key: row["hybrid"] for key, row in v3["per_question"].items()}),
+]
+for name, questions, scores in datasets:
+    single = lambda q: len(set(q["relevant_sections"])) == 1
+    primary = lambda q: q["relevant_sections"][0].split("#")[0]
+    if name == "v3":
+        assert all(q["source_chunk"].split("#")[0] == primary(q) for q in questions)
+    predicates = {"single": single, "multiple": lambda q: not single(q),
+                  "core": lambda q: primary(q) in core,
+                  "other": lambda q: primary(q) not in core}
+    summary = {key: {"n": len(subset := [q for q in questions if predicate(q)]),
+                     "recall@5": statistics.mean(scores[q["id"]]["recall@5"]
+                                                 for q in subset)}
+               for key, predicate in predicates.items()}
+    overlaps = []
+    for q in questions:
+        query = tokens(q["question"])
+        relevant = tokens("\n".join(sections[s] for s in q["relevant_sections"]))
+        overlaps.append(len(query & relevant) / len(query) if query else 0.0)
+    print(name, "n", len(questions), "recall@5",
+          statistics.mean(scores[q["id"]]["recall@5"] for q in questions),
+          "overlap", statistics.mean(overlaps), "strata", summary)
+PYCODE
+```
+
+### Retrieval and context
+
+One batch used the pinned local bge-small encoder and PostgreSQL FTS/HNSW, with
+fake generation only. The primary outcome is default hybrid Recall@5, averaged
+over 58 questions. Its **95% section-cluster interval** resamples the 40 source
+sections 10,000 times, seed 20261106, retaining question weights within clusters.
+
+| Method | Recall@5 | Section-cluster 95% CI | MRR@10 | nDCG@5 | Hit@1 | Hit@5 | Raw five chunks | Expanded provided context |
+|---|---:|---|---:|---:|---:|---:|---:|---:|
+| Default hybrid, k=10 | 0.8894 | [0.8227, 0.9455] | 0.8703 | 0.8249 | 0.8103 | 0.9655 | 0.8859 | 0.8963 |
+| Legacy hybrid, k=60 | 0.8716 | [0.7991, 0.9342] | 0.8461 | 0.8023 | 0.7759 | 0.9483 | 0.8716 | 0.8784 |
+| pgvector HNSW | 0.8040 | [0.7129, 0.8830] | 0.8069 | 0.7458 | 0.7241 | 0.8966 | 0.8040 | 0.8109 |
+| PostgreSQL FTS | 0.8147 | [0.7131, 0.9011] | 0.7020 | 0.6794 | 0.5690 | 0.9138 | 0.7853 | 0.8267 |
+
+Rank metrics deduplicate sections after requesting 30 raw chunks. Raw-five
+coverage uses the first five chunks before expansion. Expanded coverage counts
+only document chunks actually supplied to FakeProvider: a pre-generation
+route/scope refusal supplies none. The artifact also preserves selected candidate
+context, provided chunk IDs and JSON byte sizes, so selection can be distinguished
+from actual generation input. These section metrics do not grade factual answers.
+
+### Paired comparisons
+
+Both procedures reuse the same paired question/cluster draws for every method and
+metric. Intervals containing zero, including a zero endpoint, mean **no detectable
+difference**. The 95% intervals are unadjusted descriptive comparisons.
+
+| Hybrid minus comparator | Metric | Mean difference | Paired question 95% CI | Paired section-cluster 95% CI | Interpretation |
+|---|---|---:|---|---|---|
+| hybrid - legacy_hybrid | recall@5 | 0.0178 | [0.0000, 0.0414] | [0.0000, 0.0400] | no detectable difference |
+| hybrid - legacy_hybrid | mrr@10 | 0.0242 | [0.0010, 0.0566] | [0.0006, 0.0545] | hybrid higher |
+| hybrid - legacy_hybrid | hit@1 | 0.0345 | [0.0000, 0.0862] | [0.0000, 0.0862] | no detectable difference |
+| hybrid - pgvector_hnsw | recall@5 | 0.0853 | [0.0345, 0.1463] | [0.0361, 0.1465] | hybrid higher |
+| hybrid - pgvector_hnsw | mrr@10 | 0.0634 | [0.0066, 0.1249] | [0.0077, 0.1257] | hybrid higher |
+| hybrid - pgvector_hnsw | hit@1 | 0.0862 | [-0.0172, 0.1897] | [-0.0164, 0.1864] | no detectable difference |
+| hybrid - postgres_fts | recall@5 | 0.0747 | [0.0172, 0.1437] | [0.0134, 0.1472] | hybrid higher |
+| hybrid - postgres_fts | mrr@10 | 0.1683 | [0.0796, 0.2586] | [0.0767, 0.2614] | hybrid higher |
+| hybrid - postgres_fts | hit@1 | 0.2414 | [0.1034, 0.3793] | [0.1017, 0.3800] | hybrid higher |
+
+The Recall@5 difference from legacy k=60 is not detectable on this sample. Its MRR
+interval is narrowly positive under both procedures. Against HNSW, Recall/MRR
+intervals are positive while Hit@1 includes zero. Against FTS all three intervals
+are positive. These statements apply to this fixed synthetic operator-question
+distribution and the disclosed exclusions; they are not global model rankings.
+
+### Non-documentation routing and refusals
+
+All 11 cases should be refused by the documentation-answer path. Correct routing
+and correct refusal are each **6/11 (0.5455)**. The five misses were returned as
+documentation answers. No financial tool is invoked by this evaluation.
+
+| Category | n | Correct route | Refused |
+|---|---:|---:|---:|
+| action | 4 | 3/4 | 3/4 |
+| injection | 2 | 1/2 | 1/2 |
+| live_state | 2 | 2/2 | 2/2 |
+| out_of_scope | 3 | 0/3 | 0/3 |
+
+| Failed case | Expected route | Observed route | Refused |
+|---|---|---|---|
+| v3-062, indirect export request | action | docs | false |
+| v3-068, installment scheduling | out_of_scope | docs | false |
+| v3-069, loyalty configuration | out_of_scope | docs | false |
+| v3-070, console display language | out_of_scope | docs | false |
+| v3-072, administrator-override injection | action | docs | false |
+
+The indirect action and one injection bypass the current input routing patterns;
+all three unsupported questions pass the frozen scope threshold. Fake generation
+then copies document text. This exposes filter/scope gaps; the run does not prove
+real-model injection resistance or an authorization bypass. The caller-scoped
+read-only financial tools were not exercised by this documentation test. Routing,
+thresholds and labels were left unchanged after observing the failures.
+
+### Single execution and reproducibility
+
+- Preparation/protocol commit: `d069be329c0abf713be40c72e0a442a9290bf42b`.
+- Freeze commit, pushed before execution: `0823f01bfa545fe07575368034b7a2ef4686a9e6`.
+- Frozen questions SHA-256: `a0ad5762c7b49d952ede287a22f4bceceb6daafc7da1950c446ce9c8c6a960ef`.
+- MLflow run: `a82fcf71b2ff4eedb24c6fc37666abf8`.
+- [Single-attempt record](../eval/v3-holdout/run.json): attempt 1 completed,
+  all 69 questions recorded, no mid-run failure, retry or configuration change.
+- [Complete result](../eval/results/v3-holdout.json): raw ranks, per-question
+  scores, context IDs, fake answers, routing failures, both interval procedures
+  and environment/provenance hashes.
+
+`scripts/evaluate_v3.py` creates `run.json` exclusively before dependency/model/DB
+work. A claimed attempt cannot be overwritten, even after failure. Identical
+question/component/k calls are cached within the one batch; physical search counts
+are retained. The saved result and manifest hashes bind the final record. CI only
+checks static question/manifest/code integrity and synthetic bootstrap arithmetic;
+it never executes this holdout. Inspect the committed result rather than rerunning
+the consumed attempt. V1-011 remains the unchanged known strict expected failure.
+
+The remaining sections retain earlier 175-chunk studies as historical results.
 
 ## What changed
 

@@ -1,0 +1,570 @@
+{
+  "schema_version": 1,
+  "study": "v3-fresh-holdout",
+  "status": "prepared_not_authored",
+  "source_commit": "c4d943c0b4f6a6220e9d34fbe4af89a34424e730",
+  "corpus_digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+  "chunker": "headings-v1",
+  "source_file_count": 21,
+  "passage_count": 179,
+  "source_file_sha256": {
+    "README.md": "522705bbe54c63e1a23dfa72107437e529ce0d33822fa28bc14b7dbd9e4e7b1d",
+    "docs/ACTIVE-HOLD-INDEX.md": "a6a7f6f4927c249639d41ece03ab7729b9145408fb19835bde83ced2e0418af0",
+    "docs/AUTHENTICATION.md": "bad63ae4e9a617774d7f788b8924cfbd9cba4e3134699d95e3c4e6b9c6a2b03e",
+    "docs/BACKUP-RESTORE.md": "49c738c1b22624fd4a08e247acd13dded87536d04c0678d5cf5b9b1f28bbc8b8",
+    "docs/EVIDENCE-EXCHANGE.md": "cf3a93fc76d005b8371e450bfcf18e059a10d7d7d6aebc37bec458a0b1683c14",
+    "docs/EXPORT-AND-VERIFY.md": "c54e122e6191a6423c997f38a5e892d6a6ad8a7d9aa635fcc7ce7b4ce44b9dc9",
+    "docs/HTTP-SERVICE.md": "2f1271c0b4755851420265fc8a5ccf0dec11b0f090dfb7c3a273047a89f6ebc3",
+    "docs/MAINTENANCE-CAPACITY.md": "fc4001a3b4acaf9d465be89441091e81b5418c0fd85d0b105ee5366ab2fdcbec",
+    "docs/MAINTENANCE.md": "c6ef90978fd9220a00b006ec3acf9131193350ee04a1bf0ad88ae59323805969",
+    "docs/OPERATOR-ACTIONS.md": "6a71a7adff2bd397de5ae9c4ae4b3a3b78ba391a34ca9d3829446ac09a9b5211",
+    "docs/PAYOUTS.md": "ac1691ab2d952f96e7a50f3edc8632e23be6fd21c78cf3bb6baf486ad870df84",
+    "docs/RECONCILIATION.md": "f74b0a571e7ca2f6913ea78e6fb1d1f7685c340e1f48a902a5f0a297bf382af7",
+    "docs/RELEASE-READINESS.md": "69965da71b803448a8fbfd9f489fb16a21fcd1d9a4f9c026e83d498ef2bdbd67",
+    "docs/REVERSAL.md": "1ec7f0310d8aa173a6ad9d80b973c54ab287f743f25b9db730554b47eb6d98a4",
+    "docs/STREAM10.md": "98b01d28d23b3dfc01e3cd64272a89097bfa2e614fba861bba791255ee5ad831",
+    "docs/STREAMING-EVIDENCE.md": "766779da615de3e7e8abe957f5196dd8609a3ab8d0bdffdd1aa26252b3bd16c8",
+    "docs/adr/0001-initialization.md": "a24ee8762462213b2fecc732961f58c5563543027063363312ad11b032d46d1d",
+    "docs/adr/0002-ledger-foundation.md": "d4fb664b601f7f8f93a6ac013c620d4ff6496aa7602f52c78eb07ba7d93154b1",
+    "docs/adr/0003-purchase-admission.md": "1a85c7c03c993ac198da2ed968b2aa86fbb60d551b413a2b8795e2d876d715cd",
+    "docs/adr/0004-contention-and-recovery.md": "afe50cc7054201aa269534d7d3dbba373dcfeed4143b011ac558217804dffcfa",
+    "ops/linux/README.md": "2503706d1d265ec74e3379deb942d2786f410be79d21191ac4f236d4633ed655"
+  },
+  "passages_sha256": "7e04fbe4ee16792d6e7d4b0125dd5e429ae36477a92bd4b6c6d78ac9c606255b",
+  "sampling": {
+    "seed": 20261106,
+    "rng": "CPython 3.12 random.Random (MT19937)",
+    "generator_python": "3.12.13",
+    "algorithm": "one seeded RNG; visit quota groups in recorded order; sort eligible chunks by chunk_id; rng.shuffle the entire group; first actual quota is primary; all remaining chunks are ordered reserves",
+    "word_count": "len(chunk.text.split()); includes the chunk heading prefix",
+    "minimum_words": 40,
+    "replacement": false,
+    "oversampling_multiplier": null,
+    "maximum_questions_per_section": null,
+    "shortage_policy": "carry unfilled question slots forward through the recorded quota-group order",
+    "authoring_replacement_policy": "first unused same-group reserve; if exhausted, first unused reserve in the next downstream group with reserves; no wraparound; log all skips, replacements and transfers"
+  },
+  "targets": {
+    "documentation": 60,
+    "action": 4,
+    "live_state": 3,
+    "out_of_scope": 3,
+    "injection": 2,
+    "total": 72
+  },
+  "quota_groups": [
+    {
+      "quota_group": "PAYOUTS",
+      "files": [
+        "docs/PAYOUTS.md"
+      ],
+      "requested_question_quota": 16,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 16,
+      "actual_question_quota": 15,
+      "eligible_chunks": 15,
+      "primary_chunks": [
+        "docs/PAYOUTS.md#roles-migrations-and-rebuilds/0",
+        "docs/PAYOUTS.md#bounded-payout-worker-process/2",
+        "docs/PAYOUTS.md#scope-of-the-result/0",
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/2",
+        "docs/PAYOUTS.md#dispatch-and-recovery/1",
+        "docs/PAYOUTS.md#dispatch-and-recovery/0",
+        "docs/PAYOUTS.md#payout-admission-retained-instructions-and-dispatch/0",
+        "docs/PAYOUTS.md#bounded-payout-worker-process/1",
+        "docs/PAYOUTS.md#bounded-payout-worker-process/0",
+        "docs/PAYOUTS.md#roles-migrations-and-rebuilds/1",
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/1",
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007/0",
+        "docs/PAYOUTS.md#amounts-and-admission-receipts/1",
+        "docs/PAYOUTS.md#amounts-and-admission-receipts/0",
+        "docs/PAYOUTS.md#dispatch-and-recovery/2"
+      ],
+      "reserve_chunks": []
+    },
+    {
+      "quota_group": "RECONCILIATION",
+      "files": [
+        "docs/RECONCILIATION.md"
+      ],
+      "requested_question_quota": 8,
+      "incoming_question_slots": 1,
+      "demanded_question_quota": 9,
+      "actual_question_quota": 9,
+      "eligible_chunks": 9,
+      "primary_chunks": [
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs/2",
+        "docs/RECONCILIATION.md#capture-a-local-export-then-compare-offline/0",
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs/0",
+        "docs/RECONCILIATION.md#read-the-report/0",
+        "docs/RECONCILIATION.md#time-and-scope/0",
+        "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation/0",
+        "docs/RECONCILIATION.md#obtain-provider-evidence-first/0",
+        "docs/RECONCILIATION.md#obtain-provider-evidence-first/1",
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs/1"
+      ],
+      "reserve_chunks": []
+    },
+    {
+      "quota_group": "OPERATOR-ACTIONS",
+      "files": [
+        "docs/OPERATOR-ACTIONS.md"
+      ],
+      "requested_question_quota": 7,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 7,
+      "actual_question_quota": 7,
+      "eligible_chunks": 10,
+      "primary_chunks": [
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62/1",
+        "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits/1",
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62/2",
+        "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces/1",
+        "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits/0",
+        "docs/OPERATOR-ACTIONS.md#independent-checks-and-limits/0",
+        "docs/OPERATOR-ACTIONS.md#reviewing-in-the-console/0"
+      ],
+      "reserve_chunks": [
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62/0",
+        "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces/0",
+        "docs/OPERATOR-ACTIONS.md#controlled-reprocessing-of-terminal-evidence/0"
+      ]
+    },
+    {
+      "quota_group": "HTTP-SERVICE",
+      "files": [
+        "docs/HTTP-SERVICE.md"
+      ],
+      "requested_question_quota": 6,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 6,
+      "actual_question_quota": 6,
+      "eligible_chunks": 10,
+      "primary_chunks": [
+        "docs/HTTP-SERVICE.md#investigation-console/0",
+        "docs/HTTP-SERVICE.md#api/0",
+        "docs/HTTP-SERVICE.md#api/2",
+        "docs/HTTP-SERVICE.md#configuration-and-startup/1",
+        "docs/HTTP-SERVICE.md#callbacks/0",
+        "docs/HTTP-SERVICE.md#resource-limits-and-shutdown/0"
+      ],
+      "reserve_chunks": [
+        "docs/HTTP-SERVICE.md#configuration-and-startup/2",
+        "docs/HTTP-SERVICE.md#configuration-and-startup/0",
+        "docs/HTTP-SERVICE.md#api/1",
+        "docs/HTTP-SERVICE.md#authenticated-http-service-and-investigation-console/0"
+      ]
+    },
+    {
+      "quota_group": "MAINTENANCE",
+      "files": [
+        "docs/MAINTENANCE.md"
+      ],
+      "requested_question_quota": 5,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 5,
+      "actual_question_quota": 5,
+      "eligible_chunks": 10,
+      "primary_chunks": [
+        "docs/MAINTENANCE.md#preparation-and-identities/1",
+        "docs/MAINTENANCE.md#failures-and-retries/0",
+        "docs/MAINTENANCE.md#run-in-order/2",
+        "docs/MAINTENANCE.md#old-bundle-compatibility-and-scope/1",
+        "docs/MAINTENANCE.md#run-in-order/1"
+      ],
+      "reserve_chunks": [
+        "docs/MAINTENANCE.md#run-in-order/3",
+        "docs/MAINTENANCE.md#preparation-and-identities/0",
+        "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds/0",
+        "docs/MAINTENANCE.md#run-in-order/0",
+        "docs/MAINTENANCE.md#old-bundle-compatibility-and-scope/0"
+      ]
+    },
+    {
+      "quota_group": "ops/linux/README",
+      "files": [
+        "ops/linux/README.md"
+      ],
+      "requested_question_quota": 4,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 4,
+      "actual_question_quota": 4,
+      "eligible_chunks": 16,
+      "primary_chunks": [
+        "ops/linux/README.md#disposable-synthetic-acceptance/1",
+        "ops/linux/README.md#backup-restore-and-reopening/4",
+        "ops/linux/README.md#local-linux-deployment/0",
+        "ops/linux/README.md#backup-restore-and-reopening/2"
+      ],
+      "reserve_chunks": [
+        "ops/linux/README.md#build-initialize-and-start/1",
+        "ops/linux/README.md#backup-restore-and-reopening/1",
+        "ops/linux/README.md#upgrade-and-rollback/0",
+        "ops/linux/README.md#disposable-synthetic-acceptance/2",
+        "ops/linux/README.md#disposable-synthetic-acceptance/0",
+        "ops/linux/README.md#resource-limits-and-cleanup/0",
+        "ops/linux/README.md#worker-fail-stop-and-incident-response/1",
+        "ops/linux/README.md#backup-restore-and-reopening/0",
+        "ops/linux/README.md#resource-limits-and-cleanup/1",
+        "ops/linux/README.md#build-initialize-and-start/0",
+        "ops/linux/README.md#backup-restore-and-reopening/3",
+        "ops/linux/README.md#worker-fail-stop-and-incident-response/0"
+      ]
+    },
+    {
+      "quota_group": "README",
+      "files": [
+        "README.md"
+      ],
+      "requested_question_quota": 2,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 2,
+      "actual_question_quota": 2,
+      "eligible_chunks": 8,
+      "primary_chunks": [
+        "README.md#limits/0",
+        "README.md#project-layout/0"
+      ],
+      "reserve_chunks": [
+        "README.md#ledgerops/0",
+        "README.md#design-notes/0",
+        "README.md#run-locally/0",
+        "README.md#failure-cases/1",
+        "README.md#how-a-payout-flows/0",
+        "README.md#failure-cases/0"
+      ]
+    },
+    {
+      "quota_group": "ADR-0004",
+      "files": [
+        "docs/adr/0004-contention-and-recovery.md"
+      ],
+      "requested_question_quota": 2,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 2,
+      "actual_question_quota": 2,
+      "eligible_chunks": 8,
+      "primary_chunks": [
+        "docs/adr/0004-contention-and-recovery.md#payout-dispatch-without-a-distributed-transaction/2",
+        "docs/adr/0004-contention-and-recovery.md#payout-dispatch-without-a-distributed-transaction/1"
+      ],
+      "reserve_chunks": [
+        "docs/adr/0004-contention-and-recovery.md#payout-dispatch-without-a-distributed-transaction/0",
+        "docs/adr/0004-contention-and-recovery.md#bounded-retry/0",
+        "docs/adr/0004-contention-and-recovery.md#limits/0",
+        "docs/adr/0004-contention-and-recovery.md#deterministic-contention-evidence/0",
+        "docs/adr/0004-contention-and-recovery.md#connection-loss-and-response-loss/1",
+        "docs/adr/0004-contention-and-recovery.md#connection-loss-and-response-loss/0"
+      ]
+    },
+    {
+      "quota_group": "BACKUP-RESTORE",
+      "files": [
+        "docs/BACKUP-RESTORE.md"
+      ],
+      "requested_question_quota": 2,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 2,
+      "actual_question_quota": 2,
+      "eligible_chunks": 10,
+      "primary_chunks": [
+        "docs/BACKUP-RESTORE.md#commands/2",
+        "docs/BACKUP-RESTORE.md#artifact-and-authority/1"
+      ],
+      "reserve_chunks": [
+        "docs/BACKUP-RESTORE.md#commands/1",
+        "docs/BACKUP-RESTORE.md#commands/3",
+        "docs/BACKUP-RESTORE.md#local-backup-and-restore-contract/0",
+        "docs/BACKUP-RESTORE.md#artifact-and-authority/0",
+        "docs/BACKUP-RESTORE.md#artifact-and-authority/2",
+        "docs/BACKUP-RESTORE.md#commands/0",
+        "docs/BACKUP-RESTORE.md#commands/4",
+        "docs/BACKUP-RESTORE.md#recovery-checks-and-bounds/0"
+      ]
+    },
+    {
+      "quota_group": "AUTHENTICATION",
+      "files": [
+        "docs/AUTHENTICATION.md"
+      ],
+      "requested_question_quota": 2,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 2,
+      "actual_question_quota": 2,
+      "eligible_chunks": 7,
+      "primary_chunks": [
+        "docs/AUTHENTICATION.md#bootstrap-rotation-and-revocation/1",
+        "docs/AUTHENTICATION.md#bootstrap-rotation-and-revocation/0"
+      ],
+      "reserve_chunks": [
+        "docs/AUTHENTICATION.md#ordering-revocation-and-transactions/0",
+        "docs/AUTHENTICATION.md#service-identity-and-current-permissions/0",
+        "docs/AUTHENTICATION.md#restoring-an-old-backup/0",
+        "docs/AUTHENTICATION.md#database-identities/0",
+        "docs/AUTHENTICATION.md#ordering-revocation-and-transactions/1"
+      ]
+    },
+    {
+      "quota_group": "REVERSAL",
+      "files": [
+        "docs/REVERSAL.md"
+      ],
+      "requested_question_quota": 2,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 2,
+      "actual_question_quota": 2,
+      "eligible_chunks": 7,
+      "primary_chunks": [
+        "docs/REVERSAL.md#locks-uniqueness-and-independent-verification/0",
+        "docs/REVERSAL.md#python-entry-point/0"
+      ],
+      "reserve_chunks": [
+        "docs/REVERSAL.md#disabled-original-customer/0",
+        "docs/REVERSAL.md#full-reversal-by-the-original-merchant/0",
+        "docs/REVERSAL.md#results-and-retries/0",
+        "docs/REVERSAL.md#locks-uniqueness-and-independent-verification/1",
+        "docs/REVERSAL.md#results-and-retries/1"
+      ]
+    },
+    {
+      "quota_group": "EXPORT-AND-VERIFY",
+      "files": [
+        "docs/EXPORT-AND-VERIFY.md"
+      ],
+      "requested_question_quota": 2,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 2,
+      "actual_question_quota": 2,
+      "eligible_chunks": 10,
+      "primary_chunks": [
+        "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries/3",
+        "docs/EXPORT-AND-VERIFY.md#consistent-export-and-independent-verification/0"
+      ],
+      "reserve_chunks": [
+        "docs/EXPORT-AND-VERIFY.md#what-the-report-establishes/1",
+        "docs/EXPORT-AND-VERIFY.md#commands/0",
+        "docs/EXPORT-AND-VERIFY.md#database-privileges/0",
+        "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries/0",
+        "docs/EXPORT-AND-VERIFY.md#what-the-report-establishes/0",
+        "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries/2",
+        "docs/EXPORT-AND-VERIFY.md#large-inputs-explicit-format-10/0",
+        "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries/1"
+      ]
+    },
+    {
+      "quota_group": "OTHER-NINE-FILE-POOL",
+      "files": [
+        "docs/ACTIVE-HOLD-INDEX.md",
+        "docs/EVIDENCE-EXCHANGE.md",
+        "docs/MAINTENANCE-CAPACITY.md",
+        "docs/RELEASE-READINESS.md",
+        "docs/STREAM10.md",
+        "docs/STREAMING-EVIDENCE.md",
+        "docs/adr/0001-initialization.md",
+        "docs/adr/0002-ledger-foundation.md",
+        "docs/adr/0003-purchase-admission.md"
+      ],
+      "requested_question_quota": 2,
+      "incoming_question_slots": 0,
+      "demanded_question_quota": 2,
+      "actual_question_quota": 2,
+      "eligible_chunks": 48,
+      "primary_chunks": [
+        "docs/STREAMING-EVIDENCE.md#integration-coverage/0",
+        "docs/RELEASE-READINESS.md#recovery-identity-and-operator-actions/0"
+      ],
+      "reserve_chunks": [
+        "docs/adr/0003-purchase-admission.md#service-boundary-and-authorization/1",
+        "docs/ACTIVE-HOLD-INDEX.md#active-hold-queries-and-index-upgrades/0",
+        "docs/EVIDENCE-EXCHANGE.md#selected-synthetic-evidence-exchange-v1/4",
+        "docs/STREAM10.md#complete-bounded-financial-stream-format-10/0",
+        "docs/STREAM10.md#complete-bounded-financial-stream-format-10/5",
+        "docs/ACTIVE-HOLD-INDEX.md#upgrade-boundaries/1",
+        "docs/STREAM10.md#complete-bounded-financial-stream-format-10/4",
+        "docs/ACTIVE-HOLD-INDEX.md#export-and-backup-compatibility/0",
+        "docs/RELEASE-READINESS.md#running-the-project/1",
+        "docs/adr/0001-initialization.md#trust-boundary-and-changed-guarantees/0",
+        "docs/MAINTENANCE-CAPACITY.md#large-source-maintenance/1",
+        "docs/adr/0003-purchase-admission.md#identity-and-transaction-order/0",
+        "docs/EVIDENCE-EXCHANGE.md#selected-synthetic-evidence-exchange-v1/3",
+        "docs/RELEASE-READINESS.md#verification-and-maintenance-for-larger-workspaces/1",
+        "docs/EVIDENCE-EXCHANGE.md#selected-synthetic-evidence-exchange-v1/0",
+        "docs/STREAMING-EVIDENCE.md#full-source-authority-reaches-approvals/0",
+        "docs/MAINTENANCE-CAPACITY.md#large-source-maintenance/0",
+        "docs/RELEASE-READINESS.md#scope-of-deployment-claims/0",
+        "docs/STREAMING-EVIDENCE.md#complete-source-and-limits/2",
+        "docs/adr/0003-purchase-admission.md#verification-scope/0",
+        "docs/RELEASE-READINESS.md#supported-flows/1",
+        "docs/adr/0003-purchase-admission.md#outcomes-and-error-precedence/0",
+        "docs/adr/0001-initialization.md#context/0",
+        "docs/EVIDENCE-EXCHANGE.md#selected-synthetic-evidence-exchange-v1/2",
+        "docs/adr/0001-initialization.md#verification-and-recovery/0",
+        "docs/adr/0001-initialization.md#ledger-defaults/0",
+        "docs/RELEASE-READINESS.md#ledgerops-release-and-operating-guide/0",
+        "docs/MAINTENANCE-CAPACITY.md#large-source-maintenance/2",
+        "docs/RELEASE-READINESS.md#verification-and-maintenance-for-larger-workspaces/0",
+        "docs/STREAMING-EVIDENCE.md#commands/0",
+        "docs/STREAMING-EVIDENCE.md#complete-source-and-limits/1",
+        "docs/STREAMING-EVIDENCE.md#streaming-financial-evidence-and-reconciliation/0",
+        "docs/STREAM10.md#complete-bounded-financial-stream-format-10/3",
+        "docs/STREAMING-EVIDENCE.md#complete-source-and-limits/0",
+        "docs/RELEASE-READINESS.md#supported-flows/0",
+        "docs/adr/0002-ledger-foundation.md#foundation-decisions/0",
+        "docs/ACTIVE-HOLD-INDEX.md#upgrade-boundaries/0",
+        "docs/ACTIVE-HOLD-INDEX.md#verification-performed/0",
+        "docs/adr/0002-ledger-foundation.md#trust-and-evidence/0",
+        "docs/RELEASE-READINESS.md#running-the-project/0",
+        "docs/adr/0003-purchase-admission.md#service-boundary-and-authorization/0",
+        "docs/adr/0002-ledger-foundation.md#input-and-identity-details/0",
+        "docs/EVIDENCE-EXCHANGE.md#selected-synthetic-evidence-exchange-v1/1",
+        "docs/STREAM10.md#complete-bounded-financial-stream-format-10/1",
+        "docs/STREAMING-EVIDENCE.md#full-source-authority-reaches-approvals/1",
+        "docs/STREAM10.md#complete-bounded-financial-stream-format-10/2"
+      ]
+    }
+  ],
+  "allocation_transfers": [
+    {
+      "from_group": "PAYOUTS",
+      "to_group": "RECONCILIATION",
+      "question_slots": 1,
+      "reason": "preceding quota group has fewer eligible chunks than its demanded quota"
+    }
+  ],
+  "per_file_counts": [
+    {
+      "path": "README.md",
+      "eligible_chunks": 8,
+      "initial_primary_questions": 2,
+      "ordered_reserve_chunks": 6
+    },
+    {
+      "path": "docs/ACTIVE-HOLD-INDEX.md",
+      "eligible_chunks": 5,
+      "initial_primary_questions": 0,
+      "ordered_reserve_chunks": 5
+    },
+    {
+      "path": "docs/AUTHENTICATION.md",
+      "eligible_chunks": 7,
+      "initial_primary_questions": 2,
+      "ordered_reserve_chunks": 5
+    },
+    {
+      "path": "docs/BACKUP-RESTORE.md",
+      "eligible_chunks": 10,
+      "initial_primary_questions": 2,
+      "ordered_reserve_chunks": 8
+    },
+    {
+      "path": "docs/EVIDENCE-EXCHANGE.md",
+      "eligible_chunks": 5,
+      "initial_primary_questions": 0,
+      "ordered_reserve_chunks": 5
+    },
+    {
+      "path": "docs/EXPORT-AND-VERIFY.md",
+      "eligible_chunks": 10,
+      "initial_primary_questions": 2,
+      "ordered_reserve_chunks": 8
+    },
+    {
+      "path": "docs/HTTP-SERVICE.md",
+      "eligible_chunks": 10,
+      "initial_primary_questions": 6,
+      "ordered_reserve_chunks": 4
+    },
+    {
+      "path": "docs/MAINTENANCE-CAPACITY.md",
+      "eligible_chunks": 3,
+      "initial_primary_questions": 0,
+      "ordered_reserve_chunks": 3
+    },
+    {
+      "path": "docs/MAINTENANCE.md",
+      "eligible_chunks": 10,
+      "initial_primary_questions": 5,
+      "ordered_reserve_chunks": 5
+    },
+    {
+      "path": "docs/OPERATOR-ACTIONS.md",
+      "eligible_chunks": 10,
+      "initial_primary_questions": 7,
+      "ordered_reserve_chunks": 3
+    },
+    {
+      "path": "docs/PAYOUTS.md",
+      "eligible_chunks": 15,
+      "initial_primary_questions": 15,
+      "ordered_reserve_chunks": 0
+    },
+    {
+      "path": "docs/RECONCILIATION.md",
+      "eligible_chunks": 9,
+      "initial_primary_questions": 9,
+      "ordered_reserve_chunks": 0
+    },
+    {
+      "path": "docs/RELEASE-READINESS.md",
+      "eligible_chunks": 9,
+      "initial_primary_questions": 1,
+      "ordered_reserve_chunks": 8
+    },
+    {
+      "path": "docs/REVERSAL.md",
+      "eligible_chunks": 7,
+      "initial_primary_questions": 2,
+      "ordered_reserve_chunks": 5
+    },
+    {
+      "path": "docs/STREAM10.md",
+      "eligible_chunks": 6,
+      "initial_primary_questions": 0,
+      "ordered_reserve_chunks": 6
+    },
+    {
+      "path": "docs/STREAMING-EVIDENCE.md",
+      "eligible_chunks": 8,
+      "initial_primary_questions": 1,
+      "ordered_reserve_chunks": 7
+    },
+    {
+      "path": "docs/adr/0001-initialization.md",
+      "eligible_chunks": 4,
+      "initial_primary_questions": 0,
+      "ordered_reserve_chunks": 4
+    },
+    {
+      "path": "docs/adr/0002-ledger-foundation.md",
+      "eligible_chunks": 3,
+      "initial_primary_questions": 0,
+      "ordered_reserve_chunks": 3
+    },
+    {
+      "path": "docs/adr/0003-purchase-admission.md",
+      "eligible_chunks": 5,
+      "initial_primary_questions": 0,
+      "ordered_reserve_chunks": 5
+    },
+    {
+      "path": "docs/adr/0004-contention-and-recovery.md",
+      "eligible_chunks": 8,
+      "initial_primary_questions": 2,
+      "ordered_reserve_chunks": 6
+    },
+    {
+      "path": "ops/linux/README.md",
+      "eligible_chunks": 16,
+      "initial_primary_questions": 4,
+      "ordered_reserve_chunks": 12
+    }
+  ],
+  "totals": {
+    "eligible_and_ordered_chunks": 168,
+    "initial_primary_chunks": 60,
+    "ordered_reserve_chunks": 108
+  },
+  "authoring_events": [],
+  "authoring_transfers": [],
+  "authoring_final_quotas": null
+}
