@@ -122,11 +122,12 @@ Create `AUTHOR-NOTES.md` with one entry per question, listing its primary slot,
 accepted source chunk (or non-documentation category), fact-specific search terms,
 all matching sections, skipped samples and reasons, reserve use and cross-group
 transfers. Also update the three authoring log fields in `sample.json` when events
-occur. End the notes with a declaration stating that only this folder was read,
+occur. At completion, populate `authoring_final_quotas` from the accepted
+documentation questions even if no transfers occurred. End the notes with a declaration stating that only this folder was read,
 no network or retrieval/evaluation tools were used, no programs were run except
 plain text search, and no earlier questions, results or conversations supplied
 factual content. Disclose any departure instead of claiming compliance.
 
 Stop after writing the questions, author notes and any sample-log updates. Do not
-evaluate, tune, fix v1-011, or change any source text or supplied passage. This
+evaluate, tune, or change any source text or supplied passage. This
 preparation package itself contains no authored questions or retrieval results.

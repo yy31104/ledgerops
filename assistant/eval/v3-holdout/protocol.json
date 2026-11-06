@@ -30,7 +30,7 @@
   "source_file_count": 21,
   "chunks": 179,
   "prepared_sample_sha256": "f1646c1c7d9a04e6a02afe9f2d3b9a7a777ffb60b3ff22e95fa1299b29ec46e6",
-  "writing_guide_sha256": "457ac3bd6a29341040574209d105fbd40c6b9cfaf836290dca25cbcdb2bced58",
+  "writing_guide_sha256": "7c2310a89be3912f8227acc9d696bd455fa9f745ead80d4e8266ce9e4d57f10b",
   "passages_sha256": "7e04fbe4ee16792d6e7d4b0125dd5e429ae36477a92bd4b6c6d78ac9c606255b",
   "frozen_runtime_sha256": {
     "assistant/src/ledgerops_assistant/__init__.py": "558ddb6a98d1a8c6f55812dcf5edfa70f6ad8c49b866b42480fa415d0ede80e2",
