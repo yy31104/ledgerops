@@ -3,6 +3,7 @@
 import copy
 import json
 from collections import Counter
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -205,3 +206,124 @@ def test_large_runs_require_opt_in_and_real_quality_prerequisites(tmp_path):
     with pytest.raises(ValueError, match="require BGE"):
         bench.run_benchmark(**args)
     assert not (tmp_path / "out.json").exists()
+
+
+def copied_text_analysis():
+    """Test the published attribution procedure without running its database pass."""
+    path = Path(bench.ASSISTANT) / "docs/PERFORMANCE.md"
+    marker = chr(96) * 3 + "python\n# copied-text-attribution-v1\n"
+    source = (
+        "# copied-text-attribution-v1\n"
+        + path.read_text().split(marker, 1)[1].split(chr(96) * 3, 1)[0]
+    )
+    namespace = {"__name__": "copied_text_unit_test"}
+    exec(compile(source, str(path), "exec"), namespace)
+    return namespace
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        ("Never release a held payout after timeout.", 1),
+        ("Never\trelease a held\npayout after timeout.", 1),
+        ("Never release a held payout.", 0),
+        ("Release it after checking an unrelated report.", 0),
+    ],
+)
+def test_copied_sentence_attribution_requires_a_complete_source_unit(tmp_path, body, expected):
+    analysis = copied_text_analysis()
+    section = "docs/PAYOUTS.md#timeout"
+    original = Chunk(
+        section + "/0",
+        section,
+        "docs/PAYOUTS.md",
+        "Payouts",
+        "Timeout",
+        "Payouts\n\nNever release a held payout after timeout.",
+    )
+    source = Corpus(tmp_path, "unit-test", (original,), {})
+    evidence = analysis["sentence_evidence"](source, {section})
+    copy = Chunk(
+        "copy/0", "copy", "__benchmark__/copy.md", "Synthetic", "Synthetic", "Synthetic\n\n" + body
+    )
+    row = analysis["copied_text_scores"]([bench.Hit(copy, 1)], [section], evidence)
+    assert row["strict"] == 0
+    assert row["adjusted"] == expected
+    assert bool(row["top_five"][0]["copied_sentence_evidence"]) == bool(expected)
+
+
+def test_short_copied_sentences_do_not_qualify(tmp_path):
+    analysis = copied_text_analysis()
+    original = Chunk(
+        "original/0",
+        "original",
+        "doc.md",
+        "Title",
+        "Heading",
+        "Title\n\nNever release a payout hold.",
+    )
+    source = Corpus(tmp_path, "unit-test", (original,), {})
+    evidence = analysis["sentence_evidence"](source, {"original"})
+    copy = Chunk("copy/0", "copy", "__benchmark__/copy.md", "Copy", "Copy", original.text)
+    row = analysis["copied_text_scores"]([bench.Hit(copy, 1)], ["original"], evidence)
+    assert row["adjusted"] == 0
+
+
+def test_copy_attribution_does_not_rerank_or_double_count(tmp_path):
+    analysis = copied_text_analysis()
+    quote = "Never release a held payout after timeout."
+    original = Chunk("original/0", "original", "doc.md", "Title", "Heading", "Title\n\n" + quote)
+    evidence = analysis["sentence_evidence"](
+        Corpus(tmp_path, "unit-test", (original,), {}), {"original", "other"}
+    )
+    copies = [
+        bench.Hit(
+            Chunk(
+                f"copy-{i}/0",
+                f"copy-{i}",
+                "__benchmark__/copy.md",
+                "Copy",
+                "Copy",
+                "Copy\n\n" + quote,
+            ),
+            1,
+        )
+        for i in range(6)
+    ]
+    row = analysis["copied_text_scores"](copies, ["original", "other"], evidence)
+    assert row["adjusted"] == 0.5
+    assert len(row["top_five"]) == 5
+    irrelevant = [
+        bench.Hit(
+            Chunk(
+                f"x{i}/0",
+                f"x{i}",
+                "__benchmark__/empty.md",
+                "Copy",
+                "Copy",
+                "No source quote here.",
+            ),
+            1,
+        )
+        for i in range(5)
+    ]
+    assert (
+        analysis["copied_text_scores"](irrelevant + copies, ["original"], evidence)["adjusted"] == 0
+    )
+
+
+def test_copy_aliases_do_not_change_real_section_labels(tmp_path):
+    analysis = copied_text_analysis()
+    quote = "Never release a held payout after timeout."
+    original = Chunk("original/0", "original", "doc.md", "Title", "Heading", "Title\n\n" + quote)
+    unrelated = Chunk("unrelated/0", "unrelated", "other.md", "Title", "Heading", original.text)
+    source = Corpus(tmp_path, "unit-test", (original, unrelated), {})
+    evidence = analysis["sentence_evidence"](source, {"original"})
+    assert (
+        analysis["copied_text_scores"]([bench.Hit(unrelated, 1)], ["original"], evidence)[
+            "adjusted"
+        ]
+        == 0
+    )
+    row = analysis["copied_text_scores"]([bench.Hit(original, 1)], ["original"], evidence)
+    assert row["strict"] == row["adjusted"] == 1

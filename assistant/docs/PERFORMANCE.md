@@ -12,9 +12,11 @@ unresolved. No answer model or paid inference API is called.
 
 Each scale has a cold-encoding record and two validated retrieval repeats. Cold
 encoding was captured with harness `ed92b0d`; its query/ANN results are excluded.
-All query/quality results below use `a3b38b3`, which verifies actual HNSW plans.
+All original query/quality records use `a3b38b3`, which verifies actual HNSW plans.
 The corpus, embedding and retrieval implementations are identical in both commits.
-Every JSON contains SHA-256 hashes of seven measured source modules.
+Each original JSON contains SHA-256 hashes of seven measured source modules.
+The separate attribution record binds its published code block and the six input
+records by SHA-256; it does not replace any historical measurement.
 
 A preliminary plan check exposed a measurement trap: disabling sequential scans
 alone selected a primary-key bitmap scan, which is still exact. Dedicated ANN
@@ -257,11 +259,14 @@ exact 10th/11th score gap below 1e-6.
 | 10000 | 100 | 0.8925 | 0.8985 |
 | 10000 | 200 | 0.9540 | 0.9570 |
 
-Dev Recall@5 uses unique section ranks, as in the existing evaluator. These are
-fixed-label original-source-retention scores, not answer correctness: synthetic
-passages can contain true source sentences but synthetic IDs are never labeled
-relevant. The stress test does not forecast arbitrary real-document growth.
-Each JSON retains per-question results; labels are not revised.
+### Original-ID retention under copied text
+
+The following strict values use the original six records and original section IDs.
+The distractors are made by randomly recombining real sentences: answer sentences
+are copied under unlabelled IDs. These values therefore cannot measure retrieval
+quality as a corpus grows. Copies can displace the labelled original even when
+retrieved text still contains source sentences. Labels and the six original JSON
+files remain unchanged.
 
 | Method | Real 179 | Real +1k repeat 1 | Real +1k repeat 2 | Real +10k repeat 1 | Real +10k repeat 2 |
 | --- | --- | --- | --- | --- | --- |
@@ -274,9 +279,49 @@ Each JSON retains per-question results; labels are not revised.
 | hnsw_200 | 0.7188 | 0.5156 | 0.5156 | 0.2500 | 0.2500 |
 | hybrid_10 | 0.7135 | 0.6198 | 0.6198 | 0.4375 | 0.4375 |
 
-Hybrid loses original-section recall as distractors grow and falls below FTS alone
-at 10k. ANN loses neighbors at the default ef=100. Neither result changes a default
-or establishes a better strategy for unseen real questions.
+### Copied-sentence-adjusted attribution
+
+[Post-hoc attribution record](../perf/results/copied-text-attribution.json).
+This untimed pass rebuilds rankings once for each population/method, then scores
+strict and adjusted on exactly the same ranking. The historical six records lack
+ranked chunk IDs, so this is a separate pass, not a relabeling of those files.
+New HNSW index builds may differ from the historical graphs.
+
+A synthetic hit is credited to a relevant original section when its body contains
+one complete source sentence/line unit of at least six whitespace-delimited words.
+Units use the generator's punctuation-plus-whitespace or newline splitter. Matching
+normalizes whitespace only and preserves token boundaries, case and punctuation.
+Only synthetic passages receive aliases; real-section labels stay unchanged.
+
+Both metrics use the first five distinct retrieved section IDs from search(k=30).
+Attribution never reranks, collapses copied aliases, or pulls additional hits into
+those five positions. Recall's denominator remains the original relevant-section
+count. A section is credited at most once; one copied hit may credit several
+relevant sections. This is deliberately permissive attribution: any qualifying
+sentence counts, whether or not it states a question's required key fact. It is
+not an answer-correctness score.
+
+| Method | Real 179 strict = adjusted | +1k strict | +1k adjusted | +10k strict | +10k adjusted |
+| --- | --- | --- | --- | --- | --- |
+| memory_bm25 | 0.7917 | 0.5938 | 0.8229 | 0.2240 | 0.7344 |
+| memory_vector | 0.7188 | 0.5156 | 0.7656 | 0.2969 | 0.6979 |
+| postgres_fts | 0.6406 | 0.6042 | 0.7604 | 0.4635 | 0.8125 |
+| postgres_exact | 0.7188 | 0.5156 | 0.7656 | 0.2969 | 0.6979 |
+| hnsw_40 | 0.7188 | 0.5156 | 0.7656 | 0.2344 | 0.7031 |
+| hnsw_100 | 0.7188 | 0.5156 | 0.7656 | 0.2500 | 0.7083 |
+| hnsw_200 | 0.7188 | 0.5156 | 0.7656 | 0.2500 | 0.7135 |
+| hybrid_10 | 0.7135 | 0.6198 | 0.7917 | 0.4375 | 0.7969 |
+
+Hybrid's adjusted attribution is 0.7135 on the real corpus,
+0.7917 with 1k copies and 0.7969 with 10k copies.
+Its strict original-ID retention is 0.6198 and 0.4375 in those copied populations.
+The apparent collapse in original-ID retention therefore cannot establish a
+retrieval-quality collapse. The adjusted proxy also cannot establish improved
+answer quality or generalize to independently written documents.
+
+Duplicate content occupies ranking positions; this motivates a later deduplication
+experiment. No deduplication, ranking change, label change or default change is
+implemented here. ANN neighbor recall above is a separate vector-index metric.
 
 ## Profiles, execution plans and bottlenecks
 
@@ -427,11 +472,11 @@ Negative tests cover bad percentiles, deterministic/different seeds, missing
 environment fields, cache corruption/identity, wrong ANN plans and 100k opt-in.
 No workflow or dependency change is needed.
 
-Local checks: Ruff check/format pass; 201 default tests pass; 56 PostgreSQL/model
+Attribution follow-up checks: Ruff check/format pass; 208 default tests pass; 56 PostgreSQL/model
 tests pass with the existing one strict xfail for v1-011. The unchanged dev
-evaluation gate also passes locally with its committed baseline. Core make check
-passes and make test reports 1,725 passed. React builds and its 3 tests pass;
-scenario snapshots report 3 passed and fake agent/handoff acceptance 2 passed.
+evaluation gate passed locally with its committed baseline in the original P1 run.
+That original validation also passed core make check and make test (1,725 tests),
+React build and 3 tests, 3 scenario snapshots, and 2 fake agent/handoff tests.
 The existing gate and these suites run again in PR CI; this benchmark does not
 replace a gate.
 
@@ -470,3 +515,209 @@ for scale in (1000, 10000):
 These records concern local retrieval, resources and source retention. They do
 not establish answer quality, injection resistance, real operator traffic,
 cold-query latency, concurrency capacity or 100k behavior.
+
+## Reproduce copied-text attribution
+
+This is a separate, untimed attribution pass over the 32 development questions.
+It reuses the original cached corpora/vectors, verifies their digests and checksums,
+and checks that the six input records are byte-identical before and after the pass.
+It does not call the benchmark CLI, retime searches, re-encode passages or repeat
+profiles. No v2/v3 questions or answer model are used.
+
+Run from assistant/ after the original caches exist. The following block is the
+entire post-processing procedure; the unit tests load this same published code.
+
+```python
+# copied-text-attribution-v1
+import hashlib
+import json
+import re
+import statistics
+from datetime import UTC, datetime
+from pathlib import Path
+
+import numpy as np
+import psycopg
+
+from ledgerops_assistant import benchmark as bench
+from ledgerops_assistant.corpus import Corpus, load_corpus
+from ledgerops_assistant.postgres import index_corpus, setup
+
+
+def sentence_evidence(source, relevant_sections):
+    evidence = {section: {} for section in sorted(relevant_sections)}
+    for chunk in source.chunks:
+        if chunk.section_id not in evidence:
+            continue
+        for unit in re.split(r"(?<=[.!?])\s+|\n+", chunk.body):
+            quote = " ".join(unit.split())
+            if len(quote.split()) >= 6:
+                evidence[chunk.section_id].setdefault(quote, chunk.chunk_id)
+    return evidence
+
+
+def copied_text_scores(hits, relevant_sections, evidence):
+    relevant = set(relevant_sections)
+    unique = {}
+    for hit in hits:
+        unique.setdefault(hit.chunk.section_id, hit.chunk)
+    selected = list(unique.values())[:5]
+    strict = {chunk.section_id for chunk in selected} & relevant
+    adjusted = set(strict)
+    rows = []
+    for chunk in selected:
+        copies = []
+        if chunk.path.startswith("__benchmark__/"):
+            body = " " + " ".join(chunk.body.split()) + " "
+            for section in sorted(relevant):
+                for quote, origin in evidence[section].items():
+                    if " " + quote + " " in body:
+                        adjusted.add(section)
+                        copies.append(
+                            {"section_id": section, "source_chunk_id": origin, "quote": quote}
+                        )
+                        break
+        rows.append(
+            {
+                "section_id": chunk.section_id,
+                "chunk_id": chunk.chunk_id,
+                "copied_sentence_evidence": copies,
+            }
+        )
+    return {
+        "strict": len(strict) / len(relevant),
+        "adjusted": len(adjusted) / len(relevant),
+        "strict_sections": sorted(strict),
+        "adjusted_sections": sorted(adjusted),
+        "top_five": rows,
+    }
+
+
+def cached_matrix(path, corpus, name):
+    path = Path(path)
+    meta = json.loads(path.with_suffix(".json").read_text())
+    assert meta["sha256"] == bench.digest_file(path)
+    assert meta["corpus_digest"] == corpus.digest and meta["embedder"] == name
+    matrix = np.load(path)
+    assert matrix.shape == (len(corpus.chunks), 384)
+    return matrix, meta["sha256"]
+
+
+def main():
+    source = load_corpus()
+    questions = bench._dev_questions(source.root)
+    evidence = sentence_evidence(
+        source, {section for q in questions for section in q["relevant_sections"]}
+    )
+    originals = {
+        f"perf/results/{n}-{suffix}.json": bench.digest_file(
+            Path(f"perf/results/{n}-{suffix}.json")
+        )
+        for n in (1000, 10000)
+        for suffix in ("cold-encoding", "run1", "run2")
+    }
+    recorded = json.loads(Path("perf/results/1000-run1.json").read_text())
+    assert source.digest == recorded["source"]["digest"]
+    assert all(
+        bench.digest_file(Path(name)) == digest for name, digest in recorded["code_sha256"].items()
+    )
+    assert (
+        bench.digest_file(Path("eval/v1-draft/questions.jsonl"))
+        == (recorded["quality"]["dev_file_sha256"])
+    )
+    report = Path("docs/PERFORMANCE.md").read_text()
+    marker = chr(96) * 3 + "python\n# copied-text-attribution-v1\n"
+    analysis = (
+        "# copied-text-attribution-v1\n" + report.split(marker, 1)[1].split(chr(96) * 3, 1)[0]
+    )
+    encoder = bench._encoder("bge")
+    info = json.loads(
+        Path(".cache/perf/sentence-mix-v1-1000-20261111-bge/vectors.json").read_text()
+    )
+    real, real_sha = cached_matrix(info["real"], source, encoder.name)
+    result = {
+        "schema_version": 1,
+        "scope": "post_hoc_copied_sentence_attribution",
+        "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "analysis_sha256": hashlib.sha256(analysis.encode()).hexdigest(),
+        "source_corpus_digest": source.digest,
+        "dev_questions_sha256": bench.digest_file(Path("eval/v1-draft/questions.jsonl")),
+        "original_six_records_sha256": originals,
+        "embedder": encoder.name,
+        "vector_cache_sha256": {"real": real_sha},
+        "definition": {
+            "sentence_units": "generator punctuation-plus-whitespace or newline splitter",
+            "minimum_whitespace_words": 6,
+            "normalization": "whitespace only",
+            "match": "complete unit with token boundaries; synthetic passages only",
+            "ranking": "top 5 unique retrieved section IDs from search(k=30)",
+            "denominator": "number of original relevant sections",
+            "rerank_or_deduplicate_after_attribution": False,
+            "strict_and_adjusted_use_same_hits": True,
+        },
+        "new_non_timed_ranking_pass": True,
+        "original_benchmark_rerun": False,
+        "independent_hnsw_index_builds": True,
+        "populations": {},
+    }
+    with bench.disposable_postgres() as dsn:
+        setup(dsn)
+        result["environment"] = bench.environment(dsn, True)
+        for scale in (0, 1000, 10000):
+            data, matrix = source, real
+            if scale:
+                cache = Path(f".cache/perf/sentence-mix-v1-{scale}-20261111-bge")
+                synthetic = bench._load_corpus(cache / "synthetic.jsonl", source.root)
+                old = json.loads(Path(f"perf/results/{scale}-run1.json").read_text())
+                assert synthetic.digest == old["measurements"]["generation_and_chunking"]["digest"]
+                info = json.loads((cache / "vectors.json").read_text())
+                vectors, sha = cached_matrix(info["synthetic"], synthetic, encoder.name)
+                result["vector_cache_sha256"][str(scale)] = sha
+                data = Corpus(
+                    source.root, "copied-text-attribution", source.chunks + synthetic.chunks, {}
+                )
+                matrix = np.concatenate([real, vectors])
+            bench._reset_owned_database(dsn)
+            index_corpus(dsn, data, bench.CachedPassages(encoder.name, matrix))
+            with psycopg.connect(dsn) as conn:
+                conn.execute("ANALYZE assistant_rag.chunks")
+            population = {"chunks": len(data.chunks), "digest": data.digest, "methods": {}}
+            for name in bench.METHODS:
+                retriever = bench._retriever(name, data, encoder, matrix, dsn)
+                rows = {
+                    q["id"]: copied_text_scores(
+                        retriever.search(q["question"], 30), q["relevant_sections"], evidence
+                    )
+                    for q in questions
+                }
+                population["methods"][name] = {
+                    metric: statistics.mean(row[metric] for row in rows.values())
+                    for metric in ("strict", "adjusted")
+                }
+                population["methods"][name]["per_question"] = rows
+                print(
+                    scale,
+                    name,
+                    {k: population["methods"][name][k] for k in ("strict", "adjusted")},
+                    flush=True,
+                )
+            result["populations"][str(scale)] = population
+    assert all(bench.digest_file(Path(path)) == sha for path, sha in originals.items())
+    bench.write_json(Path("perf/results/copied-text-attribution.json"), result)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Execute only that marked block:
+
+```sh
+HF_HUB_OFFLINE=1 .venv/bin/python - <<'PY'
+from pathlib import Path
+report = Path("docs/PERFORMANCE.md").read_text()
+marker = chr(96) * 3 + "python\n# copied-text-attribution-v1\n"
+source = "# copied-text-attribution-v1\n" + report.split(marker, 1)[1].split(chr(96) * 3, 1)[0]
+exec(compile(source, "docs/PERFORMANCE.md", "exec"), {"__name__": "__main__"})
+PY
+```
