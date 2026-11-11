@@ -280,7 +280,8 @@ or establishes a better strategy for unseen real questions.
 
 ## Profiles, execution plans and bottlenecks
 
-The three slowest observed stage types at the largest measured scale are:
+The three slowest stage types at the largest measured scale (cold encoding plus
+validated repeat 1) are:
 
 | Stage type | Worker wall s | Scope |
 | --- | --- | --- |
@@ -428,7 +429,11 @@ No workflow or dependency change is needed.
 
 Local checks: Ruff check/format pass; 201 default tests pass; 56 PostgreSQL/model
 tests pass with the existing one strict xfail for v1-011. The unchanged dev
-evaluation gate is checked by PR CI, not replaced with this benchmark.
+evaluation gate also passes locally with its committed baseline. Core make check
+passes and make test reports 1,725 passed. React builds and its 3 tests pass;
+scenario snapshots report 3 passed and fake agent/handoff acceptance 2 passed.
+The existing gate and these suites run again in PR CI; this benchmark does not
+replace a gate.
 
 ```sh
 .venv/bin/ruff check .
