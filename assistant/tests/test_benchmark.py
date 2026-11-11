@@ -48,6 +48,19 @@ def test_percentiles_interpolate_instead_of_rounding_samples():
     assert bench.percentiles([7]) == {"p50": 7, "p95": 7, "p99": 7}
 
 
+@pytest.mark.parametrize(
+    "node",
+    [
+        {"Node Type": "Seq Scan"},
+        {"Node Type": "Bitmap Index Scan", "Index Name": "chunks_pkey"},
+        {"Node Type": "Index Scan", "Index Name": "chunks_pkey"},
+    ],
+)
+def test_ann_quality_rejects_plans_that_are_actually_exact(node):
+    with pytest.raises(ValueError, match="actual HNSW"):
+        bench.require_hnsw_plan([{"Plan": {"Node Type": "Limit", "Plans": [node]}}])
+
+
 def minimal_result():
     return {
         "schema_version": bench.SCHEMA_VERSION,
@@ -174,6 +187,9 @@ def test_ef100_adapter_matches_production_sql(pg_dsn, corpus):
     assert [(h.chunk.chunk_id, h.score) for h in actual] == [
         (h.chunk.chunk_id, h.score) for h in expected
     ]
+    for ef in (40, 100, 200):
+        explanation = bench._explain(pg_dsn, corpus, encoder, query, ef=ef, force_index=True)
+        bench.require_hnsw_plan(explanation)
 
 
 def test_large_runs_require_opt_in_and_real_quality_prerequisites(tmp_path):

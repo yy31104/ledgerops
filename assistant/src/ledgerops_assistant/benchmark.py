@@ -389,6 +389,8 @@ class BenchmarkHNSW(PostgresRetriever):
             conn.execute("SET LOCAL hnsw.iterative_scan = 'strict_order'")
             if self.force_index:
                 conn.execute("SET LOCAL enable_seqscan = off")
+                conn.execute("SET LOCAL enable_bitmapscan = off")
+                conn.execute("SET LOCAL enable_sort = off")
             rows = conn.execute(
                 "SELECT chunk_id,section_id,path,title,heading,body,1-(embedding <=> %s::vector) "
                 "FROM assistant_rag.chunks WHERE corpus_id=%s "
@@ -431,6 +433,8 @@ def _explain(dsn, corpus, encoder, query, *, fts=False, ef=100, force_index=Fals
         conn.execute("SELECT set_config('hnsw.ef_search',%s,true)", (str(ef),))
         if force_index:
             conn.execute("SET LOCAL enable_seqscan = off")
+            conn.execute("SET LOCAL enable_bitmapscan = off")
+            conn.execute("SET LOCAL enable_sort = off")
         if fts:
             terms = list(dict.fromkeys(tokenize(query)))[:128]
             return conn.execute(
@@ -474,6 +478,19 @@ def _token_lengths(corpus, encoder):
             if n > 512
         ][:20],
     }
+
+
+def require_hnsw_plan(explanation):
+    """A bitmap/primary-key scan is exact, even with enable_seqscan disabled."""
+
+    def uses_hnsw(node):
+        return (
+            node.get("Node Type") == "Index Scan"
+            and node.get("Index Name") == "chunks_embedding_idx"
+        ) or any(uses_hnsw(child) for child in node.get("Plans", []))
+
+    if not uses_hnsw(explanation[0]["Plan"]):
+        raise ValueError("ANN quality requires an actual HNSW index scan")
 
 
 def _worker(config, stage):
@@ -636,6 +653,12 @@ def _worker(config, stage):
         }
         recalls = {ef: [] for ef in ann}
         ties = 0
+        ann_plans = {
+            ef: _explain(dsn, corpus, encoder, queries[0], ef=int(ef), force_index=True)
+            for ef in ann
+        }
+        for explanation in ann_plans.values():
+            require_hnsw_plan(explanation)
         for query in queries:
             gold = exact.search(query, 11)
             wanted = {h.chunk.chunk_id for h in gold[:10]}
@@ -643,10 +666,6 @@ def _worker(config, stage):
             for ef, retriever in ann.items():
                 found = {h.chunk.chunk_id for h in retriever.search(query, 10)}
                 recalls[ef].append(len(wanted & found) / len(wanted))
-        ann_plans = {
-            ef: _explain(dsn, corpus, encoder, queries[0], ef=int(ef), force_index=True)
-            for ef in ann
-        }
         quality = {}
         for population, data, vectors in [
             ("real_only", source, np.load(vector_info["real"])),
