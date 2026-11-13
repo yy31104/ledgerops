@@ -450,20 +450,26 @@ inference credential is needed. Docker must be running.
 
 ```sh
 UV_CACHE_DIR=.cache/uv uv sync --locked
+mkdir -p .cache/perf
+perf_run_dir=$(mktemp -d .cache/perf/reproduction.XXXXXX)
 for perf_scale in 1000 10000; do
   for perf_iteration in 1 2; do
-    HF_HUB_OFFLINE=1 .venv/bin/python scripts/benchmark_retrieval.py --scale "$perf_scale" --seed 20261111 --output ".cache/perf/latest-$perf_scale.json"
-    cp ".cache/perf/latest-$perf_scale.json" "perf/results/$perf_scale-run$perf_iteration.json"
+    HF_HUB_OFFLINE=1 .venv/bin/python scripts/benchmark_retrieval.py --scale "$perf_scale" --seed 20261111 --output "$perf_run_dir/$perf_scale-run$perf_iteration.json"
   done
 done
 ```
+
+The six measurement records in perf/results/ are read-only historical results;
+compare new reproduction outputs with them without overwriting them.
 
 For a new cold-vector measurement, pass --cache .cache/perf-fresh. Later invocations
 reuse that cache and do not report cached loading as encoding throughput.
 Run invocations sequentially. The unexecuted 100k command is:
 
 ```sh
-HF_HUB_OFFLINE=1 .venv/bin/python scripts/benchmark_retrieval.py --scale 100000 --allow-large --seed 20261111 --output .cache/perf/latest-100000.json
+mkdir -p .cache/perf
+perf_large_run_dir=$(mktemp -d .cache/perf/reproduction-100000.XXXXXX)
+HF_HUB_OFFLINE=1 .venv/bin/python scripts/benchmark_retrieval.py --scale 100000 --allow-large --seed 20261111 --output "$perf_large_run_dir/100000.json"
 ```
 
 Existing CI discovery runs two N=200 HashingEmbedder smoke tests: in-memory and
