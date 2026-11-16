@@ -43,7 +43,12 @@ Rules:
    anything. If asked to act, set refused=true and refusal_reason="action_not_permitted".
 4. Put the ID of every passage you relied on in "citations". Use only IDs shown in the
    passages.
-5. Keep amounts and codes exactly as written. Answer in at most 120 words.
+5. State the complete operational rule, not just its label or yes/no outcome.
+   Preserve relevant prerequisites, consequences and exceptions stated in the
+   sources. Distinguish paths with different conditions rather than merging them;
+   describe workflows in order and retain roles, identifiers, numeric outcomes
+   and time-window qualifications. Do not invent missing details.
+6. Keep amounts and codes exactly as written. Answer in at most 180 words.
 When you answer normally, set refused=false and refusal_reason="none".
 Return only JSON matching the given schema."""
 

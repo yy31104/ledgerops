@@ -103,47 +103,141 @@ def test_postgres_context_retains_immutable_snapshot_and_raw_ranking(pg_dsn, tin
     assert all(c == tiny_corpus.by_id()[c.chunk_id] for c in expanded.context("timeout"))
 
 
-@pytest.mark.postgres
-@pytest.mark.model
-@pytest.mark.parametrize(
-    "question,fact",
-    [
-        pytest.param(
-            "What does a FAILED or CLOSED_ABSENT result do to the hold?",
-            "to 80 / 0 / 80 with no outgoing journal",
-            marks=pytest.mark.xfail(
-                strict=True,
-                raises=StopIteration,
-                reason="Known current-main corpus regression: v1-011 source is outside context",
-            ),
-        ),
-        (
-            "Reconciliation reports MISSING_INTERNAL for a payout that is still HELD. "
-            "What does that mean?",
-            "A provider payment with only a local HELD state remains MISSING_INTERNAL",
-        ),
-    ],
-)
-def test_development_source_conditions_reach_answer_provider(pg_dsn, corpus, question, fact):
+@pytest.fixture(scope="module")
+def development_retrievers(pg_dsn, corpus):
     from ledgerops_assistant.embeddings import BgeSmallEmbedder
     from ledgerops_assistant.postgres import PostgresRetriever, index_corpus
     from ledgerops_assistant.retrieval import HybridRetriever
 
     encoder = BgeSmallEmbedder()
     key = index_corpus(pg_dsn, corpus, encoder)
-    base = HybridRetriever(
-        PostgresRetriever(pg_dsn, key, encoder, method="fts"),
-        PostgresRetriever(pg_dsn, key, encoder, method="vector"),
-    )
+    vector = PostgresRetriever(pg_dsn, key, encoder, method="vector")
+    return {
+        "vector": vector,
+        "hybrid": HybridRetriever(PostgresRetriever(pg_dsn, key, encoder, method="fts"), vector),
+    }
+
+
+@pytest.mark.postgres
+@pytest.mark.model
+@pytest.mark.parametrize("method", ["vector", "hybrid"])
+@pytest.mark.parametrize(
+    "question,facts",
+    [
+        (
+            "A payout was refused for lack of funds. If the merchant has funds now, "
+            "will resending the same request succeed?",
+            [
+                "Adding funds today does not change an earlier retained refusal.",
+                "old operation ID still returns its original 422; a new operation",
+            ],
+        ),
+        (
+            "What does a FAILED or CLOSED_ABSENT result do to the hold?",
+            ["to 80 / 0 / 80 with no outgoing journal"],
+        ),
+        (
+            "What happens to a provider message with a missing or wrong signature?",
+            [
+                "bounded quarantine, without a financial incident",
+                "An invalid signature returns 401",
+            ],
+        ),
+        (
+            "The provider reported success but local settlement stopped with LOCAL_BLOCKER. "
+            "How is it resolved?",
+            ["The proposer submits", "A different actor reads and approves", "Execution rechecks"],
+        ),
+        (
+            "Which time zone defines a business day for reconciliation?",
+            ["Europe/Warsaw local calendar", "23 or 25 hours"],
+        ),
+        (
+            "Reconciliation reports MISSING_INTERNAL for a payout that is still HELD. "
+            "What does that mean?",
+            ["A provider payment with only a local HELD state remains MISSING_INTERNAL"],
+        ),
+    ],
+)
+def test_development_source_conditions_reach_answer_provider(
+    corpus, development_retrievers, method, question, facts
+):
+    # This verifies evidence availability, not real-model answer correctness.
+    base = development_retrievers[method]
     expanded = ContextRetriever(base, corpus)
 
     class Model:
         name = "scripted"
 
         def draft(self, question, passages):
-            source = next(c for c in passages if fact in " ".join(c.text.split()))
-            return Draft(fact, [source.chunk_id])
+            sources = [
+                next(c for c in passages if fact in " ".join(c.text.split())) for fact in facts
+            ]
+            return Draft("; ".join(facts), [c.chunk_id for c in sources])
 
     result = answer(question, expanded, Model(), revision=corpus.revision)
     assert not result.refused and result.citations
     assert expanded.search(question, 5) == base.search(question, 5)
+
+
+def test_vector_only_section_can_reach_hybrid_context_without_changing_search(tmp_path):
+    original = [chunk("leading", i, body="L" * 300) for i in range(3)]
+    recovered = [chunk("recovered", i, body="Condition " + str(i)) for i in range(3)]
+    corpus = Corpus(tmp_path, "snapshot", tuple(original + recovered), {})
+    base = Ranked([original[2]])
+    component = Ranked([recovered[2]])
+    component.name = "vector"
+    base.retrievers = (component,)
+    expected = [original[2], recovered[2], recovered[0], recovered[1]]
+    budget = len(json.dumps([asdict(c) for c in expected]).encode())
+    expanded = ContextRetriever(base, corpus, max_bytes=budget)
+    assert expanded.search("x") == base.search("x")
+    selected = expanded.context("x", 1)
+    assert selected == expected
+    assert len(json.dumps([asdict(c) for c in selected]).encode()) <= budget
+
+
+def test_foreign_component_result_does_not_add_source_text_or_neighbors(tmp_path):
+    primary = chunk("primary")
+    current = chunk("secondary", path="docs/B.md")
+    later = chunk("secondary", 1, path="docs/B.md")
+    corpus = Corpus(tmp_path, "snapshot", (primary, current, later), {})
+    base = Ranked([primary])
+    component = Ranked([replace(current, text="Foreign snapshot")])
+    component.name = "vector"
+    base.retrievers = (component,)
+    assert ContextRetriever(base, corpus).context("x") == [primary]
+
+
+def test_section_completion_precedes_unrelated_file_neighbors(tmp_path):
+    first = chunk("large", 0, body="Opening condition")
+    middle = chunk("large", 1, body="Important consequence")
+    last = chunk("large", 2, body="Terminal label")
+    unrelated = chunk("other", body="Unrelated adjacent heading")
+    corpus = Corpus(tmp_path, "snapshot", (first, middle, last, unrelated), {})
+    budget = len(json.dumps([asdict(c) for c in (last, first, middle)]).encode())
+    selected = ContextRetriever(Ranked([last]), corpus, max_bytes=budget).context("x", 1)
+    assert selected == [last, first, middle]
+
+
+def test_named_identifier_conjunction_survives_a_tight_budget(tmp_path):
+    label = chunk("label", body="ALPHA is a named state.")
+    condition = chunk("condition", body="ALPHA with BETA requires the documented condition.")
+    corpus = Corpus(tmp_path, "snapshot", (label, condition), {})
+    budget = len(json.dumps([asdict(condition)]).encode())
+    base = Ranked([label])
+    context = ContextRetriever(base, corpus, max_bytes=budget)
+    assert context.search("Does ALPHA require BETA?", 1) == base.search("x", 1)
+    assert context.context("Does ALPHA require BETA?", 1) == [condition]
+
+
+def test_oversized_code_match_cannot_hide_a_fitting_condition(tmp_path):
+    huge = chunk("large", body="ALPHA BETA " + "x" * 1000)
+    condition = chunk("condition", body="ALPHA with BETA requires the documented condition.")
+    unrelated = chunk("unrelated", path="docs/B.md", body="Unrelated " * 6)
+    corpus = Corpus(tmp_path, "snapshot", (huge, condition, unrelated), {})
+    budget = max(len(json.dumps([asdict(c)]).encode()) for c in (condition, unrelated))
+    selected = ContextRetriever(Ranked([huge, unrelated]), corpus, max_bytes=budget).context(
+        "Does ALPHA require BETA?", 2
+    )
+    assert selected == [condition]
