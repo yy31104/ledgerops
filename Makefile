@@ -1,7 +1,7 @@
 UV ?= uv
 UV_CACHE_DIR ?= $(CURDIR)/.cache/uv
 export UV_CACHE_DIR
-CHECK_DIRS := src tests reference $(wildcard provider_sim) $(wildcard ops)
+CHECK_DIRS := src tests reference $(wildcard provider_sim) $(wildcard ops) $(wildcard scripts)
 
 .PHONY: bootstrap check test test-unit test-integration test-provider build demo demo-payout-crash benchmark service
 
@@ -50,3 +50,7 @@ verify-release: demo-payout-crash
 demo-lost-update:
 	@$(UV) run --quiet --locked python -m pytest -qq -s --no-header --tb=short -p tests.demo_output tests/history/demo_story.py
 	@printf '%s\n' 'History demo complete. Owned PostgreSQL container removed.'
+
+.PHONY: mutant
+mutant:
+	$(UV) run --locked python scripts/mutants.py $(NAME)
