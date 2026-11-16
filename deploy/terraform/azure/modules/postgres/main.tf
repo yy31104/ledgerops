@@ -23,8 +23,14 @@ variable "tags" {
   description = "Tags."
 }
 
+variable "assistant_enabled" {
+  type        = bool
+  description = "Add a separate logical assistant database and allowlist pgvector."
+  default     = false
+}
+
 # The admin password is generated here and therefore lives in Terraform state:
-# keep state in an encrypted remote backend with restricted access (docs/AZURE.md).
+# keep state in an encrypted remote backend with restricted access.
 resource "random_password" "admin" {
   length  = 32
   special = false
@@ -57,6 +63,21 @@ resource "azurerm_postgresql_flexible_server_database" "ledgerops" {
   server_id = azurerm_postgresql_flexible_server.this.id
   charset   = "UTF8"
   collation = "en_US.utf8"
+}
+
+resource "azurerm_postgresql_flexible_server_database" "assistant" {
+  count     = var.assistant_enabled ? 1 : 0
+  name      = "ledgerops_assistant"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  charset   = "UTF8"
+  collation = "en_US.utf8"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "vector" {
+  count     = var.assistant_enabled ? 1 : 0
+  name      = "azure.extensions"
+  server_id = azurerm_postgresql_flexible_server.this.id
+  value     = "VECTOR"
 }
 
 # Matches ops/linux: TLS required, connection/lock logging on.

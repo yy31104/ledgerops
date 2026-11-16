@@ -27,11 +27,26 @@ variable "tags" {
   description = "Tags."
 }
 
+variable "deployer_ipv4_cidrs" {
+  type        = list(string)
+  description = "Explicit /32 deployer addresses for initial secret population."
+  default     = []
+}
+
+variable "assistant_enabled" {
+  type        = bool
+  description = "Create dedicated assistant secret placeholders."
+  default     = false
+}
+
 locals {
   # One launcher profile per component, same shape as ops/linux/bootstrap.py writes.
-  # Terraform only creates placeholders; real values are set out-of-band (docs/AZURE.md),
+  # Terraform only creates placeholders; real values are set out-of-band,
   # so DSNs and tokens never enter Terraform state.
-  profiles = ["api-profile", "worker-profile", "provider-profile", "provider-keys", "payout-policy"]
+  profiles = concat(
+    ["api-profile", "worker-profile", "provider-profile", "provider-keys", "payout-policy"],
+    var.assistant_enabled ? ["assistant-admin-database-url", "assistant-runtime-database-url", "assistant-runtime-password"] : []
+  )
 }
 
 resource "azurerm_key_vault" "this" {
@@ -51,7 +66,7 @@ resource "azurerm_key_vault" "this" {
     bypass         = "AzureServices"
     default_action = "Deny"
     # Add the deployer's IP here (or use a private endpoint) before writing secrets.
-    ip_rules = []
+    ip_rules = var.deployer_ipv4_cidrs
   }
 }
 
@@ -66,7 +81,7 @@ resource "azurerm_key_vault_secret" "profile" {
   name            = each.value
   value           = "PLACEHOLDER-set-with-az-keyvault-secret-set"
   key_vault_id    = azurerm_key_vault.this.id
-  content_type    = "application/json"
+  content_type    = startswith(each.value, "assistant-") ? "text/plain" : "application/json"
   expiration_date = "2027-12-31T00:00:00Z"
   depends_on      = [azurerm_role_assignment.deployer]
 

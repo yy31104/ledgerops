@@ -301,3 +301,8 @@ output "api_fqdn" {
   description = "API ingress FQDN."
   value       = azurerm_container_app.api.ingress[0].fqdn
 }
+
+output "environment_id" {
+  description = "Shared Container Apps environment ID."
+  value       = azurerm_container_app_environment.this.id
+}
