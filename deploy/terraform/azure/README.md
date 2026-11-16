@@ -96,6 +96,11 @@ This checks readiness, caller authentication, anonymous denial and absence of a
 remote demo token. It is not a substitute for the local worker-crash scenario,
 draft-resume acceptance test or a full cloud end-to-end trial. Preserve failed
 runs too; output files are created exclusively to avoid overwriting evidence.
+If a request fails before receiving an HTTP response, the report retains earlier
+checks, records a null status, elapsed time and a fixed error category, and stops
+with `completed`, `passed` and `healthy` set to false. The command writes this
+partial report and exits nonzero; URLs, credentials and exception text are never
+included in the report.
 
 ## Teardown and actual cost record
 

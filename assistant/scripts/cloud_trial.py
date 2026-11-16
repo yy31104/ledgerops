@@ -6,6 +6,8 @@ import argparse
 import hashlib
 import json
 import os
+import socket
+import ssl
 import time
 import urllib.error
 import urllib.request
@@ -48,6 +50,20 @@ def get_status(url: str, token: str | None = None) -> int:
         return exc.code
 
 
+def error_category(error: Exception) -> str:
+    # Exception messages/reasons may contain request URLs and credentials.
+    reason = error.reason if isinstance(error, urllib.error.URLError) else error
+    if isinstance(reason, (TimeoutError, socket.timeout)):
+        return "timeout"
+    if isinstance(reason, ssl.SSLError):
+        return "tls"
+    if isinstance(reason, socket.gaierror):
+        return "dns"
+    if isinstance(error, (urllib.error.URLError, OSError)):
+        return "transport"
+    return "request"
+
+
 def smoke(api_origin: str, assistant_origin: str, token: str, *, request=get_status) -> dict:
     api, assistant = origin(api_origin), origin(assistant_origin)
     if not token or any(character in token for character in "\r\n"):
@@ -63,22 +79,37 @@ def smoke(api_origin: str, assistant_origin: str, token: str, *, request=get_sta
     records = []
     for name, url, credential, expected in checks:
         started = time.perf_counter()
-        status = request(url, credential)
-        records.append(
-            {
-                "name": name,
-                "status": status,
-                "expected_status": expected,
-                "latency_ms": round((time.perf_counter() - started) * 1000, 3),
-                "passed": status == expected,
-            }
-        )
+        category = None
+        try:
+            status = request(url, credential)
+        except Exception as error:
+            status = None
+            category = error_category(error)
+        record = {
+            "name": name,
+            "status": status,
+            "expected_status": expected,
+            "latency_ms": round((time.perf_counter() - started) * 1000, 3),
+            "passed": status == expected,
+        }
+        if category is not None:
+            record["error_category"] = category
+        records.append(record)
+        if category is not None:
+            break
+    completed = len(records) == len(checks) and not any(
+        "error_category" in check for check in records
+    )
+    passed = completed and all(check["passed"] for check in records)
     return {
         "schema_version": 1,
         "kind": "read_only_cloud_smoke",
         "created_at": datetime.now(UTC).isoformat(),
         "checks": records,
-        "passed": all(check["passed"] for check in records),
+        "expected_checks": len(checks),
+        "completed": completed,
+        "passed": passed,
+        "healthy": passed,
         "scope": "GET-only health/authentication checks; no financial or model calls",
     }
 
@@ -120,14 +151,16 @@ def main() -> None:
     cost.add_argument("--resource-group", required=True)
     cost.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    if args.command == "smoke":
-        result = smoke(
-            args.api_origin, args.assistant_origin, os.environ.get("LEDGEROPS_OPERATOR_TOKEN", "")
-        )
-    else:
-        result = cost_record(args.amount, args.currency, args.export, args.resource_group)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("x") as handle:
+        if args.command == "smoke":
+            result = smoke(
+                args.api_origin,
+                args.assistant_origin,
+                os.environ.get("LEDGEROPS_OPERATOR_TOKEN", ""),
+            )
+        else:
+            result = cost_record(args.amount, args.currency, args.export, args.resource_group)
         json.dump(result, handle, indent=2)
         handle.write("\n")
     if result.get("passed") is False:
