@@ -35,6 +35,7 @@ def test_adapter_passes_schema_but_not_api_key_to_worker(monkeypatch):
     assert "OPENAI_API_KEY" not in seen["env"]
     assert "OPENAI_BASE_URL" not in seen["env"] and seen["start_new_session"] is True
     assert seen["request"]["schema"] == ANSWER_SCHEMA
+    assert seen["request"]["model"] == "gpt-6.1-sol"
 
 
 @pytest.mark.parametrize("account_type", ["chatgpt", "apiKey"])
@@ -95,6 +96,7 @@ def test_sdk_worker_is_ephemeral_and_denies_escalation(monkeypatch, capsys, acco
         "apps._default.enabled=false",
     }
     assert seen["ephemeral"] and seen["approval_mode"] == "never"
+    assert seen["model"] == "gpt-6.1-sol"
     assert seen["run"]["effort"] == "low"
     assert seen["sandbox"] == "read-only" and seen["run"]["output_schema"] == ANSWER_SCHEMA
     assert json.loads(capsys.readouterr().out)["usage"]["billing"] == "chatgpt_plan"

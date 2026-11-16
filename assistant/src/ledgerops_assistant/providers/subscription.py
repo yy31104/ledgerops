@@ -12,12 +12,15 @@ from ledgerops_assistant.providers.base import parse_draft, user_message
 class SubscriptionProvider:
     name = "chatgpt_subscription"
 
-    def __init__(self, *, timeout: float = 60):
+    def __init__(self, *, timeout: float = 60, model: str | None = None):
         if os.environ.get("CI") or os.environ.get("LEDGEROPS_ASSISTANT_SERVER"):
             raise ValueError("ChatGPT subscription is local development only")
         if os.environ.get("LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION") != "1":
             raise ValueError("explicitly opt in with LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1")
         self.timeout = timeout
+        self.model = model or os.environ.get(
+            "LEDGEROPS_ASSISTANT_SUBSCRIPTION_MODEL", "gpt-6.1-sol"
+        )
 
     def generate(
         self, instructions: str, message: str, schema: dict, *, timeout=None, max_output_tokens=512
@@ -42,6 +45,7 @@ class SubscriptionProvider:
                         "instructions": instructions,
                         "message": message,
                         "schema": schema,
+                        "model": self.model,
                     }
                 ),
                 timeout=min(self.timeout, timeout) if timeout else self.timeout,
