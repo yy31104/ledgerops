@@ -26,9 +26,23 @@ def verify(study=STUDY, root=ROOT):
     for name, digest in manifest["inputs_sha256"].items():
         if sha(root / name) != digest:
             raise ValueError(f"frozen input changed: {name}")
-    for name, digest in manifest["code_sha256"].items():
+    for name, digest in (manifest["code_sha256"] | manifest.get("corpus_file_sha256", {})).items():
         if sha(root / name) != digest:
             raise ValueError(f"frozen implementation changed: {name}")
+    return manifest
+
+
+def verify_archive(study=STUDY, root=ROOT):
+    """Check historical source bytes without running retrieval or pinning future code."""
+    manifest = json.loads((study / "manifest.json").read_text())
+    for name, digest in manifest["inputs_sha256"].items():
+        if sha(root / name) != digest:
+            raise ValueError(f"frozen input changed: {name}")
+    commit = manifest["code_commit"]
+    for name, digest in (manifest["code_sha256"] | manifest["corpus_file_sha256"]).items():
+        original = subprocess.check_output(["git", "show", f"{commit}:{name}"], cwd=root)
+        if hashlib.sha256(original).hexdigest() != digest:
+            raise ValueError(f"archived source mismatch: {name}")
     return manifest
 
 

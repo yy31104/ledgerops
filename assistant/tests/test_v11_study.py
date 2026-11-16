@@ -76,3 +76,26 @@ def test_changed_frozen_inputs_fail_before_attempt_or_runtime(tmp_path):
     path.write_text("changed")
     with pytest.raises(ValueError, match="frozen input"):
         study.verify(tmp_path, tmp_path)
+
+
+def test_setup_failure_consumes_attempt_and_keeps_partial_evidence(tmp_path, monkeypatch):
+    import builtins
+
+    (tmp_path / "manifest.json").write_text("{}")
+    monkeypatch.setattr(study, "verify", lambda *args: {"split": "dev"})
+    original = builtins.__import__
+
+    def fail_setup(name, *args, **kwargs):
+        if name == "ledgerops_assistant.answer":
+            raise RuntimeError("synthetic setup failure")
+        return original(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fail_setup)
+    output = tmp_path / "partial.json"
+    assert study.run(output, tmp_path) == 1
+    record = json.loads((tmp_path / "run.json").read_text())
+    assert record["status"] == "failed" and record["error_type"] == "RuntimeError"
+    assert json.loads(output.read_text())["status"] == "failed"
+    with pytest.raises(FileExistsError):
+        study.run(tmp_path / "other.json", tmp_path)
+    assert not (tmp_path / "other.json").exists()

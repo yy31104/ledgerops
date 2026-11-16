@@ -54,7 +54,3 @@ mutant:
 demo-lost-update:
 	@$(UV) run --quiet --locked python -m pytest -qq -s --no-header --tb=short -p tests.demo_output tests/history/demo_story.py
 	@printf '%s\n' 'History demo complete. Owned PostgreSQL container removed.'
-
-.PHONY: mutant
-mutant:
-	$(UV) run --locked python scripts/mutants.py $(NAME)
