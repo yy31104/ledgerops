@@ -34,7 +34,7 @@
     "unit": "chunk"
   },
   "corpus": {
-    "revision": "727f32a1ddeeb8a0ab521ca180c210ddb7a3a3e3",
+    "revision": "9c7519fbf8cbbb0c79c1140423b4e743a9af0c17",
     "digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
     "chunker": "headings-v1",
     "version": "operations-v4",
@@ -233,14 +233,14 @@
   },
   "context": {
     "policy": "section-completion-v2",
-    "retrieval_method": "vector",
+    "retrieval_method": "hybrid",
     "max_json_bytes": 18000,
     "ranking_metrics_use_expansion": false,
     "stats": {
-      "mean_chunks": 11.5818,
-      "mean_json_bytes": 17689.8909,
-      "mean_section_recall": 0.8224,
-      "max_json_bytes": 17970
+      "mean_chunks": 11.3455,
+      "mean_json_bytes": 17677.0182,
+      "mean_section_recall": 0.9048,
+      "max_json_bytes": 17992
     }
   }
 }

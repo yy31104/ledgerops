@@ -1,0 +1,583 @@
+{
+  "status": "completed",
+  "freeze_commit": "9c7519fbf8cbbb0c79c1140423b4e743a9af0c17",
+  "manifest_sha256": "ed7cc87586ced1b7c3cb5a59dc15ae0f246699b1f91ead132cf6f127633c1314",
+  "corpus": {
+    "digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+    "revision": "9c7519fbf8cbbb0c79c1140423b4e743a9af0c17",
+    "version": "operations-v4"
+  },
+  "questions": {
+    "sha256": "475462a31a6a2579ea06796a5557b39f3bc3c2730d83f39f5f23db6a9351307e",
+    "evaluated_split": "test",
+    "total": 85,
+    "retrieval_scored": 55
+  },
+  "environment": {
+    "quality_signal": true,
+    "backend": "postgres",
+    "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e"
+  },
+  "context": {
+    "policy": "section-completion-v2",
+    "max_json_bytes": 18000
+  },
+  "statistics": {
+    "n": 55,
+    "resamples": 10000,
+    "seed": 20261116,
+    "methods": {
+      "postgres_fts": {
+        "recall@5": {
+          "mean": 0.7684848484848485,
+          "question_ci95": [
+            0.6769621212121212,
+            0.8518181818181817
+          ],
+          "section_cluster_ci95": [
+            0.6752842573811133,
+            0.8491803278688524
+          ]
+        },
+        "mrr@10": {
+          "mean": 0.6696392496392497,
+          "question_ci95": [
+            0.5764054834054834,
+            0.7627994227994227
+          ],
+          "section_cluster_ci95": [
+            0.5629723317898588,
+            0.7655462567540678
+          ]
+        },
+        "ndcg@5": {
+          "mean": 0.628283902517169,
+          "question_ci95": [
+            0.5451873917131327,
+            0.7090278999494954
+          ],
+          "section_cluster_ci95": [
+            0.5377368407156934,
+            0.7069305936392013
+          ]
+        },
+        "hit@1": {
+          "mean": 0.509090909090909,
+          "question_ci95": [
+            0.38181818181818183,
+            0.6363636363636364
+          ],
+          "section_cluster_ci95": [
+            0.3620689655172414,
+            0.6470588235294118
+          ]
+        },
+        "hit@5": {
+          "mean": 0.9090909090909091,
+          "question_ci95": [
+            0.8363636363636363,
+            0.9818181818181818
+          ],
+          "section_cluster_ci95": [
+            0.8245614035087719,
+            0.9814814814814815
+          ]
+        },
+        "raw_five_chunk_coverage": {
+          "mean": 0.7133333333333335,
+          "question_ci95": [
+            0.6118181818181818,
+            0.8057575757575757
+          ],
+          "section_cluster_ci95": [
+            0.6032664027149321,
+            0.8078951085340469
+          ]
+        },
+        "expanded_context_coverage": {
+          "mean": 0.7812121212121212,
+          "question_ci95": [
+            0.6903030303030303,
+            0.8630303030303029
+          ],
+          "section_cluster_ci95": [
+            0.6887731035810551,
+            0.8614197530864197
+          ]
+        }
+      },
+      "pgvector_hnsw": {
+        "recall@5": {
+          "mean": 0.8218181818181819,
+          "question_ci95": [
+            0.7424242424242424,
+            0.8948484848484849
+          ],
+          "section_cluster_ci95": [
+            0.7402515723270441,
+            0.8931734972677593
+          ]
+        },
+        "mrr@10": {
+          "mean": 0.8127272727272727,
+          "question_ci95": [
+            0.7287878787878787,
+            0.8884848484848485
+          ],
+          "section_cluster_ci95": [
+            0.7319696003401359,
+            0.8854166666666666
+          ]
+        },
+        "ndcg@5": {
+          "mean": 0.7420124355875616,
+          "question_ci95": [
+            0.6667507901481887,
+            0.8129397671809724
+          ],
+          "section_cluster_ci95": [
+            0.6667753882993769,
+            0.812537399932319
+          ]
+        },
+        "hit@1": {
+          "mean": 0.7090909090909091,
+          "question_ci95": [
+            0.5818181818181818,
+            0.8181818181818182
+          ],
+          "section_cluster_ci95": [
+            0.5849056603773585,
+            0.8214285714285714
+          ]
+        },
+        "hit@5": {
+          "mean": 0.9636363636363636,
+          "question_ci95": [
+            0.9090909090909091,
+            1.0
+          ],
+          "section_cluster_ci95": [
+            0.9038461538461539,
+            1.0
+          ]
+        },
+        "raw_five_chunk_coverage": {
+          "mean": 0.8121212121212121,
+          "question_ci95": [
+            0.7290909090909091,
+            0.8878787878787878
+          ],
+          "section_cluster_ci95": [
+            0.727775,
+            0.8866666666666666
+          ]
+        },
+        "expanded_context_coverage": {
+          "mean": 0.8542424242424242,
+          "question_ci95": [
+            0.7860606060606061,
+            0.9148560606060605
+          ],
+          "section_cluster_ci95": [
+            0.785032346271842,
+            0.9139417862838916
+          ]
+        }
+      },
+      "hybrid": {
+        "recall@5": {
+          "mean": 0.8639393939393939,
+          "question_ci95": [
+            0.797878787878788,
+            0.923340909090909
+          ],
+          "section_cluster_ci95": [
+            0.7972195512820512,
+            0.921264367816092
+          ]
+        },
+        "mrr@10": {
+          "mean": 0.8113636363636364,
+          "question_ci95": [
+            0.734848484848485,
+            0.884090909090909
+          ],
+          "section_cluster_ci95": [
+            0.7272690136660727,
+            0.8859649122807017
+          ]
+        },
+        "ndcg@5": {
+          "mean": 0.7725326849975658,
+          "question_ci95": [
+            0.709035260973548,
+            0.8317997367026193
+          ],
+          "section_cluster_ci95": [
+            0.7036836857183442,
+            0.8348474653362977
+          ]
+        },
+        "hit@1": {
+          "mean": 0.6727272727272727,
+          "question_ci95": [
+            0.5454545454545454,
+            0.8
+          ],
+          "section_cluster_ci95": [
+            0.5333064516129032,
+            0.7966101694915254
+          ]
+        },
+        "hit@5": {
+          "mean": 0.9818181818181818,
+          "question_ci95": [
+            0.9454545454545454,
+            1.0
+          ],
+          "section_cluster_ci95": [
+            0.9411764705882353,
+            1.0
+          ]
+        },
+        "raw_five_chunk_coverage": {
+          "mean": 0.8578787878787879,
+          "question_ci95": [
+            0.7884772727272726,
+            0.9193939393939394
+          ],
+          "section_cluster_ci95": [
+            0.7884615384615384,
+            0.91775956284153
+          ]
+        },
+        "expanded_context_coverage": {
+          "mean": 0.8675757575757576,
+          "question_ci95": [
+            0.8021136363636363,
+            0.926060606060606
+          ],
+          "section_cluster_ci95": [
+            0.8018127913752914,
+            0.9238105500821019
+          ]
+        }
+      },
+      "legacy_hybrid": {
+        "recall@5": {
+          "mean": 0.8906060606060605,
+          "question_ci95": [
+            0.834848484848485,
+            0.94
+          ],
+          "section_cluster_ci95": [
+            0.8351494633838383,
+            0.9392877668308702
+          ]
+        },
+        "mrr@10": {
+          "mean": 0.8127272727272727,
+          "question_ci95": [
+            0.7375757575757577,
+            0.8848484848484848
+          ],
+          "section_cluster_ci95": [
+            0.7302454577218728,
+            0.8865254448177181
+          ]
+        },
+        "ndcg@5": {
+          "mean": 0.7817037244538687,
+          "question_ci95": [
+            0.7247991525969234,
+            0.8376220308262813
+          ],
+          "section_cluster_ci95": [
+            0.720538632882802,
+            0.8381662634138743
+          ]
+        },
+        "hit@1": {
+          "mean": 0.6727272727272727,
+          "question_ci95": [
+            0.5454545454545454,
+            0.8
+          ],
+          "section_cluster_ci95": [
+            0.5333064516129032,
+            0.7966101694915254
+          ]
+        },
+        "hit@5": {
+          "mean": 1.0,
+          "question_ci95": [
+            1.0,
+            1.0
+          ],
+          "section_cluster_ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "raw_five_chunk_coverage": {
+          "mean": 0.8845454545454545,
+          "question_ci95": [
+            0.8254545454545454,
+            0.9366666666666666
+          ],
+          "section_cluster_ci95": [
+            0.8257825350749879,
+            0.9366680790960452
+          ]
+        },
+        "expanded_context_coverage": {
+          "mean": 0.8978787878787878,
+          "question_ci95": [
+            0.8454469696969696,
+            0.9442424242424242
+          ],
+          "section_cluster_ci95": [
+            0.8450601851851852,
+            0.9434523809523808
+          ]
+        }
+      }
+    },
+    "comparisons": {
+      "hybrid - legacy_hybrid": {
+        "recall@5": {
+          "mean_difference": -0.02666666666666667,
+          "paired_question_ci95": [
+            -0.07515151515151516,
+            0.007272727272727271
+          ],
+          "paired_section_cluster_ci95": [
+            -0.07602756892230576,
+            0.007017543859649121
+          ],
+          "interpretation": {
+            "paired_question_ci95": "no detectable difference",
+            "paired_section_cluster_ci95": "no detectable difference"
+          }
+        },
+        "mrr@10": {
+          "mean_difference": -0.0013636363636363637,
+          "paired_question_ci95": [
+            -0.010454545454545456,
+            0.0077272727272727285
+          ],
+          "paired_section_cluster_ci95": [
+            -0.010737179487179487,
+            0.007456140350877194
+          ],
+          "interpretation": {
+            "paired_question_ci95": "no detectable difference",
+            "paired_section_cluster_ci95": "no detectable difference"
+          }
+        },
+        "hit@1": {
+          "mean_difference": 0.0,
+          "paired_question_ci95": [
+            0.0,
+            0.0
+          ],
+          "paired_section_cluster_ci95": [
+            0.0,
+            0.0
+          ],
+          "interpretation": {
+            "paired_question_ci95": "no detectable difference",
+            "paired_section_cluster_ci95": "no detectable difference"
+          }
+        }
+      },
+      "hybrid - pgvector_hnsw": {
+        "recall@5": {
+          "mean_difference": 0.042121212121212115,
+          "paired_question_ci95": [
+            0.00818181818181818,
+            0.0884848484848485
+          ],
+          "paired_section_cluster_ci95": [
+            0.008928571428571428,
+            0.0898148148148148
+          ],
+          "interpretation": {
+            "paired_question_ci95": "hybrid higher",
+            "paired_section_cluster_ci95": "hybrid higher"
+          }
+        },
+        "mrr@10": {
+          "mean_difference": -0.0013636363636363679,
+          "paired_question_ci95": [
+            -0.061212121212121204,
+            0.05787878787878788
+          ],
+          "paired_section_cluster_ci95": [
+            -0.06080363382250176,
+            0.053923689668174936
+          ],
+          "interpretation": {
+            "paired_question_ci95": "no detectable difference",
+            "paired_section_cluster_ci95": "no detectable difference"
+          }
+        },
+        "hit@1": {
+          "mean_difference": -0.03636363636363636,
+          "paired_question_ci95": [
+            -0.14545454545454545,
+            0.07272727272727272
+          ],
+          "paired_section_cluster_ci95": [
+            -0.14285714285714285,
+            0.058823529411764705
+          ],
+          "interpretation": {
+            "paired_question_ci95": "no detectable difference",
+            "paired_section_cluster_ci95": "no detectable difference"
+          }
+        }
+      },
+      "hybrid - postgres_fts": {
+        "recall@5": {
+          "mean_difference": 0.09545454545454546,
+          "paired_question_ci95": [
+            0.03484848484848485,
+            0.16666666666666666
+          ],
+          "paired_section_cluster_ci95": [
+            0.037037037037037035,
+            0.16830065359477123
+          ],
+          "interpretation": {
+            "paired_question_ci95": "hybrid higher",
+            "paired_section_cluster_ci95": "hybrid higher"
+          }
+        },
+        "mrr@10": {
+          "mean_difference": 0.14172438672438673,
+          "paired_question_ci95": [
+            0.060944985569985566,
+            0.22276406926406925
+          ],
+          "paired_section_cluster_ci95": [
+            0.06585156733147805,
+            0.22497945919820922
+          ],
+          "interpretation": {
+            "paired_question_ci95": "hybrid higher",
+            "paired_section_cluster_ci95": "hybrid higher"
+          }
+        },
+        "hit@1": {
+          "mean_difference": 0.16363636363636364,
+          "paired_question_ci95": [
+            0.03636363636363636,
+            0.2909090909090909
+          ],
+          "paired_section_cluster_ci95": [
+            0.04838709677419355,
+            0.2857142857142857
+          ],
+          "interpretation": {
+            "paired_question_ci95": "hybrid higher",
+            "paired_section_cluster_ci95": "hybrid higher"
+          }
+        }
+      }
+    }
+  },
+  "quote_coverage": {
+    "postgres_fts": {
+      "questions_with_quotes": 55,
+      "all_documentation_questions": 55,
+      "quotes": 79,
+      "mean_question_quote_coverage": 0.7636363636363637
+    },
+    "pgvector_hnsw": {
+      "questions_with_quotes": 55,
+      "all_documentation_questions": 55,
+      "quotes": 79,
+      "mean_question_quote_coverage": 0.8939393939393939
+    },
+    "hybrid": {
+      "questions_with_quotes": 55,
+      "all_documentation_questions": 55,
+      "quotes": 79,
+      "mean_question_quote_coverage": 0.8454545454545455
+    },
+    "legacy_hybrid": {
+      "questions_with_quotes": 55,
+      "all_documentation_questions": 55,
+      "quotes": 79,
+      "mean_question_quote_coverage": 0.8636363636363636
+    }
+  },
+  "generation_context": {
+    "method": "hybrid",
+    "calls": 55,
+    "questions": 55,
+    "mean_delivered_section_coverage": 0.8675757575757576,
+    "unsent_packs_count_as_delivered": false
+  },
+  "decision": {
+    "method": "hybrid",
+    "rule": "hybrid only if paired section-cluster Recall@5 delta is positive and its 95% lower bound exceeds zero",
+    "comparison": {
+      "mean_difference": 0.042121212121212115,
+      "paired_question_ci95": [
+        0.00818181818181818,
+        0.0884848484848485
+      ],
+      "paired_section_cluster_ci95": [
+        0.008928571428571428,
+        0.0898148148148148
+      ],
+      "interpretation": {
+        "paired_question_ci95": "hybrid higher",
+        "paired_section_cluster_ci95": "hybrid higher"
+      }
+    }
+  },
+  "scope_gate": {
+    "threshold": 0.5512,
+    "source": "development only"
+  },
+  "answers": {
+    "provider": "fake",
+    "route_accuracy": {
+      "test": 0.9647
+    },
+    "refusal": {
+      "correct_refusals": 27,
+      "missed_refusals": 3,
+      "wrong_refusals": 0,
+      "should_refuse": 30,
+      "should_answer": 55
+    },
+    "answered_docs_questions": 55,
+    "citation_hit_rate": 0.8909,
+    "dropped_citations": 0,
+    "confusion": {
+      "action -> action": 18,
+      "docs -> docs": 55,
+      "live_state -> live_state": 2,
+      "out_of_scope -> docs": 3,
+      "out_of_scope -> out_of_scope": 7
+    }
+  },
+  "raw_result": {
+    "release": "v1.1.0",
+    "asset": "ledgerops-evidence-v1.1.0.tar.gz",
+    "path": "assistant/eval/results/v1.1-holdout.json",
+    "sha256": "1fe8b285170e51cec7dc148b9f079eb258d77ced215530dcd07a5dd880710999"
+  },
+  "limitations": [
+    "Synthetic source-audited questions, not real operator traffic or human labels.",
+    "Default selection uses this single preregistered comparison; it is not an independent post-selection validation.",
+    "Fake generation measures routing/refusal, not real-model answer quality or injection resistance.",
+    "Three of ten new out-of-scope questions were admitted; no post-run changes were made.",
+    "Hybrid section recall improves over vector, while quoted-evidence coverage is lower; neither proves answer correctness."
+  ]
+}

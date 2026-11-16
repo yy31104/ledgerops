@@ -22,6 +22,9 @@ LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1 uv run --locked --extra subscription \
   "Does a timeout release the hold?"
 ```
 
+The default subscription model is `gpt-6.1-sol`; set
+`LEDGEROPS_ASSISTANT_SUBSCRIPTION_MODEL` to choose another supported model.
+
 The SDK owns sign-in. The adapter never reads or copies its credential file and
 rejects API-key accounts. Calls consume ChatGPT plan quota; a per-request dollar
 bill cannot be inferred from the subscription price. This provider is disabled in
@@ -44,9 +47,11 @@ For API mode, install `uv sync --locked --extra openai`, keep `OPENAI_API_KEY`
 outside Git and set `LEDGEROPS_ASSISTANT_OPENAI_MODEL`. Set positive
 `MODEL_INPUT_USD_PER_MILLION` and `MODEL_OUTPUT_USD_PER_MILLION` for that model.
 For Ollama, set `LEDGEROPS_ASSISTANT_OLLAMA_MODEL` and its local server address.
-A request cannot choose a URL or credential. Provider token counts are recorded
-when available; configured-price estimates and budget reservations are distinct
-from billed cost.
+A request cannot choose a URL or credential. Provider input/output counters and latency are recorded per request when
+available; configured-price estimates and budget reservations are distinct from
+billed cost. Cached-input counts are retained by the subscription recorder.
+The current empty-evidence contrast did not identify an exact SDK/document token
+split; see [the measurements](RETRIEVAL-QUALITY-V2.md#real-answers-and-token-use).
 
 Official references: [authentication](https://learn.chatgpt.com/docs/auth),
 [Python SDK](https://learn.chatgpt.com/docs/codex-sdk).

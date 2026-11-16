@@ -30,6 +30,9 @@ are separate integrations. These guides explain their rules and boundaries.
 | [Authentication](AUTHENTICATION.md) | Caller tokens, roles, revocation and audit boundaries |
 | [Maintenance](MAINTENANCE.md) | Pause, inspect, repair and safely resume |
 
+The [guard mutation guide](MUTATION-TESTING.md) maps each removed protection to
+its detecting test. Predict a result before running `make mutant NAME=all`.
+
 The [assistant guide](../assistant/README.md) explains cited answers, read-only
 investigation and human-reviewed drafts. The [recovery article](../articles/provider-paid-worker-died.md)
 explains the central failure case with a concrete timeline.
