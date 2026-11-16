@@ -1,0 +1,11 @@
+{"version": 2, "width": 110, "height": 34, "title": "LedgerOps: correct totals can hide a race", "env": {"TERM": "dumb"}}
+[0.0, "o", "$ make demo-lost-update\r\n"]
+[1.544251, "o", "\r\nLOCKED CONTROL: two concurrent purchases of 30 from 100\r\n"]
+[1.651775, "o", "Both purchases returned 201. Customer=40; merchant=60; independent fold=MATCH.\r\n"]
+[1.656869, "o", "Offline history verdict: PASS\r\nChecker report: {\"anomalies\": {}, \"stats\": {\"committed\": 2, \"edges\": {\"rw\": 0, \"wr\": 1, \"ww\": 1}, \"failed\": 0, \"graph_nodes\": 2, \"indeterminate\": 0, \"transactions\": 2}, \"valid\": true}\r\n"]
+[1.912058, "o", "\r\nUNLOCKED VARIANT: two concurrent purchases of 30 from 100\r\n"]
+[1.952385, "o", "Both purchases returned 201. Customer=40; merchant=60; independent fold=MATCH.\r\n"]
+[1.957473, "o", "Offline history verdict: REJECTED: G-single, lost-update, non-adjacent-rmw\r\n"]
+[1.957491, "o", "Checker report: {\"anomalies\": {\"G-single\": [{\"cycle\": [{\"from\": 0, \"kinds\": [\"ww\"], \"to\": 1}, {\"from\": 1, \"kinds\": [\"rw\"], \"to\": 0}]}], \"lost-update\": [{\"key\": \"30000000-0000-4000-8000-000000000002\", \"read_version\": 1, \"txns\": [0, 1]}, {\"key\": \"30000000-0000-4000-8000-000000000003\", \"read_version\": 0, \"txns\": [0, 1]}], \"non-adjacent-rmw\": [{\"key\": \"30000000-0000-4000-8000-000000000002\", \"read\": 1, \"txn\": 1, \"wrote\": 3}, {\"key\": \"30000000-0000-4000-8000-000000000003\", \"read\": 0, \"txn\": 1, \"wrote\": 2}]}, \"stats\": {\"committed\": 2, \"edges\": {\"rw\": 1, \"wr\": 0, \"ww\": 1}, \"failed\": 0, \"graph_nodes\": 2, \"indeterminate\": 0, \"transactions\": 2}, \"valid\": false}\r\nCorrect totals hid a stale read. The history checker rejected the execution.\r\n"]
+[2.210318, "o", "\r\n"]
+[2.323364, "o", "History demo complete. Owned PostgreSQL container removed.\r\n"]
