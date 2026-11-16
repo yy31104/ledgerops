@@ -121,7 +121,7 @@ with retained requests. A legitimate hold of 62 does not prevent projection repa
 freeze and drain writers -> preview -> recompute inside an exclusive transaction,
 record complete before/after values and epoch -> verify -> resume. Holds and events
 remain unchanged. See [maintenance](MAINTENANCE.md) and
-[export verification](EXPORT-AND-VERIFY.md).
+[export verification](internals/export-and-verify.md).
 
 ## Scope of the result
 

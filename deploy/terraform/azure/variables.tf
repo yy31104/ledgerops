@@ -47,3 +47,35 @@ variable "tags" {
   type        = map(string)
   default     = { project = "ledgerops", environment = "synthetic" }
 }
+
+variable "assistant_image" {
+  description = "Optional digest-pinned assistant image; null creates no assistant resources."
+  type        = string
+  default     = null
+  validation {
+    condition     = var.assistant_image == null ? true : can(regex("@sha256:[0-9a-f]{64}$", var.assistant_image))
+    error_message = "assistant_image must be null or pinned by sha256 digest."
+  }
+}
+
+variable "assistant_service_enabled" {
+  description = "Enable only after the manual initialization job succeeds."
+  type        = bool
+  default     = false
+}
+
+variable "assistant_external_ingress" {
+  description = "Keep false until caller authentication and the public trial are approved."
+  type        = bool
+  default     = false
+}
+
+variable "key_vault_deployer_ipv4_cidrs" {
+  description = "Explicit deployer /32 addresses allowed to populate Key Vault; never a broad network."
+  type        = list(string)
+  default     = []
+  validation {
+    condition     = alltrue([for address in var.key_vault_deployer_ipv4_cidrs : can(cidrnetmask(address)) && endswith(address, "/32")])
+    error_message = "Key Vault deployer addresses must be individual IPv4 /32 CIDRs."
+  }
+}

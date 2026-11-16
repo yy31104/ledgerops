@@ -32,7 +32,7 @@ from pathlib import Path
 from ledgerops_assistant import routing
 from ledgerops_assistant.answer import ScopeGate, answer
 from ledgerops_assistant.context import CONTEXT_POLICY, MAX_CONTEXT_BYTES, ContextRetriever
-from ledgerops_assistant.corpus import CHUNKER_VERSION, load_corpus
+from ledgerops_assistant.corpus import CHUNKER_VERSION, CORPUS_VERSION, load_corpus
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import (
     BM25Retriever,
@@ -42,7 +42,7 @@ from ledgerops_assistant.retrieval import (
 )
 
 ASSISTANT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_QUESTIONS = ASSISTANT_ROOT / "eval" / "v1-draft" / "questions.jsonl"
+DEFAULT_QUESTIONS = ASSISTANT_ROOT / "eval" / "v4-dev" / "questions.jsonl"
 CACHE_DIR = ASSISTANT_ROOT / ".cache" / "index"
 
 
@@ -207,6 +207,7 @@ def calibrate_gate(gate_retriever, questions: list[dict]) -> dict:
 def evaluate_answers(questions, retriever, provider, gate, revision) -> dict:
     rows = []
     for q in questions:
+        started = time.perf_counter()
         result = answer(q["question"], retriever, provider, gate=gate, revision=revision)
         predicted_route = routing.OUT_OF_SCOPE if result.reason == "not_in_docs" else result.route
         cited = {c.section_id for c in result.citations}
@@ -222,6 +223,8 @@ def evaluate_answers(questions, retriever, provider, gate, revision) -> dict:
                 "cites_relevant": bool(cited & set(q["relevant_sections"])),
                 "dropped_citations": len(result.dropped_citations),
                 "answer": result.text,
+                "latency_ms": round((time.perf_counter() - started) * 1000, 3),
+                "usage": result.usage,
                 "citations": [c.chunk_id for c in result.citations],
                 "context_chunks": result.retrieved,
             }
@@ -358,6 +361,7 @@ def run(args) -> dict:
             "revision": corpus.revision,
             "digest": corpus.digest,
             "chunker": CHUNKER_VERSION,
+            "version": CORPUS_VERSION,
             "files": len(corpus.file_digests),
             "chunks": len(corpus.chunks),
             "sections": len(corpus.section_ids()),

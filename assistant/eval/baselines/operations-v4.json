@@ -1,0 +1,223 @@
+{
+  "environment": {
+    "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+    "python": "3.12.13",
+    "onnxruntime": "1.31.1",
+    "tokenizers": "0.23.3",
+    "machine": "arm64",
+    "backend": "postgres",
+    "quality_signal": true
+  },
+  "questions": {
+    "file": "questions.jsonl",
+    "sha256": "caf74b7048c58ee28cf3136d33f6c5dd5fb2af66b14be7d4bec62d0784eecf07",
+    "total": 40,
+    "retrieval_scored": 32,
+    "by_route": {
+      "docs": 32,
+      "live_state": 2,
+      "action": 4,
+      "out_of_scope": 2
+    },
+    "by_split": {
+      "dev": 40
+    },
+    "evaluated_split": "dev"
+  },
+  "fusion": {
+    "rrf_k": 10,
+    "depth": 50,
+    "weights": [
+      1.0,
+      1.0
+    ],
+    "unit": "chunk"
+  },
+  "corpus": {
+    "revision": "57a5d6209131b58b2f6dce3d36c0c4eedb151156",
+    "digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+    "chunker": "headings-v1",
+    "version": "operations-v4",
+    "files": 20,
+    "chunks": 170,
+    "sections": 98
+  },
+  "retrieval": {
+    "postgres_fts": {
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.4062,
+          "hit@3": 0.75,
+          "hit@5": 0.7812,
+          "recall@5": 0.6458,
+          "mrr@10": 0.579,
+          "ndcg@5": 0.5498,
+          "context_recall@5": 0.6458
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    },
+    "pgvector_hnsw": {
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.5938,
+          "hit@3": 0.8438,
+          "hit@5": 0.875,
+          "recall@5": 0.7552,
+          "mrr@10": 0.7193,
+          "ndcg@5": 0.6611,
+          "context_recall@5": 0.7552
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    },
+    "pgvector_exact": {
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.5938,
+          "hit@3": 0.8438,
+          "hit@5": 0.875,
+          "recall@5": 0.7552,
+          "mrr@10": 0.7193,
+          "ndcg@5": 0.6611,
+          "context_recall@5": 0.7552
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    },
+    "legacy_hybrid": {
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.6562,
+          "hit@3": 0.7812,
+          "hit@5": 0.8125,
+          "recall@5": 0.7135,
+          "mrr@10": 0.7397,
+          "ndcg@5": 0.6715,
+          "context_recall@5": 0.6823
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    },
+    "hybrid": {
+      "by_split": {
+        "dev": {
+          "n": 32,
+          "hit@1": 0.6562,
+          "hit@3": 0.7812,
+          "hit@5": 0.875,
+          "recall@5": 0.7448,
+          "mrr@10": 0.7406,
+          "ndcg@5": 0.683,
+          "context_recall@5": 0.6979
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    }
+  },
+  "scope_gate": {
+    "threshold": 0.5956,
+    "dev_accuracy": 1.0,
+    "test_accuracy": null,
+    "scores": {
+      "docs": [
+        0.6399,
+        0.6559,
+        0.6573,
+        0.6736,
+        0.6825,
+        0.6863,
+        0.6872,
+        0.6917,
+        0.6929,
+        0.7043,
+        0.7057,
+        0.7061,
+        0.7109,
+        0.7115,
+        0.7137,
+        0.714,
+        0.7189,
+        0.7202,
+        0.7204,
+        0.7307,
+        0.7378,
+        0.7455,
+        0.7494,
+        0.7566,
+        0.7588,
+        0.7592,
+        0.7681,
+        0.7766,
+        0.7783,
+        0.7795,
+        0.7965,
+        0.813
+      ],
+      "out_of_scope": {
+        "v1-037": 0.5956,
+        "v1-038": 0.5512
+      }
+    }
+  },
+  "context": {
+    "policy": "section-neighbors-v1",
+    "max_json_bytes": 18000,
+    "ranking_metrics_use_expansion": false,
+    "stats": {
+      "mean_chunks": 11.0312,
+      "mean_json_bytes": 17679.9375,
+      "mean_section_recall": 0.8073,
+      "max_json_bytes": 17995
+    }
+  }
+}

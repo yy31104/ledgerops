@@ -1,0 +1,5416 @@
+{
+  "records": {
+    "assistant/eval/results/v1-postgres-dev.json": {
+      "comparisons": {
+        "pgvector_hnsw -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-001",
+              "v1-005",
+              "v1-006",
+              "v1-007",
+              "v1-012",
+              "v1-022"
+            ],
+            "ci95": [
+              0.0625,
+              0.3125
+            ],
+            "mean_difference": 0.1875,
+            "worse_on": []
+          },
+          "mrr@10": {
+            "better_on": [
+              "v1-001",
+              "v1-005",
+              "v1-006",
+              "v1-007",
+              "v1-008",
+              "v1-012",
+              "v1-017",
+              "v1-022"
+            ],
+            "ci95": [
+              -0.0083,
+              0.1823
+            ],
+            "mean_difference": 0.0839,
+            "worse_on": [
+              "v1-004",
+              "v1-011",
+              "v1-013",
+              "v1-023",
+              "v1-027"
+            ]
+          }
+        },
+        "postgres_fts -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-005",
+              "v1-012",
+              "v1-014",
+              "v1-020",
+              "v1-026",
+              "v1-028",
+              "v1-032"
+            ],
+            "ci95": [
+              0.0938,
+              0.375
+            ],
+            "mean_difference": 0.2188,
+            "worse_on": []
+          },
+          "mrr@10": {
+            "better_on": {
+              "entries": 14
+            },
+            "ci95": [
+              0.0627,
+              0.2378
+            ],
+            "mean_difference": 0.1443,
+            "worse_on": [
+              "v1-008"
+            ]
+          }
+        },
+        "postgres_fts -> pgvector_hnsw": {
+          "hit@1": {
+            "better_on": [
+              "v1-014",
+              "v1-020",
+              "v1-026",
+              "v1-028",
+              "v1-032"
+            ],
+            "ci95": [
+              -0.1562,
+              0.2188
+            ],
+            "mean_difference": 0.0312,
+            "worse_on": [
+              "v1-001",
+              "v1-006",
+              "v1-007",
+              "v1-022"
+            ]
+          },
+          "mrr@10": {
+            "better_on": {
+              "entries": 12
+            },
+            "ci95": [
+              -0.0641,
+              0.1812
+            ],
+            "mean_difference": 0.0604,
+            "worse_on": [
+              "v1-001",
+              "v1-005",
+              "v1-006",
+              "v1-007",
+              "v1-008",
+              "v1-012",
+              "v1-022"
+            ]
+          }
+        }
+      },
+      "corpus": {
+        "chunker": "headings-v1",
+        "chunks": 175,
+        "digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+        "files": 21,
+        "revision": "321fb0638259d50f102d1cc1616708bafce97e37",
+        "sections": 105
+      },
+      "created_at": "2026-11-05T09:21:33+00:00",
+      "environment": {
+        "backend": "postgres",
+        "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+        "machine": "arm64",
+        "onnxruntime": "1.31.1",
+        "python": "3.12.13",
+        "quality_signal": true,
+        "tokenizers": "0.23.3"
+      },
+      "mlflow_run_id": "eb5e62bdf6c444d8a891388eaca320b3",
+      "questions": {
+        "by_route": {
+          "action": 4,
+          "docs": 32,
+          "live_state": 2,
+          "out_of_scope": 2
+        },
+        "by_split": {
+          "dev": 40
+        },
+        "evaluated_split": "dev",
+        "file": "questions.jsonl",
+        "retrieval_scored": 32,
+        "sha256": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+        "total": 40
+      },
+      "retrieval": {
+        "hybrid": {
+          "all": {
+            "hit@1": 0.6875,
+            "hit@3": 0.7812,
+            "hit@5": 0.8125,
+            "mrr@10": 0.7527,
+            "n": 32,
+            "ndcg@5": 0.6741,
+            "recall@5": 0.7083
+          },
+          "by_category": {
+            "rule": {
+              "hit@1": 0.6875,
+              "hit@3": 0.7812,
+              "hit@5": 0.8125,
+              "mrr@10": 0.7527,
+              "n": 32,
+              "ndcg@5": 0.6741,
+              "recall@5": 0.7083
+            }
+          },
+          "by_split": {
+            "dev": {
+              "hit@1": 0.6875,
+              "hit@3": 0.7812,
+              "hit@5": 0.8125,
+              "mrr@10": 0.7527,
+              "n": 32,
+              "ndcg@5": 0.6741,
+              "recall@5": 0.7083
+            },
+            "test": {
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 21.438,
+            "p95": 34.527
+          },
+          "misses": {
+            "entries": 6
+          }
+        },
+        "pgvector_exact": {
+          "all": {
+            "hit@1": 0.5,
+            "hit@3": 0.8438,
+            "hit@5": 0.9062,
+            "mrr@10": 0.6687,
+            "n": 32,
+            "ndcg@5": 0.6253,
+            "recall@5": 0.7344
+          },
+          "by_category": {
+            "rule": {
+              "hit@1": 0.5,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.6687,
+              "n": 32,
+              "ndcg@5": 0.6253,
+              "recall@5": 0.7344
+            }
+          },
+          "by_split": {
+            "dev": {
+              "hit@1": 0.5,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.6687,
+              "n": 32,
+              "ndcg@5": 0.6253,
+              "recall@5": 0.7344
+            },
+            "test": {
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 11.352,
+            "p95": 12.259
+          },
+          "misses": {
+            "entries": 3
+          }
+        },
+        "pgvector_hnsw": {
+          "all": {
+            "hit@1": 0.5,
+            "hit@3": 0.8438,
+            "hit@5": 0.9062,
+            "mrr@10": 0.6687,
+            "n": 32,
+            "ndcg@5": 0.6253,
+            "recall@5": 0.7344
+          },
+          "by_category": {
+            "rule": {
+              "hit@1": 0.5,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.6687,
+              "n": 32,
+              "ndcg@5": 0.6253,
+              "recall@5": 0.7344
+            }
+          },
+          "by_split": {
+            "dev": {
+              "hit@1": 0.5,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.6687,
+              "n": 32,
+              "ndcg@5": 0.6253,
+              "recall@5": 0.7344
+            },
+            "test": {
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 11.618,
+            "p95": 13.494
+          },
+          "misses": {
+            "entries": 3
+          }
+        },
+        "postgres_fts": {
+          "all": {
+            "hit@1": 0.4688,
+            "hit@3": 0.7188,
+            "hit@5": 0.75,
+            "mrr@10": 0.6084,
+            "n": 32,
+            "ndcg@5": 0.552,
+            "recall@5": 0.625
+          },
+          "by_category": {
+            "rule": {
+              "hit@1": 0.4688,
+              "hit@3": 0.7188,
+              "hit@5": 0.75,
+              "mrr@10": 0.6084,
+              "n": 32,
+              "ndcg@5": 0.552,
+              "recall@5": 0.625
+            }
+          },
+          "by_split": {
+            "dev": {
+              "hit@1": 0.4688,
+              "hit@3": 0.7188,
+              "hit@5": 0.75,
+              "mrr@10": 0.6084,
+              "n": 32,
+              "ndcg@5": 0.552,
+              "recall@5": 0.625
+            },
+            "test": {
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 9.642,
+            "p95": 12.608
+          },
+          "misses": {
+            "entries": 8
+          }
+        }
+      },
+      "scope_gate": {
+        "dev_accuracy": 1.0,
+        "scores": {
+          "docs": {
+            "entries": 32
+          },
+          "out_of_scope": {
+            "v1-037": 0.5956,
+            "v1-038": 0.5512
+          }
+        },
+        "test_accuracy": 0.0,
+        "threshold": 0.5956
+      }
+    },
+    "assistant/eval/results/v1-postgres-holdout.json": {
+      "comparisons": {
+        "pgvector_hnsw -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-043"
+            ],
+            "ci95": [
+              -0.3333,
+              0.1667
+            ],
+            "mean_difference": -0.0833,
+            "worse_on": [
+              "v1-042",
+              "v1-050"
+            ]
+          },
+          "mrr@10": {
+            "better_on": [
+              "v1-043",
+              "v1-047",
+              "v1-048"
+            ],
+            "ci95": [
+              -0.2745,
+              0.0973
+            ],
+            "mean_difference": -0.0761,
+            "worse_on": [
+              "v1-042",
+              "v1-045",
+              "v1-050"
+            ]
+          }
+        },
+        "postgres_fts -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-043"
+            ],
+            "ci95": [
+              0.0,
+              0.25
+            ],
+            "mean_difference": 0.0833,
+            "worse_on": []
+          },
+          "mrr@10": {
+            "better_on": [
+              "v1-042",
+              "v1-043",
+              "v1-045",
+              "v1-050",
+              "v1-051"
+            ],
+            "ci95": [
+              -0.002,
+              0.2246
+            ],
+            "mean_difference": 0.1045,
+            "worse_on": [
+              "v1-047",
+              "v1-048"
+            ]
+          }
+        },
+        "postgres_fts -> pgvector_hnsw": {
+          "hit@1": {
+            "better_on": [
+              "v1-042",
+              "v1-050"
+            ],
+            "ci95": [
+              0.0,
+              0.4167
+            ],
+            "mean_difference": 0.1667,
+            "worse_on": []
+          },
+          "mrr@10": {
+            "better_on": [
+              "v1-042",
+              "v1-045",
+              "v1-050",
+              "v1-051"
+            ],
+            "ci95": [
+              -0.0347,
+              0.4236
+            ],
+            "mean_difference": 0.1806,
+            "worse_on": [
+              "v1-047",
+              "v1-048"
+            ]
+          }
+        }
+      },
+      "corpus": {
+        "chunker": "headings-v1",
+        "chunks": 175,
+        "digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+        "files": 21,
+        "revision": "763928141964bb058bafb3d0f69e61f2559d42c0",
+        "sections": 105
+      },
+      "created_at": "2026-11-05T11:23:27+00:00",
+      "environment": {
+        "backend": "postgres",
+        "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+        "machine": "arm64",
+        "onnxruntime": "1.31.1",
+        "python": "3.12.13",
+        "quality_signal": true,
+        "tokenizers": "0.23.3"
+      },
+      "mlflow_run_id": "87c1d475aee94d43a65bd48476514083",
+      "questions": {
+        "by_route": {
+          "action": 4,
+          "docs": 12,
+          "live_state": 2,
+          "out_of_scope": 2
+        },
+        "by_split": {
+          "test": 20
+        },
+        "evaluated_split": "test",
+        "file": "questions.jsonl",
+        "retrieval_scored": 12,
+        "sha256": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+        "total": 20
+      },
+      "retrieval": {
+        "hybrid": {
+          "all": {
+            "hit@1": 0.1667,
+            "hit@3": 0.3333,
+            "hit@5": 0.3333,
+            "mrr@10": 0.2989,
+            "n": 12,
+            "ndcg@5": 0.2718,
+            "recall@5": 0.3333
+          },
+          "by_category": {
+            "holdout-rule": {
+              "hit@1": 0.1667,
+              "hit@3": 0.3333,
+              "hit@5": 0.3333,
+              "mrr@10": 0.2989,
+              "n": 12,
+              "ndcg@5": 0.2718,
+              "recall@5": 0.3333
+            }
+          },
+          "by_split": {
+            "dev": {
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            },
+            "test": {
+              "hit@1": 0.1667,
+              "hit@3": 0.3333,
+              "hit@5": 0.3333,
+              "mrr@10": 0.2989,
+              "n": 12,
+              "ndcg@5": 0.2718,
+              "recall@5": 0.3333
+            }
+          },
+          "latency_ms": {
+            "mean": 26.296,
+            "p95": 31.224
+          },
+          "misses": {
+            "entries": 8
+          }
+        },
+        "pgvector_exact": {
+          "all": {
+            "hit@1": 0.25,
+            "hit@3": 0.5,
+            "hit@5": 0.5,
+            "mrr@10": 0.375,
+            "n": 12,
+            "ndcg@5": 0.4129,
+            "recall@5": 0.5
+          },
+          "by_category": {
+            "holdout-rule": {
+              "hit@1": 0.25,
+              "hit@3": 0.5,
+              "hit@5": 0.5,
+              "mrr@10": 0.375,
+              "n": 12,
+              "ndcg@5": 0.4129,
+              "recall@5": 0.5
+            }
+          },
+          "by_split": {
+            "dev": {
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            },
+            "test": {
+              "hit@1": 0.25,
+              "hit@3": 0.5,
+              "hit@5": 0.5,
+              "mrr@10": 0.375,
+              "n": 12,
+              "ndcg@5": 0.4129,
+              "recall@5": 0.5
+            }
+          },
+          "latency_ms": {
+            "mean": 16.677,
+            "p95": 22.475
+          },
+          "misses": {
+            "entries": 6
+          }
+        },
+        "pgvector_hnsw": {
+          "all": {
+            "hit@1": 0.25,
+            "hit@3": 0.5,
+            "hit@5": 0.5,
+            "mrr@10": 0.375,
+            "n": 12,
+            "ndcg@5": 0.4129,
+            "recall@5": 0.5
+          },
+          "by_category": {
+            "holdout-rule": {
+              "hit@1": 0.25,
+              "hit@3": 0.5,
+              "hit@5": 0.5,
+              "mrr@10": 0.375,
+              "n": 12,
+              "ndcg@5": 0.4129,
+              "recall@5": 0.5
+            }
+          },
+          "by_split": {
+            "dev": {
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            },
+            "test": {
+              "hit@1": 0.25,
+              "hit@3": 0.5,
+              "hit@5": 0.5,
+              "mrr@10": 0.375,
+              "n": 12,
+              "ndcg@5": 0.4129,
+              "recall@5": 0.5
+            }
+          },
+          "latency_ms": {
+            "mean": 14.995,
+            "p95": 17.196
+          },
+          "misses": {
+            "entries": 6
+          }
+        },
+        "postgres_fts": {
+          "all": {
+            "hit@1": 0.0833,
+            "hit@3": 0.25,
+            "hit@5": 0.4167,
+            "mrr@10": 0.1944,
+            "n": 12,
+            "ndcg@5": 0.2494,
+            "recall@5": 0.4167
+          },
+          "by_category": {
+            "holdout-rule": {
+              "hit@1": 0.0833,
+              "hit@3": 0.25,
+              "hit@5": 0.4167,
+              "mrr@10": 0.1944,
+              "n": 12,
+              "ndcg@5": 0.2494,
+              "recall@5": 0.4167
+            }
+          },
+          "by_split": {
+            "dev": {
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            },
+            "test": {
+              "hit@1": 0.0833,
+              "hit@3": 0.25,
+              "hit@5": 0.4167,
+              "mrr@10": 0.1944,
+              "n": 12,
+              "ndcg@5": 0.2494,
+              "recall@5": 0.4167
+            }
+          },
+          "latency_ms": {
+            "mean": 10.703,
+            "p95": 12.375
+          },
+          "misses": {
+            "entries": 7
+          }
+        }
+      },
+      "scope_gate": {
+        "dev_accuracy": 1.0,
+        "scores": {
+          "docs": {
+            "entries": 32
+          },
+          "out_of_scope": {
+            "v1-037": 0.5956,
+            "v1-038": 0.5512
+          }
+        },
+        "test_accuracy": null,
+        "threshold": 0.5956
+      }
+    },
+    "assistant/eval/results/v2-postgres-dev.json": {
+      "artifact_note": "Full development evaluation preserved in local MLflow under mlflow_run_id; this file is the compact CI baseline.",
+      "comparisons": {
+        "pgvector_hnsw -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-001",
+              "v1-005",
+              "v1-006",
+              "v1-007",
+              "v1-012",
+              "v1-022"
+            ],
+            "ci95": [
+              0.0625,
+              0.3125
+            ],
+            "mean_difference": 0.1875,
+            "worse_on": []
+          },
+          "mrr@10": {
+            "better_on": [
+              "v1-001",
+              "v1-005",
+              "v1-006",
+              "v1-007",
+              "v1-008",
+              "v1-012",
+              "v1-022"
+            ],
+            "ci95": [
+              -0.0073,
+              0.1823
+            ],
+            "mean_difference": 0.0844,
+            "worse_on": [
+              "v1-004",
+              "v1-011",
+              "v1-013",
+              "v1-023",
+              "v1-027"
+            ]
+          }
+        },
+        "postgres_fts -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-005",
+              "v1-012",
+              "v1-014",
+              "v1-020",
+              "v1-026",
+              "v1-028",
+              "v1-032"
+            ],
+            "ci95": [
+              0.0938,
+              0.375
+            ],
+            "mean_difference": 0.2188,
+            "worse_on": []
+          },
+          "mrr@10": {
+            "better_on": {
+              "entries": 13
+            },
+            "ci95": [
+              0.0651,
+              0.2375
+            ],
+            "mean_difference": 0.1448,
+            "worse_on": [
+              "v1-008"
+            ]
+          }
+        },
+        "postgres_fts -> pgvector_hnsw": {
+          "hit@1": {
+            "better_on": [
+              "v1-014",
+              "v1-020",
+              "v1-026",
+              "v1-028",
+              "v1-032"
+            ],
+            "ci95": [
+              -0.1562,
+              0.2188
+            ],
+            "mean_difference": 0.0312,
+            "worse_on": [
+              "v1-001",
+              "v1-006",
+              "v1-007",
+              "v1-022"
+            ]
+          },
+          "mrr@10": {
+            "better_on": {
+              "entries": 12
+            },
+            "ci95": [
+              -0.0641,
+              0.1812
+            ],
+            "mean_difference": 0.0604,
+            "worse_on": [
+              "v1-001",
+              "v1-005",
+              "v1-006",
+              "v1-007",
+              "v1-008",
+              "v1-012",
+              "v1-022"
+            ]
+          }
+        }
+      },
+      "corpus": {
+        "chunker": "headings-v1",
+        "chunks": 175,
+        "digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+        "files": 21,
+        "revision": "7106a8ac4fb78e463a5e6423f20e1e02f9eaf0f0",
+        "sections": 105
+      },
+      "created_at": "2026-11-05T13:56:53+00:00",
+      "environment": {
+        "backend": "postgres",
+        "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+        "machine": "arm64",
+        "onnxruntime": "1.31.1",
+        "python": "3.12.13",
+        "quality_signal": true,
+        "tokenizers": "0.23.3"
+      },
+      "fusion": {
+        "depth": 50,
+        "rrf_k": 10,
+        "unit": "chunk",
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      "mlflow_run_id": "e392c7a8f97044f9843abd2b9dc89580",
+      "questions": {
+        "by_route": {
+          "action": 4,
+          "docs": 32,
+          "live_state": 2,
+          "out_of_scope": 2
+        },
+        "by_split": {
+          "dev": 40
+        },
+        "evaluated_split": "dev",
+        "file": "questions.jsonl",
+        "retrieval_scored": 32,
+        "sha256": "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5",
+        "total": 40
+      },
+      "retrieval": {
+        "hybrid": {
+          "all": {
+            "context_recall@5": 0.7031,
+            "hit@1": 0.6875,
+            "hit@3": 0.75,
+            "hit@5": 0.9062,
+            "mrr@10": 0.7531,
+            "n": 32,
+            "ndcg@5": 0.7048,
+            "recall@5": 0.7812
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.7031,
+              "hit@1": 0.6875,
+              "hit@3": 0.75,
+              "hit@5": 0.9062,
+              "mrr@10": 0.7531,
+              "n": 32,
+              "ndcg@5": 0.7048,
+              "recall@5": 0.7812
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 20.67,
+            "p95": 25.944
+          }
+        },
+        "legacy_hybrid": {
+          "all": {
+            "context_recall@5": 0.6771,
+            "hit@1": 0.6875,
+            "hit@3": 0.7812,
+            "hit@5": 0.8125,
+            "mrr@10": 0.7527,
+            "n": 32,
+            "ndcg@5": 0.6741,
+            "recall@5": 0.7083
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.6771,
+              "hit@1": 0.6875,
+              "hit@3": 0.7812,
+              "hit@5": 0.8125,
+              "mrr@10": 0.7527,
+              "n": 32,
+              "ndcg@5": 0.6741,
+              "recall@5": 0.7083
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 20.116,
+            "p95": 23.045
+          }
+        },
+        "pgvector_exact": {
+          "all": {
+            "context_recall@5": 0.7188,
+            "hit@1": 0.5,
+            "hit@3": 0.8438,
+            "hit@5": 0.9062,
+            "mrr@10": 0.6687,
+            "n": 32,
+            "ndcg@5": 0.6253,
+            "recall@5": 0.7344
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.7188,
+              "hit@1": 0.5,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.6687,
+              "n": 32,
+              "ndcg@5": 0.6253,
+              "recall@5": 0.7344
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 11.729,
+            "p95": 13.469
+          }
+        },
+        "pgvector_hnsw": {
+          "all": {
+            "context_recall@5": 0.7188,
+            "hit@1": 0.5,
+            "hit@3": 0.8438,
+            "hit@5": 0.9062,
+            "mrr@10": 0.6687,
+            "n": 32,
+            "ndcg@5": 0.6253,
+            "recall@5": 0.7344
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.7188,
+              "hit@1": 0.5,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.6687,
+              "n": 32,
+              "ndcg@5": 0.6253,
+              "recall@5": 0.7344
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 11.623,
+            "p95": 13.901
+          }
+        },
+        "postgres_fts": {
+          "all": {
+            "context_recall@5": 0.6094,
+            "hit@1": 0.4688,
+            "hit@3": 0.7188,
+            "hit@5": 0.75,
+            "mrr@10": 0.6084,
+            "n": 32,
+            "ndcg@5": 0.552,
+            "recall@5": 0.625
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.6094,
+              "hit@1": 0.4688,
+              "hit@3": 0.7188,
+              "hit@5": 0.75,
+              "mrr@10": 0.6084,
+              "n": 32,
+              "ndcg@5": 0.552,
+              "recall@5": 0.625
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 8.1,
+            "p95": 10.223
+          }
+        }
+      }
+    },
+    "assistant/eval/results/v2-postgres-holdout.json": {
+      "artifact_note": "Full report preserved in local MLflow; per-question scores are in v2-postgres-holdout.csv. Compact summary has no generated answers.",
+      "comparisons": {
+        "legacy_hybrid -> hybrid": {
+          "context_recall@5": {
+            "better_on": [
+              "blind-v2-003",
+              "blind-v2-010"
+            ],
+            "ci95": [
+              0.0,
+              0.0667
+            ],
+            "cluster_ci95": [
+              0.0,
+              0.0656
+            ],
+            "clusters": 29,
+            "mean_difference": 0.025,
+            "worse_on": []
+          },
+          "mrr@10": {
+            "better_on": [
+              "blind-v2-003"
+            ],
+            "ci95": [
+              -0.0179,
+              0.0021
+            ],
+            "cluster_ci95": [
+              -0.0193,
+              0.0025
+            ],
+            "clusters": 29,
+            "mean_difference": -0.0058,
+            "worse_on": [
+              "blind-v2-012",
+              "blind-v2-014",
+              "blind-v2-040"
+            ]
+          },
+          "ndcg@5": {
+            "better_on": [
+              "blind-v2-003",
+              "blind-v2-010"
+            ],
+            "ci95": [
+              -0.0038,
+              0.0259
+            ],
+            "cluster_ci95": [
+              -0.004,
+              0.0253
+            ],
+            "clusters": 29,
+            "mean_difference": 0.0085,
+            "worse_on": [
+              "blind-v2-040"
+            ]
+          },
+          "recall@5": {
+            "better_on": [
+              "blind-v2-003",
+              "blind-v2-010"
+            ],
+            "ci95": [
+              0.0,
+              0.0667
+            ],
+            "cluster_ci95": [
+              0.0,
+              0.0656
+            ],
+            "clusters": 29,
+            "mean_difference": 0.025,
+            "worse_on": []
+          }
+        },
+        "pgvector_hnsw -> hybrid": {
+          "context_recall@5": {
+            "better_on": [
+              "blind-v2-010",
+              "blind-v2-023",
+              "blind-v2-031",
+              "blind-v2-040",
+              "blind-v2-053",
+              "blind-v2-056"
+            ],
+            "ci95": [
+              -0.0111,
+              0.1056
+            ],
+            "cluster_ci95": [
+              -0.0025,
+              0.0994
+            ],
+            "clusters": 29,
+            "mean_difference": 0.0444,
+            "worse_on": [
+              "blind-v2-021",
+              "blind-v2-025"
+            ]
+          },
+          "mrr@10": {
+            "better_on": {
+              "entries": 16
+            },
+            "ci95": [
+              -0.0111,
+              0.1182
+            ],
+            "cluster_ci95": [
+              0.001,
+              0.1097
+            ],
+            "clusters": 29,
+            "mean_difference": 0.0543,
+            "worse_on": [
+              "blind-v2-003",
+              "blind-v2-021",
+              "blind-v2-024",
+              "blind-v2-026",
+              "blind-v2-034",
+              "blind-v2-050"
+            ]
+          },
+          "ndcg@5": {
+            "better_on": {
+              "entries": 19
+            },
+            "ci95": [
+              0.0132,
+              0.1106
+            ],
+            "cluster_ci95": [
+              0.0238,
+              0.1013
+            ],
+            "clusters": 29,
+            "mean_difference": 0.0629,
+            "worse_on": [
+              "blind-v2-003",
+              "blind-v2-021",
+              "blind-v2-024",
+              "blind-v2-025",
+              "blind-v2-026",
+              "blind-v2-034",
+              "blind-v2-050"
+            ]
+          },
+          "recall@5": {
+            "better_on": [
+              "blind-v2-010",
+              "blind-v2-023",
+              "blind-v2-026",
+              "blind-v2-031",
+              "blind-v2-040",
+              "blind-v2-053",
+              "blind-v2-056"
+            ],
+            "ci95": [
+              0.0056,
+              0.1056
+            ],
+            "cluster_ci95": [
+              0.0164,
+              0.0968
+            ],
+            "clusters": 29,
+            "mean_difference": 0.0528,
+            "worse_on": [
+              "blind-v2-021"
+            ]
+          }
+        }
+      },
+      "corpus": {
+        "digest": "de89713e645f5ecea8d08cf096fef7646223d6a72e1bcdde00df19f4714794b2",
+        "revision": "1f0e7ca4b2ee0fed4f972913f562c9a7337c87e1"
+      },
+      "created_at": "2026-11-05T13:59:15.988322+00:00",
+      "environment": {
+        "backend": "postgres",
+        "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+        "python": "3.12.13",
+        "quality_signal": true
+      },
+      "freeze_sha256": "7a2cccac673f52729adceb9f1612b7cc3bf5052ef522fa0be777094625ccadf5",
+      "full_report_sha256": "668eff0d77c179d5884879bea021dda38ff4c0a3bec0eee2170b96775de472c5",
+      "fusion": {
+        "depth": 50,
+        "rrf_k": 10,
+        "unit": "chunk",
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      "mlflow_run_id": "6347aab5d58246388dc43119a07b8ff4",
+      "questions": {
+        "evaluated_split": "test",
+        "groups": 29,
+        "sha256": "653bf40dcdc1117bd42c165710b028b27622359a8c546129db7d901626396677",
+        "total": 60
+      },
+      "retrieval": {
+        "hybrid": {
+          "all": {
+            "context_recall@5": 0.8722,
+            "hit@1": 0.75,
+            "hit@3": 0.8833,
+            "hit@5": 0.95,
+            "mrr@10": 0.8277,
+            "n": 60,
+            "ndcg@5": 0.8158,
+            "recall@5": 0.8889
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            },
+            "test": {
+              "context_recall@5": 0.8722,
+              "hit@1": 0.75,
+              "hit@3": 0.8833,
+              "hit@5": 0.95,
+              "mrr@10": 0.8277,
+              "n": 60,
+              "ndcg@5": 0.8158,
+              "recall@5": 0.8889
+            }
+          },
+          "latency_ms": {
+            "mean": 20.992,
+            "p95": 22.981
+          }
+        },
+        "legacy_hybrid": {
+          "all": {
+            "context_recall@5": 0.8472,
+            "hit@1": 0.75,
+            "hit@3": 0.9,
+            "hit@5": 0.9333,
+            "mrr@10": 0.8335,
+            "n": 60,
+            "ndcg@5": 0.8073,
+            "recall@5": 0.8639
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            },
+            "test": {
+              "context_recall@5": 0.8472,
+              "hit@1": 0.75,
+              "hit@3": 0.9,
+              "hit@5": 0.9333,
+              "mrr@10": 0.8335,
+              "n": 60,
+              "ndcg@5": 0.8073,
+              "recall@5": 0.8639
+            }
+          },
+          "latency_ms": {
+            "mean": 21.291,
+            "p95": 24.789
+          }
+        },
+        "pgvector_exact": {
+          "all": {
+            "context_recall@5": 0.8278,
+            "hit@1": 0.6667,
+            "hit@3": 0.85,
+            "hit@5": 0.9,
+            "mrr@10": 0.7733,
+            "n": 60,
+            "ndcg@5": 0.7529,
+            "recall@5": 0.8361
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            },
+            "test": {
+              "context_recall@5": 0.8278,
+              "hit@1": 0.6667,
+              "hit@3": 0.85,
+              "hit@5": 0.9,
+              "mrr@10": 0.7733,
+              "n": 60,
+              "ndcg@5": 0.7529,
+              "recall@5": 0.8361
+            }
+          },
+          "latency_ms": {
+            "mean": 12.71,
+            "p95": 14.13
+          }
+        },
+        "pgvector_hnsw": {
+          "all": {
+            "context_recall@5": 0.8278,
+            "hit@1": 0.6667,
+            "hit@3": 0.85,
+            "hit@5": 0.9,
+            "mrr@10": 0.7733,
+            "n": 60,
+            "ndcg@5": 0.7529,
+            "recall@5": 0.8361
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            },
+            "test": {
+              "context_recall@5": 0.8278,
+              "hit@1": 0.6667,
+              "hit@3": 0.85,
+              "hit@5": 0.9,
+              "mrr@10": 0.7733,
+              "n": 60,
+              "ndcg@5": 0.7529,
+              "recall@5": 0.8361
+            }
+          },
+          "latency_ms": {
+            "mean": 12.565,
+            "p95": 13.793
+          }
+        },
+        "postgres_fts": {
+          "all": {
+            "context_recall@5": 0.8222,
+            "hit@1": 0.55,
+            "hit@3": 0.8,
+            "hit@5": 0.9167,
+            "mrr@10": 0.6938,
+            "n": 60,
+            "ndcg@5": 0.7049,
+            "recall@5": 0.8639
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            },
+            "test": {
+              "context_recall@5": 0.8222,
+              "hit@1": 0.55,
+              "hit@3": 0.8,
+              "hit@5": 0.9167,
+              "mrr@10": 0.6938,
+              "n": 60,
+              "ndcg@5": 0.7049,
+              "recall@5": 0.8639
+            }
+          },
+          "latency_ms": {
+            "mean": 9.197,
+            "p95": 11.486
+          }
+        }
+      }
+    },
+    "assistant/eval/results/v3-holdout.json": {
+      "attempt": 1,
+      "completed_at": "2026-11-06T14:52:07+00:00",
+      "configuration": {
+        "backend": "postgres",
+        "context": {
+          "candidate_chunks": 30,
+          "distinct_section_anchors": 5,
+          "include_section_introductions": true,
+          "max_serialized_document_bytes": 18000,
+          "neighbor_distances": [
+            1,
+            2
+          ],
+          "policy": "section-neighbors-v1"
+        },
+        "embedding": {
+          "max_tokens": 512,
+          "model": "BAAI/bge-small-en-v1.5",
+          "passage_instruction": null,
+          "query_instruction": "Represent this sentence for searching relevant passages: ",
+          "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a"
+        },
+        "execution_failure": "persist completed query outputs and disclose partial/failed execution; do not silently rerun a scored query or discard an unfavorable outcome",
+        "methods": {
+          "hybrid": {
+            "components": [
+              "postgres_fts",
+              "pgvector_hnsw"
+            ],
+            "depth": 50,
+            "rrf_k": 10,
+            "unit": "chunk",
+            "weights": [
+              1.0,
+              1.0
+            ]
+          },
+          "legacy_hybrid": {
+            "components": [
+              "postgres_fts",
+              "pgvector_hnsw"
+            ],
+            "depth": 50,
+            "rrf_k": 60,
+            "unit": "chunk",
+            "weights": [
+              1.0,
+              1.0
+            ]
+          },
+          "pgvector_hnsw": {
+            "implementation": "unchanged PostgresRetriever(method=vector)"
+          },
+          "postgres_fts": {
+            "implementation": "unchanged PostgresRetriever(method=fts); English stemming, not BM25"
+          }
+        },
+        "no_retuning": [
+          "no query/configuration grid",
+          "no post-run label changes",
+          "no scope-threshold recalibration",
+          "no corpus/source changes",
+          "no v1-011 fix",
+          "no real model generation",
+          "no repetition based on results"
+        ],
+        "provider": "fake",
+        "ranking_request_chunks": 30,
+        "real_model_calls": false,
+        "run_limit": 1,
+        "scope_gate": {
+          "calibrate_on_v3": false,
+          "source": "eval/results/v3-main-docs-dev.json",
+          "test_only_runner_requirement": "use this stored threshold explicitly; do not call the existing CLI in a way that recalibrates on test-only questions",
+          "threshold": 0.5956
+        }
+      },
+      "context_measurement": "Expanded coverage counts only passages actually supplied to FakeProvider. Pre-generation routing/scope refusals have zero provided coverage; selected candidate coverage is also preserved separately.",
+      "corpus": {
+        "chunks": 179,
+        "digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+        "files": 21,
+        "revision": "0823f01bfa545fe07575368034b7a2ef4686a9e6",
+        "sections": 106,
+        "source_commit": "c4d943c0b4f6a6220e9d34fbe4af89a34424e730"
+      },
+      "environment": {
+        "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+        "machine": "arm64",
+        "packages": {
+          "mlflow-skinny": "3.18.0",
+          "numpy": "2.5.4",
+          "onnxruntime": "1.31.1",
+          "psycopg": "3.3.8",
+          "tokenizers": "0.23.3"
+        },
+        "python": "3.12.13"
+      },
+      "freeze_commit": "0823f01bfa545fe07575368034b7a2ef4686a9e6",
+      "manifest_sha256": "c281d1b416f487620a9c2f1ebf3a308f634c583de7b11991f7c88d53c9748a80",
+      "mlflow_run_id": "a82fcf71b2ff4eedb24c6fc37666abf8",
+      "non_documentation": {
+        "by_category": {
+          "action": {
+            "correct_route": 3,
+            "n": 4,
+            "refused": 3
+          },
+          "injection": {
+            "correct_route": 1,
+            "n": 2,
+            "refused": 1
+          },
+          "live_state": {
+            "correct_route": 2,
+            "n": 2,
+            "refused": 2
+          },
+          "out_of_scope": {
+            "correct_route": 0,
+            "n": 3,
+            "refused": 0
+          }
+        },
+        "confusion": {
+          "action -> action": 4,
+          "action -> docs": 2,
+          "live_state -> live_state": 2,
+          "out_of_scope -> docs": 3
+        },
+        "correct_refusals": 6,
+        "missed_refusals": 5,
+        "n": 11,
+        "provider": "fake",
+        "route_accuracy": 0.5454545454545454
+      },
+      "protocol": {
+        "commit": "d069be329c0abf713be40c72e0a442a9290bf42b",
+        "pre_freeze_population_amendments": [
+          "Pre-outcome objective audit removed v3-039 and v3-052; documentation population is 58 rather than the nominal 60. No replacement or question/fact rewrite was made.",
+          "Pre-outcome duplicate audit removed v3-066; non-documentation population is 11 rather than the nominal 12 (live_state 2 rather than 3).",
+          "All means and resampling populations use the retained questions, not an imputed nominal denominator. Original protocol.json remains unchanged; these audit exclusions were fixed before any retrieval output."
+        ],
+        "sha256": "ca3d92f05dd7677e7748a98e0a9d9425a3f881a4301bd1eefc694068f63bd3a0"
+      },
+      "questions": {
+        "by_category": {
+          "action": 4,
+          "documentation": 58,
+          "injection": 2,
+          "live_state": 2,
+          "out_of_scope": 3
+        },
+        "excluded_before_freeze": {
+          "entries": 3
+        },
+        "retrieval_scored": 58,
+        "sha256": "a0ad5762c7b49d952ede287a22f4bceceb6daafc7da1950c446ce9c8c6a960ef",
+        "total": 69
+      },
+      "statistics": {
+        "comparisons": {
+          "hybrid - legacy_hybrid": {
+            "hit@1": {
+              "interpretation": {
+                "paired_question_ci95": "no detectable difference",
+                "paired_section_cluster_ci95": "no detectable difference"
+              },
+              "mean_difference": 0.034482758620689655,
+              "paired_question_ci95": [
+                0.0,
+                0.08620689655172414
+              ],
+              "paired_section_cluster_ci95": [
+                0.0,
+                0.08620689655172414
+              ]
+            },
+            "mrr@10": {
+              "interpretation": {
+                "paired_question_ci95": "hybrid higher",
+                "paired_section_cluster_ci95": "hybrid higher"
+              },
+              "mean_difference": 0.02416529830322934,
+              "paired_question_ci95": [
+                0.0009852216748768476,
+                0.05656814449917899
+              ],
+              "paired_section_cluster_ci95": [
+                0.0005746565632094183,
+                0.05446458333333334
+              ]
+            },
+            "recall@5": {
+              "interpretation": {
+                "paired_question_ci95": "no detectable difference",
+                "paired_section_cluster_ci95": "no detectable difference"
+              },
+              "mean_difference": 0.017816091954022985,
+              "paired_question_ci95": [
+                0.0,
+                0.041379310344827586
+              ],
+              "paired_section_cluster_ci95": [
+                0.0,
+                0.04
+              ]
+            }
+          },
+          "hybrid - pgvector_hnsw": {
+            "hit@1": {
+              "interpretation": {
+                "paired_question_ci95": "no detectable difference",
+                "paired_section_cluster_ci95": "no detectable difference"
+              },
+              "mean_difference": 0.08620689655172414,
+              "paired_question_ci95": [
+                -0.017241379310344827,
+                0.1896551724137931
+              ],
+              "paired_section_cluster_ci95": [
+                -0.01639344262295082,
+                0.1864406779661017
+              ]
+            },
+            "mrr@10": {
+              "interpretation": {
+                "paired_question_ci95": "hybrid higher",
+                "paired_section_cluster_ci95": "hybrid higher"
+              },
+              "mean_difference": 0.06340996168582376,
+              "paired_question_ci95": [
+                0.006609195402298852,
+                0.12490421455938697
+              ],
+              "paired_section_cluster_ci95": [
+                0.007715455840455844,
+                0.12574137931034485
+              ]
+            },
+            "recall@5": {
+              "interpretation": {
+                "paired_question_ci95": "hybrid higher",
+                "paired_section_cluster_ci95": "hybrid higher"
+              },
+              "mean_difference": 0.08534482758620689,
+              "paired_question_ci95": [
+                0.034482758620689655,
+                0.14626436781609198
+              ],
+              "paired_section_cluster_ci95": [
+                0.03610997267759563,
+                0.14647435897435898
+              ]
+            }
+          },
+          "hybrid - postgres_fts": {
+            "hit@1": {
+              "interpretation": {
+                "paired_question_ci95": "hybrid higher",
+                "paired_section_cluster_ci95": "hybrid higher"
+              },
+              "mean_difference": 0.2413793103448276,
+              "paired_question_ci95": [
+                0.10344827586206896,
+                0.3793103448275862
+              ],
+              "paired_section_cluster_ci95": [
+                0.1016949152542373,
+                0.38
+              ]
+            },
+            "mrr@10": {
+              "interpretation": {
+                "paired_question_ci95": "hybrid higher",
+                "paired_section_cluster_ci95": "hybrid higher"
+              },
+              "mean_difference": 0.16827449370552822,
+              "paired_question_ci95": [
+                0.07957666256157635,
+                0.25855962643678165
+              ],
+              "paired_section_cluster_ci95": [
+                0.07671572871572872,
+                0.2613985138181515
+              ]
+            },
+            "recall@5": {
+              "interpretation": {
+                "paired_question_ci95": "hybrid higher",
+                "paired_section_cluster_ci95": "hybrid higher"
+              },
+              "mean_difference": 0.07471264367816093,
+              "paired_question_ci95": [
+                0.017241379310344827,
+                0.14367816091954022
+              ],
+              "paired_section_cluster_ci95": [
+                0.013435526540365254,
+                0.147227564102564
+              ]
+            }
+          }
+        },
+        "groups": {
+          "README.md#limits": 1,
+          "README.md#project-layout": 1,
+          "docs/AUTHENTICATION.md#bootstrap-rotation-and-revocation": 2,
+          "docs/BACKUP-RESTORE.md#commands": 1,
+          "docs/EXPORT-AND-VERIFY.md#consistent-export-and-independent-verification": 1,
+          "docs/EXPORT-AND-VERIFY.md#files-and-snapshot-boundaries": 1,
+          "docs/HTTP-SERVICE.md#api": 2,
+          "docs/HTTP-SERVICE.md#callbacks": 1,
+          "docs/HTTP-SERVICE.md#configuration-and-startup": 1,
+          "docs/HTTP-SERVICE.md#investigation-console": 1,
+          "docs/HTTP-SERVICE.md#resource-limits-and-shutdown": 1,
+          "docs/MAINTENANCE.md#old-bundle-compatibility-and-scope": 1,
+          "docs/MAINTENANCE.md#preparation-and-identities": 1,
+          "docs/MAINTENANCE.md#run-in-order": 2,
+          "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62": 2,
+          "docs/OPERATOR-ACTIONS.md#independent-checks-and-limits": 1,
+          "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits": 2,
+          "docs/OPERATOR-ACTIONS.md#reviewing-in-the-console": 1,
+          "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces": 1,
+          "docs/PAYOUTS.md#amounts-and-admission-receipts": 2,
+          "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007": 3,
+          "docs/PAYOUTS.md#bounded-payout-worker-process": 3,
+          "docs/PAYOUTS.md#dispatch-and-recovery": 3,
+          "docs/PAYOUTS.md#payout-admission-retained-instructions-and-dispatch": 1,
+          "docs/PAYOUTS.md#roles-migrations-and-rebuilds": 2,
+          "docs/PAYOUTS.md#scope-of-the-result": 1,
+          "docs/RECONCILIATION.md#capture-a-local-export-then-compare-offline": 1,
+          "docs/RECONCILIATION.md#obtain-provider-evidence-first": 2,
+          "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs": 3,
+          "docs/RECONCILIATION.md#read-the-report": 1,
+          "docs/RECONCILIATION.md#settlement-statements-and-offline-reconciliation": 1,
+          "docs/RECONCILIATION.md#time-and-scope": 1,
+          "docs/RELEASE-READINESS.md#recovery-identity-and-operator-actions": 1,
+          "docs/REVERSAL.md#locks-uniqueness-and-independent-verification": 1,
+          "docs/REVERSAL.md#python-entry-point": 1,
+          "docs/STREAMING-EVIDENCE.md#integration-coverage": 1,
+          "docs/adr/0004-contention-and-recovery.md#payout-dispatch-without-a-distributed-transaction": 2,
+          "ops/linux/README.md#backup-restore-and-reopening": 2,
+          "ops/linux/README.md#disposable-synthetic-acceptance": 1,
+          "ops/linux/README.md#local-linux-deployment": 1
+        },
+        "methods": {
+          "hybrid": {
+            "expanded_context_coverage": {
+              "mean": 0.896264367816092,
+              "question_ci95": [
+                0.8330387931034482,
+                0.9511494252873564
+              ],
+              "section_cluster_ci95": [
+                0.832183403912079,
+                0.9497644927536231
+              ]
+            },
+            "hit@1": {
+              "mean": 0.8103448275862069,
+              "question_ci95": [
+                0.7068965517241379,
+                0.9137931034482759
+              ],
+              "section_cluster_ci95": [
+                0.7,
+                0.9107142857142857
+              ]
+            },
+            "hit@5": {
+              "mean": 0.9655172413793104,
+              "question_ci95": [
+                0.9137931034482759,
+                1.0
+              ],
+              "section_cluster_ci95": [
+                0.9137931034482759,
+                1.0
+              ]
+            },
+            "mrr@10": {
+              "mean": 0.8703065134099617,
+              "question_ci95": [
+                0.7973132183908047,
+                0.9372629310344828
+              ],
+              "section_cluster_ci95": [
+                0.7858883528265107,
+                0.9435977564102562
+              ]
+            },
+            "ndcg@5": {
+              "mean": 0.824875788834263,
+              "question_ci95": [
+                0.7560453844862046,
+                0.8890450905165347
+              ],
+              "section_cluster_ci95": [
+                0.745102131391859,
+                0.896248337338332
+              ]
+            },
+            "raw_five_chunk_coverage": {
+              "mean": 0.885919540229885,
+              "question_ci95": [
+                0.8192528735632184,
+                0.9439655172413793
+              ],
+              "section_cluster_ci95": [
+                0.8176470588235293,
+                0.9434526727357608
+              ]
+            },
+            "recall@5": {
+              "mean": 0.8893678160919539,
+              "question_ci95": [
+                0.8241379310344829,
+                0.9459770114942528
+              ],
+              "section_cluster_ci95": [
+                0.8227272727272728,
+                0.9454560023310021
+              ]
+            }
+          },
+          "legacy_hybrid": {
+            "expanded_context_coverage": {
+              "mean": 0.878448275862069,
+              "question_ci95": [
+                0.8077586206896551,
+                0.939662356321839
+              ],
+              "section_cluster_ci95": [
+                0.8092235231356693,
+                0.9386800060864272
+              ]
+            },
+            "hit@1": {
+              "mean": 0.7758620689655172,
+              "question_ci95": [
+                0.6724137931034483,
+                0.8793103448275862
+              ],
+              "section_cluster_ci95": [
+                0.6610169491525424,
+                0.8813559322033898
+              ]
+            },
+            "hit@5": {
+              "mean": 0.9482758620689655,
+              "question_ci95": [
+                0.8793103448275862,
+                1.0
+              ],
+              "section_cluster_ci95": [
+                0.8846153846153846,
+                1.0
+              ]
+            },
+            "mrr@10": {
+              "mean": 0.8461412151067323,
+              "question_ci95": [
+                0.7684246715927749,
+                0.9169540229885058
+              ],
+              "section_cluster_ci95": [
+                0.7615532713239952,
+                0.9223985890652557
+              ]
+            },
+            "ndcg@5": {
+              "mean": 0.8022512200079341,
+              "question_ci95": [
+                0.7273720630071,
+                0.8710349238293476
+              ],
+              "section_cluster_ci95": [
+                0.719157114436703,
+                0.8780422433443611
+              ]
+            },
+            "raw_five_chunk_coverage": {
+              "mean": 0.871551724137931,
+              "question_ci95": [
+                0.7991307471264366,
+                0.9356321839080459
+              ],
+              "section_cluster_ci95": [
+                0.799105879380054,
+                0.9342432818753572
+              ]
+            },
+            "recall@5": {
+              "mean": 0.871551724137931,
+              "question_ci95": [
+                0.7991307471264366,
+                0.9356321839080459
+              ],
+              "section_cluster_ci95": [
+                0.799105879380054,
+                0.9342432818753572
+              ]
+            }
+          },
+          "pgvector_hnsw": {
+            "expanded_context_coverage": {
+              "mean": 0.810919540229885,
+              "question_ci95": [
+                0.7206752873563218,
+                0.893692528735632
+              ],
+              "section_cluster_ci95": [
+                0.722042782941498,
+                0.8888888888888887
+              ]
+            },
+            "hit@1": {
+              "mean": 0.7241379310344828,
+              "question_ci95": [
+                0.603448275862069,
+                0.8275862068965517
+              ],
+              "section_cluster_ci95": [
+                0.6065573770491803,
+                0.8333333333333334
+              ]
+            },
+            "hit@5": {
+              "mean": 0.896551724137931,
+              "question_ci95": [
+                0.8103448275862069,
+                0.9655172413793104
+              ],
+              "section_cluster_ci95": [
+                0.8103448275862069,
+                0.9672131147540983
+              ]
+            },
+            "mrr@10": {
+              "mean": 0.8068965517241379,
+              "question_ci95": [
+                0.7204022988505747,
+                0.8862068965517241
+              ],
+              "section_cluster_ci95": [
+                0.7145758928571428,
+                0.889785347456267
+              ]
+            },
+            "ndcg@5": {
+              "mean": 0.7457934667703776,
+              "question_ci95": [
+                0.6576708693931467,
+                0.8281568004382893
+              ],
+              "section_cluster_ci95": [
+                0.6504579633079802,
+                0.8334081481620835
+              ]
+            },
+            "raw_five_chunk_coverage": {
+              "mean": 0.8040229885057472,
+              "question_ci95": [
+                0.7120689655172413,
+                0.8902298850574712
+              ],
+              "section_cluster_ci95": [
+                0.7128654970760234,
+                0.8830305688463582
+              ]
+            },
+            "recall@5": {
+              "mean": 0.8040229885057472,
+              "question_ci95": [
+                0.7120689655172413,
+                0.8902298850574712
+              ],
+              "section_cluster_ci95": [
+                0.7128654970760234,
+                0.8830305688463582
+              ]
+            }
+          },
+          "postgres_fts": {
+            "expanded_context_coverage": {
+              "mean": 0.8267241379310345,
+              "question_ci95": [
+                0.7410919540229886,
+                0.9048850574712644
+              ],
+              "section_cluster_ci95": [
+                0.7266638418079095,
+                0.9140215121136173
+              ]
+            },
+            "hit@1": {
+              "mean": 0.5689655172413793,
+              "question_ci95": [
+                0.4482758620689655,
+                0.6896551724137931
+              ],
+              "section_cluster_ci95": [
+                0.43333333333333335,
+                0.7017543859649122
+              ]
+            },
+            "hit@5": {
+              "mean": 0.9137931034482759,
+              "question_ci95": [
+                0.8275862068965517,
+                0.9827586206896551
+              ],
+              "section_cluster_ci95": [
+                0.8245614035087719,
+                0.9833333333333333
+              ]
+            },
+            "mrr@10": {
+              "mean": 0.7020320197044335,
+              "question_ci95": [
+                0.6088054187192119,
+                0.7936791871921184
+              ],
+              "section_cluster_ci95": [
+                0.6011877705627705,
+                0.7975706845238095
+              ]
+            },
+            "ndcg@5": {
+              "mean": 0.6793652008019874,
+              "question_ci95": [
+                0.5964462298278503,
+                0.7599126978367168
+              ],
+              "section_cluster_ci95": [
+                0.5830751693510849,
+                0.7698916947467369
+              ]
+            },
+            "raw_five_chunk_coverage": {
+              "mean": 0.7853448275862068,
+              "question_ci95": [
+                0.6951149425287357,
+                0.8689727011494253
+              ],
+              "section_cluster_ci95": [
+                0.6793939393939394,
+                0.8772754329004329
+              ]
+            },
+            "recall@5": {
+              "mean": 0.8146551724137931,
+              "question_ci95": [
+                0.728448275862069,
+                0.8939655172413793
+              ],
+              "section_cluster_ci95": [
+                0.7131142661982826,
+                0.9011499294212543
+              ]
+            }
+          }
+        },
+        "n": 58,
+        "resamples": 10000,
+        "seed": 20261106
+      },
+      "status": "completed"
+    },
+    "assistant/eval/results/v3-main-docs-dev.json": {
+      "comparisons": {
+        "pgvector_hnsw -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-001",
+              "v1-006",
+              "v1-007",
+              "v1-022"
+            ],
+            "ci95": [
+              -0.0312,
+              0.2188
+            ],
+            "mean_difference": 0.0938,
+            "worse_on": [
+              "v1-004"
+            ]
+          },
+          "mrr@10": {
+            "better_on": [
+              "v1-001",
+              "v1-006",
+              "v1-007",
+              "v1-008",
+              "v1-012",
+              "v1-022"
+            ],
+            "ci95": [
+              -0.0422,
+              0.1302
+            ],
+            "mean_difference": 0.0401,
+            "worse_on": [
+              "v1-004",
+              "v1-011",
+              "v1-013",
+              "v1-023",
+              "v1-027"
+            ]
+          }
+        },
+        "postgres_fts -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-002",
+              "v1-005",
+              "v1-014",
+              "v1-020",
+              "v1-026",
+              "v1-028",
+              "v1-032"
+            ],
+            "ci95": [
+              0.0938,
+              0.375
+            ],
+            "mean_difference": 0.2188,
+            "worse_on": []
+          },
+          "mrr@10": {
+            "better_on": {
+              "entries": 12
+            },
+            "ci95": [
+              0.0559,
+              0.2344
+            ],
+            "mean_difference": 0.1392,
+            "worse_on": [
+              "v1-008"
+            ]
+          }
+        },
+        "postgres_fts -> pgvector_hnsw": {
+          "hit@1": {
+            "better_on": [
+              "v1-002",
+              "v1-004",
+              "v1-005",
+              "v1-014",
+              "v1-020",
+              "v1-026",
+              "v1-028",
+              "v1-032"
+            ],
+            "ci95": [
+              -0.0938,
+              0.3438
+            ],
+            "mean_difference": 0.125,
+            "worse_on": [
+              "v1-001",
+              "v1-006",
+              "v1-007",
+              "v1-022"
+            ]
+          },
+          "mrr@10": {
+            "better_on": {
+              "entries": 13
+            },
+            "ci95": [
+              -0.0363,
+              0.225
+            ],
+            "mean_difference": 0.0991,
+            "worse_on": [
+              "v1-001",
+              "v1-006",
+              "v1-007",
+              "v1-008",
+              "v1-012",
+              "v1-022"
+            ]
+          }
+        }
+      },
+      "context": {
+        "max_json_bytes": 18000,
+        "policy": "section-neighbors-v1",
+        "ranking_metrics_use_expansion": false,
+        "stats": {
+          "max_json_bytes": 18000,
+          "mean_chunks": 11.375,
+          "mean_json_bytes": 17705.25,
+          "mean_section_recall": 0.7708
+        }
+      },
+      "corpus": {
+        "chunker": "headings-v1",
+        "chunks": 179,
+        "digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+        "files": 21,
+        "revision": "d7c5cae7b007f3273b92735923d434b9e61c0a64",
+        "sections": 106
+      },
+      "created_at": "2026-11-05T19:59:48+00:00",
+      "environment": {
+        "backend": "postgres",
+        "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+        "machine": "arm64",
+        "onnxruntime": "1.31.1",
+        "python": "3.12.13",
+        "quality_signal": true,
+        "tokenizers": "0.23.3"
+      },
+      "fusion": {
+        "depth": 50,
+        "rrf_k": 10,
+        "unit": "chunk",
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      "mlflow_run_id": "6ed9499f026c42e49c3bf714bb2db81b",
+      "questions": {
+        "by_route": {
+          "action": 4,
+          "docs": 32,
+          "live_state": 2,
+          "out_of_scope": 2
+        },
+        "by_split": {
+          "dev": 40
+        },
+        "evaluated_split": "dev",
+        "file": "questions.jsonl",
+        "retrieval_scored": 32,
+        "sha256": "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c",
+        "total": 40
+      },
+      "retrieval": {
+        "hybrid": {
+          "all": {
+            "context_recall@5": 0.6562,
+            "hit@1": 0.6875,
+            "hit@3": 0.7812,
+            "hit@5": 0.8438,
+            "mrr@10": 0.7573,
+            "n": 32,
+            "ndcg@5": 0.6739,
+            "recall@5": 0.7135
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.6562,
+              "hit@1": 0.6875,
+              "hit@3": 0.7812,
+              "hit@5": 0.8438,
+              "mrr@10": 0.7573,
+              "n": 32,
+              "ndcg@5": 0.6739,
+              "recall@5": 0.7135
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.6562,
+              "hit@1": 0.6875,
+              "hit@3": 0.7812,
+              "hit@5": 0.8438,
+              "mrr@10": 0.7573,
+              "n": 32,
+              "ndcg@5": 0.6739,
+              "recall@5": 0.7135
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 20.68,
+            "p95": 25.32
+          },
+          "misses": {
+            "entries": 5
+          }
+        },
+        "legacy_hybrid": {
+          "all": {
+            "context_recall@5": 0.6823,
+            "hit@1": 0.6875,
+            "hit@3": 0.7812,
+            "hit@5": 0.8125,
+            "mrr@10": 0.7566,
+            "n": 32,
+            "ndcg@5": 0.6817,
+            "recall@5": 0.7188
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.6823,
+              "hit@1": 0.6875,
+              "hit@3": 0.7812,
+              "hit@5": 0.8125,
+              "mrr@10": 0.7566,
+              "n": 32,
+              "ndcg@5": 0.6817,
+              "recall@5": 0.7188
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.6823,
+              "hit@1": 0.6875,
+              "hit@3": 0.7812,
+              "hit@5": 0.8125,
+              "mrr@10": 0.7566,
+              "n": 32,
+              "ndcg@5": 0.6817,
+              "recall@5": 0.7188
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 19.481,
+            "p95": 21.759
+          },
+          "misses": {
+            "entries": 6
+          }
+        },
+        "pgvector_exact": {
+          "all": {
+            "context_recall@5": 0.7188,
+            "hit@1": 0.5938,
+            "hit@3": 0.8438,
+            "hit@5": 0.9062,
+            "mrr@10": 0.7172,
+            "n": 32,
+            "ndcg@5": 0.6361,
+            "recall@5": 0.7188
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.7188,
+              "hit@1": 0.5938,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.7172,
+              "n": 32,
+              "ndcg@5": 0.6361,
+              "recall@5": 0.7188
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.7188,
+              "hit@1": 0.5938,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.7172,
+              "n": 32,
+              "ndcg@5": 0.6361,
+              "recall@5": 0.7188
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 11.236,
+            "p95": 12.63
+          },
+          "misses": {
+            "entries": 3
+          }
+        },
+        "pgvector_hnsw": {
+          "all": {
+            "context_recall@5": 0.7188,
+            "hit@1": 0.5938,
+            "hit@3": 0.8438,
+            "hit@5": 0.9062,
+            "mrr@10": 0.7172,
+            "n": 32,
+            "ndcg@5": 0.6361,
+            "recall@5": 0.7188
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.7188,
+              "hit@1": 0.5938,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.7172,
+              "n": 32,
+              "ndcg@5": 0.6361,
+              "recall@5": 0.7188
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.7188,
+              "hit@1": 0.5938,
+              "hit@3": 0.8438,
+              "hit@5": 0.9062,
+              "mrr@10": 0.7172,
+              "n": 32,
+              "ndcg@5": 0.6361,
+              "recall@5": 0.7188
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 13.734,
+            "p95": 18.343
+          },
+          "misses": {
+            "entries": 3
+          }
+        },
+        "postgres_fts": {
+          "all": {
+            "context_recall@5": 0.6406,
+            "hit@1": 0.4688,
+            "hit@3": 0.7812,
+            "hit@5": 0.7812,
+            "mrr@10": 0.6181,
+            "n": 32,
+            "ndcg@5": 0.5617,
+            "recall@5": 0.6406
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.6406,
+              "hit@1": 0.4688,
+              "hit@3": 0.7812,
+              "hit@5": 0.7812,
+              "mrr@10": 0.6181,
+              "n": 32,
+              "ndcg@5": 0.5617,
+              "recall@5": 0.6406
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.6406,
+              "hit@1": 0.4688,
+              "hit@3": 0.7812,
+              "hit@5": 0.7812,
+              "mrr@10": 0.6181,
+              "n": 32,
+              "ndcg@5": 0.5617,
+              "recall@5": 0.6406
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 10.398,
+            "p95": 18.252
+          },
+          "misses": {
+            "entries": 7
+          }
+        }
+      },
+      "scope_gate": {
+        "dev_accuracy": 1.0,
+        "scores": {
+          "docs": {
+            "entries": 32
+          },
+          "out_of_scope": {
+            "v1-037": 0.5956,
+            "v1-038": 0.5512
+          }
+        },
+        "test_accuracy": null,
+        "threshold": 0.5956
+      }
+    },
+    "assistant/perf/results/1000-cold-encoding.json": {
+      "code_sha256": {
+        "src/ledgerops_assistant/benchmark.py": "b43143c549f2dbf9eb87b666bd84a4c01711e78c45e0fa61f1c59d25311de322",
+        "src/ledgerops_assistant/context.py": "9127032559be547ffc8094504ef60f7fb1a5e0b5aa62de784371808fbc3dd77b",
+        "src/ledgerops_assistant/corpus.py": "d6bf496247fdb69382de7412c8cc70e1054d2f0a667e36c1d64127f3cc138790",
+        "src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+        "src/ledgerops_assistant/evaluation.py": "b4e2c759de914a3728eacd72f5e620314c2e3c7824e2b264b54b8f5c3aecacff",
+        "src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+        "src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec"
+      },
+      "created_at": "2026-11-11T14:38:12+00:00",
+      "embedder_kind": "bge",
+      "environment": {
+        "cpu": "Apple M4 Pro",
+        "docker": {
+          "Architecture": "aarch64",
+          "MemTotal": 8321150976,
+          "NCPU": 14,
+          "OperatingSystem": "Docker Desktop",
+          "ServerVersion": "29.4.3"
+        },
+        "docker_vm": true,
+        "logical_cores": 14,
+        "memory_bytes": 25769803776,
+        "numpy": "2.5.4",
+        "onnxruntime": "1.31.1",
+        "os": {
+          "machine": "arm64",
+          "release": "27.2.0",
+          "system": "Darwin"
+        },
+        "pgvector": "0.8.7",
+        "physical_cores": 14,
+        "postgres_in_docker": true,
+        "postgres_settings": {
+          "maintenance_work_mem": "64MB",
+          "max_parallel_workers_per_gather": "2",
+          "shared_buffers": "128MB",
+          "work_mem": "4MB"
+        },
+        "postgresql": "PostgreSQL 18.6 (Debian 18.6-1.pgdg12+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+        "python": "3.12.13",
+        "threads": {
+          "MKL_NUM_THREADS": "unset",
+          "OMP_NUM_THREADS": "unset",
+          "OPENBLAS_NUM_THREADS": "unset",
+          "VECLIB_MAXIMUM_THREADS": "unset",
+          "onnx_intra_op": 4
+        }
+      },
+      "experiment_scope": "cold_encoding_only",
+      "generator": {
+        "scale": 1000,
+        "seed": 20261111,
+        "version": "sentence-mix-v1"
+      },
+      "measurements": {
+        "encoding": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652672,
+            "python_peak_bytes": 8662610,
+            "rss_process_peak_bytes": 313606144,
+            "seconds": 0.41651275000185706
+          },
+          "name": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+          "real": {
+            "cache_hit": false,
+            "chunks_per_second": 30.49975358456584,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 312095,
+            "python_peak_bytes": 647919,
+            "rss_process_peak_bytes": 1442185216,
+            "seconds": 5.868899875000352
+          },
+          "rss_process_peak_bytes": 1449574400,
+          "synthetic": {
+            "cache_hit": false,
+            "chunks_per_second": 33.76595294567414,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1774524,
+            "python_peak_bytes": 3453556,
+            "rss_process_peak_bytes": 1351680000,
+            "seconds": 29.615630917003728
+          },
+          "tokens_real": {
+            "includes_special_tokens": true,
+            "max": 614,
+            "mean": 241.9832402234637,
+            "n": 179,
+            "over_512_count": 3,
+            "percentiles": {
+              "p50": 255.0,
+              "p95": 413.29999999999995,
+              "p99": 540.0799999999999
+            },
+            "status": "measured"
+          },
+          "tokens_synthetic": {
+            "includes_special_tokens": true,
+            "max": 472,
+            "mean": 244.851,
+            "n": 1000,
+            "over_512_count": 0,
+            "percentiles": {
+              "p50": 267.0,
+              "p95": 393.0,
+              "p99": 430.01
+            },
+            "status": "measured"
+          }
+        },
+        "generation_and_chunking": {
+          "chunking": {
+            "chunks_per_second": 10449.819335123037,
+            "documents_per_second": 9802.832396925925,
+            "input_documents": 1000,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "output_chunks": 1066,
+            "python_current_bytes": 1196,
+            "python_peak_bytes": 30610,
+            "rss_process_peak_bytes": 55984128,
+            "seconds": 0.10201133300142828
+          },
+          "chunks": 1000,
+          "digest": "755d52cd30f691515c3074150cad18dae0a07b76240f53033e0e7d4f7ec46cb6",
+          "generation": {
+            "chunks_per_second": 16549.77258845014,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1780402,
+            "python_peak_bytes": 3423775,
+            "rss_process_peak_bytes": 55869440,
+            "seconds": 0.06042379100108519
+          },
+          "word_counts": {
+            "source": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 230.44
+            },
+            "synthetic": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 230.01999999999998
+            }
+          }
+        }
+      },
+      "memory_method": "Fresh subprocess per stage/method; RSS is that worker's lifetime peak including inputs, warmup and profile. Latency tracing is off; memory is a separate query probe. Other phase timings include tracemalloc overhead. PostgreSQL server memory is not Python client RSS.",
+      "note": "Only cold encoding and corpus preparation are retained. Query and ANN quality results are excluded; validated retrieval repeats are recorded separately.",
+      "quality_signal": false,
+      "queries": {},
+      "schema_version": 1,
+      "smoke": false,
+      "source": {
+        "chunks": 179,
+        "digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+        "files": 21,
+        "revision": "ed92b0d198c4a574ed0c2f10319ded6e36ff9a02"
+      },
+      "status": "completed",
+      "worker_wall_seconds": {
+        "embed": 37.42956441700517,
+        "generate": 0.3361286250001285
+      }
+    },
+    "assistant/perf/results/1000-run1.json": {
+      "code_sha256": {
+        "src/ledgerops_assistant/benchmark.py": "1720637a42fc82b3bb1a7a9101a1bb4d4ee406a62f50a46a2792740ca1dbe7fe",
+        "src/ledgerops_assistant/context.py": "9127032559be547ffc8094504ef60f7fb1a5e0b5aa62de784371808fbc3dd77b",
+        "src/ledgerops_assistant/corpus.py": "d6bf496247fdb69382de7412c8cc70e1054d2f0a667e36c1d64127f3cc138790",
+        "src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+        "src/ledgerops_assistant/evaluation.py": "b4e2c759de914a3728eacd72f5e620314c2e3c7824e2b264b54b8f5c3aecacff",
+        "src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+        "src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec"
+      },
+      "created_at": "2026-11-11T14:51:27+00:00",
+      "elapsed_seconds": 44.853808958003356,
+      "embedder_kind": "bge",
+      "environment": {
+        "cpu": "Apple M4 Pro",
+        "docker": {
+          "Architecture": "aarch64",
+          "MemTotal": 8321150976,
+          "NCPU": 14,
+          "OperatingSystem": "Docker Desktop",
+          "ServerVersion": "29.4.3"
+        },
+        "docker_vm": true,
+        "logical_cores": 14,
+        "memory_bytes": 25769803776,
+        "numpy": "2.5.4",
+        "onnxruntime": "1.31.1",
+        "os": {
+          "machine": "arm64",
+          "release": "27.2.0",
+          "system": "Darwin"
+        },
+        "pgvector": "0.8.7",
+        "physical_cores": 14,
+        "postgres_in_docker": true,
+        "postgres_settings": {
+          "maintenance_work_mem": "64MB",
+          "max_parallel_workers_per_gather": "2",
+          "shared_buffers": "128MB",
+          "work_mem": "4MB"
+        },
+        "postgresql": "PostgreSQL 18.6 (Debian 18.6-1.pgdg12+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+        "python": "3.12.13",
+        "threads": {
+          "MKL_NUM_THREADS": "unset",
+          "OMP_NUM_THREADS": "unset",
+          "OPENBLAS_NUM_THREADS": "unset",
+          "VECLIB_MAXIMUM_THREADS": "unset",
+          "onnx_intra_op": 4
+        }
+      },
+      "generator": {
+        "scale": 1000,
+        "seed": 20261111,
+        "version": "sentence-mix-v1"
+      },
+      "measurements": {
+        "encoding": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651995,
+            "python_peak_bytes": 8661811,
+            "rss_process_peak_bytes": 291848192,
+            "seconds": 0.39354587500565685
+          },
+          "name": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+          "real": {
+            "cache_hit": true,
+            "cache_load": {
+              "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+              "python_current_bytes": 278540,
+              "python_peak_bytes": 284379,
+              "rss_process_peak_bytes": 713457664,
+              "seconds": 0.0001826250008889474
+            },
+            "chunks_per_second": null,
+            "seconds": null
+          },
+          "rss_process_peak_bytes": 977354752,
+          "synthetic": {
+            "cache_hit": true,
+            "cache_load": {
+              "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+              "python_current_bytes": 1540254,
+              "python_peak_bytes": 1546101,
+              "rss_process_peak_bytes": 711163904,
+              "seconds": 0.0005072909989394248
+            },
+            "chunks_per_second": null,
+            "seconds": null
+          },
+          "tokens_real": {
+            "includes_special_tokens": true,
+            "max": 614,
+            "mean": 241.9832402234637,
+            "n": 179,
+            "over_512_count": 3,
+            "percentiles": {
+              "p50": 255.0,
+              "p95": 413.29999999999995,
+              "p99": 540.0799999999999
+            },
+            "status": "measured"
+          },
+          "tokens_synthetic": {
+            "includes_special_tokens": true,
+            "max": 472,
+            "mean": 244.851,
+            "n": 1000,
+            "over_512_count": 0,
+            "percentiles": {
+              "p50": 267.0,
+              "p95": 393.0,
+              "p99": 430.01
+            },
+            "status": "measured"
+          }
+        },
+        "generation_and_chunking": {
+          "chunking": {
+            "chunks_per_second": 10487.29171414497,
+            "documents_per_second": 9837.98472246245,
+            "input_documents": 1000,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "output_chunks": 1066,
+            "python_current_bytes": 1196,
+            "python_peak_bytes": 30610,
+            "rss_process_peak_bytes": 54788096,
+            "seconds": 0.10164683400216745
+          },
+          "chunks": 1000,
+          "digest": "755d52cd30f691515c3074150cad18dae0a07b76240f53033e0e7d4f7ec46cb6",
+          "generation": {
+            "chunks_per_second": 17174.33514736168,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1780402,
+            "python_peak_bytes": 3423775,
+            "rss_process_peak_bytes": 54689792,
+            "seconds": 0.05822641700069653
+          },
+          "word_counts": {
+            "source": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 230.44
+            },
+            "synthetic": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 230.01999999999998
+            }
+          }
+        },
+        "index_gin": {
+          "build": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22630,
+            "python_peak_bytes": 30705,
+            "rss_process_peak_bytes": 57114624,
+            "seconds": 0.030648667001514696
+          },
+          "sizes_bytes": {
+            "gin": 532480,
+            "table_main_fork": 1662976,
+            "table_total_with_toast_and_indexes": 5791744
+          }
+        },
+        "index_hnsw": {
+          "build": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22630,
+            "python_peak_bytes": 30705,
+            "rss_process_peak_bytes": 57344000,
+            "seconds": 0.15153558299789438
+          },
+          "sizes_bytes": {
+            "hnsw": 2056192,
+            "table_main_fork": 1662976,
+            "table_total_with_toast_and_indexes": 7847936
+          }
+        },
+        "postgres_ingest": {
+          "database_warmup_rows": 20,
+          "rows": 1000,
+          "secondary_indexes_during_write": false,
+          "write": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 386266,
+            "python_peak_bytes": 8560316,
+            "rss_process_peak_bytes": 66191360,
+            "seconds": 0.4605479160018149
+          }
+        }
+      },
+      "memory_method": "Fresh subprocess per stage/method; RSS is that worker's lifetime peak including inputs, warmup and profile. Latency tracing is off; memory is a separate query probe. Other phase timings include tracemalloc overhead. PostgreSQL server memory is not Python client RSS.",
+      "quality": {
+        "ann_force_index": true,
+        "boundary_ties_within_1e-6": 0,
+        "context_profile_excludes_retrieval": true,
+        "dev_file_sha256": "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c",
+        "dev_questions": 32,
+        "dev_recall": {
+          "real_only": {
+            "hnsw_100": {
+              "recall@5": 0.71875
+            },
+            "hnsw_200": {
+              "recall@5": 0.71875
+            },
+            "hnsw_40": {
+              "recall@5": 0.71875
+            },
+            "hybrid_10": {
+              "recall@5": 0.7135416666666666
+            },
+            "memory_bm25": {
+              "recall@5": 0.7916666666666666
+            },
+            "memory_vector": {
+              "recall@5": 0.71875
+            },
+            "postgres_exact": {
+              "recall@5": 0.71875
+            },
+            "postgres_fts": {
+              "recall@5": 0.640625
+            }
+          },
+          "real_plus_distractors": {
+            "hnsw_100": {
+              "recall@5": 0.515625
+            },
+            "hnsw_200": {
+              "recall@5": 0.515625
+            },
+            "hnsw_40": {
+              "recall@5": 0.515625
+            },
+            "hybrid_10": {
+              "recall@5": 0.6197916666666666
+            },
+            "memory_bm25": {
+              "recall@5": 0.59375
+            },
+            "memory_vector": {
+              "recall@5": 0.515625
+            },
+            "postgres_exact": {
+              "recall@5": 0.515625
+            },
+            "postgres_fts": {
+              "recall@5": 0.6041666666666666
+            }
+          }
+        },
+        "hnsw_recall_at_10": {
+          "100": {
+            "mean": 0.9725
+          },
+          "200": {
+            "mean": 0.9905
+          },
+          "40": {
+            "mean": 0.917
+          }
+        },
+        "measurement": {
+          "instrumentation": "perf_counter + tracemalloc",
+          "python_current_bytes": 2777027,
+          "python_peak_bytes": 12819866,
+          "seconds": 16.965609457998653
+        },
+        "model_initialization": {
+          "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+          "python_current_bytes": 8654957,
+          "python_peak_bytes": 8664545,
+          "rss_process_peak_bytes": 293732352,
+          "seconds": 0.3158523329984746
+        },
+        "rss_process_peak_bytes": 342523904
+      },
+      "quality_signal": true,
+      "queries": {
+        "hnsw_100": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 294060032,
+            "seconds": 0.001734916993882507
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.732020502677187,
+            "p95": 13.846502400701862,
+            "p99": 16.84732649671787
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8655155,
+            "python_peak_bytes": 8664794,
+            "rss_process_peak_bytes": 293928960,
+            "seconds": 0.329588207998313
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22043,
+            "python_peak_bytes": 50553,
+            "rss_process_peak_bytes": 299941888,
+            "seconds": 0.012618916000064928
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 299941888,
+          "single_client_qps": 82.89638692388793,
+          "warmup_queries": 16
+        },
+        "hnsw_200": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 324911104,
+            "seconds": 0.0018777919976855628
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.683021002681926,
+            "p95": 13.148406552136294,
+            "p99": 14.810781758860678
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652863,
+            "python_peak_bytes": 8662580,
+            "rss_process_peak_bytes": 324780032,
+            "seconds": 0.3162205000044196
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 21984,
+            "python_peak_bytes": 50494,
+            "rss_process_peak_bytes": 329891840,
+            "seconds": 0.011852541996631771
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 329891840,
+          "single_client_qps": 84.67742881511381,
+          "warmup_queries": 16
+        },
+        "hnsw_40": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 294207488,
+            "seconds": 0.0017002079985104501
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.63768749756855,
+            "p95": 13.352587799454339,
+            "p99": 14.268247324871478
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8653843,
+            "python_peak_bytes": 8663635,
+            "rss_process_peak_bytes": 294109184,
+            "seconds": 0.308668707999459
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 21984,
+            "python_peak_bytes": 50553,
+            "rss_process_peak_bytes": 299892736,
+            "seconds": 0.012589334000949748
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 299892736,
+          "single_client_qps": 84.80738271709966,
+          "warmup_queries": 16
+        },
+        "hybrid_10": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1729,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 294109184,
+            "seconds": 0.0017270829994231462
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 21.88270850092522,
+            "p95": 25.236053847766012,
+            "p99": 27.653409580161664
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652801,
+            "python_peak_bytes": 8663084,
+            "rss_process_peak_bytes": 294010880,
+            "seconds": 0.3125233750033658
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 46346,
+            "python_peak_bytes": 258590,
+            "rss_process_peak_bytes": 300105728,
+            "seconds": 0.021970916001009755
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 300105728,
+          "single_client_qps": 44.97114284170168,
+          "warmup_queries": 16
+        },
+        "memory_bm25": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8631441,
+            "python_peak_bytes": 8781269,
+            "rss_process_peak_bytes": 307920896,
+            "seconds": 0.08401329199841712
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 0.52827049876214,
+            "p95": 0.769976750962087,
+            "p99": 0.7930574061174411
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651094,
+            "python_peak_bytes": 8660881,
+            "rss_process_peak_bytes": 293765120,
+            "seconds": 0.3090439170046011
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 115880,
+            "python_peak_bytes": 193486,
+            "rss_process_peak_bytes": 308150272,
+            "seconds": 0.0018361670008744113
+          },
+          "query_encoding_included": false,
+          "rss_process_peak_bytes": 308150272,
+          "single_client_qps": 1774.9780610866778,
+          "warmup_queries": 16
+        },
+        "memory_vector": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 848,
+            "python_peak_bytes": 9680,
+            "rss_process_peak_bytes": 293371904,
+            "seconds": 2.9834001907147467e-05
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 2.382458496867912,
+            "p95": 2.5972045037633507,
+            "p99": 3.647175005826284
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651777,
+            "python_peak_bytes": 8661494,
+            "rss_process_peak_bytes": 293273600,
+            "seconds": 0.30744816699734656
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 2850,
+            "python_peak_bytes": 27250,
+            "rss_process_peak_bytes": 296353792,
+            "seconds": 0.002372874994762242
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 296353792,
+          "single_client_qps": 411.14056748683737,
+          "warmup_queries": 16
+        },
+        "postgres_exact": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 937,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 294060032,
+            "seconds": 0.0017116669987444766
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.746270502044354,
+            "p95": 13.283052748010956,
+            "p99": 19.70055666555706
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652463,
+            "python_peak_bytes": 8662242,
+            "rss_process_peak_bytes": 293945344,
+            "seconds": 0.30622045900236117
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22051,
+            "python_peak_bytes": 51052,
+            "rss_process_peak_bytes": 299843584,
+            "seconds": 0.012170999994850717
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 299843584,
+          "single_client_qps": 82.94678703243476,
+          "warmup_queries": 16
+        },
+        "postgres_fts": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 945,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 294109184,
+            "seconds": 0.0016834999987622723
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.112895499536535,
+            "p95": 14.169191348264576,
+            "p99": 19.707426418608495
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8654560,
+            "python_peak_bytes": 8664330,
+            "rss_process_peak_bytes": 293994496,
+            "seconds": 0.3072286660026293
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 25783,
+            "python_peak_bytes": 30355,
+            "rss_process_peak_bytes": 296665088,
+            "seconds": 0.009332125002401881
+          },
+          "query_encoding_included": false,
+          "rss_process_peak_bytes": 296665088,
+          "single_client_qps": 88.8065158339023,
+          "warmup_queries": 16
+        }
+      },
+      "schema_version": 1,
+      "smoke": false,
+      "source": {
+        "chunks": 179,
+        "digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+        "files": 21,
+        "revision": "a3b38b33541e82a32cc7d95a81cf70bda79d2f5b"
+      },
+      "status": "completed",
+      "worker_wall_seconds": {
+        "embed": 1.7276777500010212,
+        "generate": 0.3139259169984143,
+        "index_gin": 0.21675054200022714,
+        "index_hnsw": 0.33525324999936856,
+        "ingest": 1.153337333998934,
+        "quality": 17.464280375003,
+        "query:hnsw_100": 3.1410917910034186,
+        "query:hnsw_200": 3.0774410829981207,
+        "query:hnsw_40": 3.0815863340030774,
+        "query:hybrid_10": 5.348277125005552,
+        "query:memory_bm25": 0.6908953749953071,
+        "query:memory_vector": 1.0050648750038818,
+        "query:postgres_exact": 3.1202002909994917,
+        "query:postgres_fts": 2.9545655000038096
+      }
+    },
+    "assistant/perf/results/1000-run2.json": {
+      "code_sha256": {
+        "src/ledgerops_assistant/benchmark.py": "1720637a42fc82b3bb1a7a9101a1bb4d4ee406a62f50a46a2792740ca1dbe7fe",
+        "src/ledgerops_assistant/context.py": "9127032559be547ffc8094504ef60f7fb1a5e0b5aa62de784371808fbc3dd77b",
+        "src/ledgerops_assistant/corpus.py": "d6bf496247fdb69382de7412c8cc70e1054d2f0a667e36c1d64127f3cc138790",
+        "src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+        "src/ledgerops_assistant/evaluation.py": "b4e2c759de914a3728eacd72f5e620314c2e3c7824e2b264b54b8f5c3aecacff",
+        "src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+        "src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec"
+      },
+      "created_at": "2026-11-11T14:52:12+00:00",
+      "elapsed_seconds": 45.46439416700014,
+      "embedder_kind": "bge",
+      "environment": {
+        "cpu": "Apple M4 Pro",
+        "docker": {
+          "Architecture": "aarch64",
+          "MemTotal": 8321150976,
+          "NCPU": 14,
+          "OperatingSystem": "Docker Desktop",
+          "ServerVersion": "29.4.3"
+        },
+        "docker_vm": true,
+        "logical_cores": 14,
+        "memory_bytes": 25769803776,
+        "numpy": "2.5.4",
+        "onnxruntime": "1.31.1",
+        "os": {
+          "machine": "arm64",
+          "release": "27.2.0",
+          "system": "Darwin"
+        },
+        "pgvector": "0.8.7",
+        "physical_cores": 14,
+        "postgres_in_docker": true,
+        "postgres_settings": {
+          "maintenance_work_mem": "64MB",
+          "max_parallel_workers_per_gather": "2",
+          "shared_buffers": "128MB",
+          "work_mem": "4MB"
+        },
+        "postgresql": "PostgreSQL 18.6 (Debian 18.6-1.pgdg12+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+        "python": "3.12.13",
+        "threads": {
+          "MKL_NUM_THREADS": "unset",
+          "OMP_NUM_THREADS": "unset",
+          "OPENBLAS_NUM_THREADS": "unset",
+          "VECLIB_MAXIMUM_THREADS": "unset",
+          "onnx_intra_op": 4
+        }
+      },
+      "generator": {
+        "scale": 1000,
+        "seed": 20261111,
+        "version": "sentence-mix-v1"
+      },
+      "measurements": {
+        "encoding": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8648053,
+            "python_peak_bytes": 8657487,
+            "rss_process_peak_bytes": 320700416,
+            "seconds": 0.35714537499734433
+          },
+          "name": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+          "real": {
+            "cache_hit": true,
+            "cache_load": {
+              "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+              "python_current_bytes": 278540,
+              "python_peak_bytes": 284379,
+              "rss_process_peak_bytes": 740065280,
+              "seconds": 0.0003029999934369698
+            },
+            "chunks_per_second": null,
+            "seconds": null
+          },
+          "rss_process_peak_bytes": 1007271936,
+          "synthetic": {
+            "cache_hit": true,
+            "cache_load": {
+              "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+              "python_current_bytes": 1540254,
+              "python_peak_bytes": 1546101,
+              "rss_process_peak_bytes": 738066432,
+              "seconds": 0.00042116599797736853
+            },
+            "chunks_per_second": null,
+            "seconds": null
+          },
+          "tokens_real": {
+            "includes_special_tokens": true,
+            "max": 614,
+            "mean": 241.9832402234637,
+            "n": 179,
+            "over_512_count": 3,
+            "percentiles": {
+              "p50": 255.0,
+              "p95": 413.29999999999995,
+              "p99": 540.0799999999999
+            },
+            "status": "measured"
+          },
+          "tokens_synthetic": {
+            "includes_special_tokens": true,
+            "max": 472,
+            "mean": 244.851,
+            "n": 1000,
+            "over_512_count": 0,
+            "percentiles": {
+              "p50": 267.0,
+              "p95": 393.0,
+              "p99": 430.01
+            },
+            "status": "measured"
+          }
+        },
+        "generation_and_chunking": {
+          "chunking": {
+            "chunks_per_second": 10228.02783612066,
+            "documents_per_second": 9594.772829381482,
+            "input_documents": 1000,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "output_chunks": 1066,
+            "python_current_bytes": 1196,
+            "python_peak_bytes": 30610,
+            "rss_process_peak_bytes": 55148544,
+            "seconds": 0.10422341599769425
+          },
+          "chunks": 1000,
+          "digest": "755d52cd30f691515c3074150cad18dae0a07b76240f53033e0e7d4f7ec46cb6",
+          "generation": {
+            "chunks_per_second": 16870.77947921543,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1780402,
+            "python_peak_bytes": 3423775,
+            "rss_process_peak_bytes": 55066624,
+            "seconds": 0.05927408400020795
+          },
+          "word_counts": {
+            "source": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 230.44
+            },
+            "synthetic": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 230.01999999999998
+            }
+          }
+        },
+        "index_gin": {
+          "build": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22630,
+            "python_peak_bytes": 30705,
+            "rss_process_peak_bytes": 57163776,
+            "seconds": 0.049026958004105836
+          },
+          "sizes_bytes": {
+            "gin": 532480,
+            "table_main_fork": 1662976,
+            "table_total_with_toast_and_indexes": 5791744
+          }
+        },
+        "index_hnsw": {
+          "build": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22630,
+            "python_peak_bytes": 30705,
+            "rss_process_peak_bytes": 57114624,
+            "seconds": 0.15813716599950567
+          },
+          "sizes_bytes": {
+            "hnsw": 2056192,
+            "table_main_fork": 1662976,
+            "table_total_with_toast_and_indexes": 7847936
+          }
+        },
+        "postgres_ingest": {
+          "database_warmup_rows": 20,
+          "rows": 1000,
+          "secondary_indexes_during_write": false,
+          "write": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 388594,
+            "python_peak_bytes": 8587258,
+            "rss_process_peak_bytes": 66224128,
+            "seconds": 0.45526108399644727
+          }
+        }
+      },
+      "memory_method": "Fresh subprocess per stage/method; RSS is that worker's lifetime peak including inputs, warmup and profile. Latency tracing is off; memory is a separate query probe. Other phase timings include tracemalloc overhead. PostgreSQL server memory is not Python client RSS.",
+      "quality": {
+        "ann_force_index": true,
+        "boundary_ties_within_1e-6": 0,
+        "context_profile_excludes_retrieval": true,
+        "dev_file_sha256": "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c",
+        "dev_questions": 32,
+        "dev_recall": {
+          "real_only": {
+            "hnsw_100": {
+              "recall@5": 0.71875
+            },
+            "hnsw_200": {
+              "recall@5": 0.71875
+            },
+            "hnsw_40": {
+              "recall@5": 0.71875
+            },
+            "hybrid_10": {
+              "recall@5": 0.7135416666666666
+            },
+            "memory_bm25": {
+              "recall@5": 0.7916666666666666
+            },
+            "memory_vector": {
+              "recall@5": 0.71875
+            },
+            "postgres_exact": {
+              "recall@5": 0.71875
+            },
+            "postgres_fts": {
+              "recall@5": 0.640625
+            }
+          },
+          "real_plus_distractors": {
+            "hnsw_100": {
+              "recall@5": 0.515625
+            },
+            "hnsw_200": {
+              "recall@5": 0.515625
+            },
+            "hnsw_40": {
+              "recall@5": 0.515625
+            },
+            "hybrid_10": {
+              "recall@5": 0.6197916666666666
+            },
+            "memory_bm25": {
+              "recall@5": 0.59375
+            },
+            "memory_vector": {
+              "recall@5": 0.515625
+            },
+            "postgres_exact": {
+              "recall@5": 0.515625
+            },
+            "postgres_fts": {
+              "recall@5": 0.6041666666666666
+            }
+          }
+        },
+        "hnsw_recall_at_10": {
+          "100": {
+            "mean": 0.9695
+          },
+          "200": {
+            "mean": 0.9905
+          },
+          "40": {
+            "mean": 0.917
+          }
+        },
+        "measurement": {
+          "instrumentation": "perf_counter + tracemalloc",
+          "python_current_bytes": 2776882,
+          "python_peak_bytes": 12826240,
+          "seconds": 17.29528641700017
+        },
+        "model_initialization": {
+          "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+          "python_current_bytes": 8651366,
+          "python_peak_bytes": 8661304,
+          "rss_process_peak_bytes": 293552128,
+          "seconds": 0.31313154099916574
+        },
+        "rss_process_peak_bytes": 344358912
+      },
+      "quality_signal": true,
+      "queries": {
+        "hnsw_100": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 297238528,
+            "seconds": 0.0016992079981719144
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.697312998876441,
+            "p95": 13.244398198730778,
+            "p99": 13.765579587270617
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8650918,
+            "python_peak_bytes": 8660571,
+            "rss_process_peak_bytes": 297140224,
+            "seconds": 0.3128260829980718
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22043,
+            "python_peak_bytes": 50553,
+            "rss_process_peak_bytes": 301694976,
+            "seconds": 0.012677209000685252
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 301694976,
+          "single_client_qps": 84.71615850629122,
+          "warmup_queries": 16
+        },
+        "hnsw_200": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 293994496,
+            "seconds": 0.0018086250056512654
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.917979001736967,
+            "p95": 13.950293753805452,
+            "p99": 15.870033327228157
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652534,
+            "python_peak_bytes": 8662203,
+            "rss_process_peak_bytes": 293863424,
+            "seconds": 0.3128779590042541
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22043,
+            "python_peak_bytes": 50553,
+            "rss_process_peak_bytes": 299728896,
+            "seconds": 0.013513874997443054
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 299728896,
+          "single_client_qps": 82.30718747236703,
+          "warmup_queries": 16
+        },
+        "hnsw_40": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 294289408,
+            "seconds": 0.001908291997096967
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.875479500304209,
+            "p95": 14.042070200957824,
+            "p99": 18.028927663835926
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651318,
+            "python_peak_bytes": 8660875,
+            "rss_process_peak_bytes": 294158336,
+            "seconds": 0.32682958399527706
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22043,
+            "python_peak_bytes": 50553,
+            "rss_process_peak_bytes": 299925504,
+            "seconds": 0.012529499996162485
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 299925504,
+          "single_client_qps": 82.52275923880521,
+          "warmup_queries": 16
+        },
+        "hybrid_10": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1729,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 294404096,
+            "seconds": 0.0019412920009926893
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 22.155874998134095,
+            "p95": 25.503222602128517,
+            "p99": 29.607309074126512
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8650697,
+            "python_peak_bytes": 8660499,
+            "rss_process_peak_bytes": 294256640,
+            "seconds": 0.31070466699748067
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 46287,
+            "python_peak_bytes": 258531,
+            "rss_process_peak_bytes": 299876352,
+            "seconds": 0.02237220900133252
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 299876352,
+          "single_client_qps": 44.36402316743341,
+          "warmup_queries": 16
+        },
+        "memory_bm25": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8631441,
+            "python_peak_bytes": 8781269,
+            "rss_process_peak_bytes": 307429376,
+            "seconds": 0.08690720899903681
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 0.5397919994720723,
+            "p95": 0.7849850997445174,
+            "p99": 0.8039297619689023
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651589,
+            "python_peak_bytes": 8661299,
+            "rss_process_peak_bytes": 293404672,
+            "seconds": 0.3179750410054112
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 115880,
+            "python_peak_bytes": 193486,
+            "rss_process_peak_bytes": 307691520,
+            "seconds": 0.0018545420025475323
+          },
+          "query_encoding_included": false,
+          "rss_process_peak_bytes": 307691520,
+          "single_client_qps": 1749.9499191529683,
+          "warmup_queries": 16
+        },
+        "memory_vector": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 848,
+            "python_peak_bytes": 9680,
+            "rss_process_peak_bytes": 294600704,
+            "seconds": 3.1584000680595636e-05
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 2.381020996836014,
+            "p95": 2.6385330464108847,
+            "p99": 3.6430424076388586
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651581,
+            "python_peak_bytes": 8661030,
+            "rss_process_peak_bytes": 294502400,
+            "seconds": 0.34634016700147185
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 2732,
+            "python_peak_bytes": 27132,
+            "rss_process_peak_bytes": 296747008,
+            "seconds": 0.0023226659977808595
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 296747008,
+          "single_client_qps": 411.60802715361075,
+          "warmup_queries": 16
+        },
+        "postgres_exact": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 937,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 293683200,
+            "seconds": 0.0017395000031683594
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.972104497544933,
+            "p95": 13.956277095348922,
+            "p99": 16.4280432506348
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652664,
+            "python_peak_bytes": 8662601,
+            "rss_process_peak_bytes": 293584896,
+            "seconds": 0.32332395800040103
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22051,
+            "python_peak_bytes": 51052,
+            "rss_process_peak_bytes": 299679744,
+            "seconds": 0.01267616699624341
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 299679744,
+          "single_client_qps": 81.81923009253894,
+          "warmup_queries": 16
+        },
+        "postgres_fts": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 945,
+            "python_peak_bytes": 6519,
+            "rss_process_peak_bytes": 293601280,
+            "seconds": 0.0018297919959877618
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.209917003725423,
+            "p95": 12.98877355584409,
+            "p99": 13.912582257762548
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651782,
+            "python_peak_bytes": 8661447,
+            "rss_process_peak_bytes": 293486592,
+            "seconds": 0.3108972089976305
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 25783,
+            "python_peak_bytes": 30355,
+            "rss_process_peak_bytes": 296058880,
+            "seconds": 0.009170749995973893
+          },
+          "query_encoding_included": false,
+          "rss_process_peak_bytes": 296058880,
+          "single_client_qps": 89.4307478420454,
+          "warmup_queries": 16
+        }
+      },
+      "schema_version": 1,
+      "smoke": false,
+      "source": {
+        "chunks": 179,
+        "digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+        "files": 21,
+        "revision": "a3b38b33541e82a32cc7d95a81cf70bda79d2f5b"
+      },
+      "status": "completed",
+      "worker_wall_seconds": {
+        "embed": 1.7205165419945843,
+        "generate": 0.3294167499989271,
+        "index_gin": 0.22499425000569317,
+        "index_hnsw": 0.34912945899850456,
+        "ingest": 1.1555434160036384,
+        "quality": 17.783981500004302,
+        "query:hnsw_100": 3.086944583999866,
+        "query:hnsw_200": 3.1605014170054346,
+        "query:hnsw_40": 3.173804833997565,
+        "query:hybrid_10": 5.38795341700461,
+        "query:memory_bm25": 0.7073115840030368,
+        "query:memory_vector": 1.0518775840027956,
+        "query:postgres_exact": 3.1655896670054062,
+        "query:postgres_fts": 2.947136249997129
+      }
+    },
+    "assistant/perf/results/10000-cold-encoding.json": {
+      "code_sha256": {
+        "src/ledgerops_assistant/benchmark.py": "b43143c549f2dbf9eb87b666bd84a4c01711e78c45e0fa61f1c59d25311de322",
+        "src/ledgerops_assistant/context.py": "9127032559be547ffc8094504ef60f7fb1a5e0b5aa62de784371808fbc3dd77b",
+        "src/ledgerops_assistant/corpus.py": "d6bf496247fdb69382de7412c8cc70e1054d2f0a667e36c1d64127f3cc138790",
+        "src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+        "src/ledgerops_assistant/evaluation.py": "b4e2c759de914a3728eacd72f5e620314c2e3c7824e2b264b54b8f5c3aecacff",
+        "src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+        "src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec"
+      },
+      "created_at": "2026-11-11T14:41:13+00:00",
+      "embedder_kind": "bge",
+      "environment": {
+        "cpu": "Apple M4 Pro",
+        "docker": {
+          "Architecture": "aarch64",
+          "MemTotal": 8321150976,
+          "NCPU": 14,
+          "OperatingSystem": "Docker Desktop",
+          "ServerVersion": "29.4.3"
+        },
+        "docker_vm": true,
+        "logical_cores": 14,
+        "memory_bytes": 25769803776,
+        "numpy": "2.5.4",
+        "onnxruntime": "1.31.1",
+        "os": {
+          "machine": "arm64",
+          "release": "27.2.0",
+          "system": "Darwin"
+        },
+        "pgvector": "0.8.7",
+        "physical_cores": 14,
+        "postgres_in_docker": true,
+        "postgres_settings": {
+          "maintenance_work_mem": "64MB",
+          "max_parallel_workers_per_gather": "2",
+          "shared_buffers": "128MB",
+          "work_mem": "4MB"
+        },
+        "postgresql": "PostgreSQL 18.6 (Debian 18.6-1.pgdg12+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+        "python": "3.12.13",
+        "threads": {
+          "MKL_NUM_THREADS": "unset",
+          "OMP_NUM_THREADS": "unset",
+          "OPENBLAS_NUM_THREADS": "unset",
+          "VECLIB_MAXIMUM_THREADS": "unset",
+          "onnx_intra_op": 4
+        }
+      },
+      "experiment_scope": "cold_encoding_only",
+      "generator": {
+        "scale": 10000,
+        "seed": 20261111,
+        "version": "sentence-mix-v1"
+      },
+      "measurements": {
+        "encoding": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8647415,
+            "python_peak_bytes": 8657188,
+            "rss_process_peak_bytes": 355794944,
+            "seconds": 0.4674519580003107
+          },
+          "name": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+          "real": {
+            "cache_hit": true,
+            "cache_load": {
+              "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+              "python_current_bytes": 279027,
+              "python_peak_bytes": 284874,
+              "rss_process_peak_bytes": 2097790976,
+              "seconds": 0.000723584002116695
+            },
+            "chunks_per_second": null,
+            "seconds": null
+          },
+          "rss_process_peak_bytes": 2097790976,
+          "synthetic": {
+            "cache_hit": false,
+            "chunks_per_second": 33.771225869814614,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 17802731,
+            "python_peak_bytes": 33706563,
+            "rss_process_peak_bytes": 2097790976,
+            "seconds": 296.1100683330005
+          },
+          "tokens_real": {
+            "includes_special_tokens": true,
+            "max": 614,
+            "mean": 241.9832402234637,
+            "n": 179,
+            "over_512_count": 3,
+            "percentiles": {
+              "p50": 255.0,
+              "p95": 413.29999999999995,
+              "p99": 540.0799999999999
+            },
+            "status": "measured"
+          },
+          "tokens_synthetic": {
+            "includes_special_tokens": true,
+            "max": 539,
+            "mean": 245.1,
+            "n": 10000,
+            "over_512_count": 5,
+            "percentiles": {
+              "p50": 262.0,
+              "p95": 390.0,
+              "p99": 430.0
+            },
+            "status": "measured"
+          }
+        },
+        "generation_and_chunking": {
+          "chunking": {
+            "chunks_per_second": 9837.025920153952,
+            "documents_per_second": 9207.250018863677,
+            "input_documents": 10000,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "output_chunks": 10684,
+            "python_current_bytes": 1196,
+            "python_peak_bytes": 38327,
+            "rss_process_peak_bytes": 78839808,
+            "seconds": 1.0861006249979255
+          },
+          "chunks": 10000,
+          "digest": "b4fd35bc79c5a6c46a1d4f35b5f6485a46d34a3a739ab8887aefea38a3d2c7e6",
+          "generation": {
+            "chunks_per_second": 28963.630638767492,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 18008041,
+            "python_peak_bytes": 19801494,
+            "rss_process_peak_bytes": 78692352,
+            "seconds": 0.34526058299525175
+          },
+          "word_counts": {
+            "source": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 230.44
+            },
+            "synthetic": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 232.0
+            }
+          }
+        }
+      },
+      "memory_method": "Fresh subprocess per stage/method; RSS is that worker's lifetime peak including inputs, warmup and profile. Latency tracing is off; memory is a separate query probe. Other phase timings include tracemalloc overhead. PostgreSQL server memory is not Python client RSS.",
+      "note": "Only cold encoding and corpus preparation are retained. Query and ANN quality results are excluded; validated retrieval repeats are recorded separately.",
+      "quality_signal": false,
+      "queries": {},
+      "schema_version": 1,
+      "smoke": false,
+      "source": {
+        "chunks": 179,
+        "digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+        "files": 21,
+        "revision": "ed92b0d198c4a574ed0c2f10319ded6e36ff9a02"
+      },
+      "status": "completed",
+      "worker_wall_seconds": {
+        "embed": 300.0396086249966,
+        "generate": 1.702981666996493
+      }
+    },
+    "assistant/perf/results/10000-run1.json": {
+      "code_sha256": {
+        "src/ledgerops_assistant/benchmark.py": "1720637a42fc82b3bb1a7a9101a1bb4d4ee406a62f50a46a2792740ca1dbe7fe",
+        "src/ledgerops_assistant/context.py": "9127032559be547ffc8094504ef60f7fb1a5e0b5aa62de784371808fbc3dd77b",
+        "src/ledgerops_assistant/corpus.py": "d6bf496247fdb69382de7412c8cc70e1054d2f0a667e36c1d64127f3cc138790",
+        "src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+        "src/ledgerops_assistant/evaluation.py": "b4e2c759de914a3728eacd72f5e620314c2e3c7824e2b264b54b8f5c3aecacff",
+        "src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+        "src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec"
+      },
+      "created_at": "2026-11-11T14:52:58+00:00",
+      "elapsed_seconds": 100.45038404200022,
+      "embedder_kind": "bge",
+      "environment": {
+        "cpu": "Apple M4 Pro",
+        "docker": {
+          "Architecture": "aarch64",
+          "MemTotal": 8321150976,
+          "NCPU": 14,
+          "OperatingSystem": "Docker Desktop",
+          "ServerVersion": "29.4.3"
+        },
+        "docker_vm": true,
+        "logical_cores": 14,
+        "memory_bytes": 25769803776,
+        "numpy": "2.5.4",
+        "onnxruntime": "1.31.1",
+        "os": {
+          "machine": "arm64",
+          "release": "27.2.0",
+          "system": "Darwin"
+        },
+        "pgvector": "0.8.7",
+        "physical_cores": 14,
+        "postgres_in_docker": true,
+        "postgres_settings": {
+          "maintenance_work_mem": "64MB",
+          "max_parallel_workers_per_gather": "2",
+          "shared_buffers": "128MB",
+          "work_mem": "4MB"
+        },
+        "postgresql": "PostgreSQL 18.6 (Debian 18.6-1.pgdg12+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+        "python": "3.12.13",
+        "threads": {
+          "MKL_NUM_THREADS": "unset",
+          "OMP_NUM_THREADS": "unset",
+          "OPENBLAS_NUM_THREADS": "unset",
+          "VECLIB_MAXIMUM_THREADS": "unset",
+          "onnx_intra_op": 4
+        }
+      },
+      "generator": {
+        "scale": 10000,
+        "seed": 20261111,
+        "version": "sentence-mix-v1"
+      },
+      "measurements": {
+        "encoding": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8648164,
+            "python_peak_bytes": 8658133,
+            "rss_process_peak_bytes": 354566144,
+            "seconds": 0.32871520899789175
+          },
+          "name": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+          "real": {
+            "cache_hit": true,
+            "cache_load": {
+              "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+              "python_current_bytes": 278540,
+              "python_peak_bytes": 284379,
+              "rss_process_peak_bytes": 640286720,
+              "seconds": 0.00031704199500381947
+            },
+            "chunks_per_second": null,
+            "seconds": null
+          },
+          "rss_process_peak_bytes": 841580544,
+          "synthetic": {
+            "cache_hit": true,
+            "cache_load": {
+              "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+              "python_current_bytes": 15364254,
+              "python_peak_bytes": 15370101,
+              "rss_process_peak_bytes": 620675072,
+              "seconds": 0.00118629200005671
+            },
+            "chunks_per_second": null,
+            "seconds": null
+          },
+          "tokens_real": {
+            "includes_special_tokens": true,
+            "max": 614,
+            "mean": 241.9832402234637,
+            "n": 179,
+            "over_512_count": 3,
+            "percentiles": {
+              "p50": 255.0,
+              "p95": 413.29999999999995,
+              "p99": 540.0799999999999
+            },
+            "status": "measured"
+          },
+          "tokens_synthetic": {
+            "includes_special_tokens": true,
+            "max": 539,
+            "mean": 245.1,
+            "n": 10000,
+            "over_512_count": 5,
+            "percentiles": {
+              "p50": 262.0,
+              "p95": 390.0,
+              "p99": 430.0
+            },
+            "status": "measured"
+          }
+        },
+        "generation_and_chunking": {
+          "chunking": {
+            "chunks_per_second": 10014.832666419848,
+            "documents_per_second": 9373.673405484695,
+            "input_documents": 10000,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "output_chunks": 10684,
+            "python_current_bytes": 1196,
+            "python_peak_bytes": 38327,
+            "rss_process_peak_bytes": 78299136,
+            "seconds": 1.0668176250037504
+          },
+          "chunks": 10000,
+          "digest": "b4fd35bc79c5a6c46a1d4f35b5f6485a46d34a3a739ab8887aefea38a3d2c7e6",
+          "generation": {
+            "chunks_per_second": 29457.796064781465,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 18008041,
+            "python_peak_bytes": 19801494,
+            "rss_process_peak_bytes": 78135296,
+            "seconds": 0.3394687089967192
+          },
+          "word_counts": {
+            "source": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 230.44
+            },
+            "synthetic": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 232.0
+            }
+          }
+        },
+        "index_gin": {
+          "build": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22630,
+            "python_peak_bytes": 30705,
+            "rss_process_peak_bytes": 134447104,
+            "seconds": 0.13973224999790546
+          },
+          "sizes_bytes": {
+            "gin": 3522560,
+            "table_main_fork": 16457728,
+            "table_total_with_toast_and_indexes": 54960128
+          }
+        },
+        "index_hnsw": {
+          "build": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22630,
+            "python_peak_bytes": 30705,
+            "rss_process_peak_bytes": 134479872,
+            "seconds": 0.8445899170037592
+          },
+          "sizes_bytes": {
+            "hnsw": 20488192,
+            "table_main_fork": 16457728,
+            "table_total_with_toast_and_indexes": 75448320
+          }
+        },
+        "postgres_ingest": {
+          "database_warmup_rows": 20,
+          "rows": 10000,
+          "secondary_indexes_during_write": false,
+          "write": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 2683908,
+            "python_peak_bytes": 84909821,
+            "rss_process_peak_bytes": 220626944,
+            "seconds": 4.492119542002911
+          }
+        }
+      },
+      "memory_method": "Fresh subprocess per stage/method; RSS is that worker's lifetime peak including inputs, warmup and profile. Latency tracing is off; memory is a separate query probe. Other phase timings include tracemalloc overhead. PostgreSQL server memory is not Python client RSS.",
+      "quality": {
+        "ann_force_index": true,
+        "boundary_ties_within_1e-6": 0,
+        "context_profile_excludes_retrieval": true,
+        "dev_file_sha256": "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c",
+        "dev_questions": 32,
+        "dev_recall": {
+          "real_only": {
+            "hnsw_100": {
+              "recall@5": 0.71875
+            },
+            "hnsw_200": {
+              "recall@5": 0.71875
+            },
+            "hnsw_40": {
+              "recall@5": 0.71875
+            },
+            "hybrid_10": {
+              "recall@5": 0.7135416666666666
+            },
+            "memory_bm25": {
+              "recall@5": 0.7916666666666666
+            },
+            "memory_vector": {
+              "recall@5": 0.71875
+            },
+            "postgres_exact": {
+              "recall@5": 0.71875
+            },
+            "postgres_fts": {
+              "recall@5": 0.640625
+            }
+          },
+          "real_plus_distractors": {
+            "hnsw_100": {
+              "recall@5": 0.25
+            },
+            "hnsw_200": {
+              "recall@5": 0.25
+            },
+            "hnsw_40": {
+              "recall@5": 0.234375
+            },
+            "hybrid_10": {
+              "recall@5": 0.4375
+            },
+            "memory_bm25": {
+              "recall@5": 0.22395833333333334
+            },
+            "memory_vector": {
+              "recall@5": 0.296875
+            },
+            "postgres_exact": {
+              "recall@5": 0.296875
+            },
+            "postgres_fts": {
+              "recall@5": 0.4635416666666667
+            }
+          }
+        },
+        "hnsw_recall_at_10": {
+          "100": {
+            "mean": 0.8925
+          },
+          "200": {
+            "mean": 0.954
+          },
+          "40": {
+            "mean": 0.7885
+          }
+        },
+        "measurement": {
+          "instrumentation": "perf_counter + tracemalloc",
+          "python_current_bytes": 20518139,
+          "python_peak_bytes": 106523708,
+          "seconds": 42.02656887500052
+        },
+        "model_initialization": {
+          "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+          "python_current_bytes": 8652796,
+          "python_peak_bytes": 8662893,
+          "rss_process_peak_bytes": 369754112,
+          "seconds": 0.3626102920025005
+        },
+        "rss_process_peak_bytes": 632406016
+      },
+      "quality_signal": true,
+      "queries": {
+        "hnsw_100": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 371671040,
+            "seconds": 0.01761275000171736
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.450457997852936,
+            "p95": 13.343308000185061,
+            "p99": 16.99297291022958
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8647866,
+            "python_peak_bytes": 8657890,
+            "rss_process_peak_bytes": 371671040,
+            "seconds": 0.3149439999979222
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 24128,
+            "python_peak_bytes": 52638,
+            "rss_process_peak_bytes": 371671040,
+            "seconds": 0.012405708999722265
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 371671040,
+          "single_client_qps": 85.55433315968068,
+          "warmup_queries": 16
+        },
+        "hnsw_200": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 371261440,
+            "seconds": 0.01790679200348677
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 12.100853498850483,
+            "p95": 13.423208949825494,
+            "p99": 13.944555003690763
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652107,
+            "python_peak_bytes": 8661835,
+            "rss_process_peak_bytes": 371261440,
+            "seconds": 0.3182640419981908
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22337,
+            "python_peak_bytes": 50847,
+            "rss_process_peak_bytes": 371261440,
+            "seconds": 0.012987292000616435
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 371261440,
+          "single_client_qps": 81.38346185121581,
+          "warmup_queries": 16
+        },
+        "hnsw_40": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 370049024,
+            "seconds": 0.017711041000438854
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 10.951499996735947,
+            "p95": 12.674727102057659,
+            "p99": 14.67040424831793
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8650302,
+            "python_peak_bytes": 8660000,
+            "rss_process_peak_bytes": 370049024,
+            "seconds": 0.32502549999480834
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 21875,
+            "python_peak_bytes": 50385,
+            "rss_process_peak_bytes": 370049024,
+            "seconds": 0.013639124998007901
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 370049024,
+          "single_client_qps": 89.59017610052099,
+          "warmup_queries": 16
+        },
+        "hybrid_10": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1729,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 370130944,
+            "seconds": 0.017719125004077796
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 55.38583299858146,
+            "p95": 73.31385414690884,
+            "p99": 77.77753040703826
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651925,
+            "python_peak_bytes": 8661784,
+            "rss_process_peak_bytes": 370130944,
+            "seconds": 0.31841979199816706
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 49475,
+            "python_peak_bytes": 263723,
+            "rss_process_peak_bytes": 370130944,
+            "seconds": 0.0492777500039665
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 370130944,
+          "single_client_qps": 17.516136133813536,
+          "warmup_queries": 16
+        },
+        "memory_bm25": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 84279873,
+            "python_peak_bytes": 84459565,
+            "rss_process_peak_bytes": 506363904,
+            "seconds": 1.0089493339983164
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 9.476791998167755,
+            "p95": 12.798491651483346,
+            "p99": 13.485498837690098
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651031,
+            "python_peak_bytes": 8660339,
+            "rss_process_peak_bytes": 371900416,
+            "seconds": 0.33149958300055005
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 115880,
+            "python_peak_bytes": 2004966,
+            "rss_process_peak_bytes": 506363904,
+            "seconds": 0.024240124999778345
+          },
+          "query_encoding_included": false,
+          "rss_process_peak_bytes": 506363904,
+          "single_client_qps": 101.32198805538745,
+          "warmup_queries": 16
+        },
+        "memory_vector": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 848,
+            "python_peak_bytes": 86000,
+            "rss_process_peak_bytes": 369770496,
+            "seconds": 0.0001332079991698265
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 3.01518700143788,
+            "p95": 3.307439902346232,
+            "p99": 4.135898990934947
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8654423,
+            "python_peak_bytes": 8664096,
+            "rss_process_peak_bytes": 369770496,
+            "seconds": 0.31827987499855226
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 2850,
+            "python_peak_bytes": 207290,
+            "rss_process_peak_bytes": 369770496,
+            "seconds": 0.0028712089988403022
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 369770496,
+          "single_client_qps": 327.86518091199275,
+          "warmup_queries": 16
+        },
+        "postgres_exact": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 937,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 371310592,
+            "seconds": 0.01792208300321363
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 29.369749998295447,
+            "p95": 31.498168446705673,
+            "p99": 33.41676565745726
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651985,
+            "python_peak_bytes": 8661547,
+            "rss_process_peak_bytes": 371310592,
+            "seconds": 0.32035233399801655
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22286,
+            "python_peak_bytes": 51287,
+            "rss_process_peak_bytes": 371310592,
+            "seconds": 0.032960541000647936
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 371310592,
+          "single_client_qps": 33.70362167779402,
+          "warmup_queries": 16
+        },
+        "postgres_fts": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 945,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 369852416,
+            "seconds": 0.018068625002342742
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 42.13995849931962,
+            "p95": 57.66940865105425,
+            "p99": 61.37305124517297
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652957,
+            "python_peak_bytes": 8663140,
+            "rss_process_peak_bytes": 369852416,
+            "seconds": 0.33439208400523057
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 31495,
+            "python_peak_bytes": 36067,
+            "rss_process_peak_bytes": 369852416,
+            "seconds": 0.03154495800117729
+          },
+          "query_encoding_included": false,
+          "rss_process_peak_bytes": 369852416,
+          "single_client_qps": 22.93451823929307,
+          "warmup_queries": 16
+        }
+      },
+      "schema_version": 1,
+      "smoke": false,
+      "source": {
+        "chunks": 179,
+        "digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+        "files": 21,
+        "revision": "a3b38b33541e82a32cc7d95a81cf70bda79d2f5b"
+      },
+      "status": "completed",
+      "worker_wall_seconds": {
+        "embed": 3.286075249998248,
+        "generate": 1.6635297079992597,
+        "index_gin": 0.5225218330015196,
+        "index_hnsw": 1.2362176250026096,
+        "ingest": 5.313505207996059,
+        "quality": 42.670998416993825,
+        "query:hnsw_100": 3.1295222920016386,
+        "query:hnsw_200": 3.2661996249953518,
+        "query:hnsw_40": 3.0394250829995144,
+        "query:hybrid_10": 12.924108208004327,
+        "query:memory_bm25": 3.771246833995974,
+        "query:memory_vector": 1.1961539999974775,
+        "query:postgres_exact": 7.033344292001857,
+        "query:postgres_fts": 10.21871962500154
+      }
+    },
+    "assistant/perf/results/10000-run2.json": {
+      "code_sha256": {
+        "src/ledgerops_assistant/benchmark.py": "1720637a42fc82b3bb1a7a9101a1bb4d4ee406a62f50a46a2792740ca1dbe7fe",
+        "src/ledgerops_assistant/context.py": "9127032559be547ffc8094504ef60f7fb1a5e0b5aa62de784371808fbc3dd77b",
+        "src/ledgerops_assistant/corpus.py": "d6bf496247fdb69382de7412c8cc70e1054d2f0a667e36c1d64127f3cc138790",
+        "src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+        "src/ledgerops_assistant/evaluation.py": "b4e2c759de914a3728eacd72f5e620314c2e3c7824e2b264b54b8f5c3aecacff",
+        "src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+        "src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec"
+      },
+      "created_at": "2026-11-11T14:54:39+00:00",
+      "elapsed_seconds": 103.46009700000286,
+      "embedder_kind": "bge",
+      "environment": {
+        "cpu": "Apple M4 Pro",
+        "docker": {
+          "Architecture": "aarch64",
+          "MemTotal": 8321150976,
+          "NCPU": 14,
+          "OperatingSystem": "Docker Desktop",
+          "ServerVersion": "29.4.3"
+        },
+        "docker_vm": true,
+        "logical_cores": 14,
+        "memory_bytes": 25769803776,
+        "numpy": "2.5.4",
+        "onnxruntime": "1.31.1",
+        "os": {
+          "machine": "arm64",
+          "release": "27.2.0",
+          "system": "Darwin"
+        },
+        "pgvector": "0.8.7",
+        "physical_cores": 14,
+        "postgres_in_docker": true,
+        "postgres_settings": {
+          "maintenance_work_mem": "64MB",
+          "max_parallel_workers_per_gather": "2",
+          "shared_buffers": "128MB",
+          "work_mem": "4MB"
+        },
+        "postgresql": "PostgreSQL 18.6 (Debian 18.6-1.pgdg12+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+        "python": "3.12.13",
+        "threads": {
+          "MKL_NUM_THREADS": "unset",
+          "OMP_NUM_THREADS": "unset",
+          "OPENBLAS_NUM_THREADS": "unset",
+          "VECLIB_MAXIMUM_THREADS": "unset",
+          "onnx_intra_op": 4
+        }
+      },
+      "generator": {
+        "scale": 10000,
+        "seed": 20261111,
+        "version": "sentence-mix-v1"
+      },
+      "measurements": {
+        "encoding": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651969,
+            "python_peak_bytes": 8661647,
+            "rss_process_peak_bytes": 355926016,
+            "seconds": 0.3502178750059102
+          },
+          "name": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+          "real": {
+            "cache_hit": true,
+            "cache_load": {
+              "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+              "python_current_bytes": 278540,
+              "python_peak_bytes": 284379,
+              "rss_process_peak_bytes": 638369792,
+              "seconds": 0.00025425000058021396
+            },
+            "chunks_per_second": null,
+            "seconds": null
+          },
+          "rss_process_peak_bytes": 836321280,
+          "synthetic": {
+            "cache_hit": true,
+            "cache_load": {
+              "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+              "python_current_bytes": 15364254,
+              "python_peak_bytes": 15370101,
+              "rss_process_peak_bytes": 618758144,
+              "seconds": 0.0011832500022137538
+            },
+            "chunks_per_second": null,
+            "seconds": null
+          },
+          "tokens_real": {
+            "includes_special_tokens": true,
+            "max": 614,
+            "mean": 241.9832402234637,
+            "n": 179,
+            "over_512_count": 3,
+            "percentiles": {
+              "p50": 255.0,
+              "p95": 413.29999999999995,
+              "p99": 540.0799999999999
+            },
+            "status": "measured"
+          },
+          "tokens_synthetic": {
+            "includes_special_tokens": true,
+            "max": 539,
+            "mean": 245.1,
+            "n": 10000,
+            "over_512_count": 5,
+            "percentiles": {
+              "p50": 262.0,
+              "p95": 390.0,
+              "p99": 430.0
+            },
+            "status": "measured"
+          }
+        },
+        "generation_and_chunking": {
+          "chunking": {
+            "chunks_per_second": 10026.16063105793,
+            "documents_per_second": 9384.276142884622,
+            "input_documents": 10000,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "output_chunks": 10684,
+            "python_current_bytes": 1196,
+            "python_peak_bytes": 38327,
+            "rss_process_peak_bytes": 77627392,
+            "seconds": 1.0656122910004342
+          },
+          "chunks": 10000,
+          "digest": "b4fd35bc79c5a6c46a1d4f35b5f6485a46d34a3a739ab8887aefea38a3d2c7e6",
+          "generation": {
+            "chunks_per_second": 28740.6838544977,
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 18008041,
+            "python_peak_bytes": 19801494,
+            "rss_process_peak_bytes": 77463552,
+            "seconds": 0.3479388330015354
+          },
+          "word_counts": {
+            "source": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 230.44
+            },
+            "synthetic": {
+              "p50": 158.0,
+              "p95": 223.0,
+              "p99": 232.0
+            }
+          }
+        },
+        "index_gin": {
+          "build": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22630,
+            "python_peak_bytes": 30705,
+            "rss_process_peak_bytes": 134414336,
+            "seconds": 0.17055837500083726
+          },
+          "sizes_bytes": {
+            "gin": 3522560,
+            "table_main_fork": 16457728,
+            "table_total_with_toast_and_indexes": 54960128
+          }
+        },
+        "index_hnsw": {
+          "build": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22630,
+            "python_peak_bytes": 30705,
+            "rss_process_peak_bytes": 134725632,
+            "seconds": 0.8968966249958612
+          },
+          "sizes_bytes": {
+            "hnsw": 20488192,
+            "table_main_fork": 16457728,
+            "table_total_with_toast_and_indexes": 75448320
+          }
+        },
+        "postgres_ingest": {
+          "database_warmup_rows": 20,
+          "rows": 10000,
+          "secondary_indexes_during_write": false,
+          "write": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 2682732,
+            "python_peak_bytes": 84908645,
+            "rss_process_peak_bytes": 198754304,
+            "seconds": 4.934786708996398
+          }
+        }
+      },
+      "memory_method": "Fresh subprocess per stage/method; RSS is that worker's lifetime peak including inputs, warmup and profile. Latency tracing is off; memory is a separate query probe. Other phase timings include tracemalloc overhead. PostgreSQL server memory is not Python client RSS.",
+      "quality": {
+        "ann_force_index": true,
+        "boundary_ties_within_1e-6": 0,
+        "context_profile_excludes_retrieval": true,
+        "dev_file_sha256": "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c",
+        "dev_questions": 32,
+        "dev_recall": {
+          "real_only": {
+            "hnsw_100": {
+              "recall@5": 0.71875
+            },
+            "hnsw_200": {
+              "recall@5": 0.71875
+            },
+            "hnsw_40": {
+              "recall@5": 0.71875
+            },
+            "hybrid_10": {
+              "recall@5": 0.7135416666666666
+            },
+            "memory_bm25": {
+              "recall@5": 0.7916666666666666
+            },
+            "memory_vector": {
+              "recall@5": 0.71875
+            },
+            "postgres_exact": {
+              "recall@5": 0.71875
+            },
+            "postgres_fts": {
+              "recall@5": 0.640625
+            }
+          },
+          "real_plus_distractors": {
+            "hnsw_100": {
+              "recall@5": 0.25
+            },
+            "hnsw_200": {
+              "recall@5": 0.25
+            },
+            "hnsw_40": {
+              "recall@5": 0.234375
+            },
+            "hybrid_10": {
+              "recall@5": 0.4375
+            },
+            "memory_bm25": {
+              "recall@5": 0.22395833333333334
+            },
+            "memory_vector": {
+              "recall@5": 0.296875
+            },
+            "postgres_exact": {
+              "recall@5": 0.296875
+            },
+            "postgres_fts": {
+              "recall@5": 0.4635416666666667
+            }
+          }
+        },
+        "hnsw_recall_at_10": {
+          "100": {
+            "mean": 0.8985
+          },
+          "200": {
+            "mean": 0.957
+          },
+          "40": {
+            "mean": 0.804
+          }
+        },
+        "measurement": {
+          "instrumentation": "perf_counter + tracemalloc",
+          "python_current_bytes": 20513025,
+          "python_peak_bytes": 106513340,
+          "seconds": 42.89580074999685
+        },
+        "model_initialization": {
+          "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+          "python_current_bytes": 8649281,
+          "python_peak_bytes": 8659002,
+          "rss_process_peak_bytes": 371048448,
+          "seconds": 0.3364376249955967
+        },
+        "rss_process_peak_bytes": 629374976
+      },
+      "quality_signal": true,
+      "queries": {
+        "hnsw_100": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 371228672,
+            "seconds": 0.01829145800002152
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.986520996288164,
+            "p95": 13.370168750770972,
+            "p99": 14.745590004531541
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652988,
+            "python_peak_bytes": 8662770,
+            "rss_process_peak_bytes": 371228672,
+            "seconds": 0.32923554099397734
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 24187,
+            "python_peak_bytes": 52697,
+            "rss_process_peak_bytes": 371228672,
+            "seconds": 0.012306667005759664
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 371228672,
+          "single_client_qps": 82.12160496314131,
+          "warmup_queries": 16
+        },
+        "hnsw_200": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 395329536,
+            "seconds": 0.018070457997964695
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 12.898125500214519,
+            "p95": 15.138750000551227,
+            "p99": 17.92188791652731
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8649590,
+            "python_peak_bytes": 8659563,
+            "rss_process_peak_bytes": 395329536,
+            "seconds": 0.32599375000427244
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22337,
+            "python_peak_bytes": 50847,
+            "rss_process_peak_bytes": 395329536,
+            "seconds": 0.014056083993637003
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 395329536,
+          "single_client_qps": 75.73794316383824,
+          "warmup_queries": 16
+        },
+        "hnsw_40": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1073,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 371523584,
+            "seconds": 0.01805604200490052
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 11.55104150166153,
+            "p95": 13.840795848227566,
+            "p99": 15.930371911599648
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652623,
+            "python_peak_bytes": 8662824,
+            "rss_process_peak_bytes": 371523584,
+            "seconds": 0.32533620800677454
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 21875,
+            "python_peak_bytes": 50385,
+            "rss_process_peak_bytes": 371523584,
+            "seconds": 0.012086333998013288
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 371523584,
+          "single_client_qps": 84.46469413024946,
+          "warmup_queries": 16
+        },
+        "hybrid_10": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 1729,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 369442816,
+            "seconds": 0.018029291997663677
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 55.90527050298988,
+            "p95": 77.07225240556,
+            "p99": 79.97955032777098
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8655674,
+            "python_peak_bytes": 8665143,
+            "rss_process_peak_bytes": 369442816,
+            "seconds": 0.35179649999918183
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 49416,
+            "python_peak_bytes": 264460,
+            "rss_process_peak_bytes": 369442816,
+            "seconds": 0.05514075000246521
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 369442816,
+          "single_client_qps": 17.046852683836537,
+          "warmup_queries": 16
+        },
+        "memory_bm25": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 84279928,
+            "python_peak_bytes": 84459620,
+            "rss_process_peak_bytes": 509067264,
+            "seconds": 1.0020304589997977
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 9.000666501378873,
+            "p95": 12.031751751419506,
+            "p99": 13.940240838273892
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8651359,
+            "python_peak_bytes": 8660973,
+            "rss_process_peak_bytes": 370081792,
+            "seconds": 0.315705416003766
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 115880,
+            "python_peak_bytes": 2004966,
+            "rss_process_peak_bytes": 509067264,
+            "seconds": 0.02179045799857704
+          },
+          "query_encoding_included": false,
+          "rss_process_peak_bytes": 509067264,
+          "single_client_qps": 106.80907854522358,
+          "warmup_queries": 16
+        },
+        "memory_vector": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 848,
+            "python_peak_bytes": 86000,
+            "rss_process_peak_bytes": 370917376,
+            "seconds": 0.00013891699927626178
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 2.947791996120941,
+            "p95": 3.2053558996267384,
+            "p99": 4.0107466717017815
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652376,
+            "python_peak_bytes": 8662179,
+            "rss_process_peak_bytes": 370917376,
+            "seconds": 0.31270558400137816
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 2850,
+            "python_peak_bytes": 207290,
+            "rss_process_peak_bytes": 370917376,
+            "seconds": 0.0028651669999817386
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 370917376,
+          "single_client_qps": 335.9534403800932,
+          "warmup_queries": 16
+        },
+        "postgres_exact": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 937,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 393314304,
+            "seconds": 0.01866666699788766
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 30.408186998101883,
+            "p95": 32.11237709801935,
+            "p99": 34.783157919155194
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652263,
+            "python_peak_bytes": 8661675,
+            "rss_process_peak_bytes": 393314304,
+            "seconds": 0.334679874998983
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 22345,
+            "python_peak_bytes": 51346,
+            "rss_process_peak_bytes": 393314304,
+            "seconds": 0.03117454200400971
+          },
+          "query_encoding_included": true,
+          "rss_process_peak_bytes": 393314304,
+          "single_client_qps": 32.70744547736248,
+          "warmup_queries": 16
+        },
+        "postgres_fts": {
+          "initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 945,
+            "python_peak_bytes": 6858,
+            "rss_process_peak_bytes": 370589696,
+            "seconds": 0.018607000005431473
+          },
+          "latency_instrumentation": "perf_counter only",
+          "latency_ms": {
+            "p50": 46.14849999779835,
+            "p95": 61.537560406213736,
+            "p99": 66.35588349978207
+          },
+          "model_initialization": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 8652269,
+            "python_peak_bytes": 8662214,
+            "rss_process_peak_bytes": 370589696,
+            "seconds": 0.3292367909962195
+          },
+          "one_query_memory_probe": {
+            "instrumentation": "perf_counter + tracemalloc; RSS lifetime high-water",
+            "python_current_bytes": 31495,
+            "python_peak_bytes": 36067,
+            "rss_process_peak_bytes": 370589696,
+            "seconds": 0.03364270900055999
+          },
+          "query_encoding_included": false,
+          "rss_process_peak_bytes": 370589696,
+          "single_client_qps": 21.085992851281823,
+          "warmup_queries": 16
+        }
+      },
+      "schema_version": 1,
+      "smoke": false,
+      "source": {
+        "chunks": 179,
+        "digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+        "files": 21,
+        "revision": "a3b38b33541e82a32cc7d95a81cf70bda79d2f5b"
+      },
+      "status": "completed",
+      "worker_wall_seconds": {
+        "embed": 3.1814144999952987,
+        "generate": 1.6659727500009467,
+        "index_gin": 0.5767879169943626,
+        "index_hnsw": 1.3091523749972112,
+        "ingest": 5.85096820799663,
+        "quality": 43.47346545899927,
+        "query:hnsw_100": 3.240217250000569,
+        "query:hnsw_200": 3.470377291996556,
+        "query:hnsw_40": 3.185669833997963,
+        "query:hybrid_10": 13.35668437500135,
+        "query:memory_bm25": 3.6125194589985767,
+        "query:memory_vector": 1.1722634589968948,
+        "query:postgres_exact": 7.293893374997424,
+        "query:postgres_fts": 10.866944333996798
+      }
+    },
+    "assistant/perf/results/copied-text-attribution.json": {
+      "analysis_sha256": "007d276c34ef527176e17aed39c1f8a2e020e732dbc6abe1ce44d4bf5ef619d2",
+      "created_at": "2026-11-13T13:39:41+00:00",
+      "definition": {
+        "denominator": "number of original relevant sections",
+        "match": "complete unit with token boundaries; synthetic passages only",
+        "minimum_whitespace_words": 6,
+        "normalization": "whitespace only",
+        "ranking": "top 5 unique retrieved section IDs from search(k=30)",
+        "rerank_or_deduplicate_after_attribution": false,
+        "sentence_units": "generator punctuation-plus-whitespace or newline splitter",
+        "strict_and_adjusted_use_same_hits": true
+      },
+      "dev_questions_sha256": "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c",
+      "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+      "environment": {
+        "cpu": "Apple M4 Pro",
+        "docker": {
+          "Architecture": "aarch64",
+          "MemTotal": 8321150976,
+          "NCPU": 14,
+          "OperatingSystem": "Docker Desktop",
+          "ServerVersion": "29.4.3"
+        },
+        "docker_vm": true,
+        "logical_cores": 14,
+        "memory_bytes": 25769803776,
+        "numpy": "2.5.4",
+        "onnxruntime": "1.31.1",
+        "os": {
+          "machine": "arm64",
+          "release": "27.2.0",
+          "system": "Darwin"
+        },
+        "pgvector": "0.8.7",
+        "physical_cores": 14,
+        "postgres_in_docker": true,
+        "postgres_settings": {
+          "maintenance_work_mem": "64MB",
+          "max_parallel_workers_per_gather": "2",
+          "shared_buffers": "128MB",
+          "work_mem": "4MB"
+        },
+        "postgresql": "PostgreSQL 18.6 (Debian 18.6-1.pgdg12+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+        "python": "3.12.13",
+        "threads": {
+          "MKL_NUM_THREADS": "unset",
+          "OMP_NUM_THREADS": "unset",
+          "OPENBLAS_NUM_THREADS": "unset",
+          "VECLIB_MAXIMUM_THREADS": "unset",
+          "onnx_intra_op": 4
+        }
+      },
+      "independent_hnsw_index_builds": true,
+      "new_non_timed_ranking_pass": true,
+      "original_benchmark_rerun": false,
+      "original_six_records_sha256": {
+        "perf/results/1000-cold-encoding.json": "764c711f2b108483ae13a3d0affc4d9caac3094641489de48e16a6b5c199c74d",
+        "perf/results/1000-run1.json": "a7e468457094fd810013af4b0e053e76dea27a6fce181a83cc78b2d656e3c48a",
+        "perf/results/1000-run2.json": "1f46cb997d35b669b6c6659506c0d4bfe01fde834a3fbb7a4c51742fdbbad2ea",
+        "perf/results/10000-cold-encoding.json": "a60b69f020c6bfc97d4c2e8377a81854796f1009af01b4ab9a44199d56ee4b22",
+        "perf/results/10000-run1.json": "7ec51ea270fe3fc17ffaa5cb77d5451fc09fa126fbfd6554a5ac30169042f0ed",
+        "perf/results/10000-run2.json": "a99425740b274cb864cd13b1bc7879fe105c878ea5fb5f48f63996f8b25dc75c"
+      },
+      "populations": {
+        "0": {
+          "chunks": 179,
+          "digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+          "methods": {
+            "hnsw_100": {
+              "adjusted": 0.71875,
+              "strict": 0.71875
+            },
+            "hnsw_200": {
+              "adjusted": 0.71875,
+              "strict": 0.71875
+            },
+            "hnsw_40": {
+              "adjusted": 0.71875,
+              "strict": 0.71875
+            },
+            "hybrid_10": {
+              "adjusted": 0.7135416666666666,
+              "strict": 0.7135416666666666
+            },
+            "memory_bm25": {
+              "adjusted": 0.7916666666666666,
+              "strict": 0.7916666666666666
+            },
+            "memory_vector": {
+              "adjusted": 0.71875,
+              "strict": 0.71875
+            },
+            "postgres_exact": {
+              "adjusted": 0.71875,
+              "strict": 0.71875
+            },
+            "postgres_fts": {
+              "adjusted": 0.640625,
+              "strict": 0.640625
+            }
+          }
+        },
+        "1000": {
+          "chunks": 1179,
+          "digest": "8eacaea0a0fcf45efb5ce78cb4b60f03fcd4312531258ce44f64f462a984ccaf",
+          "methods": {
+            "hnsw_100": {
+              "adjusted": 0.765625,
+              "strict": 0.515625
+            },
+            "hnsw_200": {
+              "adjusted": 0.765625,
+              "strict": 0.515625
+            },
+            "hnsw_40": {
+              "adjusted": 0.765625,
+              "strict": 0.515625
+            },
+            "hybrid_10": {
+              "adjusted": 0.7916666666666666,
+              "strict": 0.6197916666666666
+            },
+            "memory_bm25": {
+              "adjusted": 0.8229166666666666,
+              "strict": 0.59375
+            },
+            "memory_vector": {
+              "adjusted": 0.765625,
+              "strict": 0.515625
+            },
+            "postgres_exact": {
+              "adjusted": 0.765625,
+              "strict": 0.515625
+            },
+            "postgres_fts": {
+              "adjusted": 0.7604166666666666,
+              "strict": 0.6041666666666666
+            }
+          }
+        },
+        "10000": {
+          "chunks": 10179,
+          "digest": "82de20f4c6fe2c711279cdfab4e6ef88470e3561e3f7199b9efecf6e17941370",
+          "methods": {
+            "hnsw_100": {
+              "adjusted": 0.7083333333333334,
+              "strict": 0.25
+            },
+            "hnsw_200": {
+              "adjusted": 0.7135416666666666,
+              "strict": 0.25
+            },
+            "hnsw_40": {
+              "adjusted": 0.703125,
+              "strict": 0.234375
+            },
+            "hybrid_10": {
+              "adjusted": 0.796875,
+              "strict": 0.4375
+            },
+            "memory_bm25": {
+              "adjusted": 0.734375,
+              "strict": 0.22395833333333334
+            },
+            "memory_vector": {
+              "adjusted": 0.6979166666666666,
+              "strict": 0.296875
+            },
+            "postgres_exact": {
+              "adjusted": 0.6979166666666666,
+              "strict": 0.296875
+            },
+            "postgres_fts": {
+              "adjusted": 0.8125,
+              "strict": 0.4635416666666667
+            }
+          }
+        }
+      },
+      "schema_version": 1,
+      "scope": "post_hoc_copied_sentence_attribution",
+      "source_corpus_digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
+      "vector_cache_sha256": {
+        "1000": "47468481457489cd4e76b77c33b515114bfd2a624c9104a109fc6c32f2c5e148",
+        "10000": "bdab67c45085f2c94db7b60745d0b9dc3eaa950d45b4aced3d5679d76aa73032",
+        "real": "3167f302b2d7fdb6c0de4e110822e9c05932e46f5a185a3b36b8c842c8e0a2bc"
+      }
+    }
+  },
+  "schema_version": 1
+}

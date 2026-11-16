@@ -28,7 +28,7 @@ def test_citations_of_passages_not_given_are_dropped(tiny_corpus):
 
 def test_an_answer_with_no_valid_citation_becomes_a_refusal(tiny_corpus):
     provider = Scripted(Draft("Confident but unsupported.", ["docs/MADE-UP.md#x/0"]))
-    result = answer("timeout hold", BM25Retriever(tiny_corpus), provider)
+    result = answer("Does a timeout keep the hold?", BM25Retriever(tiny_corpus), provider)
     assert result.refused and result.reason == "ungrounded"
     assert "Confident" not in result.text
 
@@ -50,7 +50,10 @@ def test_scope_gate_refuses_before_the_model(tiny_corpus):
     vector = VectorRetriever(tiny_corpus, HashingEmbedder())
     provider = Scripted(Draft("Pierogi need flour.", []))
     result = answer(
-        "pierogi recipe", BM25Retriever(tiny_corpus), provider, gate=ScopeGate(vector, 0.5)
+        "What ingredients go into pierogi?",
+        BM25Retriever(tiny_corpus),
+        provider,
+        gate=ScopeGate(vector, 0.5),
     )
     assert result.reason == "not_in_docs" and provider.calls == 0
 

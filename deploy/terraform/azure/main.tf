@@ -21,6 +21,8 @@ module "key_vault" {
   location                   = azurerm_resource_group.this.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   deployer_object_id         = data.azurerm_client_config.current.object_id
+  deployer_ipv4_cidrs        = var.key_vault_deployer_ipv4_cidrs
+  assistant_enabled          = var.assistant_image != null
   log_analytics_workspace_id = module.logging.workspace_id
   tags                       = var.tags
 }
@@ -33,6 +35,24 @@ module "postgres" {
   key_vault_id               = module.key_vault.id
   log_analytics_workspace_id = module.logging.workspace_id
   tags                       = var.tags
+  assistant_enabled          = var.assistant_image != null
+}
+
+module "assistant" {
+  count                        = var.assistant_image == null ? 0 : 1
+  source                       = "./modules/assistant"
+  prefix                       = var.prefix
+  resource_group_name          = azurerm_resource_group.this.name
+  location                     = azurerm_resource_group.this.location
+  container_app_environment_id = module.container_apps.environment_id
+  image                        = var.assistant_image
+  api_origin                   = "https://${module.container_apps.api_fqdn}"
+  secret_ids                   = module.key_vault.profile_secret_ids
+  key_vault_id                 = module.key_vault.id
+  service_enabled              = var.assistant_service_enabled
+  external_ingress             = var.assistant_external_ingress
+  tags                         = var.tags
+  depends_on                   = [module.postgres]
 }
 
 module "container_apps" {

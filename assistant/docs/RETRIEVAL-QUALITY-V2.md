@@ -1,14 +1,117 @@
 # Retrieval quality: diagnosis, development selection and holdout studies
 
-The current-corpus [v3 holdout](#v3-holdout) is reported first. The v2 study and
-#19 context measurements below are historical. Current CI retains the development
-baseline in [Current main document integration](#current-main-document-integration).
+The current corpus is operations-v4: 20 explicitly selected operational files,
+excluding the repository homepage and navigation. Historical v1/v2/v3 studies
+below retain their recorded source snapshots. Raw reports are in the
+[evaluation-data-v1 release](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1);
+restore them using the [evidence guide](../eval/README.md) before reproducing
+historical analysis, in the recorded original checkout.
+
+## Operations-v4
+
+The homepage is a product entry point, not an operational evidence source. It is
+excluded from `CORPUS_FILES`; moving detailed references under `docs/internals`
+keeps operating rules available while giving visitors six main guides and a start
+page. The chunking, encoder, fusion and context policies are unchanged.
+Development question wording and required facts are unchanged. Labels migrate by
+explicit file mapping, and three removed README references retain their payout
+and ADR evidence. Historical holdout labels/results are unchanged and unrerun.
+CI uses the compact `eval/baselines/operations-v4.json` baseline. A regression test
+changes README bytes and proves the corpus digest remains identical.
+
+### Current development results
+
+Operations-v4 has **20 files, 170 chunks and 98 sections**, corpus digest
+`822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229`.
+The 32 documentation development questions retain their wording/required facts.
+Homepage-source exclusions and path changes are explicit in
+[the migration manifest](../eval/v4-dev/manifest.json). There is no new blind
+retrieval score on this corpus. These development figures do not replace historical
+v3 scores with a claim of improvement; the relevance population has changed.
+
+| Method | Recall@5 | MRR@10 | Hit@1 | nDCG@5 |
+|---|---:|---:|---:|---:|
+| PostgreSQL FTS | 0.6458 | 0.5790 | 0.4062 | 0.5498 |
+| pgvector HNSW | 0.7552 | 0.7193 | 0.5938 | 0.6611 |
+| Hybrid k=60 | 0.7135 | 0.7397 | 0.6562 | 0.6715 |
+| Default hybrid k=10 | 0.7448 | 0.7406 | 0.6562 | 0.6830 |
+
+Exact vector rankings match HNSW on this small corpus. Default hybrid raw-five-
+chunk section coverage is 0.6979; expanded context coverage is 0.8073, averaging
+11.03 chunks and 17,680 serialized bytes. Hybrid does not lead vector Recall@5.
+No fusion, encoder, chunking or context parameter was tuned in this release.
+The v1-011 source remains outside the supplied context and its strict xfail remains.
+
+Reproduce the development gate with fake generation:
+
+```sh
+cd assistant
+uv run --locked python scripts/evaluate_local.py --split dev \
+  --baseline eval/baselines/operations-v4.json --output .cache/current-dev.json
+```
+
+### Real answer sample on operations-v4
+
+All 32 development documentation questions were sent once through the existing
+local ChatGPT-plan adapter using the official Codex SDK. This is a non-blind
+sample, with synthetic required-fact labels. An assistant manually compared every
+answer against those facts and current source text: **27 complete, 5 incomplete,
+0 wrong, 0 refused and 0 runtime errors**. No unsupported factual addition was
+identified; this does not establish general answer or injection safety. It is not
+independent human review. [Per-question judgements](../eval/answer-review.json)
+retain the grading criterion and omissions.
+
+The incomplete answers are v1-007 (new identity/key), 011 (80/0/80 and no journal),
+013 (non-callback quarantine behavior), 014 (maker/checker ordering), and 024
+(23/25-hour DST days). Source revision `db7e124` and source hashes are in the raw
+record. Subsequent refusal-grammar changes do not change retrieval or generation;
+this sample was not rerun to obtain better answers.
+
+Median single-answer latency was **8.185 s**, p95 **9.562 s**, with provider-reported
+**513,295 input + 4,044 output tokens** across 32 calls. The SDK harness contributes
+to these counters. Quota consumption is recorded per call; billed USD is unknown
+because this subscription route supplies no per-request invoice. The SDK account's
+default model was used without an explicit model pin, limiting reproducibility.
+
+The exclusive-record script preserves partial failures and has no automatic retry:
+
+```sh
+cd assistant
+LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1 uv run --locked --extra subscription \
+  python -m scripts.review_current_answers --development-report .cache/current-dev.json \
+  --output .cache/new-explicitly-authorized-sample.json
+```
+
+### Independent refusal checks
+
+A separate-context source-only author wrote a fresh 40-item sample after the first
+hardening implementation. Code/questions were frozen and pushed at `48c7379`
+before its single fake-generation run. It achieved only **25/40 exact routes** and
+**22/34 correct refusals**, with **0/6 false refusals** on documentation controls.
+The failed result is retained in [the frozen study](../eval/refusal-v4/summary.json).
+Its questions were not used for subsequent development. Aggregate failures
+motivated a separate closed-request-grammar development cycle and another
+independently authored sample. Finite routing and topic rules remain supplemental;
+caller permissions and closed GET tools enforce the actual access boundary.
+
+The separate closed-grammar implementation was completed before a fresh source-
+only author sample was imported. Questions, code hashes, baseline and protocol
+were frozen/pushed at `ef2b6b6`, then run exactly once with fake generation.
+[The v5 study](../eval/refusal-v5/summary.json) reports **36/40 exact routes**,
+**30/34 correct refusals** and **0/6 false documentation refusals**. All **20 action
+requests, including 8 injection cases**, were classified/refused as actions; all
+four live-state questions routed correctly. Four of ten unsupported neighboring
+payment topics still passed the finite scope boundary. These questions were not
+used for tuning and the study was not rerun. The samples differ, so their numbers
+do not establish a paired improvement estimate. The result supports the bounded
+request-grammar change, while retaining a clear scope-detection limitation.
+Fake generation cannot establish real-model resistance to injection.
 
 ## v3 holdout
 
 ### Frozen inputs and objective audit
 
-This run uses the current explicit **21-file, 179-chunk, 106-section** corpus,
+This historical run uses the explicit **21-file, 179-chunk, 106-section** corpus,
 digest `6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91`,
 with source contents pinned to `c4d943c`. The RRF/context/encoder/routing policies
 and development baseline are unchanged. V3 contributes no CI quality threshold.
@@ -240,7 +343,7 @@ thresholds and labels were left unchanged after observing the failures.
 - MLflow run: `a82fcf71b2ff4eedb24c6fc37666abf8`.
 - [Single-attempt record](../eval/v3-holdout/run.json): attempt 1 completed,
   all 69 questions recorded, no mid-run failure, retry or configuration change.
-- [Complete result](../eval/results/v3-holdout.json): raw ranks, per-question
+- [Complete result](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1): raw ranks, per-question
   scores, context IDs, fake answers, routing failures, both interval procedures
   and environment/provenance hashes.
 
@@ -406,8 +509,8 @@ This retrieval study used no paid or subscription inference.
 - [Frozen code/configuration](../eval/v2-study/freeze.json)
 - [Questions and source annotations](../eval/v2-holdout/questions.jsonl)
 - [Dataset provenance and limitations](../eval/v2-holdout/manifest.json)
-- [Compact held-out report](../eval/results/v2-postgres-holdout.json)
-- [Per-question scores](../eval/results/v2-postgres-holdout.csv)
+- [Compact held-out report](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1)
+- [Per-question scores](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1)
 
 Full ranking/evaluation artifacts remain in local MLflow; the public repository
 contains compact summaries and scores rather than a second full answer dump.
@@ -504,8 +607,8 @@ failures; they do not demonstrate factual accuracy or injection resistance. The
 sample is too small for broad rankings. HNSW/exact agreement on 175 chunks is not
 an approximate-search benchmark at scale. Raw reports retain corpus/model/label
 identities and MLflow IDs:
-[v1 development](../eval/results/v1-postgres-dev.json),
-[v1 held out](../eval/results/v1-postgres-holdout.json).
+[v1 development](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1),
+[v1 held out](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1).
 
 The still-supported in-memory CLI is a prototype: its keyword method is BM25 and
 its unchanged scope heuristic came from an older synthetic calibration set. Those
@@ -755,8 +858,8 @@ depth=50, equal weights, 30 context candidates, five section anchors and the sam
 
 Relabeling recognizes additional sufficient sources; it does not improve the
 retriever or restore the earlier Recall. The current baseline is
-[v3-main-docs-dev.json](../eval/results/v3-main-docs-dev.json). The original
-[v2-postgres-dev.json](../eval/results/v2-postgres-dev.json) remains unchanged as
+[v3-main-docs-dev.json](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1). The original
+[v2-postgres-dev.json](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1) remains unchanged as
 historical evidence. Gate checks still reject future corpus/model/label identity
 drift and decreases against the reviewed current baseline.
 

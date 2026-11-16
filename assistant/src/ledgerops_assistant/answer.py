@@ -100,6 +100,8 @@ def answer(
     route = routing.classify(question)
     if route == routing.ACTION:
         return Answer(question, route, ACTION_TEXT, True, "action_not_permitted")
+    if routing.unsupported_topic(question):
+        return Answer(question, routing.OUT_OF_SCOPE, NOT_IN_DOCS_TEXT, True, "not_in_docs")
     if route == routing.LIVE_STATE:
         return Answer(question, route, LIVE_STATE_TEXT, True, "needs_live_state")
 

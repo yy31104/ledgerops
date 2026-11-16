@@ -1,0 +1,13 @@
+{
+  "purpose": "Independent fresh routing/refusal check after code freeze; not an answer-quality benchmark.",
+  "metrics": [
+    "exact route accuracy",
+    "correct refusals among34non-doc questions",
+    "false refusals among6doc controls"
+  ],
+  "provider": "fake",
+  "threshold": "Use operations-v4 development cosine threshold unchanged",
+  "run_policy": "One exclusive run record, including setup failures; no automatic retries or post-result tuning.",
+  "historical_v3": "Do not rerun or tune using historical questions.",
+  "ci": "Static question/manifest binding only, no heldout scoring."
+}

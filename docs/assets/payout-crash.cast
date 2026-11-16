@@ -1,0 +1,9 @@
+{"version": 2, "width": 112, "height": 20, "timestamp": 1794835141, "duration": 12.67179, "command": "make demo-payout-crash", "title": "Provider paid, worker killed, recovery settles once (local synthetic funds)", "env": {"TERM": "xterm-256color"}}
+[1.579082, "o", "[01] Synthetic PLN minor units: merchant booked 80; payout 60 + fee 2 accepted.\r\n[02] Hold 62 committed: booked / reserved / available = 80 / 62 / 18.\r\n"]
+[1.752199, "o", "[03] Provider SQLite committed the payment; its HTTP reply is deliberately paused.\r\n[04] Ledger still UNKNOWN / HELD; durable transport record is MAY_HAVE_SENT.\r\n"]
+[1.768847, "o", "[05] SIGKILL worker after provider commit: hold remains 62; no assumed failure.\r\n"]
+[1.914295, "o", "[06] Worker restarted; waiting for the real 10-second claim lease before recovery.\r\n"]
+[11.868023, "o", "[07] LOOKUP with the original payment key confirms SUCCEEDED; no second PUT.\r\n"]
+[12.181952, "o", "[08] Replay + another worker scan: provider effects = 1; ledger settlements = 1.\r\n[09] PASS: booked / reserved / available = 18 / 0 / 18; independent verifier healthy.\r\n"]
+[12.515729, "o", "\r\n"]
+[12.670658, "o", "Crash demo complete. Worker/provider stopped; owned PostgreSQL container removed.\r\n"]

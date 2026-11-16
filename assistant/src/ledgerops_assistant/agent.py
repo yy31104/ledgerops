@@ -16,6 +16,7 @@ from ledgerops_assistant.context import retrieve_passages
 from ledgerops_assistant.corpus import Chunk
 from ledgerops_assistant.providers.base import ANSWER_SCHEMA, parse_draft, user_message
 from ledgerops_assistant.tools import TOOLS, APIUnavailable, AuthenticationRequired, ReadOnlyAPI
+from ledgerops_assistant.usage import accumulate, summary
 
 PLAN_SCHEMA = {
     "type": "object",
@@ -75,6 +76,7 @@ class OperatorContext:
     cancel: threading.Event
     deadline: float
     on_charge: object = None
+    on_usage: object = None
 
 
 class AgentState(TypedDict, total=False):
@@ -84,6 +86,11 @@ class AgentState(TypedDict, total=False):
     cost_usd: float
     input_tokens: int
     output_tokens: int
+    model_calls: int
+    reported_model_calls: int
+    usage_complete: bool
+    usage: dict
+    duration_ms: float
     observations: list[dict]
     documents: list[dict]
     tool_call: dict
@@ -170,6 +177,12 @@ class Agent:
             max_output_tokens=self.limits.max_output_tokens,
         )
 
+    def _usage(self, state, usage, called, context):
+        update = accumulate(state, usage, called)
+        if called and context.on_usage:
+            context.on_usage(summary({**state, **update}, self.provider.name, self.limits))
+        return update
+
     def _fake_decision(self, state):
         pattern = r"\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b"
         match = re.search(pattern, state["question"])
@@ -205,7 +218,7 @@ class Agent:
                 }
             ),
         )
-        reserved, usage = 0, {}
+        reserved, usage, called = 0, {}, False
         try:
             reserved = self._reserve(state, message)
             if runtime.context.on_charge:
@@ -215,6 +228,7 @@ class Agent:
             elif self.provider.name == "fake":
                 decision = self._fake_decision(state)
             else:
+                called = True
                 raw, usage = self._generate(PLAN_PROMPT, message, PLAN_SCHEMA, runtime.context)
                 decision = json.loads(raw)
             if (
@@ -229,14 +243,14 @@ class Agent:
                 "result": refusal("model_or_budget_error"),
                 "steps": state["steps"] + 1,
                 "cost_usd": state["cost_usd"] + reserved,
+                **self._usage(state, usage, called, runtime.context),
             }
         return {
             "tool_call": decision,
             "next": "answer" if decision["tool"] == "finish" else "read",
             "steps": state["steps"] + 1,
             "cost_usd": state["cost_usd"] + reserved,
-            "input_tokens": state["input_tokens"] + int(usage.get("input_tokens") or 0),
-            "output_tokens": state["output_tokens"] + int(usage.get("output_tokens") or 0),
+            **self._usage(state, usage, called, runtime.context),
         }
 
     def _read(self, state, runtime: Runtime[OperatorContext]):
@@ -300,7 +314,7 @@ class Agent:
         chunks = [Chunk(**d) for d in documents] + api_chunks
         if not chunks:
             return {"result": refusal("no_evidence")}
-        reserved = 0
+        reserved, usage, called = 0, {}, False
         try:
             reserved = self._reserve(state, message)
             if runtime.context.on_charge:
@@ -308,6 +322,7 @@ class Agent:
             if self.provider.name == "fake":
                 draft = self.provider.draft(state["question"], chunks)
             else:
+                called = True
                 raw, usage = self._generate(ANSWER_PROMPT, message, ANSWER_SCHEMA, runtime.context)
                 draft = parse_draft(raw, usage)
         except Exception:
@@ -315,13 +330,13 @@ class Agent:
                 "result": refusal("model_or_budget_error"),
                 "steps": state["steps"] + 1,
                 "cost_usd": state["cost_usd"] + reserved,
+                **self._usage(state, usage, called, runtime.context),
             }
         given = {c.chunk_id: c for c in chunks}
         billing = {
             "steps": state["steps"] + 1,
             "cost_usd": state["cost_usd"] + reserved,
-            "input_tokens": state["input_tokens"] + int(draft.usage.get("input_tokens") or 0),
-            "output_tokens": state["output_tokens"] + int(draft.usage.get("output_tokens") or 0),
+            **self._usage(state, draft.usage, called, runtime.context),
         }
         observed = {o["source_id"]: o["observed_at"] for o in state["observations"]}
         cited = [given[c] for c in dict.fromkeys(draft.citations) if c in given]
@@ -337,10 +352,7 @@ class Agent:
             )
             return {**billing, "result": refusal(reason)}
         return {
-            "steps": state["steps"] + 1,
-            "cost_usd": state["cost_usd"] + reserved,
-            "input_tokens": state["input_tokens"] + int(draft.usage.get("input_tokens") or 0),
-            "output_tokens": state["output_tokens"] + int(draft.usage.get("output_tokens") or 0),
+            **billing,
             "result": {
                 "text": draft.answer,
                 "refused": draft.refused,
@@ -360,17 +372,35 @@ class Agent:
             },
         }
 
-    def run(self, question, client, *, cancel=None, on_event=None, on_charge=None):
-        identity = client.identity()
-        if routing.classify(question) == routing.ACTION:
+    def run(self, question, client, *, cancel=None, on_event=None, on_charge=None, on_usage=None):
+        started = time.monotonic()
+
+        def finish(state):
             return {
-                "question": question,
-                "owner_key": identity.owner_key,
-                "steps": 0,
-                "cost_usd": 0,
-                "observations": [],
-                "result": refusal("action_not_permitted"),
+                **state,
+                "usage": summary(state, self.provider.name, self.limits),
+                "duration_ms": (time.monotonic() - started) * 1000,
             }
+
+        identity = client.identity()
+        rejection = (
+            "action_not_permitted"
+            if routing.classify(question) == routing.ACTION
+            else "not_in_docs"
+            if routing.unsupported_topic(question)
+            else None
+        )
+        if rejection:
+            return finish(
+                {
+                    "question": question,
+                    "owner_key": identity.owner_key,
+                    "steps": 0,
+                    "cost_usd": 0,
+                    "observations": [],
+                    "result": refusal(rejection),
+                }
+            )
         initial = AgentState(
             question=question,
             owner_key=identity.owner_key,
@@ -378,6 +408,9 @@ class Agent:
             cost_usd=0,
             input_tokens=0,
             output_tokens=0,
+            model_calls=0,
+            reported_model_calls=0,
+            usage_complete=True,
             observations=[],
             documents=[asdict(c) for c in retrieve_passages(self.retriever, question, 5)],
         )
@@ -387,9 +420,10 @@ class Agent:
             cancel or threading.Event(),
             time.monotonic() + self.limits.deadline_seconds,
             on_charge,
+            on_usage,
         )
         if on_event is None:
-            return self.graph.invoke(initial, {"recursion_limit": 40}, context=context)
+            return finish(self.graph.invoke(initial, {"recursion_limit": 40}, context=context))
         latest = initial
         for mode, data in self.graph.stream(
             initial, {"recursion_limit": 40}, context=context, stream_mode=["updates", "values"]
@@ -398,4 +432,4 @@ class Agent:
                 latest = data
             else:
                 on_event({"phase": next(iter(data)), "steps": latest.get("steps", 0)})
-        return latest
+        return finish(latest)

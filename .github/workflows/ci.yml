@@ -90,10 +90,16 @@ jobs:
           uv run --locked ruff check .
           uv run --locked ruff format --check .
 
-      # The fake provider and the hashing embedder keep this job offline and free:
+      # The default tests use fake generation and hashing embeddings:
       # no model download, no API key.
       - name: Test
         run: uv run --locked python -m pytest
+
+      - name: Verify historical release evidence
+        run: |
+          uv run --locked python scripts/evidence_archive.py restore \
+            --manifest eval/evidence-manifest.json --cache .cache/evidence
+          uv run --locked python -m pytest -m evidence
 
       - name: PostgreSQL integration
         run: uv run --locked python -m pytest -m postgres
@@ -105,7 +111,7 @@ jobs:
           MLFLOW_DISABLE_AGENT_HINT: "1"
         run: |
           uv run --locked python scripts/evaluate_local.py --split dev \
-            --baseline eval/results/v3-main-docs-dev.json --output .cache/ci-evaluation.json
+            --baseline eval/baselines/operations-v4.json --output .cache/ci-evaluation.json
 
       - name: Preserve evaluation and MLflow records
         if: always()
@@ -134,10 +140,10 @@ jobs:
           npm ci
           npm run build
           npm test
-      - name: Start the local demo with stand-in embeddings
-        run: python3 assistant/scripts/compose.py up --hashing
-      - name: Check local readiness
-        run: curl --fail --silent http://127.0.0.1:8088/health/ready
-      - name: Stop the local demo
-        if: always()
-        run: python3 assistant/scripts/compose.py down
+      - name: Verify isolated Compose restart and review
+        env:
+          # Acceptance must isolate its generated credentials from the caller.
+          ASSISTANT_OWNER_PASSWORD: deliberately-conflicting-owner
+          ASSISTANT_RUNTIME_PASSWORD: deliberately-conflicting-runtime
+          LEDGEROPS_ASSISTANT_DEMO_TOKEN: deliberately-conflicting-token
+        run: python3 assistant/scripts/verify_release.py

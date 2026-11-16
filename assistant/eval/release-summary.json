@@ -1,0 +1,517 @@
+{
+  "records": {
+    "assistant/eval/results/operations-v4-dev.json": {
+      "comparisons": {
+        "pgvector_hnsw -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-006",
+              "v1-007",
+              "v1-022"
+            ],
+            "ci95": [
+              -0.0625,
+              0.1875
+            ],
+            "mean_difference": 0.0625,
+            "worse_on": [
+              "v1-004"
+            ]
+          },
+          "mrr@10": {
+            "better_on": [
+              "v1-001",
+              "v1-006",
+              "v1-007",
+              "v1-008",
+              "v1-012",
+              "v1-022"
+            ],
+            "ci95": [
+              -0.0521,
+              0.1
+            ],
+            "mean_difference": 0.0214,
+            "worse_on": [
+              "v1-004",
+              "v1-011",
+              "v1-013",
+              "v1-023",
+              "v1-027"
+            ]
+          }
+        },
+        "postgres_fts -> hybrid": {
+          "hit@1": {
+            "better_on": [
+              "v1-002",
+              "v1-005",
+              "v1-014",
+              "v1-019",
+              "v1-020",
+              "v1-026",
+              "v1-028",
+              "v1-032"
+            ],
+            "ci95": [
+              0.0938,
+              0.4062
+            ],
+            "mean_difference": 0.25,
+            "worse_on": []
+          },
+          "mrr@10": {
+            "better_on": {
+              "entries": 14
+            },
+            "ci95": [
+              0.0807,
+              0.2554
+            ],
+            "mean_difference": 0.1616,
+            "worse_on": [
+              "v1-008"
+            ]
+          }
+        },
+        "postgres_fts -> pgvector_hnsw": {
+          "hit@1": {
+            "better_on": [
+              "v1-002",
+              "v1-004",
+              "v1-005",
+              "v1-014",
+              "v1-019",
+              "v1-020",
+              "v1-026",
+              "v1-028",
+              "v1-032"
+            ],
+            "ci95": [
+              -0.0312,
+              0.375
+            ],
+            "mean_difference": 0.1875,
+            "worse_on": [
+              "v1-006",
+              "v1-007",
+              "v1-022"
+            ]
+          },
+          "mrr@10": {
+            "better_on": {
+              "entries": 14
+            },
+            "ci95": [
+              0.0173,
+              0.2596
+            ],
+            "mean_difference": 0.1403,
+            "worse_on": [
+              "v1-001",
+              "v1-006",
+              "v1-007",
+              "v1-008",
+              "v1-022"
+            ]
+          }
+        }
+      },
+      "context": {
+        "max_json_bytes": 18000,
+        "policy": "section-neighbors-v1",
+        "ranking_metrics_use_expansion": false,
+        "stats": {
+          "max_json_bytes": 17995,
+          "mean_chunks": 11.0312,
+          "mean_json_bytes": 17679.9375,
+          "mean_section_recall": 0.8073
+        }
+      },
+      "corpus": {
+        "chunker": "headings-v1",
+        "chunks": 170,
+        "digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+        "files": 20,
+        "revision": "57a5d6209131b58b2f6dce3d36c0c4eedb151156",
+        "sections": 98,
+        "version": "operations-v4"
+      },
+      "created_at": "2026-11-16T13:27:30+00:00",
+      "environment": {
+        "backend": "postgres",
+        "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+        "machine": "arm64",
+        "onnxruntime": "1.31.1",
+        "python": "3.12.13",
+        "quality_signal": true,
+        "tokenizers": "0.23.3"
+      },
+      "fusion": {
+        "depth": 50,
+        "rrf_k": 10,
+        "unit": "chunk",
+        "weights": [
+          1.0,
+          1.0
+        ]
+      },
+      "mlflow_run_id": "7faaccff6c134f3ba04741d1775cfc27",
+      "questions": {
+        "by_route": {
+          "action": 4,
+          "docs": 32,
+          "live_state": 2,
+          "out_of_scope": 2
+        },
+        "by_split": {
+          "dev": 40
+        },
+        "evaluated_split": "dev",
+        "file": "questions.jsonl",
+        "retrieval_scored": 32,
+        "sha256": "caf74b7048c58ee28cf3136d33f6c5dd5fb2af66b14be7d4bec62d0784eecf07",
+        "total": 40
+      },
+      "retrieval": {
+        "hybrid": {
+          "all": {
+            "context_recall@5": 0.6979,
+            "hit@1": 0.6562,
+            "hit@3": 0.7812,
+            "hit@5": 0.875,
+            "mrr@10": 0.7406,
+            "n": 32,
+            "ndcg@5": 0.683,
+            "recall@5": 0.7448
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.6979,
+              "hit@1": 0.6562,
+              "hit@3": 0.7812,
+              "hit@5": 0.875,
+              "mrr@10": 0.7406,
+              "n": 32,
+              "ndcg@5": 0.683,
+              "recall@5": 0.7448
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.6979,
+              "hit@1": 0.6562,
+              "hit@3": 0.7812,
+              "hit@5": 0.875,
+              "mrr@10": 0.7406,
+              "n": 32,
+              "ndcg@5": 0.683,
+              "recall@5": 0.7448
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 21.138,
+            "p95": 29.333
+          },
+          "misses": {
+            "entries": 4
+          }
+        },
+        "legacy_hybrid": {
+          "all": {
+            "context_recall@5": 0.6823,
+            "hit@1": 0.6562,
+            "hit@3": 0.7812,
+            "hit@5": 0.8125,
+            "mrr@10": 0.7397,
+            "n": 32,
+            "ndcg@5": 0.6715,
+            "recall@5": 0.7135
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.6823,
+              "hit@1": 0.6562,
+              "hit@3": 0.7812,
+              "hit@5": 0.8125,
+              "mrr@10": 0.7397,
+              "n": 32,
+              "ndcg@5": 0.6715,
+              "recall@5": 0.7135
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.6823,
+              "hit@1": 0.6562,
+              "hit@3": 0.7812,
+              "hit@5": 0.8125,
+              "mrr@10": 0.7397,
+              "n": 32,
+              "ndcg@5": 0.6715,
+              "recall@5": 0.7135
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 19.993,
+            "p95": 21.861
+          },
+          "misses": {
+            "entries": 6
+          }
+        },
+        "pgvector_exact": {
+          "all": {
+            "context_recall@5": 0.7552,
+            "hit@1": 0.5938,
+            "hit@3": 0.8438,
+            "hit@5": 0.875,
+            "mrr@10": 0.7193,
+            "n": 32,
+            "ndcg@5": 0.6611,
+            "recall@5": 0.7552
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.7552,
+              "hit@1": 0.5938,
+              "hit@3": 0.8438,
+              "hit@5": 0.875,
+              "mrr@10": 0.7193,
+              "n": 32,
+              "ndcg@5": 0.6611,
+              "recall@5": 0.7552
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.7552,
+              "hit@1": 0.5938,
+              "hit@3": 0.8438,
+              "hit@5": 0.875,
+              "mrr@10": 0.7193,
+              "n": 32,
+              "ndcg@5": 0.6611,
+              "recall@5": 0.7552
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 11.566,
+            "p95": 12.521
+          },
+          "misses": {
+            "entries": 4
+          }
+        },
+        "pgvector_hnsw": {
+          "all": {
+            "context_recall@5": 0.7552,
+            "hit@1": 0.5938,
+            "hit@3": 0.8438,
+            "hit@5": 0.875,
+            "mrr@10": 0.7193,
+            "n": 32,
+            "ndcg@5": 0.6611,
+            "recall@5": 0.7552
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.7552,
+              "hit@1": 0.5938,
+              "hit@3": 0.8438,
+              "hit@5": 0.875,
+              "mrr@10": 0.7193,
+              "n": 32,
+              "ndcg@5": 0.6611,
+              "recall@5": 0.7552
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.7552,
+              "hit@1": 0.5938,
+              "hit@3": 0.8438,
+              "hit@5": 0.875,
+              "mrr@10": 0.7193,
+              "n": 32,
+              "ndcg@5": 0.6611,
+              "recall@5": 0.7552
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 11.549,
+            "p95": 12.57
+          },
+          "misses": {
+            "entries": 4
+          }
+        },
+        "postgres_fts": {
+          "all": {
+            "context_recall@5": 0.6458,
+            "hit@1": 0.4062,
+            "hit@3": 0.75,
+            "hit@5": 0.7812,
+            "mrr@10": 0.579,
+            "n": 32,
+            "ndcg@5": 0.5498,
+            "recall@5": 0.6458
+          },
+          "by_category": {
+            "rule": {
+              "context_recall@5": 0.6458,
+              "hit@1": 0.4062,
+              "hit@3": 0.75,
+              "hit@5": 0.7812,
+              "mrr@10": 0.579,
+              "n": 32,
+              "ndcg@5": 0.5498,
+              "recall@5": 0.6458
+            }
+          },
+          "by_split": {
+            "dev": {
+              "context_recall@5": 0.6458,
+              "hit@1": 0.4062,
+              "hit@3": 0.75,
+              "hit@5": 0.7812,
+              "mrr@10": 0.579,
+              "n": 32,
+              "ndcg@5": 0.5498,
+              "recall@5": 0.6458
+            },
+            "test": {
+              "context_recall@5": 0.0,
+              "hit@1": 0.0,
+              "hit@3": 0.0,
+              "hit@5": 0.0,
+              "mrr@10": 0.0,
+              "n": 0,
+              "ndcg@5": 0.0,
+              "recall@5": 0.0
+            }
+          },
+          "latency_ms": {
+            "mean": 8.145,
+            "p95": 8.999
+          },
+          "misses": {
+            "entries": 7
+          }
+        }
+      },
+      "scope_gate": {
+        "dev_accuracy": 1.0,
+        "scores": {
+          "docs": {
+            "entries": 32
+          },
+          "out_of_scope": {
+            "v1-037": 0.5956,
+            "v1-038": 0.5512
+          }
+        },
+        "test_accuracy": null,
+        "threshold": 0.5956
+      }
+    },
+    "assistant/eval/results/operations-v4-live.json": {
+      "billed_usd": null,
+      "billed_usd_reason": "Subscription counters are quota usage, not an invoice",
+      "billing": "subscription_quota",
+      "code_sha256": {
+        "assistant/scripts/review_current_answers.py": "4657dfda5fe443660b8ab8d907f66070252ae580a258bce62574c850c54a1032",
+        "assistant/src/ledgerops_assistant/__init__.py": "558ddb6a98d1a8c6f55812dcf5edfa70f6ad8c49b866b42480fa415d0ede80e2",
+        "assistant/src/ledgerops_assistant/__main__.py": "a41d4cd5d8d43c563f3364813a4d6a3efdb059a9878e6445d2bb47174dd76696",
+        "assistant/src/ledgerops_assistant/agent.py": "aa597091ed7f8b527a5c4e7bac3439ee395144ebbc46080582438f7eabe286b3",
+        "assistant/src/ledgerops_assistant/answer.py": "fa62781a4e4e63aebf5d7d699e0dedc1b57274c9aa1cec7a08e878b196a3367b",
+        "assistant/src/ledgerops_assistant/api.py": "5755863b1c7a28669a6181486510338b5336f7c766d503a4162d8bfcc2b419e5",
+        "assistant/src/ledgerops_assistant/benchmark.py": "4baa47eeaf4b3f7cf162dfbb6971373ea9c095b568b45d333aee27e072db650f",
+        "assistant/src/ledgerops_assistant/context.py": "9127032559be547ffc8094504ef60f7fb1a5e0b5aa62de784371808fbc3dd77b",
+        "assistant/src/ledgerops_assistant/corpus.py": "6d81085f2495e30b63a31a19e0e7722ed0ffb87f5396af10ccd7939068de6598",
+        "assistant/src/ledgerops_assistant/demo_api.py": "d097a64c939df9700d20ef8c21a4cfdf04e88445e13e15e4d6d4bdf389a522df",
+        "assistant/src/ledgerops_assistant/drafts.py": "a76fd5c121eea4413c9577f252a474cc651c5aa053f4688ffe8e5914254e50b9",
+        "assistant/src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+        "assistant/src/ledgerops_assistant/evaluation.py": "29d19e3bdc9021c834b30a79860cbcdbe65f9604caa5fc31e232b15ebb23e88a",
+        "assistant/src/ledgerops_assistant/mcp_server.py": "d31b5368faf18a2eb55ae2ee151da27a8608ec2f80a6d1223abf4c75b6886c6b",
+        "assistant/src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+        "assistant/src/ledgerops_assistant/providers/__init__.py": "a8046788a6586bcc6ad152f11388f588a371dbadd013dcaabd9308308ecddb53",
+        "assistant/src/ledgerops_assistant/providers/base.py": "1ee228db1f7b89db38025b6c6e39305b689afc20da521852a93c28ffcd57ff97",
+        "assistant/src/ledgerops_assistant/providers/fake.py": "1baee1326ab79d70ef2426ea26a08377d74c9cbc45acb779028094b753ba858a",
+        "assistant/src/ledgerops_assistant/providers/ollama.py": "ea97277f9603444837b3df7ec7247ea5707969b879f0e61c8f107d6ee16f9e70",
+        "assistant/src/ledgerops_assistant/providers/openai_api.py": "fec090efebf1cce73c28f3463d646a93a2aaa2908e1f989d40a2268e824a2cd2",
+        "assistant/src/ledgerops_assistant/providers/subscription.py": "cdb4c451e89356dd12eaeb90cfc7f9430eff043617faeb503ab4896c5cf0c591",
+        "assistant/src/ledgerops_assistant/providers/subscription_worker.py": "5901e8bc35b677d4c0d49c830adbdfd3687a8d8e5c55a75f1a26742ea2f2776f",
+        "assistant/src/ledgerops_assistant/quality_gate.py": "6dbc681cd672a6bd71b35a74afcb7f7ed3f26bb19be7549c1f4673b66114ffdc",
+        "assistant/src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec",
+        "assistant/src/ledgerops_assistant/routing.py": "ddc9db650735d06074ac4f2e2b90619ab766e0452ec09536f2aa9b9d6b84ee57",
+        "assistant/src/ledgerops_assistant/runtime.py": "613733a45b89fd5b76587d4b8edbc46b1416dfd394d8d0b6758ae816cc63832c",
+        "assistant/src/ledgerops_assistant/settings.py": "eadb5f95f1c4a0f4d651b4cc8757e164133c316434cc6110694cc7bb33d6d141",
+        "assistant/src/ledgerops_assistant/telemetry.py": "33f53c4b4237e41e4e1b0eb57e7bafa1e9208dfde8860700898b14cdde8be757",
+        "assistant/src/ledgerops_assistant/tools.py": "bb7e8a0d439862f8b918e4653b4f484c519f2eae690715531047143ece54b370",
+        "assistant/src/ledgerops_assistant/tracking.py": "5b635425bb3c5387a072d6384cf4aaeaa75022db0457fd86d31a793b0ce54861",
+        "assistant/src/ledgerops_assistant/usage.py": "b642251f87581fa4eefbc7e24100ceb456176bf500bff85149c6ab2df66066c0",
+        "assistant/src/ledgerops_assistant/workflow.py": "7658288aa5aeb298523688dcfb496b96ca4989047383c21408a60709f97bc917"
+      },
+      "commit": "db7e124082a72924c1627892ace822ef7b1a54c7",
+      "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+      "finished_at": "2026-11-16T13:32:56.070054+00:00",
+      "model_selection": "Official SDK account default; no explicit model override",
+      "provider": "chatgpt_subscription",
+      "questions_sha256": "caf74b7048c58ee28cf3136d33f6c5dd5fb2af66b14be7d4bec62d0784eecf07",
+      "retry_policy": "No automatic retries; failures remain in the record",
+      "sampling": "All 32 development documentation questions, non-blind; no selection or tuning",
+      "started_at": "2026-11-16T13:28:32.660522+00:00",
+      "status": "completed"
+    },
+    "assistant/eval/results/refusal-v4.json": {
+      "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+      "manifest_sha256": "a0ef1c6ba3cdcb7be5df386017ab4e178f5b90ddb393e42b32608f13220cfd8c"
+    },
+    "assistant/eval/results/refusal-v5.json": {
+      "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+      "manifest_sha256": "f31368703218089a2942de33668affb165e88f45beb7c1cb3b4f1f21326dcfaf"
+    }
+  },
+  "schema_version": 1
+}

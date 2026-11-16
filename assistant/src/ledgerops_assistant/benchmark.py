@@ -302,7 +302,7 @@ def _load_corpus(path, root):
 
 
 def _dev_questions(root):
-    path = Path(root) / "assistant/eval/v1-draft/questions.jsonl"
+    path = Path(root) / "assistant/eval/v4-dev/questions.jsonl"
     return [
         q
         for q in (json.loads(line) for line in path.read_text().splitlines())
@@ -714,7 +714,7 @@ def _worker(config, stage):
             "boundary_ties_within_1e-6": ties,
             "dev_recall": quality,
             "dev_questions": len(questions),
-            "dev_file_sha256": digest_file(root / "assistant/eval/v1-draft/questions.jsonl"),
+            "dev_file_sha256": digest_file(root / "assistant/eval/v4-dev/questions.jsonl"),
             "context_profile": context_profile,
             "context_profile_excludes_retrieval": True,
             "model_initialization": model_initialization,

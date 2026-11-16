@@ -201,7 +201,7 @@ reports, administrator identity and reason. Follow these checks:
 1. Verify backup integrity, object inventory and the exact installed migrations.
    Do not invoke ordinary migrations on the restored database: they grant CONNECT.
    For a reviewed physical-index-only upgrade, use the narrow path described in
-   [active-hold indexing](../../docs/ACTIVE-HOLD-INDEX.md).
+   [active-hold indexing](../../docs/internals/reservation-index.md).
 2. With runtime CONNECT still closed and no foreign runtime sessions, capture the
    latest complete signed namespace history and per-payment LOOKUP. Require
    RECOVERED with no gaps, unresolved work, blockers, contradictions, evidence limits

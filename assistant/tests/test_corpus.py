@@ -38,14 +38,14 @@ def test_explicit_corpus_rejects_escaping_symlinks(tmp_path, monkeypatch):
 
 def test_current_corpus_keeps_deployment_and_rename_proposals_out(corpus):
     excluded = {
-        "docs/AZURE.md",
-        "docs/KUBERNETES.md",
-        "docs/adr/0005-client-history-checking.md",
+        "docs/internals/azure.md",
+        "docs/internals/kubernetes.md",
+        "docs/internals/adr/0005-client-history-checking.md",
         "docs/RENAME-PROPOSAL.md",
     }
     assert not excluded.intersection(corpus.file_digests)
-    assert "README.md" in corpus.file_digests
-    assert "docs/adr/0004-contention-and-recovery.md" in corpus.file_digests
+    assert "README.md" not in corpus.file_digests
+    assert "docs/internals/adr/0004-contention-and-recovery.md" in corpus.file_digests
 
 
 def test_slug_matches_github_anchor_rules():
@@ -88,3 +88,15 @@ def test_real_corpus_has_unique_ids_and_bounded_chunks(corpus):
 
 def test_corpus_excludes_the_assistant_docs_that_contain_evaluation_answers(corpus):
     assert not any(path.startswith("assistant/") for path in corpus.file_digests)
+
+
+def test_homepage_edits_do_not_change_operations_corpus(tmp_path, corpus):
+    from ledgerops_assistant.corpus import load_corpus
+
+    for name in corpus.file_digests:
+        target = tmp_path / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((corpus.root / name).read_bytes())
+    before = load_corpus(tmp_path).digest
+    (tmp_path / "README.md").write_text("# A completely different project introduction\n")
+    assert load_corpus(tmp_path).digest == before

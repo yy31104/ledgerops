@@ -161,8 +161,8 @@ denial without external inference.
 
 OpenTelemetry emits request spans to stderr. Each records full request duration
 (including SSE), HTTP method/status, a random request identifier, steps and
-`gen_ai.cost.estimated_usd`. It records neither token/header, question, body, URL
-nor source text. Inspect local spans with:
+`gen_ai.cost.estimated_usd`. It records no authentication header, question/body content, URL or source text.
+Provider-reported token counts and completeness are recorded separately from credentials. Inspect local spans with:
 
 ```sh
 docker compose --env-file assistant/.env -f assistant/compose.yml logs api
@@ -242,3 +242,27 @@ Synthetic labels and deterministic tests do not establish real operator answer
 quality, semantic citation entailment, comprehensive injection resistance,
 production load tolerance or independent SDK/OS isolation. No real financial
 execution or real cloud deployment is part of these local checks.
+
+## Release acceptance and usage records
+
+From the repository root, `make verify-release` first runs the real paid-provider/
+crashed-worker demonstration, then creates an isolated Compose project. It checks
+SSE output and request usage fields, prepares a draft, restarts the API container,
+checks the identical stored draft and reviews it twice with the same action ID.
+It sends no operator action POST. Owned containers and volumes are removed on
+success and failure; port 8088 must be free. Fake generation and hashing verify
+product plumbing; they do not measure retrieval or answer quality.
+
+SSE results carry `duration_ms` and provider `usage`: reported input/output token
+counts, completeness, model-call counts, billing mode and a separately named
+`token_cost_estimate_usd`. OTel spans record the same totals and HTTP latency.
+`cost_usd` remains the conservative byte-based budget reservation. Configured API
+prices produce an uncached-token estimate, not an invoice; missing usage and
+subscription dollar costs remain unknown. Subscription counters consume local
+ChatGPT-plan quota and may include SDK overhead. No credentials or question/body
+content are logged. The real-answer sample records every call's latency/usage in
+release evidence.
+
+Azure instructions in `deploy/terraform/azure/README.md` prepare an opt-in future
+trial. No cloud application, deployment, test, teardown or billing measurement has
+been performed for this release.

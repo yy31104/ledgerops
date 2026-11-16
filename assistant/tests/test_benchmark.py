@@ -19,10 +19,10 @@ from scripts import copied_text_attribution as attribution
 
 def test_generator_reproducibility_and_empirical_lengths(corpus):
     before = corpus.digest
-    first = bench.generate_corpus(corpus, 358, 20261111)
-    assert first.digest == bench.generate_corpus(corpus, 358, 20261111).digest
-    assert first.digest != bench.generate_corpus(corpus, 358, 20261112).digest
-    assert len(first.chunks) == len({c.chunk_id for c in first.chunks}) == 358
+    first = bench.generate_corpus(corpus, len(corpus.chunks) * 2, 20261111)
+    assert first.digest == bench.generate_corpus(corpus, len(corpus.chunks) * 2, 20261111).digest
+    assert first.digest != bench.generate_corpus(corpus, len(corpus.chunks) * 2, 20261112).digest
+    assert len(first.chunks) == len({c.chunk_id for c in first.chunks}) == len(corpus.chunks) * 2
     assert Counter(len(c.text.split()) for c in first.chunks) == Counter(
         {
             length: count * 2
@@ -314,10 +314,10 @@ def test_copy_aliases_do_not_change_real_section_labels(tmp_path):
     assert row["strict"] == row["adjusted"] == 1
 
 
+@pytest.mark.evidence
 def test_recorded_attribution_is_unchanged_except_script_hash_and_time():
-    record = json.loads(
-        (Path(bench.ASSISTANT) / "perf/results/copied-text-attribution.json").read_text()
-    )
+    restored = Path(bench.ASSISTANT) / ".cache/evidence/assistant"
+    record = json.loads((restored / "perf/results/copied-text-attribution.json").read_text())
     stable = {
         key: value for key, value in record.items() if key not in ("analysis_sha256", "created_at")
     }
@@ -332,4 +332,4 @@ def test_recorded_attribution_is_unchanged_except_script_hash_and_time():
         == hashlib.sha256(Path(attribution.__file__).read_bytes()).hexdigest()
     )
     for path, checksum in record["original_six_records_sha256"].items():
-        assert bench.digest_file(Path(bench.ASSISTANT) / path) == checksum
+        assert bench.digest_file(restored / path) == checksum
