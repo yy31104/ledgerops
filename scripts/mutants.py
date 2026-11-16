@@ -6,6 +6,7 @@ import difflib
 import hashlib
 import json
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -425,6 +426,9 @@ def run_tests(copy, tests, artifacts, label, timeout):
                 suite.set("hostname", "redacted-host")
         report.write(xml, encoding="unicode")
     (artifacts / "output.txt").write_text(log)
+    runtime = artifacts / "runtime"
+    if runtime.exists():
+        shutil.rmtree(runtime)
     return {
         **result,
         "exit_code": proc.returncode,
@@ -482,6 +486,22 @@ def exercise(root, name, artifacts, timeout=120):
     return record
 
 
+def evidence_manifest(output):
+    files = {}
+    for path in sorted(output.rglob("*")):
+        if path.is_symlink():
+            raise ValueError("release evidence must not contain symlinks")
+        if path.is_file() and path.name != "manifest.json":
+            data = path.read_bytes()
+            files[path.relative_to(output).as_posix()] = {
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "bytes": len(data),
+            }
+    manifest = {"schema_version": 1, "files": files}
+    (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    return manifest
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("name", choices=[*MUTANTS, "all"])
@@ -512,7 +532,14 @@ def main():
         "records": records,
     }
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    evidence_manifest(output)
+    for record in records:
+        print(f"{record['name']}: {record['status']}")
+        for node in record.get("mutant", {}).get("failed_tests", []):
+            print("  " + node)
     print(json.dumps({key: summary[key] for key in ("rules", "killed", "survived", "invalid")}))
+    location = output.relative_to(ROOT).as_posix() if output.is_relative_to(ROOT) else "$OUTPUT"
+    print("Evidence: " + location)
     return 2 if summary["invalid"] else 1 if summary["survived"] else 0
 
 

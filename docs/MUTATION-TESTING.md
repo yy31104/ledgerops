@@ -28,7 +28,7 @@ The original `src` digest must match before and after. No migration is edited in
 **Result: 8 selected rules, 8 detected, no survivors or invalid trials.** Every
 pristine control passed. All eight detections already had focused financial tests;
 no previously uncovered financial rule was found in this set, so zero financial
-regression tests were added. The runner has 27 safety cases for patch validation,
+regression tests were added. The runner has 28 safety cases for patch validation,
 source isolation, matched controls, evidence handling, timeouts and cleanup.
 
 A kill requires a passing control, matching executed test IDs and a failing test
@@ -37,7 +37,8 @@ failures and runner timeouts are invalid evidence, never kills. Removing one gua
 can expose another: the table does not claim every variant moves money twice.
 This is a selected guard check, not a score over all possible implementation bugs.
 
-Raw patches, patch hashes, source/runner hashes, JUnit and failure output stay under
+The command lists failed test IDs. A per-file SHA-256 manifest accompanies the
+raw patches, source/runner hashes, JUnit and failure output under
 ignored `.cache/mutants/`. The v1.1.0 release carries the raw records; Git contains
 this summary and the runner. CI executes the matrix and retains its raw artifact.
 Existing evidence directories are never overwritten. Exit 0 means every selected
