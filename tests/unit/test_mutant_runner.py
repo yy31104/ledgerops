@@ -207,3 +207,28 @@ def test_interrupt_stops_the_matrix_even_when_cleanup_is_incomplete(tmp_path, mo
         mutants.exercise(root, "unit", tmp_path / "evidence")
     assert (root / "src/rule.py").read_text() == "guard = True\n"
     assert (tmp_path / "evidence/result.json").exists()
+
+
+def test_interrupt_flag_survives_a_cleanup_error(tmp_path, monkeypatch):
+    class Process:
+        pid = 123
+        returncode = -15
+        calls = 0
+
+        def communicate(self, timeout=None):
+            self.calls += 1
+            if self.calls == 1:
+                raise KeyboardInterrupt
+            return "", None
+
+    def cleanup(label):
+        raise RuntimeError("engine unavailable")
+
+    killed = []
+    monkeypatch.setattr(mutants.subprocess, "Popen", lambda *a, **k: Process())
+    monkeypatch.setattr(mutants.os, "killpg", lambda *args: killed.append(args))
+    monkeypatch.setattr(mutants, "cleanup_containers", cleanup)
+    result = mutants.run_tests(tmp_path, ("unused",), tmp_path / "evidence", "owned-run", 10)
+    assert result["status"] == "invalid" and result["interrupted"]
+    assert result["reason"] == "owned-container cleanup failed"
+    assert result["run_label"] == "owned-run" and len(killed) == 1

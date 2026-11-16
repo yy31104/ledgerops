@@ -28,7 +28,7 @@ The original `src` digest must match before and after. No migration is edited in
 **Result: 8 selected rules, 8 detected, no survivors or invalid trials.** Every
 pristine control passed. All eight detections already had focused financial tests;
 no previously uncovered financial rule was found in this set, so zero financial
-regression tests were added. The runner has 26 safety cases for patch validation,
+regression tests were added. The runner has 27 safety cases for patch validation,
 source isolation, matched controls, evidence handling, timeouts and cleanup.
 
 A kill requires a passing control, matching executed test IDs and a failing test
