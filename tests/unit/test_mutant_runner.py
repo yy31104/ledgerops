@@ -160,6 +160,8 @@ def test_only_matching_tests_after_a_passing_control_can_kill(
     def run_tests(copy, tests, artifacts, label, timeout):
         trial = control if not calls else changed
         calls.append(trial)
+        if trial == "invalid":
+            return {"status": "invalid", "reason": "runner deadline exceeded"}
         return {
             "status": "failed"
             if trial == "different-tests"
@@ -175,4 +177,33 @@ def test_only_matching_tests_after_a_passing_control_can_kill(
     monkeypatch.setattr(mutants, "run_tests", run_tests)
     record = mutants.exercise(root, "unit", tmp_path / "evidence")
     assert record["status"] == status and len(calls) == executions
+    if changed == "invalid":
+        assert record["mutant"]["reason"] == "runner deadline exceeded"
     assert record["source_unchanged"] and (root / "src/rule.py").read_text() == "guard = True\n"
+
+
+def test_interrupt_stops_the_matrix_even_when_cleanup_is_incomplete(tmp_path, monkeypatch):
+    root = tmp_path / "source"
+    (root / "src").mkdir(parents=True)
+    (root / "src/rule.py").write_text("guard = True\n")
+    monkeypatch.setitem(
+        mutants.MUTANTS,
+        "unit",
+        mutants.Mutant(
+            (("src/rule.py", "guard = True", "guard = False"),), ("a.py::test_guard",), "unit"
+        ),
+    )
+    monkeypatch.setattr(mutants, "copy_source", lambda root, copy, label: None)
+    monkeypatch.setattr(
+        mutants,
+        "run_tests",
+        lambda *a: {
+            "status": "invalid",
+            "interrupted": True,
+            "reason": "owned-container cleanup failed",
+        },
+    )
+    with pytest.raises(KeyboardInterrupt):
+        mutants.exercise(root, "unit", tmp_path / "evidence")
+    assert (root / "src/rule.py").read_text() == "guard = True\n"
+    assert (tmp_path / "evidence/result.json").exists()
