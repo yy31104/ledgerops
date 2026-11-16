@@ -29,7 +29,7 @@ def test_report_distinguishes_unique_sections_from_five_runtime_chunks():
 
 def test_committed_questions_are_valid_against_the_real_corpus(corpus):
     questions = load_questions(DEFAULT_QUESTIONS, corpus.section_ids())
-    assert len(questions) == 40
+    assert len(questions) == 63
     assert {q["expected_route"] for q in questions} == {
         "docs",
         "live_state",

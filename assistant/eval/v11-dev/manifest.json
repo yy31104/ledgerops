@@ -1,0 +1,12 @@
+{
+  "description": "Operations-v4 development questions: the original 40 records plus 23 independently authored documentation questions after static audit. Historical sets are unchanged.",
+  "questions_sha256": "51122343e2b4d9b5528e249900a994daaff523fde87a41bdb7aae8bb413b9fcf",
+  "original_questions_sha256": "caf74b7048c58ee28cf3136d33f6c5dd5fb2af66b14be7d4bec62d0784eecf07",
+  "new_author_sha256": "3f8c8bc2a1e62a23502c5d89c7ce38c775ddcf14ec66eadd6a874144689e5ab0",
+  "new_author_notes_sha256": "bafba304b87ec3911e2b62fc6883fbc0c26c9c32aa44ac9a5c7e8acebb94c255",
+  "docs": 55,
+  "total": 63,
+  "labels": "Synthetic; human annotation is not available.",
+  "new_audited_sha256": "44583cf97bb2f1c16bd55f5eef6d966c763a0e19cd36e2d270414bf4af65dec4",
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229"
+}

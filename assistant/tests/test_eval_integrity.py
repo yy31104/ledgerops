@@ -12,6 +12,8 @@ from ledgerops_assistant.evaluation import (
 )
 from ledgerops_assistant.providers.base import parse_draft
 
+V4_QUESTIONS = DEFAULT_QUESTIONS.parents[1] / "v4-dev/questions.jsonl"
+
 HISTORICAL_QUESTIONS = DEFAULT_QUESTIONS.parents[1] / "v1-draft/questions.jsonl"
 
 
@@ -111,12 +113,10 @@ def test_strict_model_parser_rejects_extra_keys_and_inconsistent_refusal():
 
 
 def test_operations_dev_labels_are_bound_without_importing_historical_holdout(corpus):
-    manifest = json.loads(DEFAULT_QUESTIONS.with_name("manifest.json").read_text())
-    assert (
-        manifest["questions_sha256"] == hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest()
-    )
+    manifest = json.loads(V4_QUESTIONS.with_name("manifest.json").read_text())
+    assert manifest["questions_sha256"] == hashlib.sha256(V4_QUESTIONS.read_bytes()).hexdigest()
     assert manifest["corpus_digest"] == corpus.digest
-    rows = [json.loads(line) for line in DEFAULT_QUESTIONS.read_text().splitlines()]
+    rows = [json.loads(line) for line in V4_QUESTIONS.read_text().splitlines()]
     old = {
         row["id"]: row
         for row in (json.loads(line) for line in HISTORICAL_QUESTIONS.read_text().splitlines())
@@ -128,3 +128,17 @@ def test_operations_dev_labels_are_bound_without_importing_historical_holdout(co
         for key in ("question", "key_facts", "expected_route", "category"):
             assert row[key] == old[row["id"]][key]
         assert set(row["relevant_sections"]) <= corpus.section_ids()
+
+
+def test_expanded_development_keeps_historical_rows_and_source_labels(corpus):
+    manifest = json.loads(DEFAULT_QUESTIONS.with_name("manifest.json").read_text())
+    assert (
+        hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest() == manifest["questions_sha256"]
+    )
+    rows = [json.loads(line) for line in DEFAULT_QUESTIONS.read_text().splitlines()]
+    original = [json.loads(line) for line in V4_QUESTIONS.read_text().splitlines()]
+    assert rows[: len(original)] == original
+    assert len(rows) == manifest["total"] == 63
+    assert sum(row["expected_route"] == "docs" for row in rows) == manifest["docs"] == 55
+    assert all(row["split"] == "dev" for row in rows)
+    assert all(set(row["relevant_sections"]) <= corpus.section_ids() for row in rows)

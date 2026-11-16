@@ -83,6 +83,7 @@ jobs:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python
@@ -122,7 +123,7 @@ jobs:
           MLFLOW_DISABLE_AGENT_HINT: "1"
         run: |
           uv run --locked python scripts/evaluate_local.py --split dev \
-            --baseline eval/baselines/operations-v4.json --output .cache/ci-evaluation.json
+            --baseline eval/baselines/v1.1-dev.json --output .cache/ci-evaluation.json
 
       - name: Preserve evaluation and MLflow records
         if: always()

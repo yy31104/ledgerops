@@ -80,7 +80,7 @@ The CLI prints a JSON report and exits with 1 if it finds anomalies.
    any other text and rerun `test_existing_concurrency.py`. The test bodies still pass,
    but each teardown errors with "recording observed no committed balance
    read-modify-write". A recorder that silently stops matching cannot pass as "no
-   anomalies". This was checked while writing this directory.
+   anomalies".
 
 ## Limits
 

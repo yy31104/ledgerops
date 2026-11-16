@@ -1,0 +1,246 @@
+{
+  "environment": {
+    "embedder": "BAAI/bge-small-en-v1.5@5c38ec7c405e",
+    "python": "3.12.13",
+    "onnxruntime": "1.31.1",
+    "tokenizers": "0.23.3",
+    "machine": "arm64",
+    "backend": "postgres",
+    "quality_signal": true
+  },
+  "questions": {
+    "file": "questions.jsonl",
+    "sha256": "51122343e2b4d9b5528e249900a994daaff523fde87a41bdb7aae8bb413b9fcf",
+    "total": 63,
+    "retrieval_scored": 55,
+    "by_route": {
+      "docs": 55,
+      "live_state": 2,
+      "action": 4,
+      "out_of_scope": 2
+    },
+    "by_split": {
+      "dev": 63
+    },
+    "evaluated_split": "dev"
+  },
+  "fusion": {
+    "rrf_k": 10,
+    "depth": 50,
+    "weights": [
+      1.0,
+      1.0
+    ],
+    "unit": "chunk"
+  },
+  "corpus": {
+    "revision": "727f32a1ddeeb8a0ab521ca180c210ddb7a3a3e3",
+    "digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+    "chunker": "headings-v1",
+    "version": "operations-v4",
+    "files": 20,
+    "chunks": 170,
+    "sections": 98
+  },
+  "scope_gate": {
+    "threshold": 0.5512,
+    "dev_accuracy": 1.0,
+    "test_accuracy": null,
+    "scores": {
+      "docs": [
+        0.6399,
+        0.6559,
+        0.6573,
+        0.6736,
+        0.6816,
+        0.6825,
+        0.6863,
+        0.6872,
+        0.6916,
+        0.6917,
+        0.6929,
+        0.6942,
+        0.7043,
+        0.7057,
+        0.7061,
+        0.707,
+        0.7073,
+        0.7077,
+        0.7109,
+        0.7115,
+        0.7129,
+        0.7137,
+        0.714,
+        0.7183,
+        0.7189,
+        0.7202,
+        0.7204,
+        0.7275,
+        0.7301,
+        0.7307,
+        0.7347,
+        0.7378,
+        0.7441,
+        0.7455,
+        0.7455,
+        0.7466,
+        0.7473,
+        0.7494,
+        0.751,
+        0.756,
+        0.7566,
+        0.7588,
+        0.7592,
+        0.7622,
+        0.7681,
+        0.7689,
+        0.7766,
+        0.7773,
+        0.7783,
+        0.7787,
+        0.7795,
+        0.7965,
+        0.8095,
+        0.8115,
+        0.813
+      ],
+      "out_of_scope": {
+        "v1-038": 0.5512
+      }
+    }
+  },
+  "retrieval": {
+    "postgres_fts": {
+      "by_split": {
+        "dev": {
+          "n": 55,
+          "hit@1": 0.4545,
+          "hit@3": 0.7818,
+          "hit@5": 0.8364,
+          "recall@5": 0.7194,
+          "mrr@10": 0.6222,
+          "ndcg@5": 0.5979,
+          "context_recall@5": 0.6861
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    },
+    "pgvector_hnsw": {
+      "by_split": {
+        "dev": {
+          "n": 55,
+          "hit@1": 0.6,
+          "hit@3": 0.8727,
+          "hit@5": 0.8909,
+          "recall@5": 0.7861,
+          "mrr@10": 0.7349,
+          "ndcg@5": 0.6886,
+          "context_recall@5": 0.7861
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    },
+    "pgvector_exact": {
+      "by_split": {
+        "dev": {
+          "n": 55,
+          "hit@1": 0.6,
+          "hit@3": 0.8727,
+          "hit@5": 0.8909,
+          "recall@5": 0.7861,
+          "mrr@10": 0.7349,
+          "ndcg@5": 0.6886,
+          "context_recall@5": 0.7861
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    },
+    "legacy_hybrid": {
+      "by_split": {
+        "dev": {
+          "n": 55,
+          "hit@1": 0.6545,
+          "hit@3": 0.8727,
+          "hit@5": 0.8909,
+          "recall@5": 0.817,
+          "mrr@10": 0.7637,
+          "ndcg@5": 0.7266,
+          "context_recall@5": 0.7745
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    },
+    "hybrid": {
+      "by_split": {
+        "dev": {
+          "n": 55,
+          "hit@1": 0.6545,
+          "hit@3": 0.8727,
+          "hit@5": 0.9273,
+          "recall@5": 0.8352,
+          "mrr@10": 0.7642,
+          "ndcg@5": 0.7337,
+          "context_recall@5": 0.7836
+        },
+        "test": {
+          "n": 0,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr@10": 0.0,
+          "ndcg@5": 0.0,
+          "context_recall@5": 0.0
+        }
+      }
+    }
+  },
+  "context": {
+    "policy": "section-completion-v2",
+    "retrieval_method": "vector",
+    "max_json_bytes": 18000,
+    "ranking_metrics_use_expansion": false,
+    "stats": {
+      "mean_chunks": 11.5818,
+      "mean_json_bytes": 17689.8909,
+      "mean_section_recall": 0.8224,
+      "max_json_bytes": 17970
+    }
+  }
+}

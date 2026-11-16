@@ -1,42 +1,45 @@
-# Local operator product
+# Run the operator assistant
 
-## Start and stop
+## Local demo
 
-From the repository root with Docker available:
+From the repository root, with Docker running:
 
 ```sh
 python3 assistant/scripts/compose.py up
 python3 assistant/scripts/compose.py check
 ```
 
-Open <http://127.0.0.1:8088> and choose **Try synthetic demo**. Only this loopback
-port is published. The stack contains dedicated PostgreSQL 18 / pgvector, an
-initialization job, a synthetic GET-only LedgerOps API and the FastAPI/React app.
-Initialization indexes repository documents with pinned bge-small weights. The
-runtime role reads RAG tables and persists workflow/checkpoint records; it cannot
-administer roles or databases. Initialization refuses a database containing the
-financial `ledger` schema.
+Open <http://127.0.0.1:8088> and choose **Try synthetic demo**. The stack contains
+PostgreSQL/pgvector, an initialization job, a GET-only synthetic LedgerOps API and
+the FastAPI/React panel. Only the loopback panel port is published. No real bank or
+paid model API is involved. Initialization downloads pinned bge-small weights and
+indexes the repository documents.
 
-The script creates ignored `assistant/.env` with mode 0600 on first start. It
-contains random local DB passwords and a synthetic operator token. Keep it private.
-The demo token is served only in explicitly configured demo mode with a loopback
-upstream origin. No real bank is involved.
+The script creates ignored `assistant/.env` with mode 0600. It holds random local
+DB passwords and a synthetic token. The token endpoint exists only in explicit
+demo mode with a loopback upstream. The runtime image uses a non-root user, a
+read-only filesystem, cache volumes, locked dependencies and built panel assets.
 
 ```sh
 python3 assistant/scripts/compose.py down
 ```
 
-Volumes remain for restart and replay. `up --hashing` substitutes a stand-in
-encoder for CI wiring checks; it is not retrieval-quality evidence. The image uses
-a non-root runtime, read-only filesystem and dedicated cache volumes, installs
-locked dependencies, and includes packaged SQL migrations and built React assets.
+Database and model-cache volumes remain for restart. `up --hashing` uses stand-in
+embeddings for plumbing checks, not retrieval-quality measurements.
 
-## Connect the existing LedgerOps API
+## Connect an existing API
 
-Compose is a synthetic demonstration. For an existing local instance, run
-`python -m ledgerops_assistant.runtime init` with a dedicated assistant database
-owner, then `python -m ledgerops_assistant.runtime serve` with its runtime login.
-Never supply the financial database DSN. Configuration is administrator-owned:
+Use a separate assistant database: run `python -m ledgerops_assistant.runtime init`
+with its owner login, then `python -m ledgerops_assistant.runtime serve` with its
+runtime login. Initialization refuses any database containing the financial
+`ledger` schema. The runtime role reads the index and writes draft/checkpoint
+records; it cannot administer roles or databases.
+
+Never give the assistant a financial/operator database DSN, provider signing key
+or approval tool. Operators connect with their own existing token. The transport
+uses fixed GET routes and rechecks current identity and scope for every read.
+The panel keeps the token only in memory and clears it, results and drafts on
+disconnect. Credentials do not enter model prompts or graph state.
 
 | Variable | Meaning |
 |---|---|
@@ -45,104 +48,85 @@ Never supply the financial database DSN. Configuration is administrator-owned:
 | `LEDGEROPS_ASSISTANT_CONSOLE_URL` | Existing operator console; default localhost:8080 |
 | `LEDGEROPS_ASSISTANT_CORPUS_ROOT` | Repository documents for an installed package |
 | `LEDGEROPS_ASSISTANT_WEB_DIST` | Built panel assets for an installed package |
-| `LEDGEROPS_ASSISTANT_PROVIDERS` | Comma-separated enabled providers; default `fake` |
-| `LEDGEROPS_ASSISTANT_EMBEDDER` | Default `bge`; `hashing` for wiring checks |
+| `LEDGEROPS_ASSISTANT_PROVIDERS` | Enabled providers; default `fake` |
+| `LEDGEROPS_ASSISTANT_EMBEDDER` | `bge`, or `hashing` for plumbing checks |
 
-Leave `LEDGEROPS_ASSISTANT_DEMO_TOKEN` unset with a real upstream. Operators
-connect with their own existing scoped credentials. The panel keeps the token in
-memory, clears its input after connection and clears investigation/draft state on
-disconnect. It uses no browser credential storage. Credentials never enter model
-prompts or graph state. Each read and review rechecks identity and current upstream
-permissions. Recent lists are bounded; empty lists and 404 do not prove no payment.
+Leave `LEDGEROPS_ASSISTANT_DEMO_TOKEN` unset with a real upstream. Empty recent
+lists and 404 responses do not prove that no payment occurred.
 
-## Model selection and bounds
+## Models, limits and cost
 
-The panel lists server-enabled `fake`, `openai_api` and `ollama`. The official
-local `chatgpt_subscription` SDK adapter is CLI-only and disabled in HTTP/CI.
-See [PROVIDERS.md](PROVIDERS.md) for its explicit opt-in and the limited local
-subscription smoke verification.
+The panel lists server-enabled `fake`, `openai_api` and `ollama` providers.
+`chatgpt_subscription` is a local CLI adapter and is disabled in HTTP and CI.
+See [PROVIDERS.md](PROVIDERS.md) for setup and restrictions. The bundled image uses
+fake generation. API mode needs its optional dependency, model/key configuration
+and positive input/output token prices; Ollama needs a configured model/server.
 
-API generation requires the optional `openai` dependency, an out-of-Git
-`OPENAI_API_KEY`, explicit `LEDGEROPS_ASSISTANT_OPENAI_MODEL`, and positive
-`MODEL_INPUT_USD_PER_MILLION` / `MODEL_OUTPUT_USD_PER_MILLION` matching that model.
-`MODEL_MAX_COST_USD` defaults to 0.10 per investigation. The bundled image enables
-fake only; install the optional dependency in a separately configured environment
-before enabling API generation. Ollama requires a reachable configured server and
-`LEDGEROPS_ASSISTANT_OLLAMA_MODEL`.
+Each investigation allows at most six model steps, 24,000 input bytes, 512 output
+tokens per API call and a 60-second graph deadline. The process admits four active
+investigations/draft preparations. Reads cap response size, attempts and backoff.
+A 401 stops, 403 denies access and 404 leaves the outcome unknown. Timeouts and 429
+cannot retry forever. Cancellation prevents further work; in-flight calls retain
+their own timeout.
 
-Each investigation permits at most six model steps, a 24,000-byte context bound,
-512 output tokens per call and a 60-second graph deadline. Calls have bounded
-timeouts and automatic API inference retries are disabled. Reads bound size,
-attempts and delay. A 401 stops, 403 denies scope, 404 stays ambiguous, and 429 or
-timeouts cannot loop indefinitely. The service admits four simultaneous
-investigations/draft preparations in one process. Cancellation prevents subsequent
-work; in-flight calls remain subject to their timeout. This is a local service,
-not a distributed admission controller or real cloud deployment.
-
-Cost is a conservative reservation: input bytes plus framing are priced as tokens,
-then the configured output-token cap is added. This is a byte-based upper bound,
-not an estimate of actual tokenization. Failed or ambiguous inference retains its reservation.
-It is not an invoice. Fake/Ollama report zero API dollars; subscription mode
-consumes personal plan quota, not an estimate derived from its subscription fee.
+`cost_usd` is a conservative budget reservation: input bytes and framing are priced
+as tokens, plus the output cap. Failed or ambiguous calls retain that reservation;
+inference retries are disabled. A separate configured-price estimate uses reported
+tokens. Neither value is an invoice. Fake and Ollama use no paid model API;
+subscription calls consume plan quota, with unknown per-request billed USD.
 
 ## HTTP and SSE
 
-Bearer authentication is required for operator routes. Strict request models
-reject unknown fields; bodies are capped at 32 KiB. Requests cannot choose an
-origin, credential, tool path or raised budget. Responses use no-store and a
-self-only content security policy. Uvicorn access logging is disabled.
+Operator routes require Bearer authentication. Request schemas reject unknown
+fields and cap bodies at 32 KiB. Requests cannot choose an origin, credential, tool
+path or raised budget. Responses use no-store and a self-only content security
+policy. Uvicorn access logging is disabled.
 
 | Route | Behavior |
 |---|---|
 | `GET /health/live` | Process health |
-| `GET /health/ready` | Dedicated DB/corpus availability |
-| `GET /v1/session` | Current caller identity, read scopes and providers |
+| `GET /health/ready` | Assistant DB and corpus availability |
+| `GET /v1/session` | Caller identity, scopes and providers |
 | `POST /v1/assist` | `{question, request_id, provider}`; SSE investigation |
-| `DELETE /v1/runs/{request_id}` | Cancel only this caller's active request |
-| `POST /v1/drafts/{thread_id}` | Ask fields plus structured `intent`; prepare/interrupt |
-| `GET /v1/drafts/{thread_id}` | Read this identity's persisted workflow |
-| `POST /v1/drafts/{thread_id}/review` | `{continue_review, draft_sha256}`; recheck/resume |
+| `DELETE /v1/runs/{request_id}` | Cancel this caller's active request |
+| `POST /v1/drafts/{thread_id}` | Ask fields plus `intent`; prepare and pause |
+| `GET /v1/drafts/{thread_id}` | Read this caller's saved workflow |
+| `POST /v1/drafts/{thread_id}/review` | `{continue_review, draft_sha256}`; recheck and resume |
 
-SSE sends `started`, phase `step` updates, validated `text` deltas, then the
-structured `result`, or a redacted `error`. Text begins after schema/citation
-checks; unvalidated model tokens are not exposed. Keepalives cover upstream waits.
-The panel parser handles fragmented UTF-8, CRLF, multiline data and truncation.
-References include source IDs, excerpts and revision/observation timestamps.
-These checks establish supplied sources, not semantic entailment.
+SSE sends `started`, phase `step` updates, checked `text` deltas and a structured
+`result`, or a redacted `error`. Text starts after schema/citation checks. Keepalives
+cover upstream waits. The parser handles fragmented UTF-8, CRLF, multiline frames
+and truncated streams. References include source IDs, excerpts and timestamps.
+Valid citations establish provenance, not correctness.
 
-## Human review and console handoff
+## Draft review and console handoff
 
-Choose synthetic case 04, investigate and open **Prepare a reprocessing draft**.
-Supply payout, terminal observation and current reconciliation run IDs plus the
-operator's reason. The workflow verifies eligible authorized evidence, stores one
-content-bound action and pauses with LangGraph `interrupt()`.
+Choose case 04 and open **Prepare a reprocessing draft**. Supply the payout,
+terminal observation and current reconciliation run IDs, plus a reason. The
+workflow checks caller-scoped evidence, stores one content-bound action and pauses
+with LangGraph `interrupt()`.
 
-Review exact bytes, digest and expiry. **Review & continue** rechecks the same
-maker, current permissions, evidence fingerprints and absolute expiry. It marks
-the local draft ready for handoff and sends no financial POST. Restart/retry
-retains the same action ID. Changing bound content requires **Start a new request**.
+Review the exact bytes, digest and expiry. **Review & continue** rechecks identity,
+permissions, evidence fingerprints and expiry; it sends no financial POST.
+Restart and retry retain the same action ID. Changed content needs a new request.
 
-**Copy payload** and **Open console** hand control to the operator. In the existing
-console's proposal form, enter `action_id`, `payout_id`, `observation_id`,
-`evidence_run_id`, `reason` and `ttl_seconds` from the JSON for
-`REPROCESS_TERMINAL_LOCAL_BLOCKER`. The server computes its own authoritative
-proposal hash, distinct from `draft_sha256`. Another actor reviews that retained
-proposal before execution. [AGENT-AND-REVIEW.md](AGENT-AND-REVIEW.md) covers expiry, replay
-and changed-evidence behavior.
+**Copy payload** and **Open console** hand control to the operator. Enter the JSON
+fields in the console's `REPROCESS_TERMINAL_LOCAL_BLOCKER` proposal form. The server
+computes `proposal_sha256`, distinct from the local `draft_sha256`. A different
+actor must review the retained proposal before execution. See
+[AGENT-AND-REVIEW.md](AGENT-AND-REVIEW.md) for replay and invalidation rules.
 
-## MCP server
+## MCP
 
-The stdio MCP server exposes one `investigate(question)` read-only tool. It calls
-the fixed assistant origin and returns checked structured output. Set
-`LEDGEROPS_ASSISTANT_MCP_PROVIDER` to `fake` (the default), `openai_api` or `ollama`;
-the selected provider must also be enabled by the HTTP service. Unknown providers
-and HTTP-disabled providers are rejected. Local subscription inference remains a
-CLI-only adapter. It has no approval, execute, credential, method or URL argument.
-The credential JSON has the `{"token": ...}` shape produced by LedgerOps credential
-administration. It must be a regular owner-owned file without group/other access;
-symlinks and oversized files are rejected.
+The stdio server exposes one read-only `investigate(question)` tool. It calls a
+fixed assistant origin and returns checked structured output. Set
+`LEDGEROPS_ASSISTANT_MCP_PROVIDER` to `fake`, `openai_api` or `ollama`; the HTTP
+service must also enable that provider. Subscription inference stays CLI-only.
+The tool has no approval, execution, credential, method or URL argument.
 
-Configure a local MCP client to launch this process from `assistant/`:
+The credential file uses LedgerOps's `{"token": ...}` shape. It must be a regular,
+owner-owned file with no group/other access. Symlinks and oversized files fail.
+From `assistant/`:
 
 ```sh
 LEDGEROPS_ASSISTANT_URL=http://127.0.0.1:8088 \
@@ -151,72 +135,48 @@ LEDGEROPS_ASSISTANT_MCP_PROVIDER=fake \
 uv run --locked python -m ledgerops_assistant.mcp_server
 ```
 
-Use an existing operator credential file; do not put its contents in MCP arguments
-or repository configuration. Stdio is the only supported transport. The adapter
-re-reads the private file for rotation and refuses redirects. Integration tests
-launch the actual stdio SDK server to check discovery, structured output and access
-denial without external inference.
+Keep credential contents out of arguments and repository configuration. The
+adapter rereads the file for rotation and refuses redirects. Tests launch the real
+stdio server to check discovery, structured output and access denial.
 
-## Observability and evaluation
+## Logs and evaluation
 
-OpenTelemetry emits request spans to stderr. Each records full request duration
-(including SSE), HTTP method/status, a random request identifier, steps and
-`gen_ai.cost.estimated_usd`. It records no authentication header, question/body content, URL or source text.
-Provider-reported token counts and completeness are recorded separately from credentials. Inspect local spans with:
+OpenTelemetry writes request spans to stderr: HTTP method/status, request ID,
+elapsed time, steps, budget reservation and reported provider usage. Usage includes
+input/output counts, completeness, model calls and a configured-price estimate.
+No credential, authentication header, question/body, URL or source text is logged.
 
 ```sh
 docker compose --env-file assistant/.env -f assistant/compose.yml logs api
 ```
 
-No external exporter is configured. Checkpoints do contain incident questions and
-authorized evidence; protect the dedicated DB and volumes with appropriate local
-access and retention.
+Checkpoints contain incident questions and caller-scoped evidence. Protect the
+assistant DB and its volumes. Local MLflow stores experiments under
+`assistant/.cache/mlflow`. CI compares development retrieval metrics against a
+pinned corpus, labels, model and configuration; it does not score new holdouts.
+See the [retrieval report](RETRIEVAL-QUALITY-V2.md) for current measurements.
+Published answer ratings are AI-rated; human review is pending. Synthetic tests do
+not establish real operator answer quality or broad injection resistance.
 
-Experiments use local MLflow SQLite and artifacts under `assistant/.cache/mlflow`.
-CI preserves evaluation JSON and MLflow records for seven days. Its quality gate
-uses the development split only and compares Recall, MRR, nDCG and actual
-five-chunk source-section coverage with committed FTS/vector/hybrid baselines.
-Changed labels/model, corpus or fusion settings and hashing substitutes fail.
-[RETRIEVAL-QUALITY-V2.md](RETRIEVAL-QUALITY-V2.md) reports the new held-out run. Fake answers
-and synthetic security tests establish neither real-model answer quality nor
-comprehensive injection resistance.
+## Reproduce the checks
 
+`make verify-release` runs the paid-provider/crashed-worker demo and an isolated
+Compose acceptance test. It checks SSE usage/latency fields, prepares a draft,
+restarts the API container and reviews the identical draft twice. It submits no
+operator action. The command removes only its own containers and volumes; port
+8088 must be free. Fake generation and hashing verify plumbing, not answer quality.
 
-## Three baseline incidents
-
-The normalized snapshots in [`scenarios/snapshots/`](../scenarios/snapshots) come
-from real LedgerOps API runs against disposable PostgreSQL. Merchant M1 starts
-with 80 PLN minor units and requests 60 plus a fee of 2; admission holds 62.
-
-| Incident | Manual investigation | Safe interpretation |
-|---|---|---|
-| Admission `LIMIT_EXCEEDED` | Read the retained operation receipt, capacity rules and active holds from an export | A retained 422 is final for that identity. Unknown/blocked holds still consume capacity; a fresh attempt needs fresh operation/key identities. The endpoint does not identify which of its capacity/version checks failed. |
-| Dispatch timeout | Read payout, accounts and investigation; preserve the original provider key | `UNKNOWN`, 62 `HELD` and one attempt do not prove failure. Retain the hold, let recovery LOOKUP determine the result and avoid a replacement payout. |
-| Reconciliation `MISSING_INTERNAL` | Verify the signed statement/export and connect its payout ID to live state | The provider may have paid while the ledger has not recorded it. Let authenticated recovery settle once; do not post a manual journal or release money to make reconciliation pass. |
-
-The timeout and reconciliation scenarios deliberately have the same live payout
-projection. Documents explain rules, but a provider lookup or signed statement is
-needed to establish external execution. Metrics count unresolved work without
-identifying its holds; the assistant must report that API gap instead of guessing.
-Reconciliation categories guide investigation, not financial authorization.
-
-From the repository root, reproduce without rewriting committed snapshots:
-
-```sh
-LEDGEROPS_SCENARIOS_CHECK=1 uv run --locked python -m pytest -c pyproject.toml \
-  -p tests.conftest -q assistant/scenarios/capture.py
-```
-
-Random IDs, database times, digests and retry jitter are normalized while equal
-values retain equal placeholders. Scenario-clock timestamps remain fixed.
-
-## Reproduce product verification
+The [scenario snapshots](../scenarios/snapshots) come from real API calls against
+disposable PostgreSQL. They cover `LIMIT_EXCEEDED`, an uncertain dispatch and
+`MISSING_INTERNAL`. A retained refusal needs a new operation/key for a fresh
+attempt. UNKNOWN stays held while original-key LOOKUP resolves the outcome.
+Reconciliation reports differences; it does not repair them or release money.
 
 ```sh
 make check
 make test
-uv run --project assistant --locked ruff check assistant
-uv run --project assistant --locked ruff format --check assistant
+LEDGEROPS_SCENARIOS_CHECK=1 uv run --locked python -m pytest -c pyproject.toml \
+  -p tests.conftest -q assistant/scenarios/capture.py
 uv run --project assistant --locked python -m pytest -c assistant/pyproject.toml assistant/tests
 uv run --project assistant --locked python -m pytest -c assistant/pyproject.toml \
   assistant/tests -m 'postgres or model'
@@ -225,44 +185,9 @@ npm --prefix assistant/web run build
 npm --prefix assistant/web test
 ```
 
-CI additionally checks normalized scenario snapshots, the authenticated API and
-handoff acceptance pair, development retrieval thresholds and a Compose readiness
-smoke run. Local browser checks cover cited SSE output, review after restart,
-dismiss/disconnect state clearing and narrow/wide panel layouts. Counts and exact
-CI revisions belong to the associated PR, since the suite grows with each change.
-
-Purposeful failure checks revoke scopes, switch owner, expire drafts, alter bound
-business evidence and reuse request IDs with different content. They also inject
-401/404/429, malformed/oversized responses and timeouts. A changed metric age is
-not changed payout authority. The recovery suite checks crash-after-INSERT and
-concurrent invocation paths; the development gate rejects lower quality or changed
-label/model/configuration identities.
-
-Synthetic labels and deterministic tests do not establish real operator answer
-quality, semantic citation entailment, comprehensive injection resistance,
-production load tolerance or independent SDK/OS isolation. No real financial
-execution or real cloud deployment is part of these local checks.
-
-## Release acceptance and usage records
-
-From the repository root, `make verify-release` first runs the real paid-provider/
-crashed-worker demonstration, then creates an isolated Compose project. It checks
-SSE output and request usage fields, prepares a draft, restarts the API container,
-checks the identical stored draft and reviews it twice with the same action ID.
-It sends no operator action POST. Owned containers and volumes are removed on
-success and failure; port 8088 must be free. Fake generation and hashing verify
-product plumbing; they do not measure retrieval or answer quality.
-
-SSE results carry `duration_ms` and provider `usage`: reported input/output token
-counts, completeness, model-call counts, billing mode and a separately named
-`token_cost_estimate_usd`. OTel spans record the same totals and HTTP latency.
-`cost_usd` remains the conservative byte-based budget reservation. Configured API
-prices produce an uncached-token estimate, not an invoice; missing usage and
-subscription dollar costs remain unknown. Subscription counters consume local
-ChatGPT-plan quota and may include SDK overhead. No credentials or question/body
-content are logged. The real-answer sample records every call's latency/usage in
-release evidence.
-
-Azure instructions in `deploy/terraform/azure/README.md` prepare an opt-in future
-trial. No cloud application, deployment, test, teardown or billing measurement has
-been performed for this release.
+Tests revoke scopes, switch owners, expire drafts, change evidence and reuse IDs
+with different content. They cover 401/404/429, timeouts, bad responses, crashes
+after INSERT and concurrent invocations. These local checks do not establish
+production throughput or cloud availability. The
+[Azure recipe](../../deploy/terraform/azure/README.md) is preparation-only; its
+runtime behavior and cost remain unmeasured.

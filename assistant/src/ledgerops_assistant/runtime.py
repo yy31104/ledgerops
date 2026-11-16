@@ -7,10 +7,12 @@ import sys
 import psycopg
 from psycopg import sql
 
+from ledgerops_assistant.answer import ScopeGate
 from ledgerops_assistant.context import ContextRetriever
 from ledgerops_assistant.corpus import load_corpus
 from ledgerops_assistant.drafts import setup as setup_drafts
 from ledgerops_assistant.embeddings import BgeSmallEmbedder, HashingEmbedder
+from ledgerops_assistant.policy import scope_threshold
 from ledgerops_assistant.postgres import PostgresRetriever, corpus_key, index_corpus, setup
 from ledgerops_assistant.retrieval import HybridRetriever
 from ledgerops_assistant.settings import Settings
@@ -35,12 +37,17 @@ def retriever_for(settings):
         ).fetchone()
     if not found:
         raise ValueError("initialize this corpus and embedding revision before serving")
-    retriever = HybridRetriever(
-        PostgresRetriever(settings.database_url, key, embedder, method="fts"),
-        PostgresRetriever(settings.database_url, key, embedder, method="vector"),
-    )
+    vector = PostgresRetriever(settings.database_url, key, embedder, method="vector")
+    retriever = vector
+    if settings.retrieval == "hybrid":
+        retriever = HybridRetriever(
+            PostgresRetriever(settings.database_url, key, embedder, method="fts"), retriever
+        )
     retriever.revision = found[0]
-    return ContextRetriever(retriever, corpus)
+    context = ContextRetriever(retriever, corpus)
+    if settings.embedder == "bge":
+        context.scope_gate = ScopeGate(vector, scope_threshold())
+    return context
 
 
 def initialize(settings):

@@ -1,0 +1,242 @@
+{
+  "status": "frozen_synthetic",
+  "sha256": "475462a31a6a2579ea06796a5557b39f3bc3c2730d83f39f5f23db6a9351307e",
+  "frozen_at": "2026-11-16T22:06:21.073690+00:00",
+  "code_commit": "ace1d128905ee014765e7825735cd0727c8a2cf1",
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+  "corpus_version": "operations-v4",
+  "development_baseline": "assistant/eval/v11-holdout/development-baseline.json",
+  "inputs_sha256": {
+    "assistant/eval/v11-holdout/questions.jsonl": "475462a31a6a2579ea06796a5557b39f3bc3c2730d83f39f5f23db6a9351307e",
+    "assistant/eval/v11-holdout/protocol.json": "f41bb93d27dc01814e26b8faaf4ba1a8baca658387da23d300c1c180facc5f1e",
+    "assistant/eval/v11-holdout/development-baseline.json": "ccbb21479590a666ef86b26986cecae498ca185228b80458bbe10fa16c7e5cbc"
+  },
+  "code_sha256": {
+    "assistant/src/ledgerops_assistant/__init__.py": "558ddb6a98d1a8c6f55812dcf5edfa70f6ad8c49b866b42480fa415d0ede80e2",
+    "assistant/src/ledgerops_assistant/__main__.py": "a41d4cd5d8d43c563f3364813a4d6a3efdb059a9878e6445d2bb47174dd76696",
+    "assistant/src/ledgerops_assistant/agent.py": "a487f14827bb2169d70660390ad804b4ff9d9407faa736791063591bdc9b9d16",
+    "assistant/src/ledgerops_assistant/answer.py": "fa62781a4e4e63aebf5d7d699e0dedc1b57274c9aa1cec7a08e878b196a3367b",
+    "assistant/src/ledgerops_assistant/api.py": "5755863b1c7a28669a6181486510338b5336f7c766d503a4162d8bfcc2b419e5",
+    "assistant/src/ledgerops_assistant/benchmark.py": "4baa47eeaf4b3f7cf162dfbb6971373ea9c095b568b45d333aee27e072db650f",
+    "assistant/src/ledgerops_assistant/context.py": "7d22587380781a55b548c11128d9cee799edd5f52288958601295cfe659ad960",
+    "assistant/src/ledgerops_assistant/corpus.py": "6d81085f2495e30b63a31a19e0e7722ed0ffb87f5396af10ccd7939068de6598",
+    "assistant/src/ledgerops_assistant/demo_api.py": "d097a64c939df9700d20ef8c21a4cfdf04e88445e13e15e4d6d4bdf389a522df",
+    "assistant/src/ledgerops_assistant/drafts.py": "a76fd5c121eea4413c9577f252a474cc651c5aa053f4688ffe8e5914254e50b9",
+    "assistant/src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+    "assistant/src/ledgerops_assistant/evaluation.py": "298044eb0e6aec6adc5306f6b835c0d08efa81f3814b3ce86a1ff1d35ae91827",
+    "assistant/src/ledgerops_assistant/mcp_server.py": "d31b5368faf18a2eb55ae2ee151da27a8608ec2f80a6d1223abf4c75b6886c6b",
+    "assistant/src/ledgerops_assistant/policy.py": "47bf65e6161ddef8ca630eb8f7b47f10f34a351501049b6c113c265174378e7d",
+    "assistant/src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+    "assistant/src/ledgerops_assistant/providers/__init__.py": "a8046788a6586bcc6ad152f11388f588a371dbadd013dcaabd9308308ecddb53",
+    "assistant/src/ledgerops_assistant/providers/base.py": "385a1664587e1cca6cd44d64854806a4c33a796c61c4a976179f00362b19e540",
+    "assistant/src/ledgerops_assistant/providers/fake.py": "1baee1326ab79d70ef2426ea26a08377d74c9cbc45acb779028094b753ba858a",
+    "assistant/src/ledgerops_assistant/providers/ollama.py": "ea97277f9603444837b3df7ec7247ea5707969b879f0e61c8f107d6ee16f9e70",
+    "assistant/src/ledgerops_assistant/providers/openai_api.py": "fec090efebf1cce73c28f3463d646a93a2aaa2908e1f989d40a2268e824a2cd2",
+    "assistant/src/ledgerops_assistant/providers/subscription.py": "0fdbf448d24c8018187d957af646a815381d423ecd389854d1bd700697ce3d79",
+    "assistant/src/ledgerops_assistant/providers/subscription_worker.py": "a998323e4acb8f847eb795cb05bea0506dc9c4a66561d87836ca6b4a47e09f1d",
+    "assistant/src/ledgerops_assistant/quality_gate.py": "da1a131a06a44da21812842eef3260509a01980b0c412e09bb1e3ec960635037",
+    "assistant/src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec",
+    "assistant/src/ledgerops_assistant/routing.py": "3646427386c863af040dc0ca51c5bf6417d505be034d90ee666081b527417982",
+    "assistant/src/ledgerops_assistant/runtime.py": "7093389aac3e6929f66e2a593eda3ae71838b496b2b3bd58737304657e8e66be",
+    "assistant/src/ledgerops_assistant/settings.py": "a6172772dd250c722df16b1281da8ce51f3b35949cd685c33e6bb7132032414a",
+    "assistant/src/ledgerops_assistant/telemetry.py": "33f53c4b4237e41e4e1b0eb57e7bafa1e9208dfde8860700898b14cdde8be757",
+    "assistant/src/ledgerops_assistant/tools.py": "bb7e8a0d439862f8b918e4653b4f484c519f2eae690715531047143ece54b370",
+    "assistant/src/ledgerops_assistant/tracking.py": "5b635425bb3c5387a072d6384cf4aaeaa75022db0457fd86d31a793b0ce54861",
+    "assistant/src/ledgerops_assistant/usage.py": "b642251f87581fa4eefbc7e24100ceb456176bf500bff85149c6ab2df66066c0",
+    "assistant/src/ledgerops_assistant/workflow.py": "7658288aa5aeb298523688dcfb496b96ca4989047383c21408a60709f97bc917",
+    "assistant/src/ledgerops_assistant/sql/001_rag.sql": "26d7f0cbbc57a305c5239f5079d6853b7d3e8ca8fbde8273e7b611b308805488",
+    "assistant/src/ledgerops_assistant/sql/002_drafts.sql": "4b70c815e0d52d3a7047d102b4b9c0f4e11913effb074ba96c0640d7af5bc192",
+    "assistant/scripts/evaluate_v11.py": "7ffcdd13b79cc85c6a80c606af42b080eb6caeb075c8df5d20c1c9f4b246262d",
+    "assistant/scripts/evaluate_v3.py": "781b6689bdfa71f4ef8a1ad64ab417d91ce44f73f02acfeebdca83ccb3eee83f",
+    "assistant/scripts/evaluate_local.py": "4df7f0aedf1ecb9e5b2e21bc2c9b0d9b177902693983983cb89d651766b6e0d4",
+    "assistant/pyproject.toml": "4b0fb62d434f8ccd3733b9cec85827cb81a7a1ea5e46af96abab9f9523c4a226",
+    "assistant/uv.lock": "2074d76c5ce259386beeb9b9f69e7dae82b513ccd9c7c2e32df9b08e55699043"
+  },
+  "corpus_file_sha256": {
+    "docs/internals/reservation-index.md": "a6a7f6f4927c249639d41ece03ab7729b9145408fb19835bde83ced2e0418af0",
+    "docs/AUTHENTICATION.md": "bad63ae4e9a617774d7f788b8924cfbd9cba4e3134699d95e3c4e6b9c6a2b03e",
+    "docs/internals/backup-restore.md": "3251fa78e175d8660c9507ec313de310eb1c6eac789adaa8ba03873168d88f53",
+    "docs/internals/evidence-exchange.md": "cf3a93fc76d005b8371e450bfcf18e059a10d7d7d6aebc37bec458a0b1683c14",
+    "docs/internals/export-and-verify.md": "70cb75cfa022665e63d512283105eaa80d7112f1b967ac0a9116f575ba67a025",
+    "docs/HTTP-SERVICE.md": "2f1271c0b4755851420265fc8a5ccf0dec11b0f090dfb7c3a273047a89f6ebc3",
+    "docs/internals/maintenance-capacity.md": "b6c13e4a90f9b5b910e943759f0986812a028787081453f49dd27a780b162629",
+    "docs/MAINTENANCE.md": "f5e74a9fd6d0cfbbaa9f02592a392344ce9153d19dc277899a16c01e7787ecdc",
+    "docs/OPERATOR-ACTIONS.md": "7d776f3f3eb2a79724b7c9cc2c3e4e497e41c7ecad01c18b97c879fbc41afc44",
+    "docs/PAYOUTS.md": "0cd994acd009f8b22184c2086496d64575cd8b7d966a9ea2710f26ec0e793cd6",
+    "docs/RECONCILIATION.md": "2a1319d69433ec1d74303a7351528b72ea0ee3b4331649ce57674d36f347fb7f",
+    "docs/internals/release-readiness.md": "572b7cec576fd80cb02ae7ff2017d09592b50eeb82ef17720ae82ed00b6a8be8",
+    "docs/internals/reversal.md": "fe988eb6c5350276b7ccd15e43295f2efa76382ce9cd8328663980cc61de3847",
+    "docs/internals/streaming-export-protocol.md": "3a16f6cf8a4d0005a35ff9ad61a59ddf787ce0850efade0dd49539cc9ed132bf",
+    "docs/internals/streaming-evidence.md": "def39a2a665b39da75d17c78869caf8448b302878db8cc0c7d05457dc215aa53",
+    "docs/internals/adr/0001-initialization.md": "c8e95ea822b08da705f5122f8f89de41ec8bb6cc3ae2a3b7a8ee321d5b74270b",
+    "docs/internals/adr/0002-ledger-foundation.md": "d4fb664b601f7f8f93a6ac013c620d4ff6496aa7602f52c78eb07ba7d93154b1",
+    "docs/internals/adr/0003-purchase-admission.md": "1a85c7c03c993ac198da2ed968b2aa86fbb60d551b413a2b8795e2d876d715cd",
+    "docs/internals/adr/0004-contention-and-recovery.md": "afe50cc7054201aa269534d7d3dbba373dcfeed4143b011ac558217804dffcfa",
+    "ops/linux/README.md": "8fa1e92cbd18561d71c944cfe853b5a1cdd311cefc87b58a4b3da1d6f30e7365"
+  },
+  "policy": "Scope threshold is fixed by the copied development baseline. Only the release method metadata may change according to protocol.json; parameters do not change.",
+  "retained": {
+    "docs": 55,
+    "action": 18,
+    "out_of_scope": 10,
+    "live_state": 2
+  },
+  "total": 85,
+  "documentation_groups": 41,
+  "author_declaration": "A separate author used only the source bundle, its passages and assignment. No network, retrieval results, implementation, prior questions or prior conversation was available to the author. Synthetic labels; human annotation is not available.",
+  "author_notes_sha256": "bafba304b87ec3911e2b62fc6883fbc0c26c9c32aa44ac9a5c7e8acebb94c255",
+  "audit_sha256": "19e25c84c08f98b3de060da554eaa3fa02de0aa3ba7a30f11ce25f3020bf4b9c",
+  "audit": {
+    "kind": "Static source and text audit only; no retrieval or generation",
+    "accepted_development_docs": 23,
+    "accepted_holdout_docs": 55,
+    "accepted_holdout_non_docs": 30,
+    "removed_total": 18,
+    "removed_by_code": {
+      "historical_near_duplicate": 12,
+      "incomplete_relevant_sections": 5,
+      "source_quote_mismatch": 1
+    },
+    "removed": [
+      {
+        "id": "v11-dev-006",
+        "split": "dev",
+        "code": "historical_near_duplicate",
+        "reason": "High textual overlap after routine synonym substitution in the same short export/permanent-database question; both ask the same initialization boundary."
+      },
+      {
+        "id": "v11-dev-007",
+        "split": "dev",
+        "code": "incomplete_relevant_sections",
+        "reason": "Other explicit installed-artifact revision/dirty declarations are omitted from the relevance labels. Adding substantive relevance labels is outside the permitted quote-whitespace/anchor corrections."
+      },
+      {
+        "id": "v11-dev-008",
+        "split": "dev",
+        "code": "historical_near_duplicate",
+        "reason": "Compressed textual paraphrase retaining the distinctive saved-request/journal/balances wrong-merchant scenario and the same independent-check question. The required A/B ownership facts match."
+      },
+      {
+        "id": "v11-dev-014",
+        "split": "dev",
+        "code": "historical_near_duplicate",
+        "reason": "High lexical paraphrase of the same apply-rebuild/earlier-preview balance-values question and same no-import fact; the added explanation does not change the ask."
+      },
+      {
+        "id": "v11-dev-016",
+        "split": "dev",
+        "code": "incomplete_relevant_sections",
+        "reason": "The same operator workflow explicitly requires another/distinct actor in omitted console and release-guide sections. Adding these relevance labels exceeds the permitted narrow corrections."
+      },
+      {
+        "id": "v11-dev-017",
+        "split": "dev",
+        "code": "historical_near_duplicate",
+        "reason": "High textual paraphrase of the same retain-identifiers/operator-execution-retry question; preserve/retain and action/execution wording changes do not change its required original-ID intent."
+      },
+      {
+        "id": "v11-dev-021",
+        "split": "dev",
+        "code": "historical_near_duplicate",
+        "reason": "Near-identical interrogative and distinctive dispatch_once invocation wording, asking the same provider-network-call limit."
+      },
+      {
+        "id": "v11-dev-023",
+        "split": "dev",
+        "code": "historical_near_duplicate",
+        "reason": "High overlap of the distinctive matching-A/B, beneficiary-configuration and authentication question, with the same required negative authenticity fact."
+      },
+      {
+        "id": "v11-dev-025",
+        "split": "dev",
+        "code": "historical_near_duplicate",
+        "reason": "High shared word overlap in the same how-much/worker-lease/provider-timeout question; both require the same lease margin."
+      },
+      {
+        "id": "v11-test-008",
+        "split": "test",
+        "code": "incomplete_relevant_sections",
+        "reason": "The omitted reversal entry-point section explicitly says the idle-autocommit interface matches purchasing, directly supporting the purchase connection-state ask. Adding a relevance label exceeds the permitted narrow corrections."
+      },
+      {
+        "id": "v11-test-022",
+        "split": "test",
+        "code": "incomplete_relevant_sections",
+        "reason": "The release recovery section explicitly documents the same-snapshot business archive alongside pg_dump/pg_restore and is omitted from the relevance labels. Adding that label exceeds the permitted narrow corrections."
+      },
+      {
+        "id": "v11-test-034",
+        "split": "test",
+        "code": "incomplete_relevant_sections",
+        "reason": "The omitted v9 export/verification section explicitly checks one financial resolution for the payout, directly supporting the local one-resolution fact. Adding that label exceeds the permitted narrow corrections."
+      },
+      {
+        "id": "v11-test-041",
+        "split": "test",
+        "code": "historical_near_duplicate",
+        "reason": "High lexical overlap in the distinctive settlement-command/nonexistent-provider-database scenario and identical failure-versus-empty-statement intent."
+      },
+      {
+        "id": "v11-test-052",
+        "split": "test",
+        "code": "source_quote_mismatch",
+        "reason": "The evidence quote omits the article a from the source sentence Each must be a canonical UUID. It matches passages.jsonl but not the underlying Markdown after whitespace normalization. An article insertion is outside the allowed whitespace-only correction, so the row is excluded."
+      },
+      {
+        "id": "v11-test-061",
+        "split": "test",
+        "code": "historical_near_duplicate",
+        "reason": "Near-identical freeze-workspace/balance-investigation request after abstracting entity UUIDs; changing the UUID and adding now does not change action intent."
+      },
+      {
+        "id": "v11-test-062",
+        "split": "test",
+        "code": "historical_near_duplicate",
+        "reason": "High textual paraphrase of the same resume-workspace/recorded-freeze-identity action after abstracting UUIDs. The action and required identity intent are unchanged."
+      },
+      {
+        "id": "v11-test-091",
+        "split": "test",
+        "code": "historical_near_duplicate",
+        "reason": "Near-identical merchant available-balance-right-now live-state query after abstracting the entity identifier; no new information intent."
+      },
+      {
+        "id": "v11-test-094",
+        "split": "test",
+        "code": "historical_near_duplicate",
+        "reason": "Near-identical is-workspace-frozen-at-the-moment live-state query after abstracting UUIDs; this/at wording does not change intent."
+      }
+    ],
+    "corrections": [],
+    "checks": {
+      "json_parse": true,
+      "required_fields": true,
+      "unique_ids": true,
+      "nominal_counts_and_categories": true,
+      "assigned_primary_split": true,
+      "source_chunk_exists_and_in_primary": true,
+      "source_chunk_contains_primary_evidence": true,
+      "section_ids_exist": true,
+      "one_or_two_facts_for_docs": true,
+      "fact_indices_valid_and_covered": true,
+      "quotes_exact_in_passages_after_whitespace_normalization": true,
+      "quotes_exact_in_underlying_markdown_after_whitespace_normalization": "all except excluded v11-test-052",
+      "question_natural_one_ask_manual_review": true,
+      "copied_heading_absence": true,
+      "five_consecutive_source_words_absence": true,
+      "semantic_source_fact_support_manual_review": true,
+      "non_docs_empty_evidence_labels": true,
+      "unsupported_topic_search_against_all_20_source_documents": true,
+      "new_development_vs_historical_comparison": true,
+      "new_holdout_vs_historical_comparison": true,
+      "development_vs_holdout_comparison": true,
+      "cross_split_high_text_same_intent_duplicates_found": 0
+    },
+    "limitations": [
+      "This is an independent synthetic static label audit, not independent human review or validation of runtime implementation.",
+      "Text comparison and corpus search reduce detectable overlap and label errors but cannot prove all paraphrases or every possible semantic supporting passage have been found.",
+      "Relevance-label omissions were excluded, not amended, under the permitted narrow correction policy.",
+      "No holdout question or fact text is included in the parent-facing report; do not inspect holdout artifacts before the required implementation freeze."
+    ]
+  }
+}

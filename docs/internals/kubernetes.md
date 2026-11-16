@@ -179,7 +179,7 @@ Observed on a fresh cluster (fault at 02:09:47, restore at 02:11:28):
 
 During the outage the worker logged `worker_database_error` about once a second and
 reconnected by itself afterwards: no restart, the next payout settled on its first
-attempt. An earlier run gave the same shape: pending +23 s, firing +54 s, Ready
+attempt. A repeated run had the same sequence: pending +23 s, firing +54 s, Ready
 +5 s, resolved +63 s.
 
 ### After the faults: independent verification

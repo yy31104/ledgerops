@@ -1,0 +1,74 @@
+{
+  "status": "completed",
+  "cohort": "All original 32 development documentation questions; non-blind",
+  "model": "gpt-6.1-sol",
+  "commit": "7b599785660844cf32024f1884bf3ecd4b798d41",
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+  "questions_sha256": "caf74b7048c58ee28cf3136d33f6c5dd5fb2af66b14be7d4bec62d0784eecf07",
+  "record_sha256": "c1d1c19f038751548b34238db232bf44dafbcf3d29b3fb0cef78a7a6da2a046c",
+  "human_judgements": {
+    "completed": 0,
+    "pending": 32,
+    "status": "Human review pending; new answers are ungraded."
+  },
+  "generation": {
+    "planned": 32,
+    "recorded": 32,
+    "errors": 0,
+    "retries": 0,
+    "usage": {
+      "input_tokens": {
+        "sum": 530868,
+        "mean": 16589.625,
+        "min": 12357,
+        "max": 20353
+      },
+      "output_tokens": {
+        "sum": 6340,
+        "mean": 198.125,
+        "min": 77,
+        "max": 321
+      },
+      "cached_input_tokens": {
+        "sum": 96384,
+        "mean": 3012,
+        "min": 0,
+        "max": 16256
+      },
+      "reasoning_output_tokens": {
+        "sum": 0,
+        "mean": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "latency_seconds": {
+      "mean": 8.65183709375,
+      "median": 8.4091065,
+      "min": 5.807754,
+      "max": 12.109236000000001
+    },
+    "mean_document_utf8_bytes": 14780.4375
+  },
+  "calibration": {
+    "status": "recorded",
+    "input_tokens": 17149,
+    "output_tokens": 42,
+    "message_utf8_bytes": 23
+  },
+  "token_contrast": {
+    "empty_evidence_input_tokens": 17149,
+    "reported_full_calls": 32,
+    "planned_full_calls": 32,
+    "mean_reported_full_input_tokens": 16589.625,
+    "complete": true,
+    "mean_full_minus_empty_input_tokens": -559.375,
+    "interpretation": "Measured contrast between separate threads with the same model, instructions and schema. Empty input includes SDK/system framing, instructions and schema. Full minus empty includes evidence, question and possible framing variation; the SDK does not expose an exact component-token allocation."
+  },
+  "attribution": "The negative full-minus-empty contrast cannot identify SDK overhead or document tokens. No exact component-token allocation is available. Rendered byte counts are measured separately; no compression benefit is claimed.",
+  "billing": {
+    "basis": "ChatGPT subscription quota",
+    "billed_usd": null,
+    "reason": "Subscription usage has no per-request dollar invoice."
+  }
+}

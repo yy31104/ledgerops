@@ -55,3 +55,30 @@ def test_gate_rejects_fusion_or_corpus_drift():
         new[key] = {}
         with pytest.raises(ValueError, match="changed"):
             check_regression(new, old)
+
+
+def test_gate_rejects_changed_default_or_context_policy_and_lost_source_coverage():
+    old = baseline()
+    old["context"] = {
+        "policy": "section-completion-v2",
+        "retrieval_method": "vector",
+        "stats": {"mean_section_recall": 0.8},
+    }
+    for changed in [
+        {"policy": "different"},
+        {"retrieval_method": "hybrid"},
+        {"stats": {"mean_section_recall": 0.79}},
+    ]:
+        new = deepcopy(old)
+        new["context"].update(changed)
+        with pytest.raises(ValueError, match="context"):
+            check_regression(new, old)
+
+
+def test_gate_rejects_recalibrated_scope_threshold():
+    old = baseline()
+    old["scope_gate"] = {"threshold": 0.55}
+    new = deepcopy(old)
+    new["scope_gate"]["threshold"] = 0.56
+    with pytest.raises(ValueError, match="scope threshold"):
+        check_regression(new, old)

@@ -26,3 +26,18 @@ def check_regression(report: dict, baseline: dict) -> None:
                 raise ValueError(
                     f"{metric} regression for {method}: {new.get(metric)} < {old[metric]}"
                 )
+    old_context, new_context = baseline.get("context", {}), report.get("context", {})
+    for name in ("policy", "retrieval_method"):
+        if name in old_context and new_context.get(name) != old_context[name]:
+            raise ValueError(f"context {name} changed; review a new baseline")
+    old_coverage = old_context.get("stats", {}).get("mean_section_recall")
+    if old_coverage is not None:
+        new_coverage = new_context.get("stats", {}).get("mean_section_recall", -1)
+        if new_coverage < old_coverage:
+            raise ValueError(
+                f"expanded context coverage regression: {new_coverage} < {old_coverage}"
+            )
+
+    if "scope_gate" in baseline:
+        if report.get("scope_gate", {}).get("threshold") != baseline["scope_gate"]["threshold"]:
+            raise ValueError("scope threshold changed; review a new baseline")

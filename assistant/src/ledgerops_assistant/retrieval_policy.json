@@ -1,0 +1,6 @@
+{
+  "method": "hybrid",
+  "scope_threshold": 0.5512,
+  "basis": "Preregistered operations-v4 holdout: hybrid-minus-vector Recall@5 section-cluster 95% interval excludes zero on the positive side. Synthetic labels; this method choice is not a second validation.",
+  "study": "eval/v11-holdout/manifest.json"
+}

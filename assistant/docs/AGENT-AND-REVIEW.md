@@ -1,96 +1,89 @@
-# Read-only investigation and durable draft review
+# Read-only investigation and draft review
 
-## Caller authority and bounded tools
+## Caller permissions and tools
 
 The LangGraph agent loops `decide -> read -> decide`, then produces a cited answer.
-Five named tools accept an optional business UUID. The model cannot select a URL,
-HTTP method, workspace, credential or write action. The transport issues GET only,
-does not follow redirects and contacts one administrator-configured API origin.
+Five named tools accept an optional business UUID. The model cannot choose a URL,
+HTTP method, workspace, credential or write action. The transport sends GET only,
+refuses redirects and contacts one configured API origin.
 
-The operator supplies their own token. `/v1/me` establishes the stable workspace,
-actor and client. Every read rechecks identity and the required scope; the upstream
-remains the authorization authority. Planning and answer generation also recheck
-ownership and all scopes required by cached successful observations before sending
-evidence to the configured model or reserving cost. Cancellation and deadline are
-checked again after the potentially blocking identity lookup.
+The caller supplies a token. `/v1/me` identifies its workspace, actor and client.
+Every read rechecks identity and scope. Planning and answer generation recheck the
+permissions behind cached observations before sending them to a model. The upstream
+API makes the access decision. Tokens stay in runtime context; model prompts and
+persisted graph state contain no credentials.
 
-A 401 stops the run, 403 denies scope, 404 remains ambiguous, and 429/timeouts have
-bounded attempts and backoff. Oversized or malformed responses fail explicitly;
-recent lists are bounded. Credentials are runtime context, absent from model prompts
-and persisted graph state. Prompt injection detection supplements these capability
-and permission boundaries; it does not replace them.
+A 401 stops the run, 403 denies access and 404 leaves the outcome unknown. Retries
+for 429 and timeouts have bounded attempts and backoff. Malformed or oversized
+responses fail; recent lists have explicit limits. An empty list does not prove
+that an event never happened. Input filters supplement these controls; they do not
+replace them or prove prompt-injection resistance.
 
-Limits cap steps, context bytes, HTTP attempts and wall time. API generation also
-sets its output-token cap; the local subscription SDK uses concise-answer
-instructions and deadlines rather than a hard output-token cap. API mode
-requires explicit token prices and reserves a conservative input-byte/framing/output
-bound before inference. Each input byte is charged at one token's configured rate,
-so this deliberately overestimates typical text tokenization rather than estimating
-actual token count. Failed or ambiguous inference retains its reservation and
-automatic inference retries are disabled. `cost_usd` is an estimated upper bound,
-not an invoice. Local subscription use consumes plan quota, with no dollar estimate
-derived from the subscription fee. Cancellation prevents subsequent work;
-provider deadlines bound in-flight requests and terminate the SDK subprocess group.
+## Request bounds and usage
 
-For documentation-only agent calls, the conservative input reservation increases
-by about 70% with expanded context (roughly 13 KB to 23 KB for planning calls,
-including prompt/framing allowance). This is a byte-based token upper bound, not
-measured token usage. With token prices configured for `openai_api`, fewer model
-calls can fit within the default `max_cost_usd=0.10`. Default limits and the
-planning-stage document budget are unchanged.
+Limits cap steps, input bytes, HTTP attempts and elapsed time. API generation also
+caps output tokens. The subscription SDK uses a deadline and concise-answer
+instructions because its turn interface has no hard output-token cap. Cancellation
+prevents further work; a timed-out SDK worker has its process group terminated.
 
-Generation context uses distinct source sections, section introductions and
-neighboring chunks from the same document snapshot. The document pack is bounded
-to 18 KB serialized JSON. As API observations grow, planning and answering drop
-whole trailing document additions to fit the existing total request bound. API
-observations are never dropped to make room; if they alone exceed the limit, the
-run refuses before inference. Citations are validated against the actual fitted
-passages, including neighbors, so an omitted chunk is not a valid citation.
+API mode requires explicit token prices. Before each call, it reserves input bytes,
+framing and the output cap at those prices, treating one byte as one input token.
+This deliberately conservative bound remains reserved after ambiguous failures;
+there are no automatic inference retries. `cost_usd` is that reservation, not a bill.
 
-## Prepare, interrupt and resume
+Provider counters add planning and answer usage, including malformed outputs.
+Missing counters or a failed call mark the total incomplete. SSE and request spans
+include counts, completeness and latency. Configured API prices produce a separate
+uncached-token estimate. Subscription usage is `subscription_quota`; its billed
+USD remains unknown.
 
-The workflow prepares a local `REPROCESS_TERMINAL_LOCAL_BLOCKER` draft. It never
-calls a LedgerOps POST endpoint. Its nodes are investigate, prepare and review.
-Prepare writes the draft before review calls `interrupt()`; PostgresSaver persists
-state with sync durability. Resume restarts review without rerunning the model.
+Document context uses citable chunks from one corpus snapshot and has an 18 KB
+serialized JSON cap. When API observations grow, planning and answering remove
+whole trailing document chunks to fit the total request bound. Observations are
+never removed to make space; if they alone exceed the bound, inference is refused.
+Only IDs in the final supplied context can be cited.
 
-The stable owner/request identity binds canonical intent and evidence hashes. Even
-a crash after the INSERT commits but before its checkpoint persists reuses the
-same deterministic action UUID, payload digest and absolute expiry on retry.
-Different content under the same request identity fails. Cross-process session
-advisory locks serialize an invocation without holding a financial transaction
-across network or model work.
+## Prepare, pause and resume
 
-The owner includes workspace, actor and stable client, not a particular token.
-Token rotation can preserve ownership; switching owner cannot inspect another
-workflow. Every invocation rechecks maker scope. Review rejects expired drafts,
-wrong digests, revoked permissions and changed payout evidence. Fingerprints cover
-the full payout, operation and investigation responses, including business state
-and the persisted payout schedule. Metrics and account summaries may inform an
-answer but do not authorize a payout draft and are excluded from its fingerprint
-and review rereads. This also applies to older paused checkpoints, so a changing
-`oldest_unresolved_seconds` alone cannot invalidate a draft.
+The workflow prepares a local `REPROCESS_TERMINAL_LOCAL_BLOCKER` draft. It has no
+LedgerOps POST tool. Its nodes are investigate, prepare and review. Prepare stores
+the draft before review calls `interrupt()`; `PostgresSaver` checkpoints with sync
+durability. Resume restarts review without regenerating the answer.
 
-Preparation requires an authorized, non-refused investigation for exactly the
-requested payout, the selected terminal observation, its LOCAL_BLOCKER incident and
-the selected current reconciliation run. Overflow flags, malformed projections or
-incompatible incidents reject preparation. UNKNOWN without a terminal observation
-is insufficient. Reasons preserve their exact bytes, must be nonblank and NUL-free,
-and may contain no more than 256 UTF-8 bytes.
+Workspace, actor and stable client identify the owner. Token rotation can preserve
+that identity; a different owner cannot read the workflow. Owner/request identity
+binds canonical intent and evidence. A crash after the draft INSERT commits but
+before its checkpoint is saved still reuses the action UUID, payload digest and
+absolute expiry. Reusing the request identity with different content fails.
+Session advisory locks serialize concurrent invocations without holding a financial
+transaction across network or model calls.
 
-## Existing console remains authoritative
+Preparation needs a non-refused, caller-scoped investigation of the requested
+payout, selected terminal observation, its LOCAL_BLOCKER incident and the current
+reconciliation run. UNKNOWN alone is insufficient. Overflow flags, malformed
+projections and incompatible incidents stop preparation. Reasons retain their
+exact bytes: nonblank, NUL-free and at most 256 UTF-8 bytes.
 
-Local review is not the ledger's maker/checker approval. The operator submits the
-reviewed JSON through the existing console, reads its retained proposal and follows
-the original two-actor approval/execution checks. The local `draft_sha256` binds
-this review; it is never the console's authoritative `proposal_sha256`.
+Every invocation rechecks maker scope. Review rejects expiry, changed digests,
+revoked permissions and changed payout evidence. The fingerprint includes payout,
+operation and investigation responses, including the payout schedule. Metrics and
+account summaries can inform an answer but cannot establish a draft's eligibility;
+they are excluded from fingerprint checks, including older saved checkpoints.
+A changing `oldest_unresolved_seconds` therefore does not invalidate a draft.
 
-Bounded API projections cannot establish complete history or source authenticity.
-The console independently checks current proposal, actor, expiry, evidence epoch,
-original observation authenticity and financial eligibility. A review continuation
-sends no payment, releases no hold and executes no ledger action.
+## Submit through the existing console
 
-## Verification
+Local review does not perform the ledger's two-person approval. The operator
+submits the reviewed JSON in the existing console, reads the retained proposal and
+follows its distinct-actor approval and execution checks. `draft_sha256` binds the
+local draft; the server computes its own `proposal_sha256`.
+
+The console checks current actor permissions, expiry, evidence epoch, original
+observation authenticity and financial eligibility. Continuing a draft sends no
+payment, releases no hold and executes no ledger action. Bounded API projections
+cannot establish a complete history or authenticate external source evidence.
+
+## Test recovery and access checks
 
 From the repository root, with Docker running:
 
@@ -102,22 +95,11 @@ uv run --project assistant --locked --with-editable . --with gunicorn==26.2.0 \
   assistant/scenarios/agent_acceptance.py assistant/scenarios/handoff_acceptance.py
 ```
 
-Recovery tests inject a crash after draft commit, rebuild the workflow, race full
-invocations and resume repeatedly. They assert one action and registry row, the
-original payload/digest/expiry and no second model generation. Other tests change
-intent, business evidence, owner, scope, expiry and metrics age. Deterministic fake
-model/upstream responses test these control paths. The separate real-service
-acceptance pair verifies caller permissions and one idempotent proposal handoff in
-disposable PostgreSQL; it does not approve or execute a financial proposal.
+Recovery tests crash after draft commit, rebuild the workflow, race invocations
+and resume repeatedly. They check one action/registry row, identical payload,
+digest and expiry, and no second generation. Access tests change owner, scope,
+intent, evidence and expiry; changing metric age must leave the draft intact.
+The real-service tests use disposable PostgreSQL and stop at proposal handoff.
 
 References: [LangGraph interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts),
 [PostgreSQL checkpointer](https://docs.langchain.com/oss/python/langgraph/add-memory).
-
-## Reported request usage
-
-Provider token counters aggregate planning and answer calls, including malformed
-outputs. An exception or missing counter marks the total incomplete. API pricing
-estimates use the explicitly configured uncached token rates and are separate
-from the conservative budget reservation. Subscription usage is labelled
-`subscription_quota`, with unknown billed USD. SSE and request spans include model
-call counts, completeness and measured latency. Counters do not establish a bill.

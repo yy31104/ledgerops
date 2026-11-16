@@ -145,6 +145,6 @@ def test_all_existing_development_documentation_questions_keep_their_route():
     # Inspect only the existing development split. No holdout is opened or scored.
     rows = [json.loads(line) for line in DEFAULT_QUESTIONS.read_text().splitlines()]
     docs = [row for row in rows if row["split"] == "dev" and row["expected_route"] == DOCS]
-    assert len(docs) == 32
+    assert len(docs) == 55
     assert all(classify(row["question"]) == DOCS for row in docs)
     assert not any(unsupported_topic(row["question"]) for row in docs)

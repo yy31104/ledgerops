@@ -97,8 +97,11 @@ constraints, stable keys and independent verification each enforce part of the
 contract; an application retry loop alone cannot provide it. The provider must
 support the documented idempotency, lookup and closure semantics.
 
-For documentation questions, the assistant combines PostgreSQL full-text search
-and pgvector, fuses ranks with RRF, and provides bounded source context to a model.
+For documentation questions, the assistant defaults to PostgreSQL full-text plus
+pgvector, fused with RRF. A new frozen comparison supports that choice for section
+Recall@5; pure vector search remains selectable and has higher exact-quote coverage.
+The [evaluation report](assistant/docs/RETRIEVAL-QUALITY-V2.md) shows both results.
+The assistant provides bounded source context to a model.
 References are checked against the supplied passages. LangGraph persists draft
 review checkpoints in PostgreSQL and rechecks identity and evidence on resume.
 These checks constrain behavior; citations alone do not prove an answer is correct.
@@ -112,6 +115,8 @@ invariants, deployment recipes and decisions live in [internals](docs/internals/
 make bootstrap
 make check
 make test
+# Predict the failures, then remove protections in disposable copies:
+make mutant NAME=all
 ```
 
 Tests use disposable PostgreSQL/provider services, real process crashes, exact

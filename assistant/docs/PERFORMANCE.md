@@ -478,8 +478,10 @@ Negative tests cover bad percentiles, deterministic/different seeds, missing
 environment fields, cache corruption/identity, wrong ANN plans and 100k opt-in.
 No workflow or dependency change is needed.
 
-Script cleanup checks: Ruff check/format pass; 209 default tests pass; 56 PostgreSQL/model
-tests pass with the existing one strict xfail for v1-011. The unchanged dev
+Historical script checks: Ruff check/format passed; 209 default tests and 56
+PostgreSQL/model tests passed, with one strict xfail for v1-011 at that snapshot.
+The v1.1 context repair removes this xfail; current results are in the
+[retrieval report](RETRIEVAL-QUALITY-V2.md). The unchanged dev
 evaluation gate passed locally with its committed baseline in the original P1 run.
 That original validation also passed core make check and make test (1,725 tests),
 React build and 3 tests, 3 scenario snapshots, and 2 fake agent/handoff tests.
@@ -546,6 +548,6 @@ The script's default run preserves the original fresh-ranking procedure. Rebuild
 HNSW may produce different ranked IDs. To verify the script relocation, the stored
 rankings were replayed through the unchanged scoring functions instead: all 768
 per-question records and aggregates were recomputed. The complete JSON is identical
-to the reviewed e391829 record after removing only analysis_sha256 and created_at.
+to the e391829 historical record after removing only analysis_sha256 and created_at.
 A regression test guards that historical content fingerprint and the six original
 input hashes. No original benchmark was rerun or overwritten.
