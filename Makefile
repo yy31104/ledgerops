@@ -1,7 +1,7 @@
 UV ?= uv
 UV_CACHE_DIR ?= $(CURDIR)/.cache/uv
 export UV_CACHE_DIR
-CHECK_DIRS := src tests reference $(wildcard provider_sim) $(wildcard ops)
+CHECK_DIRS := src tests reference $(wildcard provider_sim) $(wildcard ops) $(wildcard scripts)
 
 .PHONY: bootstrap check test test-unit test-integration test-provider build demo demo-payout-crash benchmark service
 
@@ -45,3 +45,7 @@ service:
 .PHONY: verify-release
 verify-release: demo-payout-crash
 	python3 assistant/scripts/verify_release.py
+
+.PHONY: mutant
+mutant:
+	$(UV) run --locked python scripts/mutants.py $(NAME)
