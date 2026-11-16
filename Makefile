@@ -3,7 +3,7 @@ UV_CACHE_DIR ?= $(CURDIR)/.cache/uv
 export UV_CACHE_DIR
 CHECK_DIRS := src tests reference $(wildcard provider_sim) $(wildcard ops)
 
-.PHONY: bootstrap check test test-unit test-integration test-provider build demo benchmark service
+.PHONY: bootstrap check test test-unit test-integration test-provider build demo demo-payout-crash benchmark service
 
 bootstrap:
 	$(UV) sync --locked
@@ -31,6 +31,10 @@ build:
 demo:
 	@$(UV) run --quiet --locked python -m pytest -qq -s --no-header --tb=short -p tests.demo_output tests/demo_story.py
 	@printf '%s\n' 'Demo complete. Temporary PostgreSQL and exported files have been removed.'
+
+demo-payout-crash:
+	@$(UV) run --quiet --locked python -m pytest -qq -s --no-header --tb=short -p tests.demo_output -p tests.integration.test_payout_worker_process tests/integration/payout_crash_story.py
+	@printf '%s\n' 'Crash demo complete. Worker/provider stopped; owned PostgreSQL container removed.'
 
 benchmark:
 	$(UV) run --locked python -m pytest -q -s --no-header --tb=short tests/benchmark_story.py
