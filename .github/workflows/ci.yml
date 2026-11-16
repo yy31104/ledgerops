@@ -141,4 +141,9 @@ jobs:
           npm run build
           npm test
       - name: Verify isolated Compose restart and review
+        env:
+          # Acceptance must isolate its generated credentials from the caller.
+          ASSISTANT_OWNER_PASSWORD: deliberately-conflicting-owner
+          ASSISTANT_RUNTIME_PASSWORD: deliberately-conflicting-runtime
+          LEDGEROPS_ASSISTANT_DEMO_TOKEN: deliberately-conflicting-token
         run: python3 assistant/scripts/verify_release.py

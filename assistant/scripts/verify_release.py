@@ -55,7 +55,15 @@ def main():
             "-f",
             str(ROOT / "compose.yml"),
         ]
-        env = {**os.environ, "LEDGEROPS_ASSISTANT_EMBEDDER": "hashing"}
+        # Compose gives exported variables precedence over --env-file. The trial
+        # must always use its own generated credentials, never the caller's stack.
+        generated_keys = {
+            "ASSISTANT_OWNER_PASSWORD",
+            "ASSISTANT_RUNTIME_PASSWORD",
+            "LEDGEROPS_ASSISTANT_DEMO_TOKEN",
+        }
+        env = {k: v for k, v in os.environ.items() if k not in generated_keys}
+        env["LEDGEROPS_ASSISTANT_EMBEDDER"] = "hashing"
 
         def compose(*args):
             subprocess.run([*command, *args], check=True, env=env, timeout=600)
