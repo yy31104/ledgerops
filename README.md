@@ -1,8 +1,9 @@
 # LedgerOps
 
-A payment ledger that keeps money reserved when a worker dies after the provider
-has already paid. A read-only operator assistant explains the rules and gathers
-caller-authorized evidence; people review and submit proposed actions.
+A reference implementation for testing code that moves money. A small payment
+ledger makes concurrency errors, uncertain outcomes and recovery rules observable.
+
+Personal project. Built with AI assistance.
 
 ![A real payout surviving a killed worker](docs/assets/payout-crash.gif)
 
@@ -19,10 +20,51 @@ make verify-release
 The demo creates disposable services, submits a payout, waits for the provider's
 durable payment, kills the worker, and restarts it. Recovery uses the same provider
 key and LOOKUP. The final screen checks one provider payment, one ledger settlement,
-one outgoing journal and a healthy independent verifier, including a replayed admission request and a further worker scan.
+one outgoing journal and a healthy independent verifier, including a replayed
+admission request and a further worker scan.
 It removes only its own test resources. See the [recovery walkthrough](articles/provider-paid-worker-died.md).
 
 For purchase, reversal and projection-drift examples, run `make demo`.
+
+## Correct totals can hide a race
+
+Two concurrent purchases of 30 from 100 can end at the correct balances: customer
+40, merchant 60. That does not prove each purchase checked a current balance.
+The [client-history checker](tests/history/README.md) records the versions each
+transaction read and wrote, then looks for dependency cycles and stale reads.
+Run the locked control and a test-only variant with the balance row lock removed:
+
+```sh
+make demo-lost-update
+```
+
+Both runs pass the independent balance fold. The locked history passes; the
+unlocked history reports `lost-update`, `non-adjacent-rmw` and `G-single`.
+This is a narrow, Elle-style check of recorded balance operations, not a proof
+of every database interaction. The command prints both offline checker reports.
+
+![Real locked and unlocked history checks](docs/assets/lost-update.gif)
+
+The [terminal recording](docs/assets/lost-update.cast) keeps the original timing;
+the GIF holds the final output for five seconds so it can be read.
+
+## Core and extensions
+
+Start with these five parts; they explain the financial claims and their tests.
+
+| Core | Read | What it checks |
+|---|---|---|
+| Ledger | [Admission](src/ledgerops/db/admission.py), [schema](src/ledgerops/db/sql/001_foundation.sql) | Identity, available funds and balanced entries |
+| Payments | [Admission](src/ledgerops/db/payout_admission.py), [resolution](src/ledgerops/db/payout_resolution.py) | Reserve first; settle only from provider evidence |
+| Recovery | [Dispatch](src/ledgerops/db/payout_dispatch.py), [worker](src/ledgerops/worker.py) | Durable intent, stable keys and uncertain outcomes |
+| Independent verification | [Verifier](src/ledgerops/verification.py), [journal fold](reference/journal_fold.py) | Recompute financial facts rather than trust stored totals |
+| Concurrent histories | [Recorder](tests/history/recorder.py), [checker](tests/history/checker.py) | Detect bad executions even when final totals agree |
+
+The HTTP service, authentication, operator console, reconciliation, export,
+backup and maintenance are extensions around that core. The [assistant](assistant/)
+and [deployment examples](deploy/) are separate integrations. Follow their guides
+when exploring those workflows; the two demonstrations above are the shortest
+route through the core.
 
 ## Try the operator assistant
 
