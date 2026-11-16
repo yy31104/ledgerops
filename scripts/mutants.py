@@ -425,7 +425,13 @@ def run_tests(copy, tests, artifacts, label, timeout):
                 suite.set("hostname", "redacted-host")
         report.write(xml, encoding="unicode")
     (artifacts / "output.txt").write_text(log)
-    return {**result, "exit_code": proc.returncode, "seconds": round(time.monotonic() - started, 3)}
+    return {
+        **result,
+        "exit_code": proc.returncode,
+        "interrupted": was_interrupted,
+        "run_label": label,
+        "seconds": round(time.monotonic() - started, 3),
+    }
 
 
 def exercise(root, name, artifacts, timeout=120):
