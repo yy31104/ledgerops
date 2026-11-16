@@ -8,7 +8,7 @@ make mutant NAME=timeout-hold
 make mutant NAME=all
 ```
 
-Docker, Python 3.12 and uv are required. The runner copies repository files into a
+A Git checkout, Docker, Python 3.12 and uv are required. The runner copies repository files into a
 new temporary directory for each trial. It imports that copy's `src`, changes only
 that copy, and runs the same focused test before and after the edit. PostgreSQL is
 disposable; only containers carrying that trial's generated label can be removed.
@@ -28,7 +28,7 @@ The original `src` digest must match before and after. No migration is edited in
 **Result: 8 selected rules, 8 detected, no survivors or invalid trials.** Every
 pristine control passed. All eight detections already had focused financial tests;
 no previously uncovered financial rule was found in this set, so zero financial
-regression tests were added. The runner has 24 safety cases for patch validation,
+regression tests were added. The runner has 25 safety cases for patch validation,
 source isolation, matched controls, evidence handling, timeouts and cleanup.
 
 A kill requires a passing control, matching executed test IDs and a failing test

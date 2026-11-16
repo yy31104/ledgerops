@@ -132,6 +132,7 @@ def test_runner_deadline_is_invalid_and_still_cleans_owned_resources(tmp_path, m
     "control,changed,status,executions",
     [
         ("failed", "failed", "invalid", 1),
+        ("different-control", "failed", "invalid", 1),
         ("passed", "invalid", "invalid", 2),
         ("passed", "failed", "killed", 2),
         ("passed", "passed", "survived", 2),
@@ -160,8 +161,14 @@ def test_only_matching_tests_after_a_passing_control_can_kill(
         trial = control if not calls else changed
         calls.append(trial)
         return {
-            "status": "failed" if trial == "different-tests" else trial,
-            "test_ids": ["other-test"] if trial == "different-tests" else ["a.py::test_guard"],
+            "status": "failed"
+            if trial == "different-tests"
+            else "passed"
+            if trial == "different-control"
+            else trial,
+            "test_ids": ["other-test"]
+            if trial in {"different-tests", "different-control"}
+            else ["a.py::test_guard"],
         }
 
     monkeypatch.setattr(mutants, "copy_source", copy_source)

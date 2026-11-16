@@ -448,6 +448,9 @@ def exercise(root, name, artifacts, timeout=120):
                     (artifacts / "mutation.patch").write_text(patch)
                     record["patch_sha256"] = hashlib.sha256(patch.encode()).hexdigest()
                 record[trial] = run_tests(copy, mutant.tests, artifacts / trial, label, timeout)
+                if record[trial].get("test_ids") != list(mutant.tests):
+                    record[trial]["status"] = "invalid"
+                    record[trial]["reason"] = "executed tests differ from the selected nodes"
             if record[trial].get("reason") == "interrupted":
                 raise KeyboardInterrupt
             if trial == "control" and record[trial]["status"] != "passed":
