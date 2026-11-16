@@ -1,4 +1,4 @@
-"""OTel request spans record latency and estimated cost, without request contents."""
+"""OTel request spans record latency, reported usage and budget, without content."""
 
 import sys
 import time
@@ -63,6 +63,19 @@ class RequestTelemetry:
                 span.set_attribute("request.duration_ms", (time.perf_counter() - started) * 1000)
                 span.set_attribute("gen_ai.cost.estimated_usd", state.get("cost_usd", 0.0))
                 span.set_attribute("gen_ai.steps", state.get("steps", 0))
+                usage = state.get("usage", {})
+                if usage:
+                    span.set_attribute("gen_ai.provider.name", usage["provider"])
+                    span.set_attribute("gen_ai.billing", usage["billing"])
+                    span.set_attribute("gen_ai.usage.input_tokens", usage["input_tokens"])
+                    span.set_attribute("gen_ai.usage.output_tokens", usage["output_tokens"])
+                    span.set_attribute("gen_ai.usage.complete", usage["complete"])
+                    span.set_attribute("gen_ai.model_calls", usage["model_calls"])
+                    span.set_attribute("gen_ai.reported_model_calls", usage["reported_model_calls"])
+                    if usage["token_cost_estimate_usd"] is not None:
+                        span.set_attribute(
+                            "gen_ai.cost.token_estimate_usd", usage["token_cost_estimate_usd"]
+                        )
 
 
 class RequestLimit:

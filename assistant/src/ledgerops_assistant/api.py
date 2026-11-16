@@ -50,6 +50,8 @@ def public_result(state):
         "cost_kind": "estimated_upper_bound",
         "input_tokens": state.get("input_tokens", 0),
         "output_tokens": state.get("output_tokens", 0),
+        "usage": state.get("usage", {}),
+        "duration_ms": state.get("duration_ms", 0),
     }
 
 
@@ -181,8 +183,17 @@ def create_app(settings=None, *, retriever=None, api_factory=None, telemetry=Non
             def charge(amount):
                 request.state.cost_usd = getattr(request.state, "cost_usd", 0) + amount
 
+            def usage(report):
+                request.state.usage = report
+
             return await asyncio.to_thread(
-                agent.run, body.question, client, cancel=cancel, on_event=progress, on_charge=charge
+                agent.run,
+                body.question,
+                client,
+                cancel=cancel,
+                on_event=progress,
+                on_charge=charge,
+                on_usage=usage,
             )
 
         task = asyncio.create_task(execute())
@@ -215,6 +226,7 @@ def create_app(settings=None, *, retriever=None, api_factory=None, telemetry=Non
                     state.get("steps", 0),
                 )
                 result = public_result(state)
+                request.state.usage = result["usage"]
                 # Prose streams only after schema/citation validation, never before it.
                 for start in range(0, len(result["answer"]["text"]), 80):
                     if cancel.is_set():
@@ -259,6 +271,9 @@ def create_app(settings=None, *, retriever=None, api_factory=None, telemetry=Non
             def charge(amount):
                 request.state.cost_usd = getattr(request.state, "cost_usd", 0) + amount
 
+            def usage(report):
+                request.state.usage = report
+
             try:
                 return await asyncio.to_thread(
                     workflows[body.provider].invoke,
@@ -269,6 +284,7 @@ def create_app(settings=None, *, retriever=None, api_factory=None, telemetry=Non
                     intent=body.intent,
                     cancel=cancel,
                     on_charge=charge,
+                    on_usage=usage,
                 )
             finally:
                 with registry_lock:

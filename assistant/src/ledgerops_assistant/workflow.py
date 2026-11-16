@@ -32,6 +32,7 @@ class WorkflowContext:
     owner_key: str
     cancel: object = None
     on_charge: object = None
+    on_usage: object = None
 
 
 def fingerprint(observations):
@@ -64,6 +65,7 @@ class DraftWorkflow:
             runtime.context.client,
             cancel=runtime.context.cancel,
             on_charge=runtime.context.on_charge,
+            on_usage=runtime.context.on_usage,
         )
         return {"investigation": result, "evidence": fingerprint(result["observations"])}
 
@@ -201,9 +203,10 @@ class DraftWorkflow:
         decision=None,
         cancel=None,
         on_charge=None,
+        on_usage=None,
     ):
         identity = client.identity()
-        context = WorkflowContext(client, identity.owner_key, cancel, on_charge)
+        context = WorkflowContext(client, identity.owner_key, cancel, on_charge, on_usage)
         self._authorized(context)
         key = f"{identity.owner_key}/{UUID(thread_id)}"
         config = {"configurable": {"thread_id": key}, "recursion_limit": 30}

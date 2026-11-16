@@ -95,6 +95,33 @@ def test_failed_inference_retains_cost_in_the_request_span(tiny_corpus):
         exporter.get_finished_spans()[-1].attributes["gen_ai.cost.estimated_usd"]
         == result["cost_usd"]
     )
+    assert not result["usage"]["complete"]
+    assert result["usage"]["model_calls"] == 2
+    assert result["usage"]["token_cost_estimate_usd"] is None
+
+
+def test_http_reports_aggregate_usage_and_token_price_estimate(tiny_corpus):
+    from test_usage import ReportedProvider
+
+    app, _, exporter = make_app(tiny_corpus)
+    app.state.agents["fake"].provider = ReportedProvider()
+    app.state.agents["fake"].limits = Limits(input_usd_per_million=2, output_usd_per_million=4)
+    with TestClient(app) as client:
+        response = client.post(
+            "/v1/assist",
+            headers=HEADERS,
+            json={"question": "Does a timeout release a hold?", "request_id": str(uuid4())},
+        )
+    result = json.loads(response.text.split("event: result\ndata: ")[1].split("\n\n")[0])
+    assert result["input_tokens"] == 400 and result["output_tokens"] == 60
+    assert result["usage"]["token_cost_estimate_usd"] == pytest.approx(0.00104)
+    assert result["duration_ms"] > 0
+    span = exporter.get_finished_spans()[-1]
+    assert span.attributes["gen_ai.usage.input_tokens"] == 400
+    assert span.attributes["gen_ai.usage.output_tokens"] == 60
+    assert span.attributes["gen_ai.usage.complete"]
+    assert span.attributes["gen_ai.model_calls"] == 2
+    assert span.attributes["gen_ai.cost.token_estimate_usd"] == pytest.approx(0.00104)
 
 
 def test_missing_auth_provider_override_and_large_body_fail_closed(tiny_corpus):
