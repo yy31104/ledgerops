@@ -42,7 +42,8 @@ Hybrid remains the default under the fixed rule: its paired Recall@5 difference
 from vector is **+0.0421**, section-cluster 95% CI **[0.0089, 0.0898]**. MRR and
 Hit@1 differences from vector are not detectable. Legacy k=60 has a higher Recall
 point estimate, but its paired difference from k=10 includes zero; this result
-does not establish that k=10 is better. No settings changed after the run.
+does not establish that k=10 is better. No fusion, threshold, labels or context
+parameters were retuned; only the registered default metadata changed.
 
 | Hybrid minus comparator | Metric | Mean difference | Paired question 95% CI | Paired section-cluster 95% CI |
 |---|---|---:|---|---|
@@ -69,8 +70,8 @@ questions reached fake generation, with no false refusal.
 | FTS | 0.7133 | 0.7812 | 0.7636 |
 
 Quote coverage averages each question's covered fraction of its declared source
-quotes: 55 questions, 79 quotes. Vector supplies more exact quoted fragments than
-hybrid despite lower section Recall. Hybrid's delivered section coverage equals
+quotes: 55 questions, 79 quotes. Vector has higher mean per-question exact quote coverage than hybrid despite
+lower section Recall. Hybrid's delivered section coverage equals
 its candidate-pack coverage, 0.8676, because all 55 calls reached generation.
 This tradeoff prevents treating the selected retrieval metric as answer accuracy.
 
@@ -94,8 +95,10 @@ routes under the caller's current token.
 | Out of scope | 10 | 7/10 | 7/10 |
 | Live state | 2 | 2/2 | 2/2 |
 
-Three unsupported topics still pass the scope boundary. TODO: name the three
-recorded failures from the saved result. There are no false documentation refusals.
+Three unsupported topics still pass the scope boundary: cross-currency conversion
+rates (`v11-test-084`), cryptocurrency confirmation counts (`v11-test-086`), and
+SMS/email completion notifications (`v11-test-088`). These failures remain in the
+record; no rules were retuned on them. There are no false documentation refusals.
 Fake generation measures these routing and refusal paths. It does not establish
 real-model injection resistance, and a refusal miss grants no write capability.
 
@@ -125,9 +128,11 @@ It is development evidence, not a blind estimate or an answer-quality score.
 
 Regression tests check that the missing conditions behind v1-007, 011, 013, 014
 and 024 reach generation as original source passages, including the no-journal
-release rule, bounded quarantine, proposal order and DST-day caveat. A source can
-still fail to state every labelled fact explicitly. Passing these tests does not
-prove the generated answer is complete; the old v1-011 expected failure is removed.
+release rule, bounded quarantine, proposal order and DST-day caveat. For v1-007, the retained-refusal and new-operation text is recovered, but the
+indexed sources do not explicitly pair a new operation ID with a new request key.
+That part of the historical label remains a source-coverage limitation. Passing
+these tests does not prove the generated answer is complete; the old v1-011
+expected failure is removed.
 
 ## Real answers and token use
 
@@ -137,15 +142,39 @@ contains each question, required facts, actual source passages and answer; its
 human judgement column stays blank. **AI-rated; human review pending** describes
 the earlier non-blind 27/32 completeness rating. No new human score is available.
 
-TODO: State the new attempt status, model, recorded failures and the blank-table
-release asset. Add provider-reported input/output/cached tokens and latency.
+The single sample completed all 32 calls with `gpt-6.1-sol`, no generation errors
+and no retries. Each record retains the supplied original passages, response,
+provider counters and request latency. Fill the blank **complete / incomplete /
+incorrect** column in [human-review.csv](https://github.com/yy31104/ledgerops/releases/download/v1.1.0/human-review.csv)
+or [human-review.md](https://github.com/yy31104/ledgerops/releases/download/v1.1.0/human-review.md).
+No new completeness score is published.
 
-A separate empty-evidence call uses the same model, instructions and schema. Its
-input count provides a measured framing baseline; the difference from full calls
-also contains question and formatting effects. It is not an exact tokenizer-level
-allocation between SDK overhead and document tokens. Report rendered bytes
-separately rather than treating bytes as exact model tokens. Subscription quota
-usage is recorded per call; it supplies no per-request dollar invoice.
+| Measurement | Result |
+|---|---:|
+| Mean input tokens per answer | 16,589.6 |
+| Input token range | 12,357–20,353 |
+| Total input / output tokens, 32 calls | 530,868 / 6,340 |
+| Cached input tokens, included in input total | 96,384 |
+| Mean / median request latency | 8.65 / 8.41 s |
+| Request latency range | 5.81–12.11 s |
+| Mean rendered document bytes | 14,780 |
+| Separate empty-evidence call input tokens | 17,149 |
+
+The empty-evidence call uses the same model, instructions and schema, but its
+reported input exceeds the full-call mean by 559.4 tokens. This negative contrast
+cannot identify an additive SDK overhead or document-token cost. Separate SDK
+threads can have different framing; the interface exposes aggregate usage rather
+than exact component-token counts. The record preserves this failed attribution
+instead of inventing a split. Byte counts are not exact model-token counts, and
+no context-compression saving is claimed. The document pack stays bounded while
+the selection changes which original passages fit.
+
+Subscription counters measure quota usage, not a per-request dollar invoice.
+Dollar cost is therefore null, with the billing basis recorded. For API providers,
+reported tokens and configured-price estimates remain separate from conservative
+budget reservations. This sample called no paid API. The
+[answer summary](../eval/v11-answer-summary.json) and release archive retain the
+measurement denominators and raw counters.
 
 ## Reproduce development, inspect the holdout
 

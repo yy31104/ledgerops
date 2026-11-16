@@ -1,8 +1,13 @@
 # Changelog
 
+## 1.1.0
+- A reference for testing money-moving code: run `make demo-lost-update` and `make demo-payout-crash`.
+- Added isolated guard mutations, a core-module map, and a new frozen assistant comparison with section-cluster intervals.
+- Repaired bounded context selection; retained hybrid by the registered rule and preserved refusal failures.
+- Limits: synthetic evaluation; 3/10 new unsupported topics pass. Human answer review is pending; cloud remains a recipe.
+
 ## 1.0.0
-- A synthetic payment ledger and read-only operator assistant for studying recovery and correctness.
-- Try `make demo-payout-crash`; `make verify-release` also checks draft recovery after restart.
-- Added the assistant panel, cited answers, durable draft review, operating guides and a recovery walkthrough.
-- Kept retrieval evidence separate from the homepage and moved raw reports to release attachments.
-- Limits: local tests only; finite refusal rules and incomplete answers remain. Answer ratings are AI-rated; human review is pending. Azure is a preparation recipe, with no runtime or cost measurement.
+- A synthetic payment ledger with crash recovery and a read-only operator assistant.
+- Try `make demo-payout-crash`; `make verify-release` checks durable draft recovery.
+- Added cited answers, the local panel, operating guides and release evidence attachments.
+- Limits: local validation, finite filters and AI-rated answers; human review is pending. No cloud runtime or cost measurement.

@@ -14,13 +14,17 @@ The panel above uses synthetic data and fake generation.
 |---|---|---|
 | Retrieval on operations-v4 | 55 fresh documentation questions | Hybrid Recall@5 **0.8639**, 95% CI **[0.7972, 0.9213]** |
 | Routing and refusal, fake generation | 30 fresh non-documentation questions | 27/30 correct routes and refusals; 3/10 unsupported topics still pass |
-| Answer completeness, subscription model | Original 32 development questions | AI-rated; human review pending |
+| Answer completeness, subscription model | Original 32 development questions | New answers ungraded; human review pending |
 
 Hybrid remains the default: its paired Recall@5 gain over vector is 0.0421
 (95% section-cluster CI [0.0089, 0.0898]). It does not beat vector on every metric,
 and the higher point estimate for the older k=60 hybrid is not detectably different.
 Both vector and hybrid remain available through
 `LEDGEROPS_ASSISTANT_RETRIEVAL=vector` or `hybrid`.
+
+The earlier completeness rating was AI-rated; human review is pending. The new
+32-answer [worksheet](https://github.com/yy31104/ledgerops/releases/download/v1.1.0/human-review.csv)
+has blank judgement columns.
 
 These synthetic questions do not represent real operator traffic. Retrieval
 coverage is not answer accuracy, and fake generation does not test a real model's

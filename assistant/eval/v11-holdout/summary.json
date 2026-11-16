@@ -569,8 +569,8 @@
   },
   "raw_result": {
     "release": "v1.1.0",
-    "asset": "assistant-v1.1-evidence.tar.gz",
-    "path": "v11-holdout.json",
+    "asset": "ledgerops-evidence-v1.1.0.tar.gz",
+    "path": "assistant/eval/results/v1.1-holdout.json",
     "sha256": "1fe8b285170e51cec7dc148b9f079eb258d77ced215530dcd07a5dd880710999"
   },
   "limitations": [
