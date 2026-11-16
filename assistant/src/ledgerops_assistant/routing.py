@@ -9,8 +9,9 @@ Three kinds of question are not documentation questions:
 - questions the docs do not cover: detected after retrieval, from how weak the best
   match is (see ``answer.ScopeGate``).
 
-These are deliberately simple rules. A rule that misfires is visible and testable; a
-model asked to police itself is neither.
+Assistant-directed requests use a closed grammar: explanation and read requests
+are permitted; other directives fail closed, including unfamiliar operation verbs.
+This is an input policy, not the permission boundary or a universal injection detector.
 """
 
 import re
@@ -25,29 +26,53 @@ _VERBS = (
     r"resume|close|reverse|pay|send|reopen|enable|disable|revoke|issue|settle|mark|force|"
     r"rebuild|freeze|restore|export|rotate|update|modify|submit|transfer|reprocess|disburse"
 )
-_IMPERATIVE = re.compile(rf"^\s*((please|kindly)\s+)?({_VERBS})\b", re.IGNORECASE)
-_REQUEST = re.compile(
-    rf"\b(can|could|would|will)\s+you\s+((please|kindly)\s+)?"
-    rf"((go\s+ahead\s+and\s+)|((help|assist)\s+(me|us)\s+(to\s+)?))?"
-    rf"({_VERBS})\b",
-    re.IGNORECASE,
-)
-_INDIRECT = re.compile(
-    rf"\b((for\s+you\s+to|I\s+(need|want|would\s+like)\s+you\s+to)\s+"
-    rf"((please|kindly)\s+)?({_VERBS})\b|"
-    rf"(appreciate\s+it\s+if\s+you|it\s+would\s+help\s+if\s+you)\s+(could\s+)?"
-    rf"((please|kindly)\s+)?({_VERBS})\b|"
-    r"would\s+you\s+mind\s+((please|kindly)\s+)?"
-    r"(releasing|approving|exporting|refunding|retrying|resubmitting|cancelling|settling)\b)",
-    re.IGNORECASE,
-)
-_PASSIVE_REQUEST = re.compile(
-    r"\b(can|could|would|will)\s+you\s+(please\s+)?(ensure|arrange|make\s+sure)\b"
-    r".{0,100}\b(released|approved|sent|refunded|cancelled|settled|resubmitted)\b",
+_IMPERATIVE = re.compile(rf"(?:^|[.!?;]\s+)\s*((please|kindly)\s+)?({_VERBS})\b", re.IGNORECASE)
+# Capture the requested behavior, independently of any list of mutation verbs.
+_DIRECTED_REQUEST = re.compile(
+    r"\bwould\s+you\s+mind\s+(?P<mind>.+)|"
+    r"\b(?:can|could|would|will|may|might)\s+you\s+(?:please\s+|kindly\s+)?(?P<body>.+)|"
+    r"\bfor\s+you\s+to\s+(?P<possible>.+)|"
+    r"\b(?:I|we)\s+(?:need|want|would\s+like|ask)\s+you\s+to\s+(?P<need>.+)|"
+    r"\b(?:appreciate\s+it\s+if\s+you|it\s+would\s+help\s+if\s+you)\s+"
+    r"(?:could\s+)?(?P<appreciate>.+)|"
+    r"^\s*(?:please|kindly)\s+(?P<polite>.+)",
     re.IGNORECASE,
 )
 _EXPLANATORY_REQUEST = re.compile(
     r"^\s*(why|how|when|where)\s+(can|could|would|will)\s+you\b", re.IGNORECASE
+)
+_EXPLANATION = re.compile(
+    r"^\s*(?:please\s+|kindly\s+)?(?:"
+    r"explain(?:ing)?|describ(?:e|ing)|summari[sz](?:e|ing)|clarify(?:ing)?|"
+    r"compar(?:e|ing)|defin(?:e|ing)|outlin(?:e|ing)|teach(?:ing)?|"
+    r"walk(?:ing)?\s+(?:me|us)\s+through|help(?:ing)?\s+(?:me|us)\s+understand|"
+    r"tell(?:ing)?\s+(?:me|us)\s+(?:why|how|what|when|whether|which)|"
+    r"show(?:ing)?\s+(?:me|us)\s+how)\b",
+    re.IGNORECASE,
+)
+_READ_INTENT = re.compile(
+    r"^\s*(?:please\s+|kindly\s+)?(?:"
+    r"look(?:ing)?\s+up|inspect(?:ing)?|investigat(?:e|ing)|read(?:ing)?|"
+    r"show(?:ing)?|list(?:ing)?|fetch(?:ing)?|get(?:ting)?|check(?:ing)?|"
+    r"retriev(?:e|ing)|find(?:ing)?|tell(?:ing)?\s+(?:me|us))\s+"
+    r"(?:(?:me|us|the|a|an|my|our|this|that|these|those|all|current|latest|recent|"
+    r"available|pending|original|terminal|authorized|saved|persisted|selected|bounded|whether)\s+)*"
+    r"(?P<object>payouts?|payments?|operations?|investigations?|accounts?|balances?|metrics|"
+    r"status|evidence|documentation|docs|guides?|runbooks?|logs?|"
+    r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})\b",
+    re.IGNORECASE,
+)
+_INVESTIGATION = re.compile(r"^\s*(?:inspect(?:ing)?|investigat(?:e|ing))\b", re.IGNORECASE)
+_FOLLOWUP = re.compile(
+    r"\b(?:and\s+then|and\s+also|then|after\s+that)\s+|[.!?;]\s+(?:also\s+)?", re.IGNORECASE
+)
+_MUTATING_FOLLOWUP = re.compile(rf"\band\s+(?:please\s+)?(?:{_VERBS})\b", re.IGNORECASE)
+_QUESTION = re.compile(
+    r"(?:^|[.!?]\s+|,\s+)\s*(?:what|why|when|where|which|who|how|"
+    r"can|could|should|would|will|does|"
+    r"do(?!\s+(?:whatever|anything|everything|something|it|this|that|as|what)\b)|"
+    r"did|is|are|was|were|has|have|may|must)\b",
+    re.IGNORECASE,
 )
 _UUID = re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.I)
 _SPECIFIC = re.compile(
@@ -76,7 +101,18 @@ _OVERRIDE = re.compile(
     r"<\s*/?\s*(system|developer)\s*>|\[\s*(system|developer)\s*\]",
     re.IGNORECASE,
 )
-_SECRET_REQUEST = re.compile(r"\b(reveal|send|print|show)\b.*\b(token|secret|password)\b", re.I)
+_ROLE_DIRECTIVE = re.compile(
+    r"\b(?:you\s+are\s+now|act\s+as|pretend\s+to\s+be)\s+"
+    r"(?:(?:a|an|the)\s+)?(?:system|developer|admin(?:istrator)?|root)\b|"
+    r"\b(?:system|developer|admin(?:istrator)?|root)\s*[:>]\s*|"
+    r"\btreat\b.{0,70}\b(?:trusted|authori[sz]ed|system|developer)\b|"
+    r"(?:^|[.!?;]\s+)\s*(?:disregard|bypass|override|forget)\b"
+    r".{0,70}\b(?:rules|instructions|policy|safety|guardrails)\b",
+    re.IGNORECASE,
+)
+_SECRET_REQUEST = re.compile(
+    r"\b(reveal|send|print|show)\b(?!\s+(?:me|us)\s+how\b).*\b(token|secret|password)\b", re.I
+)
 _MERCHANT_ID = re.compile(r"(?i:\bmerchant)\s+[A-Z][\w-]*\b")
 
 # Explicit capability limits, rather than inferring support from a high similarity
@@ -99,16 +135,50 @@ def unsupported_topic(question: str) -> bool:
     return bool(_EXTERNAL_CAPABILITY.search(question))
 
 
+def _permitted_request(body: str) -> bool:
+    """Permit only explicit explanation/read intent, including follow-up requests."""
+    if _MUTATING_FOLLOWUP.search(body):
+        return False
+    return all(
+        _EXPLANATION.search(part) or _READ_INTENT.search(part) or _INVESTIGATION.search(part)
+        for part in _FOLLOWUP.split(body)
+    )
+
+
 def classify(question: str) -> str:
     # A cheap input guard, not the permission boundary. Tools enforce that separately.
-    if _SECRET_REQUEST.search(question) or _OVERRIDE.search(question):
-        return ACTION
-    if _IMPERATIVE.search(question) or _INDIRECT.search(question):
-        return ACTION
-    if not _EXPLANATORY_REQUEST.search(question) and (
-        _REQUEST.search(question) or _PASSIVE_REQUEST.search(question)
+    if (
+        _SECRET_REQUEST.search(question)
+        or _OVERRIDE.search(question)
+        or _ROLE_DIRECTIVE.search(question)
     ):
         return ACTION
+    if _IMPERATIVE.search(question):
+        return ACTION
+    directed = _DIRECTED_REQUEST.search(question)
+    body = (
+        next(value for value in directed.groupdict().values() if value is not None)
+        if directed
+        else question
+    )
+    if directed and not _EXPLANATORY_REQUEST.search(question):
+        if not _permitted_request(body):
+            return ACTION
+    if not directed and not (_QUESTION.search(question) or _permitted_request(question)):
+        # Bare directives with unfamiliar verbs are not silently treated as docs.
+        return ACTION
+    if _EXPLANATION.search(body) or _EXPLANATORY_REQUEST.search(question):
+        return DOCS
+    read = _READ_INTENT.search(body)
+    if read:
+        return (
+            DOCS
+            if read["object"].lower()
+            in {"documentation", "docs", "guide", "guides", "runbook", "runbooks"}
+            else LIVE_STATE
+        )
+    if _INVESTIGATION.search(body):
+        return LIVE_STATE
     names_object = bool(
         _UUID.search(question) or _SPECIFIC.search(question) or _MERCHANT_ID.search(question)
     )
