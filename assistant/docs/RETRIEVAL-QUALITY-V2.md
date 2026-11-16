@@ -1,904 +1,163 @@
-# Retrieval quality: diagnosis, development selection and holdout studies
+# Current retrieval and answer evaluation
 
-The current corpus is operations-v4: 20 explicitly selected operational files,
-excluding the repository homepage and navigation. Historical v1/v2/v3 studies
-below retain their recorded source snapshots. Raw reports are in the
-[evaluation-data-v1 release](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1);
-restore them using the [evidence guide](../eval/README.md) before reproducing
-historical analysis, in the recorded original checkout.
-
-## Operations-v4
-
-The homepage is a product entry point, not an operational evidence source. It is
-excluded from `CORPUS_FILES`; moving detailed references under `docs/internals`
-keeps operating rules available while giving visitors six main guides and a start
-page. The chunking, encoder, fusion and context policies are unchanged.
-Development question wording and required facts are unchanged. Labels migrate by
-explicit file mapping, and three removed README references retain their payout
-and ADR evidence. Historical holdout labels/results are unchanged and unrerun.
-CI uses the compact `eval/baselines/operations-v4.json` baseline. A regression test
-changes README bytes and proves the corpus digest remains identical.
-
-### Current development results
-
-Operations-v4 has **20 files, 170 chunks and 98 sections**, corpus digest
+The current corpus is **operations-v4: 20 files, 170 chunks and 98 sections**.
+Its digest is
 `822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229`.
-The 32 documentation development questions retain their wording/required facts.
-Homepage-source exclusions and path changes are explicit in
-[the migration manifest](../eval/v4-dev/manifest.json). There is no new blind
-retrieval score on this corpus. These development figures do not replace historical
-v3 scores with a claim of improvement; the relevance population has changed.
+The homepage, navigation and article are outside the explicit source list.
+[Earlier evaluations](HISTORY.md) use their recorded snapshots, not this release.
 
-| Method | Recall@5 | MRR@10 | Hit@1 | nDCG@5 |
-|---|---:|---:|---:|---:|
-| PostgreSQL FTS | 0.6458 | 0.5790 | 0.4062 | 0.5498 |
-| pgvector HNSW | 0.7552 | 0.7193 | 0.5938 | 0.6611 |
-| Hybrid k=60 | 0.7135 | 0.7397 | 0.6562 | 0.6715 |
-| Default hybrid k=10 | 0.7448 | 0.7406 | 0.6562 | 0.6830 |
+## The comparison
 
-Exact vector rankings match HNSW on this small corpus. Default hybrid raw-five-
-chunk section coverage is 0.6979; expanded context coverage is 0.8073, averaging
-11.03 chunks and 17,680 serialized bytes. Hybrid does not lead vector Recall@5.
-No fusion, encoder, chunking or context parameter was tuned in this release.
-The v1-011 source remains outside the supplied context and its strict xfail remains.
+Development contains the original 32 documentation questions plus 23 new,
+source-audited documentation questions, with eight routing controls. The original
+question wording and facts are unchanged. A separate source-only author produced
+the new questions without retrieval results or implementation access. Static audit
+removed flawed or near-duplicate items without rewriting their questions or facts.
+These are synthetic labels, not independent human annotations.
 
-Reproduce the development gate with fake generation:
+The fresh holdout retains **55 documentation questions in 41 source-section groups
+and 30 non-documentation questions**. Its [protocol](../eval/v11-holdout/protocol.json)
+and [manifest](../eval/v11-holdout/manifest.json) bind the source, implementation,
+questions, exclusions and pre-run development baseline.
+
+The primary metric is mean section Recall@5. A section-cluster bootstrap resamples
+primary source sections 10,000 times with seed 20261116 and retains question
+weights. Paired question-bootstrap intervals are also reported. An interval that
+includes zero means **no detectable difference**, not equivalence.
+
+The default rule is fixed: select hybrid only when its mean Recall@5 difference
+from vector is positive and the paired section-cluster 95% interval is entirely
+above zero. Otherwise select vector. This prespecified selection is not an
+independent validation of the winning method. No fusion, threshold, label or
+context parameter changes after the held-out run.
+
+| Method | Recall@5 | Section-cluster 95% CI | MRR@10 | nDCG@5 | Hit@1 | Hit@5 |
+|---|---:|---|---:|---:|---:|---:|
+| pgvector HNSW | 0.8218 | [0.7403, 0.8932] | 0.8127 | 0.7420 | 0.7091 | 0.9636 |
+| Hybrid k=10 | 0.8639 | [0.7972, 0.9213] | 0.8114 | 0.7725 | 0.6727 | 0.9818 |
+| Legacy hybrid k=60 | 0.8906 | [0.8351, 0.9393] | 0.8127 | 0.7817 | 0.6727 | 1.0000 |
+| PostgreSQL FTS | 0.7685 | [0.6753, 0.8492] | 0.6696 | 0.6283 | 0.5091 | 0.9091 |
+
+Hybrid remains the default under the fixed rule: its paired Recall@5 difference
+from vector is **+0.0421**, section-cluster 95% CI **[0.0089, 0.0898]**. MRR and
+Hit@1 differences from vector are not detectable. Legacy k=60 has a higher Recall
+point estimate, but its paired difference from k=10 includes zero; this result
+does not establish that k=10 is better. No settings changed after the run.
+
+| Hybrid minus comparator | Metric | Mean difference | Paired question 95% CI | Paired section-cluster 95% CI |
+|---|---|---:|---|---|
+| Vector | Recall@5 | +0.0421 | [0.0082, 0.0885] | [0.0089, 0.0898] |
+| Vector | MRR@10 | -0.0014 | [-0.0612, 0.0579] | [-0.0608, 0.0539] |
+| Vector | Hit@1 | -0.0364 | [-0.1455, 0.0727] | [-0.1429, 0.0588] |
+| Legacy k=60 | Recall@5 | -0.0267 | [-0.0752, 0.0073] | [-0.0760, 0.0070] |
+| Legacy k=60 | MRR@10 | -0.0014 | [-0.0105, 0.0077] | [-0.0107, 0.0075] |
+| Legacy k=60 | Hit@1 | +0.0000 | [0.0000, 0.0000] | [0.0000, 0.0000] |
+| FTS | Recall@5 | +0.0955 | [0.0348, 0.1667] | [0.0370, 0.1683] |
+| FTS | MRR@10 | +0.1417 | [0.0609, 0.2228] | [0.0659, 0.2250] |
+| FTS | Hit@1 | +0.1636 | [0.0364, 0.2909] | [0.0484, 0.2857] |
+
+The run completed once after freeze commit
+[`9c7519f`](https://github.com/yy31104/ledgerops/commit/9c7519fbf8cbbb0c79c1140423b4e743a9af0c17).
+Its 85 questions and recorded failures remain unchanged. All 55 documentation
+questions reached fake generation, with no false refusal.
+
+| Method | Raw-five coverage | Expanded-pack coverage | Exact quote coverage |
+|---|---:|---:|---:|
+| Vector | 0.8121 | 0.8542 | 0.8939 |
+| Hybrid k=10 | 0.8579 | 0.8676 | 0.8455 |
+| Legacy hybrid k=60 | 0.8845 | 0.8979 | 0.8636 |
+| FTS | 0.7133 | 0.7812 | 0.7636 |
+
+Quote coverage averages each question's covered fraction of its declared source
+quotes: 55 questions, 79 quotes. Vector supplies more exact quoted fragments than
+hybrid despite lower section Recall. Hybrid's delivered section coverage equals
+its candidate-pack coverage, 0.8676, because all 55 calls reached generation.
+This tradeoff prevents treating the selected retrieval metric as answer accuracy.
+
+Section Recall@5 deduplicates the ranked source sections. Raw-five coverage counts
+the first five chunks. Expanded-pack coverage counts the selected candidate pack;
+delivered coverage counts only passages sent to generation and assigns zero to
+pre-generation refusals. Exact quote coverage asks whether declared evidence
+fragments are present in their matching section; it does not grade semantic facts.
+
+## Routing and refusal
+
+The cosine threshold comes only from development. Action requests are refused;
+live-state requests are directed to the read API; unsupported topics should be
+refused before generation. The live agent authenticates before classification and
+checks the scope gate on documentation requests. Read tools remain fixed GET
+routes under the caller's current token.
+
+| Fresh holdout category | Cases | Correct route | Correct refusal |
+|---|---:|---:|---:|
+| Action, including injection | 18 | 18/18 | 18/18 |
+| Out of scope | 10 | 7/10 | 7/10 |
+| Live state | 2 | 2/2 | 2/2 |
+
+Three unsupported topics still pass the scope boundary. TODO: name the three
+recorded failures from the saved result. There are no false documentation refusals.
+Fake generation measures these routing and refusal paths. It does not establish
+real-model injection resistance, and a refusal miss grants no write capability.
+
+## Context completeness
+
+Finding a section does not mean finding the paragraph with its rule. The current
+`section-completion-v2` policy completes selected sections before adding unrelated
+neighbors. Hybrid also retains leading vector-only candidates when consensus
+crowds them out. A generic selector favors conjunctions of visible state codes.
+Chunks keep their original text, IDs and document boundaries; ranking is unchanged.
+The serialized document pack remains bounded to **18,000 bytes**.
+
+On the same 55 development questions, a before/after context ablation gives:
+
+| Retrieval | Context policy | Mean section coverage | Mean JSON bytes | Mean rendered document bytes |
+|---|---|---:|---:|---:|
+| Vector | Previous | 0.8315 | 17,657 | 14,743 |
+| Vector | Current | 0.8224 | 17,690 | 14,764 |
+| Hybrid | Previous | 0.8715 | 17,667 | 14,844 |
+| Hybrid | Current | 0.9048 | 17,677 | 14,822 |
+
+This exposes a tradeoff: hybrid source coverage rises while vector coverage falls
+slightly. All per-question retrieval rankings are identical before and after.
+The raw ablation record has SHA-256
+`c6e02811adf965a0ebd5eee588bf6c1b1635971b28b23c497c551f1644befe1f`.
+It is development evidence, not a blind estimate or an answer-quality score.
+
+Regression tests check that the missing conditions behind v1-007, 011, 013, 014
+and 024 reach generation as original source passages, including the no-journal
+release rule, bounded quarantine, proposal order and DST-day caveat. A source can
+still fail to state every labelled fact explicitly. Passing these tests does not
+prove the generated answer is complete; the old v1-011 expected failure is removed.
+
+## Real answers and token use
+
+The original 32 development questions are generated once through the official
+Codex SDK subscription adapter with a pinned model. The exported judgement table
+contains each question, required facts, actual source passages and answer; its
+human judgement column stays blank. **AI-rated; human review pending** describes
+the earlier non-blind 27/32 completeness rating. No new human score is available.
+
+TODO: State the new attempt status, model, recorded failures and the blank-table
+release asset. Add provider-reported input/output/cached tokens and latency.
+
+A separate empty-evidence call uses the same model, instructions and schema. Its
+input count provides a measured framing baseline; the difference from full calls
+also contains question and formatting effects. It is not an exact tokenizer-level
+allocation between SDK overhead and document tokens. Report rendered bytes
+separately rather than treating bytes as exact model tokens. Subscription quota
+usage is recorded per call; it supplies no per-request dollar invoice.
+
+## Reproduce development, inspect the holdout
 
 ```sh
 cd assistant
 uv run --locked python scripts/evaluate_local.py --split dev \
-  --baseline eval/baselines/operations-v4.json --output .cache/current-dev.json
+  --baseline eval/baselines/v1.1-dev.json --output .cache/current-dev.json
 ```
 
-### Real answer sample on operations-v4
-
-All 32 development documentation questions were sent once through the existing
-local ChatGPT-plan adapter using the official Codex SDK. This is a non-blind
-sample, with synthetic required-fact labels. An assistant manually compared every
-answer against those facts and current source text: **27 complete, 5 incomplete,
-0 wrong, 0 refused and 0 runtime errors**. No unsupported factual addition was
-identified; this does not establish general answer or injection safety. It is not
-independent human review. [Per-question judgements](../eval/answer-review.json)
-retain the grading criterion and omissions.
-
-The incomplete answers are v1-007 (new identity/key), 011 (80/0/80 and no journal),
-013 (non-callback quarantine behavior), 014 (maker/checker ordering), and 024
-(23/25-hour DST days). Source revision `db7e124` and source hashes are in the raw
-record. Subsequent refusal-grammar changes do not change retrieval or generation;
-this sample was not rerun to obtain better answers.
-
-Median single-answer latency was **8.185 s**, p95 **9.562 s**, with provider-reported
-**513,295 input + 4,044 output tokens** across 32 calls. The SDK harness contributes
-to these counters. Quota consumption is recorded per call; billed USD is unknown
-because this subscription route supplies no per-request invoice. The SDK account's
-default model was used without an explicit model pin, limiting reproducibility.
-
-The exclusive-record script preserves partial failures and has no automatic retry:
-
-```sh
-cd assistant
-LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1 uv run --locked --extra subscription \
-  python -m scripts.review_current_answers --development-report .cache/current-dev.json \
-  --output .cache/new-explicitly-authorized-sample.json
-```
-
-### Independent refusal checks
-
-A separate-context source-only author wrote a fresh 40-item sample after the first
-hardening implementation. Code/questions were frozen and pushed at `48c7379`
-before its single fake-generation run. It achieved only **25/40 exact routes** and
-**22/34 correct refusals**, with **0/6 false refusals** on documentation controls.
-The failed result is retained in [the frozen study](../eval/refusal-v4/summary.json).
-Its questions were not used for subsequent development. Aggregate failures
-motivated a separate closed-request-grammar development cycle and another
-independently authored sample. Finite routing and topic rules remain supplemental;
-caller permissions and closed GET tools enforce the actual access boundary.
-
-The separate closed-grammar implementation was completed before a fresh source-
-only author sample was imported. Questions, code hashes, baseline and protocol
-were frozen/pushed at `ef2b6b6`, then run exactly once with fake generation.
-[The v5 study](../eval/refusal-v5/summary.json) reports **36/40 exact routes**,
-**30/34 correct refusals** and **0/6 false documentation refusals**. All **20 action
-requests, including 8 injection cases**, were classified/refused as actions; all
-four live-state questions routed correctly. Four of ten unsupported neighboring
-payment topics still passed the finite scope boundary. These questions were not
-used for tuning and the study was not rerun. The samples differ, so their numbers
-do not establish a paired improvement estimate. The result supports the bounded
-request-grammar change, while retaining a clear scope-detection limitation.
-Fake generation cannot establish real-model resistance to injection.
-
-## v3 holdout
-
-### Frozen inputs and objective audit
-
-This historical run uses the explicit **21-file, 179-chunk, 106-section** corpus,
-digest `6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91`,
-with source contents pinned to `c4d943c`. The RRF/context/encoder/routing policies
-and development baseline are unchanged. V3 contributes no CI quality threshold.
-
-The supplied author declaration reports reading only the source bundle, with
-plain-text search and no network, prior questions/results/conversations, retrieval
-or embedding tools. That history is self-reported, not independently provable.
-The private author notes are not committed; their hash and a declaration summary
-are in [manifest.json](../eval/v3-holdout/manifest.json).
-
-Before any retrieval, static audit checked all 72 authored rows: complete fields,
-unique IDs, 6-18-word documentation questions, section IDs, unique primary chunks,
-quotas, quote substrings after whitespace normalization and evidence for every
-fact. All quoted passages exist; no whitespace or anchor corrections were needed.
-Every fact was compared with its cited source context. Text similarity and manual
-fact/intent review compared all 120 earlier v1/v2 questions. Short-question token
-containment was included to avoid missing near duplicates of longer v2 questions.
-
-Three questions were removed before freeze, without rewriting or replacing any
-question/fact:
-
-| ID | Reason |
-|---|---|
-| v3-039 | Question copies the five consecutive source words "account versions and projection epoch". |
-| v3-052 | Near duplicate of blind-v2-032: retained backup after post-rename fsync failure; no overwrite. |
-| v3-066 | Near duplicate of v1-034's current merchant available-balance query, substituting an entity name. |
-
-The author initially met all quotas. These audit exclusions reduce the nominal
-60 documentation + 12 non-documentation design to **58 + 11 = 69 questions**.
-Maintenance has four retained questions, backup/restore one and live state two;
-other quotas remain as authored. IDs retain their gaps. The population amendment
-is recorded in the manifest before outcomes; the original protocol remains intact.
-All means and bootstrap samples use the retained populations, with no imputation
-to the nominal denominator.
-
-The retained set includes some facts already present in older datasets, including
-the DST rule, cross-date proposal invalidation and token-scope expansion. These
-pairs did not meet the joint high-text-overlap/equivalent-answer exclusion rule;
-the manifest discloses them. New question wording does not establish unseen-fact
-generalization. Labels remain synthetic and have no independent human review.
-
-### Question distribution versus development
-
-On this same corpus and unchanged default hybrid, the 32 reviewed development
-questions have Recall@5 **0.7135**, versus **0.8894** for the 58 retained v3
-questions. This compares question distributions, not a system improvement. Each
-v3 question was written from one sampled passage and asks for one concrete fact;
-development questions were written around operational scenarios. Neither
-synthetic set represents real operator traffic.
-
-V3 has 39/58 (67.24%) single-relevant-section questions, versus 14/32 (43.75%)
-in development. Its preregistered file quotas yield 27/58 (46.55%) questions whose
-primary target is outside PAYOUTS, RECONCILIATION and OPERATOR-ACTIONS, versus
-6/32 (18.75%) in development. V3 scores higher even within each coarse stratum:
-
-| Stratum | Development n | Development Recall@5 | V3 n | V3 Recall@5 |
-|---|---:|---:|---:|---:|
-| One relevant section | 14 | 0.7857 | 39 | 0.9487 |
-| Multiple relevant sections | 18 | 0.6574 | 19 | 0.7675 |
-| Core primary target | 26 | 0.7051 | 31 | 0.8462 |
-| Other primary target | 6 | 0.7500 | 27 | 0.9389 |
-
-These are descriptive post-hoc means from saved per-question results, with no
-new retrieval, bootstrap or parameter selection. The strata do not establish
-causal effects of question style or eliminate other differences in difficulty.
-
-For the file grouping, v3's primary target is its `source_chunk` file. Every v3
-row's first relevant section has that same file. Development has no source-chunk
-field, so its first labelled relevant-section file is the explicit target proxy.
-A question may still have supporting sections in other files. Single/multiple
-counts use the number of distinct `relevant_sections`; subgroup Recall is the
-unweighted mean of saved hybrid per-question Recall@5.
-
-Word overlap is defined as the fraction of a question's unique content tokens
-present in the union of **all** its labelled relevant-section texts, then averaged
-equally across questions. Tokenization lowercases and extracts `[a-z0-9_]+`, removes
-the frozen retriever's stopwords listed in the command below, and performs no
-stemming or underscore expansion. Relevant-section text includes every existing
-chunk's complete `text`, including its heading prefix. This definition gives
-**0.6855 for v3 and 0.6812 for development**. The similarity of these descriptive
-values does not support greater measured lexical overlap as an explanation for
-the Recall gap; overlap values depend on the stated token and section conventions.
-
-Recompute the tables and overlap from the existing files, from the repository
-root, without importing or calling a retriever, encoder or evaluator:
-
-```sh
-PYTHONPATH=assistant/src python3 - <<'PYCODE'
-import hashlib
-import json
-import re
-import statistics
-from collections import defaultdict
-from pathlib import Path
-from ledgerops_assistant.corpus import load_corpus
-
-stop = set((
-    "a an and are as at be been but by can could do does for from had has have how i if in "
-    "into is it its may me my of on or our should so than that the their then there these "
-    "this to was we were what when where which while who why will with would you your"
-).split())
-core = {f"docs/{name}.md" for name in
-        ["PAYOUTS", "RECONCILIATION", "OPERATOR-ACTIONS"]}
-def rows(path):
-    return [json.loads(line) for line in Path(path).read_text().splitlines()]
-def tokens(text):
-    return set(re.findall(r"[a-z0-9_]+", text.lower())) - stop
-
-dev = json.loads(Path("assistant/eval/results/v3-main-docs-dev.json").read_text())
-v3 = json.loads(Path("assistant/eval/results/v3-holdout.json").read_text())
-for path, saved in [("assistant/eval/v1-draft/questions.jsonl", dev),
-                    ("assistant/eval/v3-holdout/questions.jsonl", v3)]:
-    assert hashlib.sha256(Path(path).read_bytes()).hexdigest() == saved["questions"]["sha256"]
-corpus = load_corpus(Path.cwd())
-assert corpus.digest == dev["corpus"]["digest"] == v3["corpus"]["digest"]
-sections = defaultdict(str)
-for chunk in corpus.chunks:
-    sections[chunk.section_id] += "\n" + chunk.text
-
-datasets = [
-    ("development", [q for q in rows("assistant/eval/v1-draft/questions.jsonl")
-                     if q["split"] == "dev" and q["expected_route"] == "docs"],
-     dev["retrieval"]["hybrid"]["per_question"]),
-    ("v3", [q for q in rows("assistant/eval/v3-holdout/questions.jsonl")
-            if q["expected_route"] == "docs"],
-     {key: row["hybrid"] for key, row in v3["per_question"].items()}),
-]
-for name, questions, scores in datasets:
-    single = lambda q: len(set(q["relevant_sections"])) == 1
-    primary = lambda q: q["relevant_sections"][0].split("#")[0]
-    if name == "v3":
-        assert all(q["source_chunk"].split("#")[0] == primary(q) for q in questions)
-    predicates = {"single": single, "multiple": lambda q: not single(q),
-                  "core": lambda q: primary(q) in core,
-                  "other": lambda q: primary(q) not in core}
-    summary = {key: {"n": len(subset := [q for q in questions if predicate(q)]),
-                     "recall@5": statistics.mean(scores[q["id"]]["recall@5"]
-                                                 for q in subset)}
-               for key, predicate in predicates.items()}
-    overlaps = []
-    for q in questions:
-        query = tokens(q["question"])
-        relevant = tokens("\n".join(sections[s] for s in q["relevant_sections"]))
-        overlaps.append(len(query & relevant) / len(query) if query else 0.0)
-    print(name, "n", len(questions), "recall@5",
-          statistics.mean(scores[q["id"]]["recall@5"] for q in questions),
-          "overlap", statistics.mean(overlaps), "strata", summary)
-PYCODE
-```
-
-### Retrieval and context
-
-One batch used the pinned local bge-small encoder and PostgreSQL FTS/HNSW, with
-fake generation only. The primary outcome is default hybrid Recall@5, averaged
-over 58 questions. Its **95% section-cluster interval** resamples the 40 source
-sections 10,000 times, seed 20261106, retaining question weights within clusters.
-
-| Method | Recall@5 | Section-cluster 95% CI | MRR@10 | nDCG@5 | Hit@1 | Hit@5 | Raw five chunks | Expanded provided context |
-|---|---:|---|---:|---:|---:|---:|---:|---:|
-| Default hybrid, k=10 | 0.8894 | [0.8227, 0.9455] | 0.8703 | 0.8249 | 0.8103 | 0.9655 | 0.8859 | 0.8963 |
-| Legacy hybrid, k=60 | 0.8716 | [0.7991, 0.9342] | 0.8461 | 0.8023 | 0.7759 | 0.9483 | 0.8716 | 0.8784 |
-| pgvector HNSW | 0.8040 | [0.7129, 0.8830] | 0.8069 | 0.7458 | 0.7241 | 0.8966 | 0.8040 | 0.8109 |
-| PostgreSQL FTS | 0.8147 | [0.7131, 0.9011] | 0.7020 | 0.6794 | 0.5690 | 0.9138 | 0.7853 | 0.8267 |
-
-Rank metrics deduplicate sections after requesting 30 raw chunks. Raw-five
-coverage uses the first five chunks before expansion. Expanded coverage counts
-only document chunks actually supplied to FakeProvider: a pre-generation
-route/scope refusal supplies none. The artifact also preserves selected candidate
-context, provided chunk IDs and JSON byte sizes, so selection can be distinguished
-from actual generation input. These section metrics do not grade factual answers.
-
-### Paired comparisons
-
-Both procedures reuse the same paired question/cluster draws for every method and
-metric. Intervals containing zero, including a zero endpoint, mean **no detectable
-difference**. The 95% intervals are unadjusted descriptive comparisons.
-
-| Hybrid minus comparator | Metric | Mean difference | Paired question 95% CI | Paired section-cluster 95% CI | Interpretation |
-|---|---|---:|---|---|---|
-| hybrid - legacy_hybrid | recall@5 | 0.0178 | [0.0000, 0.0414] | [0.0000, 0.0400] | no detectable difference |
-| hybrid - legacy_hybrid | mrr@10 | 0.0242 | [0.0010, 0.0566] | [0.0006, 0.0545] | hybrid higher |
-| hybrid - legacy_hybrid | hit@1 | 0.0345 | [0.0000, 0.0862] | [0.0000, 0.0862] | no detectable difference |
-| hybrid - pgvector_hnsw | recall@5 | 0.0853 | [0.0345, 0.1463] | [0.0361, 0.1465] | hybrid higher |
-| hybrid - pgvector_hnsw | mrr@10 | 0.0634 | [0.0066, 0.1249] | [0.0077, 0.1257] | hybrid higher |
-| hybrid - pgvector_hnsw | hit@1 | 0.0862 | [-0.0172, 0.1897] | [-0.0164, 0.1864] | no detectable difference |
-| hybrid - postgres_fts | recall@5 | 0.0747 | [0.0172, 0.1437] | [0.0134, 0.1472] | hybrid higher |
-| hybrid - postgres_fts | mrr@10 | 0.1683 | [0.0796, 0.2586] | [0.0767, 0.2614] | hybrid higher |
-| hybrid - postgres_fts | hit@1 | 0.2414 | [0.1034, 0.3793] | [0.1017, 0.3800] | hybrid higher |
-
-The Recall@5 difference from legacy k=60 is not detectable on this sample. Its MRR
-interval is narrowly positive under both procedures. Against HNSW, Recall/MRR
-intervals are positive while Hit@1 includes zero. Against FTS all three intervals
-are positive. These statements apply to this fixed synthetic operator-question
-distribution and the disclosed exclusions; they are not global model rankings.
-
-### Non-documentation routing and refusals
-
-All 11 cases should be refused by the documentation-answer path. Correct routing
-and correct refusal are each **6/11 (0.5455)**. The five misses were returned as
-documentation answers. No financial tool is invoked by this evaluation.
-
-| Category | n | Correct route | Refused |
-|---|---:|---:|---:|
-| action | 4 | 3/4 | 3/4 |
-| injection | 2 | 1/2 | 1/2 |
-| live_state | 2 | 2/2 | 2/2 |
-| out_of_scope | 3 | 0/3 | 0/3 |
-
-| Failed case | Expected route | Observed route | Refused |
-|---|---|---|---|
-| v3-062, indirect export request | action | docs | false |
-| v3-068, installment scheduling | out_of_scope | docs | false |
-| v3-069, loyalty configuration | out_of_scope | docs | false |
-| v3-070, console display language | out_of_scope | docs | false |
-| v3-072, administrator-override injection | action | docs | false |
-
-The indirect action and one injection bypass the current input routing patterns;
-all three unsupported questions pass the frozen scope threshold. Fake generation
-then copies document text. This exposes filter/scope gaps; the run does not prove
-real-model injection resistance or an authorization bypass. The caller-scoped
-read-only financial tools were not exercised by this documentation test. Routing,
-thresholds and labels were left unchanged after observing the failures.
-
-### Single execution and reproducibility
-
-- Preparation/protocol commit: `d069be329c0abf713be40c72e0a442a9290bf42b`.
-- Freeze commit, pushed before execution: `0823f01bfa545fe07575368034b7a2ef4686a9e6`.
-- Frozen questions SHA-256: `a0ad5762c7b49d952ede287a22f4bceceb6daafc7da1950c446ce9c8c6a960ef`.
-- MLflow run: `a82fcf71b2ff4eedb24c6fc37666abf8`.
-- [Single-attempt record](../eval/v3-holdout/run.json): attempt 1 completed,
-  all 69 questions recorded, no mid-run failure, retry or configuration change.
-- [Complete result](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1): raw ranks, per-question
-  scores, context IDs, fake answers, routing failures, both interval procedures
-  and environment/provenance hashes.
-
-`scripts/evaluate_v3.py` creates `run.json` exclusively before dependency/model/DB
-work. A claimed attempt cannot be overwritten, even after failure. Identical
-question/component/k calls are cached within the one batch; physical search counts
-are retained. The saved result and manifest hashes bind the final record. CI only
-checks static question/manifest/code integrity and synthetic bootstrap arithmetic;
-it never executes this holdout. Inspect the committed result rather than rerunning
-the consumed attempt. V1-011 remains the unchanged known strict expected failure.
-
-The remaining sections retain earlier 175-chunk studies as historical results.
-
-## What changed
-
-In the historical v2 study, the hybrid retained the same local bge-small encoder, corpus, chunk IDs,
-PostgreSQL FTS, HNSW settings, candidate depth 50 and equal component weights.
-Only the RRF constant changes from 60 to **10**. Twenty-four configurations were
-compared on the existing 32 development retrieval questions. Selection maximized
-Recall@5 while requiring MRR@10 and nDCG@5 to meet the old hybrid development
-baseline. Ties used nDCG, then MRR, then canonical configuration JSON.
-
-The grid tested keyword weights 0.25/0.5/1.0, constants 10/60, depths 20/50 and
-chunk/section voting. Weighted or section-level fusion did not win under that
-predeclared rule. They remain explicit experiment options, not silent production
-changes. Every trial was recorded in local MLflow with its configuration. The published
-`selection.json` predates the `context_recall@5` metric, so its grid omits that
-column. Selection used only Recall, MRR and nDCG; the missing column did not change
-the selected configuration.
-
-Development Recall@5 changes from **0.7083 to 0.7812**, MRR from 0.7527 to 0.7531,
-and nDCG from 0.6741 to 0.7048. These are selection scores on previously tuned,
-optimistic development data, not confirmatory evidence.
-
-## Why equal fusion lost some vector results
-
-At k=60 and depth=50, any chunk found by both components scores at least
-`2/(60+50)=0.01818`. A chunk present in only one list scores at most
-`1/(60+1)=0.01639`. Every overlap candidate therefore outranks every single-list
-candidate, even vector rank 1. Wide lexical OR matching can turn weak common-word
-agreement into a hard preference over strong semantic evidence. At k=10, deep
-agreement no longer necessarily overwhelms a single high-ranked result.
-
-The original [RRF paper](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf)
-selected 60 on its own pilot data; it is not a universal constant. PostgreSQL
-`ts_rank_cd(...,32)` uses cover density and a monotonic score normalization, not
-corpus-wide BM25 IDF. Flag 32 alone cannot change rank order.
-[PostgreSQL ranking documentation](https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-RANKING)
-describes these distinctions.
-
-Raw development traces identify these concrete cases:
-
-| Question | Component ranks of relevant chunk | Old hybrid | k=10 |
-|---|---|---|---|
-| v1-011 | vector 4, FTS 37 | chunk 8 / section 6 | chunk 7 / section 5 |
-| v1-014 | vector 2, FTS 18 | chunk 6 | chunk 4 |
-| v1-023 | vector 4, absent FTS top 50 | chunk 29 / section 22 | chunk 15 / section 12 |
-| v1-027 | vector 2, FTS 16 | chunk 7 | chunk 5 |
-
-The corpus has 175 chunks and 105 sections; 42 sections have multiple chunks.
-Fusion votes on chunk IDs, while the historical metric deduplicates sections
-after fetching 30 chunks. Repeated chunks can consume ranks, and complementary
-chunks from one section do not count as shared chunk-level evidence.
-
-That evaluation also differs from the runtime's five supplied chunks. Development
-coverage in the actual five chunks is vector 0.7188, old hybrid 0.6771 and k=10
-0.7031. Thus the higher section Recall does not establish better runtime coverage
-than vectors. The new `context_recall@5` reports this source-section coverage
-explicitly; it still does not prove the retrieved passage contains every fact.
-
-Some old labels omit directly supporting alternative sections. For v1-023, the
-unlabelled reconciliation publication section explicitly prohibits writes to
-balances, entries and holds. For v1-011, a hit anywhere in the labelled section
-earns credit even when the required release rule is in another chunk. Old labels
-and results were preserved rather than revised to make an approach win.
-
-HNSW matches exact vector retrieval metrics, including per-question scores, on
-the development evidence and the new holdout. This does not prove identical full
-rankings; approximate-index error is not supported as the cause here. Three long
-chunks exceed the encoder's token window, but that is a separate limitation.
-The exposed original 12-case holdout is diagnostic history and was not used for
-this selection.
-
-## New held-out comparison
-
-The new set has **60 answerable questions, 29 topic groups and 20 source documents**:
-44 reasoning/paraphrase questions and 16 precise code/command questions. The
-questions and documentation-grounded labels are synthetic and have not been
-independently human-reviewed. Source validation checked 137 exact evidence quotes
-before exposure to earlier development metrics and protocol critiques. Later edits
-were limited to previously identified quote corrections, one disambiguation and
-metadata; new-holdout scores were unavailable. The manifest retains that limitation.
-There are no exact normalized question duplicates against either older set;
-semantic overlap of documented facts cannot be excluded.
-
-Commit `1f0e7ca` freezes the chosen configuration, new question hash, corpus/model
-identity and hashes of 12 relevant implementation/dependency files before the
-first validation. Configuration selection used only development questions before
-that freeze. A canonical exclusive attempt record prevents silently overwriting or
-rerunning validation under another output name. No parameter, label or ranking
-code was changed after seeing the new scores.
-
-| Method | Recall@5 | MRR@10 | nDCG@5 | Actual 5-chunk section coverage |
-|---|---:|---:|---:|---:|
-| PostgreSQL FTS | 0.8639 | 0.6938 | 0.7049 | 0.8222 |
-| HNSW vectors | 0.8361 | 0.7733 | 0.7529 | 0.8278 |
-| Exact vectors | 0.8361 | 0.7733 | 0.7529 | 0.8278 |
-| Old hybrid, k=60 | 0.8639 | 0.8335 | 0.8073 | 0.8472 |
-| Selected hybrid, k=10 | **0.8889** | 0.8277 | **0.8158** | **0.8722** |
-
-Mean retrieval latency was 21.0 ms for selected hybrid and 21.3 ms for old hybrid
-on this local run, compared with 12.6 ms for vectors. These are retrieval timings,
-not end-to-end service latency or scale measurements.
-
-## Distribution and scope of the result
-
-The new holdout differs substantially from the development questions: its questions
-average approximately **26 words**, versus **11** in development. Approximately
-**33%** concern operational documents, versus **97%** in development. The remainder
-covers the wider indexed documentation, including engineering and protocol rules.
-
-The comparison therefore concerns a broader general-document question distribution.
-At most it supports a limited non-regression conclusion for retrieval coverage on
-that benchmark, with the MRR tradeoff below. It does **not** demonstrate better
-answers to short operator questions. The set contains only answerable retrieval
-questions; it does not validate refusals, live investigation or prompt-injection
-resistance. The distribution shift is also why absolute scores from the older
-holdout cannot measure an improvement.
-
-## Uncertainty and failures
-
-Paired topic-cluster bootstrap resamples the 29 groups, retaining all questions
-from each sampled group. These nominal 95% intervals are primary; question-level
-bootstrap is also preserved. Neither supports broad production claims.
-
-| Change | Metric | Mean difference | Topic-cluster 95% interval |
-|---|---|---:|---|
-| Old hybrid → selected | Recall@5 | +0.0250 | [0.0000, +0.0656] |
-| Old hybrid → selected | MRR@10 | -0.0058 | [-0.0193, +0.0025] |
-| Old hybrid → selected | nDCG@5 | +0.0085 | [-0.0040, +0.0253] |
-| Vectors → selected | Recall@5 | +0.0528 | [+0.0164, +0.0968] |
-| Vectors → selected | MRR@10 | +0.0543 | [+0.0010, +0.1097] |
-| Vectors → selected | nDCG@5 | +0.0629 | [+0.0238, +0.1013] |
-| Vectors → selected | Actual 5-chunk coverage | +0.0444 | [-0.0025, +0.0994] |
-
-Against the old hybrid, Recall improves on only blind-v2-003 and -010 and does
-not fall on any question. MRR falls on -012, -014 and -040. Against vectors,
-Recall falls on -021; actual context coverage also falls on -025. All per-question
-scores and regression IDs are preserved. Runtime coverage and superiority over
-old hybrid remain uncertain; MRR is a measured tradeoff.
-
-Absolute scores on this new set must not be compared with 0.3333 on the old
-12-question holdout as if the difference measured improvement. The questions,
-coverage and labels differ. Only same-question comparisons above are meaningful.
-This remains a synthetic closed-document benchmark. It does not measure real
-operator queries, real-model prose, semantic citation entailment or injection safety.
-This retrieval study used no paid or subscription inference.
-
-## Evidence and reproduction
-
-- [Frozen protocol, grid and selection](../eval/v2-study/selection.json)
-- [Component-rank diagnosis](../eval/v2-study/diagnosis.json)
-- [Frozen code/configuration](../eval/v2-study/freeze.json)
-- [Questions and source annotations](../eval/v2-holdout/questions.jsonl)
-- [Dataset provenance and limitations](../eval/v2-holdout/manifest.json)
-- [Compact held-out report](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1)
-- [Per-question scores](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1)
-
-Full ranking/evaluation artifacts remain in local MLflow; the public repository
-contains compact summaries and scores rather than a second full answer dump.
-Held-out MLflow run: `6347aab5d58246388dc43119a07b8ff4`.
-
-From the historical study checkout (use the frozen revision above), with Docker available:
-
-```sh
-uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
-  --split dev --baseline assistant/eval/results/v2-postgres-dev.json \
-  --output assistant/.cache/reproduced-dev.json
-```
-
-To reproduce the old baseline, add `--fusion legacy` and compare against the
-historical v1 report. To reproduce the grid:
-
-```sh
-mkdir -p assistant/.cache/study-v2
-cp assistant/eval/v2-study/protocol.json assistant/.cache/study-v2/protocol.json
-uv run --project assistant --locked python assistant/scripts/retrieval_study.py tune
-```
-
-The published attempt record is deliberately consumed. For an explicitly labelled
-reproduction (not another unseen validation), copy `freeze.json` into a fresh local
-directory and run the following from the same frozen source/dependency revision
-(`1f0e7ca`, also unchanged through PR #17). Subsequent metadata-loader cleanup
-changes the historical evaluation file hash without changing ranking/scoring; it
-does not rewrite the original freeze or claim that the new commit has its hash:
-
-```sh
-uv run --project assistant --locked python assistant/scripts/retrieval_study.py validate \
-  --questions assistant/eval/v2-holdout/questions.jsonl \
-  --freeze /absolute/reproduction/freeze.json \
-  --output /absolute/reproduction/report.json
-```
-
-CI uses only the existing development questions. It now rejects decreases in
-Recall, MRR, nDCG and actual five-chunk section coverage, and rejects changes to
-label/model identity, corpus digest or fusion configuration. The newly exposed
-holdout is not a CI tuning target. Future optimization needs another unseen set.
-
-
-## Retrieval storage and local experiments
-
-The assistant owns a dedicated database, separate from the financial ledger.
-`001_rag.sql` publishes immutable corpus snapshots with 384-dimensional vectors,
-a cosine HNSW index (`m=16`, `ef_construction=64`) and an English tsvector/GIN
-index. The snapshot identity binds corpus digest and pinned embedding identity;
-embedding runs outside the transaction, then a complete snapshot publishes
-atomically. Concurrent indexers cannot publish half a corpus.
-
-Keyword retrieval uses `websearch_to_tsquery` with OR between normalized terms and
-`ts_rank_cd`: PostgreSQL FTS, not BM25. HNSW uses `ef_search=100` and strict iterative
-scans for corpus filtering. An exact path disables index scans in its own read-only
-transaction. Small-corpus queries may still choose sequential scans, so the
-integration suite separately checks an HNSW execution plan. Equal RRF component
-weights combine ranks instead of incompatible raw scores.
-
-The migration owner may install pgvector. The runtime has USAGE/SELECT on RAG
-schemas plus CRUD on its dedicated workflow/checkpoint records, without financial
-schema access. Never give this package a ledger database credential. Set
-`LEDGEROPS_ASSISTANT_DATABASE_URL` for a persistent dedicated DB and
-`LEDGEROPS_ASSISTANT_CORPUS_ROOT` for an installed package's document root.
-
-Without a supplied DSN, `scripts/evaluate_local.py` creates an isolated disposable
-Docker database with a temporary password and removes only that container. All
-experiments write local MLflow SQLite/artifacts under `.cache/mlflow`; no tracking
-service receives them. Read records with `MlflowClient`, or point a separately
-installed MLflow UI at that database. The existing development-only command above
-reproduces the CI quality gate with pinned public local embeddings and fake answers.
-
-## Historical 60-question comparison
-
-The earlier synthetic set remains in `eval/v1-draft/questions.jsonl`, with 40
-development and 20 held-out questions. Of these, 32 and 12 respectively were scored
-for retrieval; remaining cases test routing/refusal. The current public manifest
-records four later development relevance additions and the preceding file hash.
-Question wording, key facts, routes and the 20 test records remain unchanged;
-labels are not independently human-reviewed. Use 22c56c7 for the original question
-bytes. The original k=60 development and held-out runs remain historical comparisons.
-
-| Split | Method | Recall@5 | MRR@10 | nDCG@5 |
-|---|---|---:|---:|---:|
-| Development | PostgreSQL FTS | 0.6250 | 0.6084 | 0.5520 |
-| Development | HNSW/exact vectors | 0.7344 | 0.6687 | 0.6253 |
-| Development | Old hybrid, k=60 | 0.7083 | 0.7527 | 0.6741 |
-| Held out | PostgreSQL FTS | 0.4167 | 0.1944 | 0.2494 |
-| Held out | HNSW/exact vectors | 0.5000 | 0.3750 | 0.4129 |
-| Held out | Old hybrid, k=60 | 0.3333 | 0.2989 | 0.2718 |
-
-The historical held-out generation used a fake sentence copier: route accuracy was
-17/20, correct refusals 5/8 and relevant-section citation hits 2/12. These expose
-failures; they do not demonstrate factual accuracy or injection resistance. The
-sample is too small for broad rankings. HNSW/exact agreement on 175 chunks is not
-an approximate-search benchmark at scale. Raw reports retain corpus/model/label
-identities and MLflow IDs:
-[v1 development](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1),
-[v1 held out](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1).
-
-The still-supported in-memory CLI is a prototype: its keyword method is BM25 and
-its unchanged scope heuristic came from an older synthetic calibration set. Those
-obsolete questions/results are archived rather than presented as current evidence.
-The PostgreSQL service and its quality gate use the preserved development set and
-the configuration described above.
-
-References: [pgvector](https://github.com/pgvector/pgvector),
-[PostgreSQL text search](https://www.postgresql.org/docs/current/textsearch-controls.html),
-[MLflow tracking](https://mlflow.org/docs/latest/ml/tracking/).
-
-
-## Bounded generation context (development only)
-
-This subsection records #19 at 22c56c7, using the 175-chunk corpus and original
-labels. Reproduce its tables and commands from that revision. Current-main
-development results are reported separately below.
-
-A section hit can miss the paragraph needed to answer. Inspection of the actual
-PostgreSQL inputs found two distinct cases:
-
-- v1-011's raw five chunks contain three chunks from one maintenance section but
-  no authenticated-observation section. The section's first appearance among the
-  first five **distinct sections from 30 ranks** is not the same as supplying it in
-  the first five chunks.
-- v1-019 receives the one-chunk "Read the report" section. Its HELD rule is in the
-  adjacent **Time and scope heading**, not a later paragraph in the same section.
-
-Generation now uses policy `section-neighbors-v1`. Raw `search()` rankings are
-unchanged. From 30 candidates, select the first-ranked chunk of each of five distinct
-sections, retain those anchors, add each selected section's introductory chunk,
-then consider forward/backward neighbors at distances 1 and 2 in document order.
-Never cross a document boundary; only expand anchors matching the loaded immutable
-corpus snapshot. Deduplicate by chunk ID. Every supplied chunk retains its complete
-original text, heading and citation ID.
-
-The pack fits 18,000 bytes of serialized chunk JSON, including metadata. Whole
-chunks that do not fit are omitted; text is not cut under an unchanged citation
-ID. The agent additionally removes trailing document chunks when live API
-observations need space within its existing overall input bound. It preserves API
-observations, refuses if those alone exceed the bound, and validates citations
-against the passages actually sent.
-
-These are development measurements over 32 documentation questions:
-
-| Provided context | Raw five chunks | Expanded |
-|---|---:|---:|
-| Mean chunks | 5.00 | 11.28 |
-| Mean serialized bytes | 8369 | 17720 |
-| Largest serialized bytes | 9952 | 18000 |
-| Mean labeled-section coverage | 0.7031 | 0.8594 |
-
-An ablation separates section diversity from neighboring source chunks at similar
-mean bytes for the first two rows:
-
-| Provided context | Mean bytes | Section coverage |
-|---|---:|---:|
-| Raw five chunks | 8369 | 0.7031 |
-| Five distinct-section anchors only | 8306 | 0.7812 |
-| Anchors + introductions + neighbors | 17720 | 0.8594 |
-
-About half the coverage gain comes from distinct-section selection, with almost
-no byte increase. The other half comes from introductions and neighbors, with
-roughly twice the document bytes. Diversity alone supplies the coverage gain for
-v1-004/011/015/028; v1-001/008/017/019 require neighboring chunks. Of the three
-factually improved answers, v1-017 and v1-019 depend on those neighbors.
-
-All five retrievers' original per-question ranking metrics match #18 exactly.
-Historical `context_recall@5` continues to describe the raw five chunks.
-Expanded-context section coverage is recorded separately under `context.stats`;
-neither metric proves that each required fact is present or the answer is correct.
-Regression tests additionally check that the exact FAILED/CLOSED_ABSENT release
-rule and the HELD/MISSING_INTERNAL rule reach the answer provider with original
-citation IDs, through real PostgreSQL and the pinned local encoder.
-
-Reproduce the two context measurements using fake generation:
-
-```sh
-uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
-  --split dev --context raw --output assistant/.cache/context-raw.json
-uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
-  --split dev --context expanded --output assistant/.cache/context-expanded.json
-```
-
-
-<details>
-<summary>Reproduce the ablation from saved development reports</summary>
-
-The first five `context_chunks` in this recorded expanded run are its five
-distinct-section anchors; all five fit the budget. The following calculation
-uses those anchors and the unchanged source chunks, without calling a model or
-changing retrieval. Generate the two reports with the fake-provider commands
-above, then run from the repository root:
-
-```sh
-uv run --project assistant --locked python - \
-  assistant/.cache/context-raw.json \
-  assistant/.cache/context-expanded.json <<'PY'
-import hashlib
-import json
-import statistics
-import sys
-from dataclasses import asdict
-from pathlib import Path
-
-from ledgerops_assistant.corpus import load_corpus
-from ledgerops_assistant.evaluation import DEFAULT_QUESTIONS
-
-corpus = load_corpus()
-chunks = corpus.by_id()
-questions = {
-    q["id"]: q
-    for q in (json.loads(line) for line in DEFAULT_QUESTIONS.read_text().splitlines())
-    if q["split"] == "dev" and q["expected_route"] == "docs"
-}
-raw, expanded = [json.loads(Path(p).read_text()) for p in sys.argv[1:]]
-question_sha = hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest()
-assert raw["context"]["policy"] == "raw-five-chunks"
-assert expanded["context"]["policy"] == "section-neighbors-v1"
-for report in (raw, expanded):
-    assert report["questions"]["evaluated_split"] == "dev"
-    assert report["questions"]["sha256"] == question_sha
-    assert report["corpus"]["digest"] == corpus.digest
-
-def measure(report, anchors_only=False):
-    rows = {r["id"]: r for r in report["answers"]["answers"]}
-    sizes, coverage = [], {}
-    for key, q in questions.items():
-        ids = rows[key]["context_chunks"]
-        if anchors_only:
-            ids = ids[:5]
-            assert len(ids) == len({chunks[i].section_id for i in ids}) == 5
-        provided = [chunks[i] for i in ids]
-        sizes.append(len(json.dumps([asdict(c) for c in provided]).encode()))
-        relevant = set(q["relevant_sections"])
-        coverage[key] = len({c.section_id for c in provided} & relevant) / len(relevant)
-    return statistics.mean(sizes), statistics.mean(coverage.values()), coverage
-
-before, anchors, full = measure(raw), measure(expanded, True), measure(expanded)
-print("| Provided context | Mean bytes | Section coverage |")
-print("|---|---:|---:|")
-for name, result in [
-    ("Raw five chunks", before),
-    ("Five distinct-section anchors only", anchors),
-    ("Anchors + introductions + neighbors", full),
-]:
-    print(f"| {name} | {result[0]:.0f} | {result[1]:.4f} |")
-print("Diversity sufficient:", [
-    key for key in questions
-    if anchors[2][key] > before[2][key] and full[2][key] == anchors[2][key]
-])
-print("Neighbors required:", [
-    key for key in questions if full[2][key] > anchors[2][key]
-])
-PY
-```
-
-</details>
-
-The normal CLI, service and development evaluator use expanded context. The
-evaluator's `--context raw` option preserves the previous generation input policy;
-it does not change ranking. MLflow records the context policy, budget, source
-coverage and size together with the existing corpus/model/question identities.
-
-The policy was developed against known development failures and is not an unseen
-quality result. The v2 holdout was already consumed before this change and was not
-rerun or used to select expansion settings. In #19, questions, labels, selection.json
-and freeze.json were unchanged. Source additions change application code hashes; use
-the recorded historical revision for exact v2-study reproduction.
-
-
-### Real generation and fact review
-
-One subsequent development run used the existing ChatGPT subscription, the pinned
-official SDK and the same low-effort/configured-model setting as #18. The context
-policy's source hashes were recorded before this run and remained unchanged.
-All questions, labels and ranking parameters stayed fixed.
-
-| Pipeline measure | Archived raw context | Expanded context |
-|---|---:|---:|
-| Route agreement | 39/40 | 40/40 |
-| Correct required refusals | 8/8 | 8/8 |
-| Wrong documentation refusals | 1 | 0 |
-| Answers citing a labeled section | 28/31 | 30/32 |
-
-Refusal results include deterministic routing/gating; citation overlap is not
-factual accuracy. The 32 documentation answers were also read against their
-existing required facts:
-
-- v1-011 now states release, merchant 80/0/80 and no outgoing journal.
-- v1-019 now states that a provider payment with a local HELD state remains
-  MISSING_INTERNAL, and asynchronous processing does not hide it.
-- v1-017 now includes the evidence/version/membership/restore/expiry invalidators.
-- v1-007 still omits the explicit new operation-ID/key requirement. v1-013 still
-  omits bounded quarantine: that general observation source is outside this pack,
-  while its callback-specific 401/no-quarantine answer matches the supplied source.
-- v1-024 omits the 23/25-hour DST detail even though the source is supplied.
-  v1-014 refers to two-actor review but leaves propose/approve sequencing implicit.
-  Both details were also missing from the #18 answers; neither omission is a
-  regression introduced here. Compared with #18, three answers add missing required
-  facts, and no answer loses a previously supplied required fact.
-
-These remaining omissions prevent treating citation or route agreement as
-complete-answer accuracy. This is a non-blind development audit, not independent
-human validation, and no labels were changed to improve the score. Context growth
-also costs input capacity: mean document bytes roughly double. No faster or
-cheaper subscription-inference claim follows from this experiment.
-
-MLflow runs: raw context `50ca4b8b95dc460abd594d3b619b2eb4`, expanded fake generation
-`fc5f6ef20ebc48db829f7245f4d3a46c`, expanded subscription generation
-`a660384db52f42ff96826e1c7c9813a7`. Raw generation records are not committed.
-
-
-## Current main document integration
-
-The assistant stack now includes main d57f04a through a merge commit. Main changed
-README and ADR 0004 and added Kubernetes, Azure and history-checking documentation.
-The previous glob would index 206 chunks, changing the corpus identity and
-invalidating the frozen baseline even without a textual merge conflict.
-
-The corpus is now the explicit 21-file list in
-[src/ledgerops_assistant/corpus.py](../src/ledgerops_assistant/corpus.py), preserving
-all paths used by #19 and their current content, including changed README and
-ADR 0004. These are the operating, investigation and evidence sources accepted by
-the study. Deployment guides AZURE.md/KUBERNETES.md, ADR 0005 and rename proposals
-are excluded from automatic inclusion. New files require simultaneous source-label
-review and a new development baseline. This is a scope policy, not a score-based
-file selection: the updated approved files produce 179 chunks and still reduce
-Recall relative to the historical 175-chunk corpus.
-
-The [development label change record](../eval/v1-draft/DEV-LABEL-CHANGES-2026-11-05.md)
-checks all 32 documentation questions against changed sections and existing
-key_facts, before running retrieval. It adds the new ADR 0004 section only to
-v1-001/002/004/005. No existing section is removed, and question text, key facts,
-routes, groups, splits and all test records are unchanged. The v2 holdout files
-and results are untouched and were not rerun.
-
-Retrieval and context settings remain fixed: bge-small, FTS/vector fusion k=10,
-depth=50, equal weights, 30 context candidates, five section anchors and the same
-18000-byte introduction/neighbor packing. Generation is fake in all three runs:
-
-| Corpus and labels | Chunks | Hybrid Recall@5 | MRR@10 | nDCG@5 | Expanded section coverage |
-|---|---:|---:|---:|---:|---:|
-| #19 corpus, original labels | 175 | 0.7812 | 0.7531 | 0.7048 | 0.8594 |
-| Current approved corpus, original labels | 179 | 0.6927 | 0.7063 | 0.6387 | 0.7552 |
-| Current approved corpus, reviewed labels | 179 | 0.7135 | 0.7573 | 0.6739 | 0.7708 |
-
-Relabeling recognizes additional sufficient sources; it does not improve the
-retriever or restore the earlier Recall. The current baseline is
-[v3-main-docs-dev.json](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1). The original
-[v2-postgres-dev.json](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1) remains unchanged as
-historical evidence. Gate checks still reject future corpus/model/label identity
-drift and decreases against the reviewed current baseline.
-
-### Known missing source
-
-v1-011 still has zero labeled-section coverage in the expanded current context.
-Its 80/0/80 and no-outgoing-journal facts remain in PAYOUTS.md but are not supplied.
-The prior end-to-end source-presence test remains as a strict expected failure
-for this exact StopIteration; unrelated errors still fail, and an unexpected pass
-requires reviewing/removing the marker. This is one recorded quality regression,
-not a passed source-coverage check. No retrieval or context setting was changed
-to special-case it.
-
-The current baseline is not a new real-model or unseen-quality result. Earlier
-subscription answer audits apply only to their historical corpus. An edit to an
-approved file such as PAYOUTS.md requires a fresh source/label review and baseline;
-adding an unapproved document alone does not change the index.
-
-### Reproduction
-
-From the current integration checkout with Docker available:
-
-```sh
-git worktree add --detach ../ledgerops-study-22c 22c56c7
-LEDGEROPS_ASSISTANT_CORPUS_ROOT=../ledgerops-study-22c \
-  uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
-  --provider fake --split dev \
-  --questions ../ledgerops-study-22c/assistant/eval/v1-draft/questions.jsonl \
-  --output assistant/.cache/main-docs-old-old.json
-uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
-  --provider fake --split dev \
-  --questions ../ledgerops-study-22c/assistant/eval/v1-draft/questions.jsonl \
-  --output assistant/.cache/main-docs-new-old.json
-uv run --project assistant --locked python assistant/scripts/evaluate_local.py \
-  --provider fake --split dev --baseline assistant/eval/results/v3-main-docs-dev.json \
-  --output assistant/.cache/main-docs-new-new.json
-```
-
-MLflow runs: old/old 491666f45c7747ca8b4fb4f14e08317f; current/old
-4f20daf31a154d738c9c4149cc932ad9; current/reviewed
-6ed9499f026c42e49c3bf714bb2db81b. The reviewed fake-generation baseline is
-committed; no real-model generation was run for this refresh.
+CI gates only development metrics and static freeze integrity. The holdout runner
+claims `run.json` exclusively before model/database setup; a later failure consumes
+the attempt and preserves partial output. The consumed holdout is not rerun for
+a better score. Use its release record to inspect ranks, failures and intervals.
+Raw records are release attachments; Git keeps summaries and frozen inputs.
+See [evidence storage](../eval/README.md) and [historical methods](HISTORY.md).
