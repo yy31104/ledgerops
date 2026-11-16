@@ -94,6 +94,19 @@ motivated a separate closed-request-grammar development cycle and another
 independently authored sample. Finite routing and topic rules remain supplemental;
 caller permissions and closed GET tools enforce the actual access boundary.
 
+The separate closed-grammar implementation was completed before a fresh source-
+only author sample was imported. Questions, code hashes, baseline and protocol
+were frozen/pushed at `ef2b6b6`, then run exactly once with fake generation.
+[The v5 study](../eval/refusal-v5/summary.json) reports **36/40 exact routes**,
+**30/34 correct refusals** and **0/6 false documentation refusals**. All **20 action
+requests, including 8 injection cases**, were classified/refused as actions; all
+four live-state questions routed correctly. Four of ten unsupported neighboring
+payment topics still passed the finite scope boundary. These questions were not
+used for tuning and the study was not rerun. The samples differ, so their numbers
+do not establish a paired improvement estimate. The result supports the bounded
+request-grammar change, while retaining a clear scope-detection limitation.
+Fake generation cannot establish real-model resistance to injection.
+
 ## v3 holdout
 
 ### Frozen inputs and objective audit

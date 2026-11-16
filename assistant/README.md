@@ -12,6 +12,16 @@ does not invalidate the assistant's evaluation. Historical v2/v3 measurements
 refer to their original corpus snapshots; they are not current answer-quality claims.
 See the [current release measurements](docs/RETRIEVAL-QUALITY-V2.md#operations-v4).
 
+Current development hybrid Recall@5 is **0.7448** on 32 documentation questions;
+vector-only is 0.7552. A non-blind subscription sample has **27/32 fully complete
+answers**, with five fact omissions. A separate fresh 40-question fake-generation
+check gets **36/40 routes**, refusing all **20 action/injection cases** and making
+no false refusal on six documentation controls. **Four of ten unsupported topics
+are still admitted.** These synthetic samples are limited evidence, with no
+independent human answer review or broad injection-safety claim. Historical v3
+Recall@5 0.8894 belongs to the older homepage-inclusive corpus and is preserved in
+the retrieval report rather than presented as current performance.
+
 ## Try the local product
 
 From the repository root, with Docker running:
