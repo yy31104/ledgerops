@@ -1,0 +1,67 @@
+{
+  "archive_bytes": 295771,
+  "archive_sha256": "80017e611b4f4f7c5d0289ab0c4de233fe9cff96d88e5d53d4dfa959028f10de",
+  "asset": "ledgerops-evidence-evaluation-data-v1.tar.gz",
+  "files": {
+    "assistant/eval/results/v1-postgres-dev.json": {
+      "bytes": 69336,
+      "sha256": "0c1cd2392ed347cb14dac666d21af4dd049129c937f08cfdfcf19b61df8d3afb"
+    },
+    "assistant/eval/results/v1-postgres-holdout.json": {
+      "bytes": 42159,
+      "sha256": "cbcc3662e60988b3542cf3743c49932f3451115dea25f19aa4215789fa529d91"
+    },
+    "assistant/eval/results/v2-postgres-dev.json": {
+      "bytes": 8025,
+      "sha256": "c357236713237388922308df3d99c0e3191c693a57cec25a503600800113ea60"
+    },
+    "assistant/eval/results/v2-postgres-holdout.csv": {
+      "bytes": 12145,
+      "sha256": "7f85fd619781b12261dc57f1e7130d32806a022c6633ccd88d17e886cad0c47d"
+    },
+    "assistant/eval/results/v2-postgres-holdout.json": {
+      "bytes": 9581,
+      "sha256": "7ea69ac9753f0ae839e3a7a8a40ea2dfcfe0cf1396fb3e7d36ec3c2e420d4c50"
+    },
+    "assistant/eval/results/v3-holdout.json": {
+      "bytes": 1085205,
+      "sha256": "68249a1b3c096642c06b026d1c4261854ad71704d512351160701d41c3427579"
+    },
+    "assistant/eval/results/v3-main-docs-dev.json": {
+      "bytes": 121874,
+      "sha256": "7ca9b87654aee579cb22b40f14dda6c85bfd05a9c86640a1db62dab8c5410fbd"
+    },
+    "assistant/perf/results/1000-cold-encoding.json": {
+      "bytes": 18318,
+      "sha256": "764c711f2b108483ae13a3d0affc4d9caac3094641489de48e16a6b5c199c74d"
+    },
+    "assistant/perf/results/1000-run1.json": {
+      "bytes": 156843,
+      "sha256": "a7e468457094fd810013af4b0e053e76dea27a6fce181a83cc78b2d656e3c48a"
+    },
+    "assistant/perf/results/1000-run2.json": {
+      "bytes": 156932,
+      "sha256": "1f46cb997d35b669b6c6659506c0d4bfe01fde834a3fbb7a4c51742fdbbad2ea"
+    },
+    "assistant/perf/results/10000-cold-encoding.json": {
+      "bytes": 21258,
+      "sha256": "a60b69f020c6bfc97d4c2e8377a81854796f1009af01b4ab9a44199d56ee4b22"
+    },
+    "assistant/perf/results/10000-run1.json": {
+      "bytes": 155685,
+      "sha256": "7ec51ea270fe3fc17ffaa5cb77d5451fc09fa126fbfd6554a5ac30169042f0ed"
+    },
+    "assistant/perf/results/10000-run2.json": {
+      "bytes": 155656,
+      "sha256": "a99425740b274cb864cd13b1bc7879fe105c878ea5fb5f48f63996f8b25dc75c"
+    },
+    "assistant/perf/results/copied-text-attribution.json": {
+      "bytes": 1655501,
+      "sha256": "c150cc6117177c14c48f68e5fbf38b93f0ec722615581ba40c659552f66eb5c9"
+    }
+  },
+  "release_tag": "evaluation-data-v1",
+  "schema_version": 1,
+  "source_commit": "6764fe1777751152a0e144c87f99f98719156d5d",
+  "url": "https://github.com/yy31104/ledgerops/releases/download/evaluation-data-v1/ledgerops-evidence-evaluation-data-v1.tar.gz"
+}

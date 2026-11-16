@@ -3,7 +3,7 @@
   "description": "Operations-only corpus; homepage and navigation excluded. Renamed sources retain their content, labels migrate by explicit path mapping.",
   "source_version": "v1 development with main-docs labels",
   "questions_sha256": "caf74b7048c58ee28cf3136d33f6c5dd5fb2af66b14be7d4bec62d0784eecf07",
-  "corpus_digest": "451aaf5997178caaaa9721964e16269b3310350c0ddab418ee0c83952d218391",
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
   "files": [
     "docs/internals/reservation-index.md",
     "docs/AUTHENTICATION.md",

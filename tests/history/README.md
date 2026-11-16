@@ -4,7 +4,7 @@ This directory records what concurrent admission transactions **read and wrote, 
 client saw it**. It then checks those histories offline for isolation anomalies,
 following Elle (Kyle Kingsbury and Peter Alvaro, *Elle: Inferring Isolation Anomalies
 from Experimental Observations*, PVLDB 14(3), 2020). See
-[ADR 0005](../../docs/adr/0005-client-history-checking.md) for the decision.
+[ADR 0005](../../docs/internals/adr/0005-client-history-checking.md) for the decision.
 
 | File | Role |
 |---|---|

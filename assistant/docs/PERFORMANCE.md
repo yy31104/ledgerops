@@ -27,8 +27,8 @@ the separate ANN measurement, never application code.
 
 | N synthetic chunks | Cold encoding | Retrieval repeat 1 | Retrieval repeat 2 |
 | --- | --- | --- | --- |
-| 1000 | [JSON](../perf/results/1000-cold-encoding.json) | [JSON](../perf/results/1000-run1.json) | [JSON](../perf/results/1000-run2.json) |
-| 10000 | [JSON](../perf/results/10000-cold-encoding.json) | [JSON](../perf/results/10000-run1.json) | [JSON](../perf/results/10000-run2.json) |
+| 1000 | [JSON](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1) | [JSON](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1) | [JSON](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1) |
+| 10000 | [JSON](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1) | [JSON](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1) | [JSON](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1) |
 
 100,000 chunks: **not run**. The CLI requires --allow-large at that scale.
 There is no 100k latency, memory, quality or extrapolated runtime claim.
@@ -281,7 +281,7 @@ files remain unchanged.
 
 ### Copied-sentence-adjusted attribution
 
-[Post-hoc attribution record](../perf/results/copied-text-attribution.json).
+[Post-hoc attribution record](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1).
 This untimed pass rebuilds rankings once for each population/method, then scores
 strict and adjusted on exactly the same ranking. The historical six records lack
 ranked chunk IDs, so this is a separate pass, not a relabeling of those files.
@@ -459,7 +459,7 @@ for perf_scale in 1000 10000; do
 done
 ```
 
-The six measurement records in perf/results/ are read-only historical results;
+The six measurement records in the evaluation-data-v1 release are immutable historical results;
 compare new reproduction outputs with them without overwriting them.
 
 For a new cold-vector measurement, pass --cache .cache/perf-fresh. Later invocations

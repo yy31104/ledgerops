@@ -1,7 +1,9 @@
 """Static v3 integrity and synthetic statistics only; never evaluate v3 in CI."""
 
+import hashlib
 import importlib.util
 import json
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -13,7 +15,25 @@ SPEC.loader.exec_module(v3)
 
 
 def test_v3_questions_and_manifest_are_bound_without_retrieval():
-    manifest, questions = v3.verify_freeze()
+    # Source hashes describe the historical v3 snapshot; future releases may change
+    # runtime code and corpus paths. The historical runner still checks those hashes
+    # before execution. CI binds the untouched study, and never executes it again.
+    manifest_path = v3.STUDY / "manifest.json"
+    assert (
+        hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+        == "c281d1b416f487620a9c2f1ebf3a308f634c583de7b11991f7c88d53c9748a80"
+    )
+    manifest = json.loads(manifest_path.read_text())
+    for name, key in [
+        ("questions.jsonl", "sha256"),
+        ("protocol.json", "protocol_sha256"),
+        ("sample.json", "prepared_sample_sha256"),
+    ]:
+        assert v3.sha(v3.STUDY / name) == manifest[key]
+    questions = [
+        json.loads(line) for line in (v3.STUDY / "questions.jsonl").read_text().splitlines()
+    ]
+    assert Counter(q["category"] for q in questions) == manifest["retained_by_category"]
     assert manifest["status"] == "frozen_synthetic"
     assert len(questions) == 69
     assert len({q["id"] for q in questions}) == 69

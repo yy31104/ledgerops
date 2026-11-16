@@ -1,14 +1,29 @@
 # Retrieval quality: diagnosis, development selection and holdout studies
 
-The current-corpus [v3 holdout](#v3-holdout) is reported first. The v2 study and
-#19 context measurements below are historical. Current CI retains the development
-baseline in [Current main document integration](#current-main-document-integration).
+The current corpus is operations-v4: 20 explicitly selected operational files,
+excluding the repository homepage and navigation. Historical v1/v2/v3 studies
+below retain their recorded source snapshots. Raw reports are in the
+[evaluation-data-v1 release](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1);
+restore them using the [evidence guide](../eval/README.md) before reproducing
+historical analysis, in the recorded original checkout.
+
+## Operations-v4
+
+The homepage is a product entry point, not an operational evidence source. It is
+excluded from `CORPUS_FILES`; moving detailed references under `docs/internals`
+keeps operating rules available while giving visitors six main guides and a start
+page. The chunking, encoder, fusion and context policies are unchanged.
+Development question wording and required facts are unchanged. Labels migrate by
+explicit file mapping, and three removed README references retain their payout
+and ADR evidence. Historical holdout labels/results are unchanged and unrerun.
+CI uses the compact `eval/baselines/operations-v4.json` baseline. A regression test
+changes README bytes and proves the corpus digest remains identical.
 
 ## v3 holdout
 
 ### Frozen inputs and objective audit
 
-This run uses the current explicit **21-file, 179-chunk, 106-section** corpus,
+This historical run uses the explicit **21-file, 179-chunk, 106-section** corpus,
 digest `6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91`,
 with source contents pinned to `c4d943c`. The RRF/context/encoder/routing policies
 and development baseline are unchanged. V3 contributes no CI quality threshold.
@@ -240,7 +255,7 @@ thresholds and labels were left unchanged after observing the failures.
 - MLflow run: `a82fcf71b2ff4eedb24c6fc37666abf8`.
 - [Single-attempt record](../eval/v3-holdout/run.json): attempt 1 completed,
   all 69 questions recorded, no mid-run failure, retry or configuration change.
-- [Complete result](../eval/results/v3-holdout.json): raw ranks, per-question
+- [Complete result](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1): raw ranks, per-question
   scores, context IDs, fake answers, routing failures, both interval procedures
   and environment/provenance hashes.
 
@@ -406,8 +421,8 @@ This retrieval study used no paid or subscription inference.
 - [Frozen code/configuration](../eval/v2-study/freeze.json)
 - [Questions and source annotations](../eval/v2-holdout/questions.jsonl)
 - [Dataset provenance and limitations](../eval/v2-holdout/manifest.json)
-- [Compact held-out report](../eval/results/v2-postgres-holdout.json)
-- [Per-question scores](../eval/results/v2-postgres-holdout.csv)
+- [Compact held-out report](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1)
+- [Per-question scores](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1)
 
 Full ranking/evaluation artifacts remain in local MLflow; the public repository
 contains compact summaries and scores rather than a second full answer dump.
@@ -504,8 +519,8 @@ failures; they do not demonstrate factual accuracy or injection resistance. The
 sample is too small for broad rankings. HNSW/exact agreement on 175 chunks is not
 an approximate-search benchmark at scale. Raw reports retain corpus/model/label
 identities and MLflow IDs:
-[v1 development](../eval/results/v1-postgres-dev.json),
-[v1 held out](../eval/results/v1-postgres-holdout.json).
+[v1 development](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1),
+[v1 held out](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1).
 
 The still-supported in-memory CLI is a prototype: its keyword method is BM25 and
 its unchanged scope heuristic came from an older synthetic calibration set. Those
@@ -755,8 +770,8 @@ depth=50, equal weights, 30 context candidates, five section anchors and the sam
 
 Relabeling recognizes additional sufficient sources; it does not improve the
 retriever or restore the earlier Recall. The current baseline is
-[v3-main-docs-dev.json](../eval/results/v3-main-docs-dev.json). The original
-[v2-postgres-dev.json](../eval/results/v2-postgres-dev.json) remains unchanged as
+[v3-main-docs-dev.json](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1). The original
+[v2-postgres-dev.json](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1) remains unchanged as
 historical evidence. Gate checks still reject future corpus/model/label identity
 drift and decreases against the reviewed current baseline.
 

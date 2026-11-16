@@ -200,7 +200,7 @@ verifier indexes all records into on-disk SQLite rather than truncating the sour
 Report v4 explicitly states whether all verification completed. Exceeded bounds,
 missing chunks, exhausted space or unverifiable semantic closure cannot produce a
 healthy result. Older format 1-9 bytes and capabilities remain unchanged. Commands,
-capacity boundaries and independent input handling are described in [STREAM10](streaming-export-protocol.md).
+capacity boundaries and independent input handling are described in [streaming export protocol](streaming-export-protocol.md).
 
 Large maintenance previews use the distinct
 `EXCLUSIVE_WORKSPACE_BARRIER_READ_COMMITTED_V1` capture marker. They are captured

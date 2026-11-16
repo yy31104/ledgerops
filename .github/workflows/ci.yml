@@ -90,10 +90,16 @@ jobs:
           uv run --locked ruff check .
           uv run --locked ruff format --check .
 
-      # The fake provider and the hashing embedder keep this job offline and free:
+      # The default tests use fake generation and hashing embeddings:
       # no model download, no API key.
       - name: Test
         run: uv run --locked python -m pytest
+
+      - name: Verify historical release evidence
+        run: |
+          uv run --locked python scripts/evidence_archive.py restore \
+            --manifest eval/evidence-manifest.json --cache .cache/evidence
+          uv run --locked python -m pytest -m evidence
 
       - name: PostgreSQL integration
         run: uv run --locked python -m pytest -m postgres

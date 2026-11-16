@@ -52,8 +52,9 @@ known-first-party = ["ledgerops", "ledgerops_assistant", "tests"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-ra --strict-config --strict-markers -m 'not model and not postgres'"
+addopts = "-ra --strict-config --strict-markers -m 'not model and not postgres and not evidence'"
 markers = [
     "model: downloads and runs the real bge-small embedding model",
     "postgres: requires a disposable pgvector PostgreSQL container",
+    "evidence: checks checksum-verified historical release data restored into .cache/evidence",
 ]

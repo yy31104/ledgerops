@@ -6,25 +6,11 @@ embeddings, pgvector HNSW and RRF with a bounded LangGraph agent. Drafts pause w
 `interrupt()` and persist in dedicated PostgreSQL; the operator submits the
 reviewed payload through the existing LedgerOps console.
 
-On the current 21-file/179-chunk corpus, the once-run **v3 holdout** has default
-hybrid **Recall@5 0.8894 (95% section-cluster CI [0.8227, 0.9455])** over 58 audited
-documentation questions in 40 source-section groups. Three pre-freeze audit
-exclusions reduced the planned 60+12 set to 58+11. Non-documentation routing and
-refusal each succeed on **6/11**; an indirect action, one injection and three
-unsupported questions are incorrectly answered as documentation. Generation is
-fake; these are retrieval and routing measurements, not real-model answer quality.
-See [the full v3 report](docs/RETRIEVAL-QUALITY-V2.md#v3-holdout), including failures
-and all paired intervals. No policy or label was changed after this run.
-
-On the same corpus, the 32 development questions score Recall@5 **0.7135** with
-reviewed labels. The higher v3 result reflects a different question distribution,
-not a system improvement: each v3 question was written from one sampled passage;
-39/58 (67%) have a single relevant section versus 14/32 (44%), and 27/58 (47%)
-target documents outside PAYOUTS, RECONCILIATION and OPERATOR-ACTIONS versus 6/32
-(19%), following the preregistered quotas. V3 also scores higher within each of
-these strata. Under the [defined content-token overlap measure](docs/RETRIEVAL-QUALITY-V2.md#question-distribution-versus-development),
-word overlap is similar (0.6855 versus 0.6812). Neither synthetic set represents
-real operator traffic.
+The operations-v4 corpus contains 20 explicitly selected operational files. The
+repository homepage, navigation and article are excluded, so editing the homepage
+does not invalidate the assistant's evaluation. Historical v2/v3 measurements
+refer to their original corpus snapshots; they are not current answer-quality claims.
+See the [current release measurements](docs/RETRIEVAL-QUALITY-V2.md#operations-v4).
 
 ## Try the local product
 
@@ -50,18 +36,17 @@ This stops the dedicated stack and retains database/model-cache volumes. See
 
 ## Evidence and limits
 
-Current CI uses an explicit 21-file corpus and the reviewed main-docs development
-baseline, [v3-main-docs-dev.json](eval/results/v3-main-docs-dev.json). New documents
-are not indexed automatically; approved-file edits require label review and a new
-baseline. The [main integration comparison](docs/RETRIEVAL-QUALITY-V2.md#current-main-document-integration)
-records the remaining v1-011 missing-source regression and the lower Recall.
+Current CI uses the [operations-v4 development baseline](eval/baselines/operations-v4.json).
+Approved operational-file edits require label review and a new baseline; changing
+README.md does not. Existing question wording and required facts are retained in
+[v4-dev](eval/v4-dev/manifest.json), with explicit source-path and excluded-homepage
+label migration. Historical blind studies remain unchanged and are never rerun as
+current evidence.
 
-The previous 175-chunk v2 holdout and development-only context studies are
-preserved as [historical results](docs/RETRIEVAL-QUALITY-V2.md#new-held-out-comparison).
-They describe their original corpus snapshots. Current v3 uses synthetic labels,
-objective pre-freeze audit and fake generation; the author-only-bundle declaration
-is self-reported, and source facts overlap earlier sets. A limited historical
-subscription smoke test does not establish current real-model answer quality.
+Raw evaluation/performance records live in checksum-verified release attachments;
+Git contains [summaries](eval/summary.json), question sets, protocols and manifests.
+See [evidence reproduction](eval/README.md). Citation checks establish provenance,
+not semantic entailment; finite refusal rules cannot prove prompt-injection safety.
 
 Generation expands distinct source sections with introductions and neighboring
 chunks, bounded to 18 KB of serialized document context. The v3 artifact records
@@ -82,7 +67,7 @@ uv run --locked ruff format --check .
 uv run --locked python -m pytest
 uv run --locked python -m pytest -m postgres
 uv run --locked python scripts/evaluate_local.py --split dev \
-  --baseline eval/results/v3-main-docs-dev.json --output .cache/report.json
+  --baseline eval/baselines/operations-v4.json --output .cache/report.json
 npm --prefix web ci
 npm --prefix web run build
 npm --prefix web test
