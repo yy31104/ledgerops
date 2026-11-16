@@ -47,4 +47,4 @@ Theory and Optimistic Implementations for Distributed Transactions*, MIT, 1999.
   turns a silent mismatch into a failure.
 - About 10 seconds are added to `make test`.
 
-Details and the "Break it" experiments: [tests/history/README.md](../../tests/history/README.md).
+Details and the "Break it" experiments: [tests/history/README.md](../../../tests/history/README.md).

@@ -130,7 +130,7 @@ The real passages silently truncated by ordinary BGE embedding are:
 
 | Chunk ID | Untruncated tokens |
 | --- | --- |
-| docs/RELEASE-READINESS.md#running-the-project/0 | 537 |
+| docs/internals/release-readiness.md#running-the-project/0 | 537 |
 | ops/linux/README.md#backup-restore-and-reopening/0 | 551 |
 | ops/linux/README.md#backup-restore-and-reopening/4 | 614 |
 

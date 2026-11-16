@@ -32,7 +32,7 @@ from pathlib import Path
 from ledgerops_assistant import routing
 from ledgerops_assistant.answer import ScopeGate, answer
 from ledgerops_assistant.context import CONTEXT_POLICY, MAX_CONTEXT_BYTES, ContextRetriever
-from ledgerops_assistant.corpus import CHUNKER_VERSION, load_corpus
+from ledgerops_assistant.corpus import CHUNKER_VERSION, CORPUS_VERSION, load_corpus
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import (
     BM25Retriever,
@@ -42,7 +42,7 @@ from ledgerops_assistant.retrieval import (
 )
 
 ASSISTANT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_QUESTIONS = ASSISTANT_ROOT / "eval" / "v1-draft" / "questions.jsonl"
+DEFAULT_QUESTIONS = ASSISTANT_ROOT / "eval" / "v4-dev" / "questions.jsonl"
 CACHE_DIR = ASSISTANT_ROOT / ".cache" / "index"
 
 
@@ -358,6 +358,7 @@ def run(args) -> dict:
             "revision": corpus.revision,
             "digest": corpus.digest,
             "chunker": CHUNKER_VERSION,
+            "version": CORPUS_VERSION,
             "files": len(corpus.file_digests),
             "chunks": len(corpus.chunks),
             "sections": len(corpus.section_ids()),

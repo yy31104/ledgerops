@@ -4,7 +4,7 @@ Format 10 exports every allowlisted financial row from one PostgreSQL REPEATABLE
 READ READ ONLY snapshot. It retains row format 9 semantics and the financial row/constraint
 capabilities of migrations 001–010. The exact checksummed physical-index migration 011 is recognized
 separately and does not add financial fields; backups retain its actual inventory.
-Unknown migrations are still rejected. See [index upgrade](ACTIVE-HOLD-INDEX.md).
+Unknown migrations are still rejected. See [index upgrade](reservation-index.md).
 Auth credential/ACL tables are excluded as before. Formats 1–9 and their
 stored bytes remain supported through the legacy interface; format 10 is an explicit
 choice, not an increased legacy constant.

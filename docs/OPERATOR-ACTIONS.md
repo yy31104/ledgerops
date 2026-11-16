@@ -80,7 +80,7 @@ Rotating a token alone does not change the same actor's permission version; the 
 
 Proposals are limited to 512 KiB, and the complete LOCAL_BLOCKER set to 100 incidents; 101 incidents reject the whole action. Each action allows at most 100 execution attempts.
 Expiry is 1–3600 seconds, with 15 minutes used by the page. Legacy referenced objects are limited to 64 MiB in total before review; oversized sets are rejected before reading.
-Complete chunked sources have a separate bounded read path, described in [streaming evidence](STREAMING-EVIDENCE.md). There is no automatic garbage collection or silent history loss.
+Complete chunked sources have a separate bounded read path, described in [streaming evidence](internals/streaming-evidence.md). There is no automatic garbage collection or silent history loss.
 
 ## Independent checks and limits
 

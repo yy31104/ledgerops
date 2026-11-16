@@ -7,7 +7,7 @@ ledger check. Nothing touches a cloud account. No secret is committed:
 `scripts/generate_secrets.py` creates random values and pipes them straight into
 `kubectl apply`.
 
-Files live in [`deploy/k8s/`](../deploy/k8s). Run targets from the repository root
+Files live in [`deploy/k8s/`](../../deploy/k8s). Run targets from the repository root
 with `make -C deploy/k8s <target>`. Everything below was run on 2026-11-05 with kind
 v0.30.0 (Kubernetes v1.34.0), kubectl v1.34.1 and Docker 29.9 on a 4-vCPU Linux VM.
 The numbers are from that run, not estimates.
@@ -151,7 +151,7 @@ Recovery time is the larger of the 30 s claim lease and kubelet's restart back-o
 Killing the worker repeatedly within 10 minutes grows the back-off (10 s, 20 s, 40 s…);
 a third kill in a row recovered after 46 s. A real restart loop with exit code 2 and
 `worker_invariant_error` is the worker's fail-stop: follow "Worker fail-stop" in
-[`ops/linux/README.md`](../ops/linux/README.md) and do **not** delete holds to clear it.
+[`ops/linux/README.md`](../../ops/linux/README.md) and do **not** delete holds to clear it.
 
 ### Fault 2: disconnect the database
 

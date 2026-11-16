@@ -13,33 +13,34 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+CORPUS_VERSION = "operations-v4"
 CHUNKER_VERSION = "headings-v1"
 MAX_WORDS = 220
 
-# Versioned operating/investigation/evidence sources from the reviewed study.
+# Versioned operating/investigation/evidence sources. The project homepage is
+# deliberately excluded: editorial changes must not invalidate retrieval evidence.
 # New files require a label review and a new development baseline. Deployment
 # guides, rename proposals and assistant evaluation material are not auto-indexed.
 CORPUS_FILES = (
-    "README.md",
-    "docs/ACTIVE-HOLD-INDEX.md",
+    "docs/internals/reservation-index.md",
     "docs/AUTHENTICATION.md",
-    "docs/BACKUP-RESTORE.md",
-    "docs/EVIDENCE-EXCHANGE.md",
-    "docs/EXPORT-AND-VERIFY.md",
+    "docs/internals/backup-restore.md",
+    "docs/internals/evidence-exchange.md",
+    "docs/internals/export-and-verify.md",
     "docs/HTTP-SERVICE.md",
-    "docs/MAINTENANCE-CAPACITY.md",
+    "docs/internals/maintenance-capacity.md",
     "docs/MAINTENANCE.md",
     "docs/OPERATOR-ACTIONS.md",
     "docs/PAYOUTS.md",
     "docs/RECONCILIATION.md",
-    "docs/RELEASE-READINESS.md",
-    "docs/REVERSAL.md",
-    "docs/STREAM10.md",
-    "docs/STREAMING-EVIDENCE.md",
-    "docs/adr/0001-initialization.md",
-    "docs/adr/0002-ledger-foundation.md",
-    "docs/adr/0003-purchase-admission.md",
-    "docs/adr/0004-contention-and-recovery.md",
+    "docs/internals/release-readiness.md",
+    "docs/internals/reversal.md",
+    "docs/internals/streaming-export-protocol.md",
+    "docs/internals/streaming-evidence.md",
+    "docs/internals/adr/0001-initialization.md",
+    "docs/internals/adr/0002-ledger-foundation.md",
+    "docs/internals/adr/0003-purchase-admission.md",
+    "docs/internals/adr/0004-contention-and-recovery.md",
     "ops/linux/README.md",
 )
 

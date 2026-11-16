@@ -1,0 +1,61 @@
+{
+  "version": "operations-v4",
+  "description": "Operations-only corpus; homepage and navigation excluded. Renamed sources retain their content, labels migrate by explicit path mapping.",
+  "source_version": "v1 development with main-docs labels",
+  "questions_sha256": "caf74b7048c58ee28cf3136d33f6c5dd5fb2af66b14be7d4bec62d0784eecf07",
+  "corpus_digest": "451aaf5997178caaaa9721964e16269b3310350c0ddab418ee0c83952d218391",
+  "files": [
+    "docs/internals/reservation-index.md",
+    "docs/AUTHENTICATION.md",
+    "docs/internals/backup-restore.md",
+    "docs/internals/evidence-exchange.md",
+    "docs/internals/export-and-verify.md",
+    "docs/HTTP-SERVICE.md",
+    "docs/internals/maintenance-capacity.md",
+    "docs/MAINTENANCE.md",
+    "docs/OPERATOR-ACTIONS.md",
+    "docs/PAYOUTS.md",
+    "docs/RECONCILIATION.md",
+    "docs/internals/release-readiness.md",
+    "docs/internals/reversal.md",
+    "docs/internals/streaming-export-protocol.md",
+    "docs/internals/streaming-evidence.md",
+    "docs/internals/adr/0001-initialization.md",
+    "docs/internals/adr/0002-ledger-foundation.md",
+    "docs/internals/adr/0003-purchase-admission.md",
+    "docs/internals/adr/0004-contention-and-recovery.md",
+    "ops/linux/README.md"
+  ],
+  "questions": 40,
+  "docs_questions": 32,
+  "removed_labels": {
+    "v1-001": [
+      "README homepage source excluded; payout operating guide and ADR retain the required facts"
+    ],
+    "v1-002": [
+      "README homepage source excluded; payout operating guide and ADR retain the required facts"
+    ],
+    "v1-004": [
+      "README homepage source excluded; payout operating guide and ADR retain the required facts"
+    ]
+  },
+  "path_migration": {
+    "docs/STREAM10.md": "docs/internals/streaming-export-protocol.md",
+    "docs/BACKUP-RESTORE.md": "docs/internals/backup-restore.md",
+    "docs/KUBERNETES.md": "docs/internals/kubernetes.md",
+    "docs/EVIDENCE-EXCHANGE.md": "docs/internals/evidence-exchange.md",
+    "docs/MAINTENANCE-CAPACITY.md": "docs/internals/maintenance-capacity.md",
+    "docs/RELEASE-READINESS.md": "docs/internals/release-readiness.md",
+    "docs/REVERSAL.md": "docs/internals/reversal.md",
+    "docs/EXPORT-AND-VERIFY.md": "docs/internals/export-and-verify.md",
+    "docs/STREAMING-EVIDENCE.md": "docs/internals/streaming-evidence.md",
+    "docs/ACTIVE-HOLD-INDEX.md": "docs/internals/reservation-index.md",
+    "docs/AZURE.md": "docs/internals/azure.md",
+    "docs/adr/0003-purchase-admission.md": "docs/internals/adr/0003-purchase-admission.md",
+    "docs/adr/0002-ledger-foundation.md": "docs/internals/adr/0002-ledger-foundation.md",
+    "docs/adr/0001-initialization.md": "docs/internals/adr/0001-initialization.md",
+    "docs/adr/0005-client-history-checking.md": "docs/internals/adr/0005-client-history-checking.md",
+    "docs/adr/0004-contention-and-recovery.md": "docs/internals/adr/0004-contention-and-recovery.md"
+  },
+  "holdouts": "v1/v2/v3 remain historical; none re-scored on this corpus."
+}

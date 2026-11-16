@@ -1,7 +1,7 @@
 # Consistent export and independent verification
 
 Consistent export and offline verification read an existing initialized database with
-business data. The [maintenance procedure](MAINTENANCE.md) uses a separate maintenance
+business data. The [maintenance procedure](../MAINTENANCE.md) uses a separate maintenance
 login. These commands do not create a permanent database or HTTP service. Tests use
 their own temporary PostgreSQL instance and clean it up afterward.
 
@@ -95,7 +95,7 @@ to reconsider whether yesterday's refusal was justified.
 
 `rebuild_eligible` is not permission to perform a database operation, nor proof that
 files still describe the current database. Maintenance rereads, verifies and computes
-target balances inside the exclusive barrier. See [maintenance](MAINTENANCE.md).
+target balances inside the exclusive barrier. See [maintenance](../MAINTENANCE.md).
 
 ## Files and snapshot boundaries
 
@@ -190,7 +190,7 @@ row/constraint capabilities. The index marker is treated separately only when th
 known inventory and 011 checksum match exactly, without changing format 1-9 or
 stream10 row semantics. Backups retain the actual migration inventory. Unknown
 migrations, missing predecessors and incorrect digests still fail. See
-[index upgrade](ACTIVE-HOLD-INDEX.md).
+[index upgrade](reservation-index.md).
 
 The default export format is unchanged. Beyond the older 10,000-row/table or 16 MiB
 limits, use `export --format stream10` and `verify --format stream10`. Format 10 reads
@@ -200,7 +200,7 @@ verifier indexes all records into on-disk SQLite rather than truncating the sour
 Report v4 explicitly states whether all verification completed. Exceeded bounds,
 missing chunks, exhausted space or unverifiable semantic closure cannot produce a
 healthy result. Older format 1-9 bytes and capabilities remain unchanged. Commands,
-capacity boundaries and independent input handling are described in [STREAM10](STREAM10.md).
+capacity boundaries and independent input handling are described in [STREAM10](streaming-export-protocol.md).
 
 Large maintenance previews use the distinct
 `EXCLUSIVE_WORKSPACE_BARRIER_READ_COMMITTED_V1` capture marker. They are captured

@@ -34,7 +34,7 @@ The demo/lab subprocesses inside `make test` explicitly reuse the running pytest
 `UV_NO_SYNC` or `UV_PROJECT_ENVIRONMENT` settings, or a prefilled repository offline cache; run `make bootstrap` first as shown above.
 Tests create only their own temporary databases and containers.
 
-For container deployment, read the [Linux operating guide](../ops/linux/README.md) first. The example below runs local synthetic acceptance with replaceable paths;
+For container deployment, read the [Linux operating guide](../../ops/linux/README.md) first. The example below runs local synthetic acceptance with replaceable paths;
 use a new directory. `--dispose-owned-test-data` explicitly deletes this test project's data.
 The source repository must be committed and clean. Secrets enter only dedicated volumes and temporary 0600 files and are not printed to the terminal.
 
@@ -76,8 +76,8 @@ python -m ledgerops.cli verify --format stream10 PRIVATE_EXPORT_UUID_DIRECTORY \
 ```
 
 Load the protected `LEDGEROPS_EXPORT_DSN` through the runtime environment; do not put passwords in command lines or Git.
-[Reconciliation and approval integration](STREAMING-EVIDENCE.md), the [complete source format](STREAM10.md) and
-[large-workspace maintenance](MAINTENANCE-CAPACITY.md) describe the limits and operating procedures.
+[Reconciliation and approval integration](streaming-evidence.md), the [complete source format](streaming-export-protocol.md) and
+[large-workspace maintenance](maintenance-capacity.md) describe the limits and operating procedures.
 Maintenance keeps the original small-data path and switches larger data to complete on-disk verification under the exclusive barrier.
 Maintenance previews explicitly identify their READ COMMITTED capture context; they cannot be presented as read-only RR sources to reconciliation or offline exchange.
 
@@ -85,18 +85,18 @@ Tests cover a source of about 17 MiB, 129 quarantine records of 64 KiB each and 
 Declared source limits are 256 MiB and one million rows, with 4 MiB per row, a 512 MiB primary SQLite index and 16 MiB of semantic closure. Additional temporary files still require disk space.
 Exceeding a limit or leaving semantic checks incomplete fails explicitly rather than returning healthy. These are rejection limits, not throughput or SLO commitments.
 
-Payout capacity queries now use an [active-hold partial index](ACTIVE-HOLD-INDEX.md), reducing the effect of terminal history on admission queries performed while holding locks.
+Payout capacity queries now use an [active-hold partial index](reservation-index.md), reducing the effect of terminal history on admission queries performed while holding locks.
 Migration 011 changes only the physical access path; financial row formats and old file semantics remain intact. A regular index build requires a maintenance window.
 After restoring an old backup, use the explicit administrator `--index-only` entry point while runtime CONNECT remains closed.
 Do not replace that post-restore upgrade with the ordinary migration entry point, which grants CONNECT.
 
 ## Recovery, identity and operator actions
 
-- [Authentication and revocation](AUTHENTICATION.md): identity comes from current credential mappings, rechecked inside financial transactions; old-result replay cannot bypass revocation.
-- [Controlled reprocessing](OPERATOR-ACTIONS.md): distinct-actor approval bound to current evidence epoch, target versions, restore generation, expiry and the complete incident set.
-- [Backup and restore](BACKUP-RESTORE.md): actual pg_dump/pg_restore, same-snapshot business archive, object manifest and invalidation of old credentials/approvals.
-- [HTTP interfaces](HTTP-SERVICE.md): ordinary API and operator instances use different capability configurations.
-- [Read-only exchange](EVIDENCE-EXCHANGE.md): offline reading with explicit unknown external/COMMIT times and no operation callbacks.
+- [Authentication and revocation](../AUTHENTICATION.md): identity comes from current credential mappings, rechecked inside financial transactions; old-result replay cannot bypass revocation.
+- [Controlled reprocessing](../OPERATOR-ACTIONS.md): distinct-actor approval bound to current evidence epoch, target versions, restore generation, expiry and the complete incident set.
+- [Backup and restore](backup-restore.md): actual pg_dump/pg_restore, same-snapshot business archive, object manifest and invalidation of old credentials/approvals.
+- [HTTP interfaces](../HTTP-SERVICE.md): ordinary API and operator instances use different capability configurations.
+- [Read-only exchange](evidence-exchange.md): offline reading with explicit unknown external/COMMIT times and no operation callbacks.
 
 If a backup predates acceptance and there is no independent command archive, the tool reports RESTORE_GAP. It does not infer original request keys
 or an original 202 from provider records, and does not pay again automatically. CONNECT, writes and dispatch remain closed after restore; reopening requires the explicit checks in the operating guide.
@@ -113,4 +113,4 @@ Historical permissions and provider HMAC remain explicitly unverified during off
 HTTP interfaces, static assets and scripts have automated checks; visual appearance and real-browser interaction have not been accepted.
 
 Linux acceptance failures retain the stage and bounded command metadata in the report. Raw output remains only in a private diagnostics directory outside the repository;
-see the [Linux operating guide](../ops/linux/README.md) for inspection steps.
+see the [Linux operating guide](../../ops/linux/README.md) for inspection steps.

@@ -68,5 +68,5 @@ swap; a mode flag alone is insufficient. External execution requires its own pro
 
 Operator approvals bind the current effective evidence head, not only immutable file
 hashes/account versions. New relevant evidence invalidates old approval even with
-unchanged balances. The [operator lock order and invalidation checks](../OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits)
+unchanged balances. The [operator lock order and invalidation checks](../../OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits)
 define the current serialization rules for publication and execution.

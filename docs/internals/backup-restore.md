@@ -6,7 +6,7 @@ the physical-index migration 011. The exact historical inventory of migrations
 are rejected. After an old restore, the explicit `--index-only` administrator entry
 point can add migration 011 without granting CONNECT or changing mode/restore generation.
 The general migration entry point grants CONNECT and must not substitute for this
-closed upgrade. See [active hold index](ACTIVE-HOLD-INDEX.md).
+closed upgrade. See [active hold index](reservation-index.md).
 
 This procedure uses a trusted administrator connection and real PostgreSQL 18 `pg_dump` / `pg_restore`. It restores only into a new `ledgerops_restore_*` database and a new object directory. It never grants runtime CONNECT, starts traffic or enables dispatch. It is not a real-bank recovery guarantee.
 
@@ -65,9 +65,9 @@ There is no activation command in this release. Keep CONNECT, HTTP financial wri
 
 ## Recovery checks and bounds
 
-[Recovery integration tests](../tests/integration/test_backup_recovery.py) use actual PostgreSQL dump/restore, provisioned runtime roles, a persistent provider simulator and a recording HTTP proxy. They cover a provider payment after the snapshot and a missing admission before the snapshot: the first settles from retained evidence, while the second reports RESTORE_GAP without inventing a request key.
+[Recovery integration tests](../../tests/integration/test_backup_recovery.py) use actual PostgreSQL dump/restore, provisioned runtime roles, a persistent provider simulator and a recording HTTP proxy. They cover a provider payment after the snapshot and a missing admission before the snapshot: the first settles from retained evidence, while the second reports RESTORE_GAP without inventing a request key.
 
-The same tests check one shared backup snapshot, GET-only provider recovery, token revocation, immutable objects and open-freeze preservation, corrupt artifacts, unsafe roles, closed service/worker defaults and cleanup after failures. A provider-ahead payout of 60 plus a fee of 2 settles to merchant booked 18 / reserved 0, retaining one journal and the original 202. [Native-tool tests](../tests/unit/test_backup_tools.py) check output limits, password environment handling and command deadlines.
+The same tests check one shared backup snapshot, GET-only provider recovery, token revocation, immutable objects and open-freeze preservation, corrupt artifacts, unsafe roles, closed service/worker defaults and cleanup after failures. A provider-ahead payout of 60 plus a fee of 2 settles to merchant booked 18 / reserved 0, retaining one journal and the original 202. [Native-tool tests](../../tests/unit/test_backup_tools.py) check output limits, password environment handling and command deadlines.
 
 The bounds are a 512 MiB dump, a 64 MiB same-database archive, 250,000 archive rows per selected table/objects, 512 MiB total object bytes, 10,000 history events / 16 MiB total history, at most 32 events per 64 KiB response and 10,000 retained payouts/workspaces. Crossing a bound fails closed. Traffic remains closed after restore; these checks do not establish a service-availability RTO or recovery of unknown commands.
 

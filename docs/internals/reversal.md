@@ -35,7 +35,7 @@ original customer, another merchant or someone who merely knows the purchase UUI
 gains no permission from that knowledge. Workspace, client and request route must
 match. At this Python boundary, the caller must authenticate Principal rather than
 trust an actor field from the request. The service adapter is described in
-[HTTP service](HTTP-SERVICE.md).
+[HTTP service](../HTTP-SERVICE.md).
 
 The reason enters canonical bytes unchanged. It must be nonempty valid UTF-8,
 contain no NUL and fit within 256 bytes. A new operation ID identifies a new business
@@ -113,7 +113,7 @@ accounts, amounts, responses and relations. A refund consistently posted to the 
 owner in both entries and balances can pass A but fails B. Frozen v1/v2/v3 exports
 remain readable and verifiable.
 
-A reversed ledger can still use [maintenance](MAINTENANCE.md). Rebuild requires B
+A reversed ledger can still use [maintenance](../MAINTENANCE.md). Rebuild requires B
 and valid reservation provenance; formats predating hold support require zero
 reserved amounts. Resume requires structure/A and retains B/reservation diagnostics.
 Full reversal handles an originally correct purchase; it is not a general repair

@@ -1,129 +1,90 @@
 # LedgerOps
 
-![Python 3.12](https://img.shields.io/badge/Python-3.12-36B7A8?style=flat-square&labelColor=17202A&logo=python&logoColor=white)
-![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-36B7A8?style=flat-square&labelColor=17202A&logo=postgresql&logoColor=white)
-[![CI](https://github.com/yy31104/ledgerops/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/yy31104/ledgerops/actions/workflows/ci.yml?query=branch%3Amain)
+A payment ledger that keeps money reserved when a worker dies after the provider
+has already paid. A read-only operator assistant explains the rules and gathers
+caller-authorized evidence; people review and submit proposed actions.
 
-**A balanced ledger can still pay the wrong merchant.**
+![A real payout surviving a killed worker](docs/assets/payout-crash.gif)
 
-LedgerOps is a Python + PostgreSQL ledger for a small payment platform: customers
-make purchases and merchants withdraw their balance. It follows three troublesome
-cases: two requests spending the same money, a worker crashing just after the
-provider pays, and balanced entries crediting the wrong merchant.
+## See the hard failure happen
 
-Solo portfolio project. The payment provider is a local simulator; no real money moves. Built with AI assistance.
-
-[Run locally](#run-locally) · [Docs](#docs)
-
-## How a payout flows
-
-For a payout of 60 with a fee of 2:
-
-1. `POST /v1/payouts` reaches [`db/payout_admission.py`](src/ledgerops/db/payout_admission.py), which locks clearing and merchant balances, reserves 62 and returns 202.
-2. [`worker.py`](src/ledgerops/worker.py) and [`db/payout_dispatch.py`](src/ledgerops/db/payout_dispatch.py) commit `MAY_HAVE_SENT` before making the call: the provider may receive it even if the worker never sees a reply.
-3. [`provider_sim/`](provider_sim) stores the payment and its result under a persistent payment key.
-4. [`db/payout_finance.py`](src/ledgerops/db/payout_finance.py) consumes the hold on success or releases it on confirmed failure. An unknown outcome keeps the money reserved.
-
-A timeout never releases money; the provider must confirm that the payment failed or was closed without paying.
-
-Amounts below are PLN minor units: 100 means PLN 1.00. Booked is the merchant's recorded balance; reserved is money held for a payout.
-
-| Step | Customer | Merchant booked / reserved / available |
-|---|---:|---|
-| Open accounts | 100 | 0 / 0 / 0 |
-| Purchase 80 | 20 | 80 / 0 / 80 |
-| Withdraw 60 + fee 2; outcome pending | 20 | 80 / 62 / 18 |
-| Provider confirms success | 20 | 18 / 0 / 18 |
-
-## Failure cases
-
-| What goes wrong | What happens | Test |
-|---|---|---|
-| Two purchases of 80 compete for 100 | One commits; the other receives a retained 422 refusal | [Concurrent spending](tests/integration/test_purchase_concurrency.py) |
-| Provider pays, then the worker is killed | Recovery queries the original payment identity and settles once | [Process recovery](tests/integration/test_payout_worker_process.py) |
-| Entries balance but credit the wrong merchant | Independent request checks detect the wrong owner and block rebuild | [Wrong-owner check](tests/integration/test_export_verification.py) |
-| Two merchants promise more than clearing can pay | Admission counts existing holds before accepting another payout | [Shared capacity](tests/integration/test_payout_clearing_commitments.py) |
-| A backup predates a completed provider payment | Recovery reads provider history, keeps runtime access closed and revokes old credentials | [Backup recovery](tests/integration/test_backup_recovery.py) |
-
-The first and fourth rows are the attack class that [ACIDRain](https://doi.org/10.1145/3035918.3064037)
-(Warszawski and Bailis, SIGMOD 2017) describes: concurrent requests through a normal API
-each pass a balance or capacity check before the other commits, so together they spend
-more than exists. The paper found 22 such vulnerabilities in 12 e-commerce applications,
-mostly from mis-scoped transactions and default isolation levels. Here the tests do not
-rely on timing: a third session holds the balance row, both requests start in their own
-PostgreSQL sessions, and `pg_blocking_pids` confirms each is waiting on the same
-`FOR UPDATE` lock before it is released.
-
-## Project layout
-
-| Path | What | Start here |
-|---|---|---|
-| `src/ledgerops/http/` | Authenticated API and investigation console | [`application.py`](src/ledgerops/http/application.py) |
-| `src/ledgerops/db/` | Admission, posting, holds and settlement | [`admission.py`](src/ledgerops/db/admission.py) |
-| `src/ledgerops/` | Payout worker and independent verification | [`worker.py`](src/ledgerops/worker.py), [`verification.py`](src/ledgerops/verification.py) |
-| `provider_sim/` | Separate HTTP provider with persistent SQLite storage | [`store.py`](provider_sim/store.py) |
-| `tests/integration/` | Database contention, process failures and recovery | [`test_payout_worker_process.py`](tests/integration/test_payout_worker_process.py) |
-| `ops/linux/` | TLS, role-separated containers and operator commands | [`README.md`](ops/linux/README.md) |
-
-## Run locally
-
-Install Python 3.12, [uv](https://docs.astral.sh/uv/), `make` and Docker, then clone the repository:
+With Docker, Python 3.12 and [uv](https://docs.astral.sh/uv/) installed:
 
 ```sh
-git clone https://github.com/yy31104/ledgerops.git
-cd ledgerops
+make demo-payout-crash
+```
+
+The demo creates disposable services, submits a payout, waits for the provider's
+durable payment, kills the worker, and restarts it. Recovery uses the same provider
+key and LOOKUP. The final screen checks one provider payment, one ledger settlement,
+one outgoing journal and a healthy independent verifier, including replayed evidence.
+It removes only its own test resources. See the [recovery walkthrough](articles/provider-paid-worker-died.md).
+
+For purchase, reversal and projection-drift examples, run `make demo`.
+
+## Try the operator assistant
+
+```sh
+python3 assistant/scripts/compose.py up
+```
+
+Open <http://127.0.0.1:8088> and choose **Try synthetic demo**. The panel streams
+progress, shows source citations and uncertainty, and pauses a draft for human
+review. The local demo uses fake answer generation and a real pinned embedding
+model. It downloads public model weights on first start; no model API key is needed.
+Stop it with `python3 assistant/scripts/compose.py down`.
+
+The [assistant guide](assistant/README.md) covers caller tokens, providers, MCP and
+the API. Its tools use the caller's identity and fixed read-only endpoints. The
+assistant never submits a payout, releases money or approves its own draft.
+
+## How it works
+
+1. Admission reserves funds and stores a business-stable provider key.
+2. A worker claims the payout and commits `MAY_HAVE_SENT` **before** network I/O.
+3. The provider may commit even if the worker never receives its response.
+4. After the claim lease expires, recovery asks the provider what happened with
+   `LOOKUP`, using the same key. It keeps the hold while the outcome is uncertain.
+5. An authoritative observation resolves the hold and journal in one database
+   transaction. Repeated observations do not settle the payout again.
+
+The [payout guide](docs/PAYOUTS.md) shows the states and recovery rules. PostgreSQL
+constraints, stable keys and independent verification each enforce part of the
+contract; an application retry loop alone cannot provide it. The provider must
+support the documented idempotency, lookup and closure semantics.
+
+For documentation questions, the assistant combines PostgreSQL full-text search
+and pgvector, fuses ranks with RRF, and provides bounded source context to a model.
+References are checked against the supplied passages. LangGraph persists draft
+review checkpoints in PostgreSQL and rechecks identity and evidence on resume.
+These checks constrain behavior; citations alone do not prove an answer is correct.
+
+## Read and verify
+
+Start with the [six operating guides](docs/README.md). Detailed protocols, database
+invariants, deployment recipes and decisions live in [internals](docs/internals/README.md).
+
+```sh
 make bootstrap
-```
-
-Run the narrated ledger demo. It creates temporary PostgreSQL, walks through purchase,
-reversal, drift detection and repair, then cleans up its resources:
-
-```sh
-make demo
-```
-
-For the authenticated service and payout flow, follow the [Linux setup](ops/linux/README.md). That path provisions the provider, API, worker and separate operator instance.
-
-Run the full suite with Docker available; allow about eight minutes:
-
-```sh
+make check
 make test
 ```
 
-Check formatting and the installed package:
+Tests use disposable PostgreSQL/provider services, real process crashes, exact
+financial expectations and independent invariant checks. The assistant has its own
+fake-model tests, authentication and recovery tests, and a real-embedding development
+retrieval gate. Current-corpus results and limitations are in the
+[retrieval report](assistant/docs/RETRIEVAL-QUALITY-V2.md) and
+[performance report](assistant/docs/PERFORMANCE.md).
 
-```sh
-make check
-```
+The project homepage is excluded from the versioned assistant corpus. Changing
+this introduction therefore cannot invalidate retrieval evidence. Operating-source
+changes still require reviewed labels and a new baseline.
 
-## Design notes
+## Scope
 
-**Keep the transaction visible.** Python coordinates each business operation through
-explicit SQL. Ordered row locks serialize competing balances, while the request key
-and business ID retain the original accepted or rejected result for retries.
-
-**Check intent as well as arithmetic.** One independent check folds journal entries
-and hold history into balances; another compares actual effects with the saved
-request. This catches a transfer whose journal and balance projection agree on the
-wrong merchant.
-
-**Recover from retained facts.** The worker saves its dispatch intent before network
-I/O and preserves the provider key across restarts. Repair recomputes projections
-after blocking new writes and waiting for in-flight transactions to finish.
-Operator actions bind approval to current facts.
-
-## Limits
-
-- The provider is a simulator; it retains payment keys and records closed payments to reject late requests.
-- Deployment has been exercised on one Linux host and on a local kind cluster. The Azure Terraform has been validated but never applied, so cloud operation and high availability are untested.
-- No real bank is connected.
-
-## Docs
-
-- [Service setup and operation](docs/RELEASE-READINESS.md)
-- [HTTP API and authentication](docs/HTTP-SERVICE.md)
-- [Projection repair](docs/MAINTENANCE.md)
-- [Backup and restore](docs/BACKUP-RESTORE.md)
-- [Approval workflow](docs/OPERATOR-ACTIONS.md)
-- [Kubernetes on kind: monitoring, alert and fault drills](docs/KUBERNETES.md)
-- [Azure Terraform (validated, not applied)](docs/AZURE.md)
+This is a learning and engineering reference, not a production payment service.
+Its guarantees are tested against the included provider protocol and PostgreSQL
+model. Local Docker runs do not establish cloud availability, arbitrary-provider
+compatibility or injection immunity. Cloud deployment remains preparation-only;
+no live-cloud cost or deployment claim is made.

@@ -60,7 +60,7 @@ Reusing the same run ID and unchanged source recovers a lost response: completed
 
 ## Integration coverage
 
-[PostgreSQL 18.6 integration tests](../tests/integration/test_stream_reconciliation.py) cover exact legacy row equality, more than 10,000 request keys and 129 unique 65,536-byte invalid observations. The observations are split 65/64 across two admitted payouts, each below the 100-row quarantine limit.
+[PostgreSQL 18.6 integration tests](../../tests/integration/test_stream_reconciliation.py) cover exact legacy row equality, more than 10,000 request keys and 129 unique 65,536-byte invalid observations. The observations are split 65/64 across two admitted payouts, each below the 100-row quarantine limit.
 
 Tests also cover RR consistency during concurrent purchases; chunk, row, disk and source-size failures; owned cleanup; an oversized audited row; uncertain final-parent fsync; completed-UUID identity; reconciliation publication and maker/checker settlement while another hold remains active; request-intent rejection; missing opaque sources; forged compact views; CLI routes; stable run replay; and both COMMIT ambiguity boundaries.
 

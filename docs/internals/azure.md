@@ -1,6 +1,6 @@
 # Azure (Terraform, not applied)
 
-[`deploy/terraform/azure/`](../deploy/terraform/azure) describes a small Azure
+[`deploy/terraform/azure/`](../../deploy/terraform/azure) describes a small Azure
 footprint for LedgerOps. It has only been checked offline (`terraform fmt`,
 `terraform validate`, `tflint`, `checkov`) and a local Caddy/Gunicorn smoke test.
 It has **never been applied**, needs no account to check, and contains no secrets.
@@ -53,7 +53,7 @@ It has **never been applied**, needs no account to check, and contains no secret
    and should run as a Container Apps Job or from a trusted host.
 6. Leave the defaults alone until recovery checks pass: `LEDGEROPS_RESTORE_MODE=true`,
    `LEDGEROPS_API_WRITES_ENABLED=false`, `LEDGEROPS_DISPATCH_ENABLED=false`. These are the
-   same reopening rules as in [`ops/linux/README.md`](../ops/linux/README.md).
+   same reopening rules as in [`ops/linux/README.md`](../../ops/linux/README.md).
 
 Check without an account:
 

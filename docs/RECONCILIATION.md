@@ -45,7 +45,7 @@ new assignments do not advance the execution-event watermark.
 
 ## Capture a local export, then compare offline
 
-Follow the [export instructions](EXPORT-AND-VERIFY.md) to capture one REPEATABLE READ
+Follow the [export instructions](internals/export-and-verify.md) to capture one REPEATABLE READ
 snapshot. The signature-verification file is a JSON mapping of key IDs to hexadecimal
 keys, readable only by its current owner. Keep it outside Git. At most eight trusted
 key IDs are supported, and the namespace must be explicit.

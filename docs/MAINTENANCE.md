@@ -4,7 +4,7 @@ Larger workspaces automatically switch to complete on-disk verification; the ori
 Verification runs in a READ COMMITTED transaction after the exclusive barrier has been acquired, avoiding an old snapshot fixed before the lock.
 Repairs still recompute current values and verify the result independently in the same transaction. Report v4 and previews identify that capture context.
 A failed B check still blocks rebuild, but does not block resume when structure and A pass.
-See [large-workspace maintenance and resource limits](MAINTENANCE-CAPACITY.md).
+See [large-workspace maintenance and resource limits](internals/maintenance-capacity.md).
 
 The implemented local flow is: freeze and drain cooperating write transactions → export and inspect differences → recompute and apply
 inside an exclusive transaction → export and verify again → explicitly resume. There is no candidate-balance table or interface for importing balances from a preview.
@@ -88,7 +88,7 @@ Existing account versions increase by one; a missing balance row starts at versi
 Source entries, business results, holds and events do not change; reserved is a repairable projection. The repair log includes every account and before/after reserved values,
 and audit rows cannot be added, changed or deleted after commit. Historical fold_version=1 still requires zero reservations; new repairs use fold_version=2.
 
-Export again and verify offline using the new returned path; see [export and verification](EXPORT-AND-VERIFY.md):
+Export again and verify offline using the new returned path; see [export and verification](internals/export-and-verify.md):
 
 ```sh
 PYTHONPATH=src uv run --locked python -m ledgerops.cli export \
@@ -129,7 +129,7 @@ The frozen snapshot export bundle has a separate regression test. Unknown newer 
 Source commands automatically record the Git revision and dirty state. Installed-package previews require explicit `--code-revision`, just like exports.
 File publication and protection retain the snapshot export protocol rather than adding another one.
 
-[Full reversal](REVERSAL.md) is implemented. Complete history after reversal also participates in current verification and rebuild.
+[Full reversal](internals/reversal.md) is implemented. Complete history after reversal also participates in current verification and rebuild.
 Synthetic test opening balances and reservations are not public business interfaces.
 
 Migration 006 explicitly rejects an old database with nonzero reserved but no authoritative hold history. Investigate the source of those values before upgrading;
