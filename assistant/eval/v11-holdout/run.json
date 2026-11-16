@@ -1,0 +1,8 @@
+{
+  "status": "completed",
+  "started_at": "2026-11-16T22:07:57.014715+00:00",
+  "freeze_commit": "9c7519fbf8cbbb0c79c1140423b4e743a9af0c17",
+  "manifest_sha256": "ed7cc87586ced1b7c3cb5a59dc15ae0f246699b1f91ead132cf6f127633c1314",
+  "result_sha256": "1fe8b285170e51cec7dc148b9f079eb258d77ced215530dcd07a5dd880710999",
+  "finished_at": "2026-11-16T22:08:08.641930+00:00"
+}
