@@ -1,0 +1,354 @@
+"""A mutation is evidence only after a passing control and a valid failing test."""
+
+import ast
+import shutil
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+from types import SimpleNamespace
+
+import pytest
+
+from scripts import mutants
+
+
+@pytest.mark.parametrize("name", mutants.MUTANTS)
+def test_each_patch_is_exact_compiles_and_leaves_original_source_unchanged(tmp_path, name):
+    before = mutants.digest_sources(mutants.ROOT)
+    for path, _, _ in mutants.MUTANTS[name].edits:
+        source = mutants.ROOT / path
+        target = tmp_path / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    patch = mutants.apply_mutant(tmp_path, mutants.MUTANTS[name])
+    assert patch.startswith("--- a/src/") and "+++ b/src/" in patch
+    for path, _, _ in mutants.MUTANTS[name].edits:
+        if path.endswith(".py"):
+            ast.parse((tmp_path / path).read_text())
+    assert mutants.digest_sources(mutants.ROOT) == before
+
+
+def test_changed_or_ambiguous_anchor_never_partially_applies_a_patch(tmp_path):
+    path = tmp_path / "example.py"
+    path.write_text("value = 1\nvalue = 1\n")
+    mutation = mutants.Mutant((("example.py", "value = 1", "value = 2"),), (), "unit")
+    with pytest.raises(ValueError, match="exactly once"):
+        mutants.apply_mutant(tmp_path, mutation)
+    assert path.read_text() == "value = 1\nvalue = 1\n"
+    mutation = mutants.Mutant(
+        (
+            ("example.py", "value = 1\nvalue = 1", "value = 2"),
+            ("example.py", "missing anchor", "value = 3"),
+        ),
+        (),
+        "unit",
+    )
+    with pytest.raises(ValueError, match="exactly once"):
+        mutants.apply_mutant(tmp_path, mutation)
+    assert path.read_text() == "value = 1\nvalue = 1\n"
+
+
+@pytest.mark.parametrize(
+    "node,code,status",
+    [
+        ("", 0, "passed"),
+        ('<failure message="assert 2 == 1">AssertionError</failure>', 1, "failed"),
+        ("<failure>psycopg.OperationalError: database disappeared</failure>", 1, "invalid"),
+        ("<failure>AssertionError</failure>", 2, "invalid"),
+        ('<error message="fixture broke"/>', 1, "invalid"),
+        ("<skipped/>", 0, "invalid"),
+    ],
+)
+def test_junit_does_not_count_infrastructure_collection_or_skips_as_kills(
+    tmp_path, node, code, status
+):
+    report = tmp_path / "junit.xml"
+    report.write_text(
+        '<testsuites><testsuite><testcase classname="tests.unit.test_a" name="test_a">'
+        + node
+        + "</testcase></testsuite></testsuites>"
+    )
+    result = mutants.junit_result(
+        report, code, {"tests/unit/test_a.py::test_a": r"(?:AssertionError: )?assert 2 == 1"}
+    )
+    assert result["status"] == status
+    assert result["test_ids"] == ["tests/unit/test_a.py::test_a"]
+
+
+def test_missing_or_truncated_report_is_not_a_kill(tmp_path):
+    report = tmp_path / "junit.xml"
+    assert mutants.junit_result(report, 1)["status"] == "invalid"
+    report.write_text("<testsuites>")
+    assert mutants.junit_result(report, 1)["status"] == "invalid"
+
+
+def test_cleanup_selects_only_its_exact_generated_run_label(monkeypatch):
+    calls = []
+
+    def docker(args, **kwargs):
+        calls.append(args)
+        return SimpleNamespace(returncode=0, stdout="owned-id\n")
+
+    monkeypatch.setattr(mutants.subprocess, "run", docker)
+    mutants.cleanup_containers("one-generated-run")
+    assert calls == [
+        ["docker", "ps", "-aq", "--filter", "label=ledgerops.mutant-run=one-generated-run"],
+        ["docker", "rm", "--force", "owned-id"],
+    ]
+
+
+def test_existing_evidence_is_never_overwritten(tmp_path):
+    sentinel = tmp_path / "sentinel"
+    sentinel.write_text("keep")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(mutants.ROOT / "scripts/mutants.py"),
+            "all",
+            "--output",
+            str(tmp_path),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 2 and "already exists" in result.stderr
+    assert sentinel.read_text() == "keep"
+
+
+def test_runner_deadline_is_invalid_and_still_cleans_owned_resources(tmp_path, monkeypatch):
+    copy = tmp_path / "copy"
+    source = copy / "src/ledgerops"
+    source.mkdir(parents=True)
+    (source / "__init__.py").write_text("")
+    (copy / "test_slow.py").write_text("import time\ndef test_slow(): time.sleep(60)\n")
+    cleaned = []
+    monkeypatch.setattr(mutants, "cleanup_containers", cleaned.append)
+    result = mutants.run_tests(copy, ("test_slow.py",), tmp_path / "evidence", "owned-run", 0.1)
+    assert result["status"] == "invalid" and result["reason"] == "runner deadline exceeded"
+    assert result["exit_code"] != 0
+    assert cleaned == ["owned-run"]
+    assert (tmp_path / "evidence/output.txt").exists()
+
+
+@pytest.mark.parametrize(
+    "control,changed,status,executions",
+    [
+        ("failed", "failed", "invalid", 1),
+        ("different-control", "failed", "invalid", 1),
+        ("passed", "invalid", "invalid", 2),
+        ("passed", "failed", "killed", 2),
+        ("passed", "passed", "survived", 2),
+        ("passed", "different-tests", "invalid", 2),
+    ],
+)
+def test_only_matching_tests_after_a_passing_control_can_kill(
+    tmp_path, monkeypatch, control, changed, status, executions
+):
+    root = tmp_path / "source"
+    (root / "src").mkdir(parents=True)
+    (root / "src/rule.py").write_text("guard = True\n")
+    monkeypatch.setitem(
+        mutants.MUTANTS,
+        "unit",
+        mutants.Mutant(
+            (("src/rule.py", "guard = True", "guard = False"),), ("a.py::test_guard",), "unit"
+        ),
+    )
+    calls = []
+
+    def copy_source(source, target, label):
+        shutil.copytree(source / "src", target / "src")
+
+    def run_tests(copy, tests, artifacts, label, timeout, **kwargs):
+        trial = control if not calls else changed
+        calls.append(trial)
+        if trial == "invalid":
+            return {"status": "invalid", "reason": "runner deadline exceeded"}
+        return {
+            "status": "failed"
+            if trial == "different-tests"
+            else "passed"
+            if trial == "different-control"
+            else trial,
+            "test_ids": ["other-test"]
+            if trial in {"different-tests", "different-control"}
+            else ["a.py::test_guard"],
+        }
+
+    monkeypatch.setattr(mutants, "copy_source", copy_source)
+    monkeypatch.setattr(mutants, "run_tests", run_tests)
+    record = mutants.exercise(root, "unit", tmp_path / "evidence")
+    assert record["status"] == status and len(calls) == executions
+    if changed == "invalid":
+        assert record["mutant"]["reason"] == "runner deadline exceeded"
+    assert record["source_unchanged"] and (root / "src/rule.py").read_text() == "guard = True\n"
+
+
+def test_interrupt_stops_the_matrix_even_when_cleanup_is_incomplete(tmp_path, monkeypatch):
+    root = tmp_path / "source"
+    (root / "src").mkdir(parents=True)
+    (root / "src/rule.py").write_text("guard = True\n")
+    monkeypatch.setitem(
+        mutants.MUTANTS,
+        "unit",
+        mutants.Mutant(
+            (("src/rule.py", "guard = True", "guard = False"),), ("a.py::test_guard",), "unit"
+        ),
+    )
+    monkeypatch.setattr(mutants, "copy_source", lambda root, copy, label: None)
+    monkeypatch.setattr(
+        mutants,
+        "run_tests",
+        lambda *a, **k: {
+            "status": "invalid",
+            "interrupted": True,
+            "reason": "owned-container cleanup failed",
+        },
+    )
+    with pytest.raises(KeyboardInterrupt):
+        mutants.exercise(root, "unit", tmp_path / "evidence")
+    assert (root / "src/rule.py").read_text() == "guard = True\n"
+    assert (tmp_path / "evidence/result.json").exists()
+
+
+def test_interrupt_flag_survives_a_cleanup_error(tmp_path, monkeypatch):
+    class Process:
+        pid = 123
+        returncode = -15
+        calls = 0
+
+        def communicate(self, timeout=None):
+            self.calls += 1
+            if self.calls == 1:
+                raise KeyboardInterrupt
+            return "", None
+
+    def cleanup(label):
+        raise RuntimeError("engine unavailable")
+
+    killed = []
+    monkeypatch.setattr(mutants.subprocess, "Popen", lambda *a, **k: Process())
+    monkeypatch.setattr(mutants.os, "killpg", lambda *args: killed.append(args))
+    monkeypatch.setattr(mutants, "cleanup_containers", cleanup)
+    result = mutants.run_tests(tmp_path, ("unused",), tmp_path / "evidence", "owned-run", 10)
+    assert result["status"] == "invalid" and result["interrupted"]
+    assert result["reason"] == "owned-container cleanup failed"
+    assert result["run_label"] == "owned-run" and len(killed) == 1
+
+
+def test_evidence_manifest_pins_every_file_and_rejects_links(tmp_path):
+    (tmp_path / "output.txt").write_text("assertion failed")
+    manifest = mutants.evidence_manifest(tmp_path)
+    assert set(manifest["files"]) == {"output.txt"}
+    assert manifest["files"]["output.txt"]["bytes"] == len("assertion failed")
+    assert len(manifest["files"]["output.txt"]["sha256"]) == 64
+    (tmp_path / "leak").symlink_to(tmp_path / "output.txt")
+    with pytest.raises(ValueError, match="symlinks"):
+        mutants.evidence_manifest(tmp_path)
+
+
+def failure_report(path, node, message):
+    file, name = node.split("::")
+    suite = ET.Element("testsuites")
+    case = ET.SubElement(
+        ET.SubElement(suite, "testsuite"),
+        "testcase",
+        classname=file.removesuffix(".py").replace("/", "."),
+        name=name,
+    )
+    ET.SubElement(case, "failure", message=message).text = message
+    ET.ElementTree(suite).write(path, encoding="unicode")
+
+
+@pytest.mark.parametrize(
+    "name,message",
+    [
+        (
+            "claim-before-commit",
+            "assert <TransactionStatus.INTRANS: 2> == <TransactionStatus.IDLE: 0>",
+        ),
+        ("provider-key", "AssertionError: transport must use the stored provider key"),
+        ("timeout-hold", "AssertionError: assert (80, 0, 80) == (80, 62, 18)"),
+        ("claim-lease", "assert DispatchClaim(action='LOOKUP') is None"),
+        ("observation-replay", "AssertionError: assert 'BLOCKED' == 'REPLAYED'"),
+        (
+            "balance-lock",
+            "AssertionError: blocked at the wrong statement: UPDATE ledger.account_balance",
+        ),
+        ("balance-floor", "Failed: DID NOT RAISE CheckViolation"),
+        (
+            "idempotency-key",
+            "psycopg.errors.CheckViolation: request allows only one transition to terminal",
+        ),
+    ],
+)
+def test_each_mutant_accepts_only_its_named_contract_failure(tmp_path, name, message):
+    node = mutants.MUTANTS[name].tests[0]
+    path = tmp_path / "junit.xml"
+    failure_report(path, node, message)
+    expected = {node: mutants.FAILURE_SIGNATURES[name]}
+    assert mutants.junit_result(path, 1, expected)["status"] == "failed"
+    assert mutants.junit_result(path, 1)["status"] == "invalid"
+    failure_report(path, "other.py::unrelated", message)
+    assert mutants.junit_result(path, 1, expected)["status"] == "invalid"
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "NameError: name 'key' is not defined",
+        "UnboundLocalError: local variable 'response' referenced before assignment",
+        "AttributeError: 'NoneType' object has no attribute 'state'",
+        "Failed: helper watchdog timed out waiting for a row lock",
+        "AssertionError: an unrelated condition broke",
+        "psycopg.errors.CheckViolation: unrelated database check",
+    ],
+)
+def test_programming_errors_and_watchdogs_are_never_contract_detections(tmp_path, message):
+    path = tmp_path / "junit.xml"
+    node = mutants.MUTANTS["provider-key"].tests[0]
+    failure_report(path, node, message)
+    expected = {node: mutants.FAILURE_SIGNATURES["provider-key"]}
+    result = mutants.junit_result(path, 1, expected)
+    assert result["status"] == "invalid"
+    assert result["reason"] == "failure does not match the selected semantic assertion"
+
+
+def test_real_pytest_fail_from_a_helper_watchdog_is_not_a_kill(tmp_path):
+    path = tmp_path / "test_watchdog.py"
+    path.write_text(
+        "import pytest\n"
+        "def helper(): pytest.fail('watchdog timed out waiting for a provider')\n"
+        "def test_contract(): helper()\n"
+    )
+    xml = tmp_path / "junit.xml"
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "-q", "--junitxml", str(xml), str(path)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=20,
+        check=False,
+    )
+    assert result.returncode == 1
+    observed = mutants.junit_result(
+        xml,
+        result.returncode,
+        {"test_watchdog.py::test_contract": r"AssertionError: timeout must retain the hold"},
+    )
+    assert observed["status"] == "invalid"
+    assert observed["failed_tests"] == ["test_watchdog.py::test_contract"]
+
+
+def test_prefix_preserving_patch_cannot_be_applied_twice(tmp_path):
+    mutation = mutants.MUTANTS["provider-key"]
+    for name, _, _ in mutation.edits:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(mutants.ROOT / name, path)
+    mutants.apply_mutant(tmp_path, mutation)
+    once = (tmp_path / mutation.edits[0][0]).read_bytes()
+    with pytest.raises(ValueError, match="already applied"):
+        mutants.apply_mutant(tmp_path, mutation)
+    assert (tmp_path / mutation.edits[0][0]).read_bytes() == once

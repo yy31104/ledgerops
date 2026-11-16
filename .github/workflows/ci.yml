@@ -45,6 +45,17 @@ jobs:
       - name: Run the full test suite
         run: make test
 
+      - name: Verify isolated guard mutations
+        run: make mutant NAME=all
+
+      - name: Preserve mutation evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: mutation-evidence
+          path: .cache/mutants
+          retention-days: 7
+
       - name: Check assistant scenario snapshots
         env:
           LEDGEROPS_SCENARIOS_CHECK: "1"
