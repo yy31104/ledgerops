@@ -232,3 +232,14 @@ def test_interrupt_flag_survives_a_cleanup_error(tmp_path, monkeypatch):
     assert result["status"] == "invalid" and result["interrupted"]
     assert result["reason"] == "owned-container cleanup failed"
     assert result["run_label"] == "owned-run" and len(killed) == 1
+
+
+def test_evidence_manifest_pins_every_file_and_rejects_links(tmp_path):
+    (tmp_path / "output.txt").write_text("assertion failed")
+    manifest = mutants.evidence_manifest(tmp_path)
+    assert set(manifest["files"]) == {"output.txt"}
+    assert manifest["files"]["output.txt"]["bytes"] == len("assertion failed")
+    assert len(manifest["files"]["output.txt"]["sha256"]) == 64
+    (tmp_path / "leak").symlink_to(tmp_path / "output.txt")
+    with pytest.raises(ValueError, match="symlinks"):
+        mutants.evidence_manifest(tmp_path)
