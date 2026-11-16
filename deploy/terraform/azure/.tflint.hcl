@@ -1,5 +1,5 @@
 # The azurerm ruleset is downloaded from GitHub by `tflint --init`; enable it where that works:
-# plugin "azurerm" { enabled = true  version = "0.29.0"  source = "github.com/terraform-linters/tflint-ruleset-azurerm" }
+# plugin "azurerm" { enabled = true  version = "0.33.0"  source = "github.com/terraform-linters/tflint-ruleset-azurerm" }
 
 plugin "terraform" {
   enabled = true

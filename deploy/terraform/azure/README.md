@@ -15,9 +15,53 @@ terraform -chdir=deploy/terraform/azure validate
 ```
 
 These commands download providers and validate their schemas, without planning or
-creating resources. Run `tflint` and `checkov -d deploy/terraform/azure` separately
-when available. The checked-in module uses AzureRM 4.x; retain the generated lock
-file in the private rehearsal workspace to reproduce provider selections.
+creating resources. Also run the configured Terraform lint rules and offline
+Checkov policies:
+
+```sh
+tflint --chdir=deploy/terraform/azure --recursive
+uvx --from checkov==3.4.5 checkov --directory deploy/terraform/azure \
+  --framework terraform --skip-download --download-external-modules false
+```
+
+The checked-in module uses AzureRM 4.x; retain the generated lock file in the
+private rehearsal workspace to reproduce provider selections.
+
+### Static validation and retained findings
+
+Validated locally on 2026-11-16 without an Azure account or resource actions:
+
+| Check | Result |
+| --- | --- |
+| Terraform 1.13.5, AzureRM 4.81.0, random 3.9.1 | `fmt -check` and `validate` pass |
+| TFLint 0.64.0, configured Terraform recommended rules | No issues; the new assistant module now declares Terraform >=1.9 |
+| TFLint AzureRM ruleset 0.33.0, additional opt-in rules | Nine `azurerm_resources_missing_prevent_destroy` warnings in the default profile, identical to the pre-assistant configuration; thirteen with assistant database/secrets enabled |
+| Checkov 3.4.5, Terraform, no platform downloads | Eight passed, zero failed, five skipped, zero parsing errors |
+
+The four additional AzureRM lifecycle warnings are the assistant database and
+three assistant secrets. They are retained, with no rule disable or suppression:
+this module is for a disposable synthetic-data rehearsal with an explicitly
+reviewed destroy plan. `prevent_destroy` would block that teardown. Persistent
+environments need a separately reviewed retention/backup policy and deletion
+protection before real data is introduced.
+
+The five Checkov skips already existed: Key Vault public access/private endpoint
+(`CKV_AZURE_189`, `CKV2_AZURE_32`), PostgreSQL geo-redundant backup/private endpoint
+(`CKV_AZURE_136`, `CKV2_AZURE_57`), and the PostgreSQL Azure-services firewall rule
+(`CKV2_AZURE_26`). They represent real low-cost rehearsal tradeoffs, not production
+hardening. The firewall rule permits traffic originating from Azure services
+beyond this subscription; database authentication is still required. Default-deny
+Key Vault access and synthetic records do not replace private networking.
+
+Check counts are not coverage guarantees. The pre-assistant configuration reported
+sixteen passing Checkov checks; the conditional secret list is represented without
+per-secret expansion in this scan, producing fewer repeated checks. Scans with
+assistant-enable variables also reported no failures. A direct scan of the new
+assistant module reported zero applicable Checkov checks: this Checkov release
+does not independently validate its Container Apps, jobs or identity permissions.
+Terraform schema validation and the startup/authentication rehearsal remain
+necessary. No successful Azure deployment or runtime security claim follows from
+these static results.
 
 ## Two-stage assistant startup
 
