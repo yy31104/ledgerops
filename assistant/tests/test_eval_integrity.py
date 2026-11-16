@@ -12,6 +12,8 @@ from ledgerops_assistant.evaluation import (
 )
 from ledgerops_assistant.providers.base import parse_draft
 
+HISTORICAL_QUESTIONS = DEFAULT_QUESTIONS.parents[1] / "v1-draft/questions.jsonl"
+
 
 def test_ndcg_uses_binary_labels_and_unique_sections():
     assert score_ranking(["a", "a", "b"], ["a", "b"])["ndcg@5"] == 1
@@ -21,7 +23,7 @@ def test_ndcg_uses_binary_labels_and_unique_sections():
 
 
 def test_draft_is_two_thirds_dev_and_contains_injection_and_no_answer():
-    rows = [json.loads(s) for s in DEFAULT_QUESTIONS.read_text().splitlines()]
+    rows = [json.loads(s) for s in HISTORICAL_QUESTIONS.read_text().splitlines()]
     assert len(rows) == 60
     assert sum(r["split"] == "test" for r in rows) == 20
     assert sum(r["category"] == "injection" for r in rows) >= 5
@@ -29,25 +31,25 @@ def test_draft_is_two_thirds_dev_and_contains_injection_and_no_answer():
 
 
 def test_public_manifest_binds_reviewed_dev_labels_and_preserves_split_ids():
-    manifest = json.loads(DEFAULT_QUESTIONS.with_name("manifest.json").read_text())
+    manifest = json.loads(HISTORICAL_QUESTIONS.with_name("manifest.json").read_text())
     original_sha = "5c4c6a454d54da93512d56dbd0840cca0a46022d4ac23a79db35a39b4e7695e5"
     reviewed_sha = "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c"
-    assert hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest() == reviewed_sha
+    assert hashlib.sha256(HISTORICAL_QUESTIONS.read_bytes()).hexdigest() == reviewed_sha
     assert manifest["sha256"] == reviewed_sha
     assert manifest["previous_sha256"] == original_sha
-    rows = [json.loads(row) for row in DEFAULT_QUESTIONS.read_text().splitlines()]
+    rows = [json.loads(row) for row in HISTORICAL_QUESTIONS.read_text().splitlines()]
     assert {split: sum(row["split"] == split for row in rows) for split in ("dev", "test")} == {
         "dev": manifest["dev"],
         "test": manifest["test"],
     }
-    check_freeze_record(DEFAULT_QUESTIONS)
+    check_freeze_record(HISTORICAL_QUESTIONS)
 
 
 def test_original_test_split_records_remain_byte_identical():
     records = (
         b"\n".join(
             line
-            for line in DEFAULT_QUESTIONS.read_bytes().splitlines()
+            for line in HISTORICAL_QUESTIONS.read_bytes().splitlines()
             if json.loads(line)["split"] == "test"
         )
         + b"\n"
@@ -106,3 +108,23 @@ def test_strict_model_parser_rejects_extra_keys_and_inconsistent_refusal():
     base = dict(answer="text", citations=["doc#a/0"], refused=False, refusal_reason="none")
     for row in ({**base, "execute": True}, {**base, "refusal_reason": "not_in_docs"}):
         assert parse_draft(json.dumps(row)).refused
+
+
+def test_operations_dev_labels_are_bound_without_importing_historical_holdout(corpus):
+    manifest = json.loads(DEFAULT_QUESTIONS.with_name("manifest.json").read_text())
+    assert (
+        manifest["questions_sha256"] == hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest()
+    )
+    assert manifest["corpus_digest"] == corpus.digest
+    rows = [json.loads(line) for line in DEFAULT_QUESTIONS.read_text().splitlines()]
+    old = {
+        row["id"]: row
+        for row in (json.loads(line) for line in HISTORICAL_QUESTIONS.read_text().splitlines())
+        if row["split"] == "dev"
+    }
+    assert len(rows) == len(old) == 40
+    assert all(row["split"] == "dev" for row in rows)
+    for row in rows:
+        for key in ("question", "key_facts", "expected_route", "category"):
+            assert row[key] == old[row["id"]][key]
+        assert set(row["relevant_sections"]) <= corpus.section_ids()
