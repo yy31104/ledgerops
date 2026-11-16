@@ -109,8 +109,9 @@ def refusal(reason):
 
 
 class Agent:
-    def __init__(self, retriever, provider, *, limits=None, planner=None):
+    def __init__(self, retriever, provider, *, limits=None, planner=None, scope_gate=None):
         self.retriever, self.provider = retriever, provider
+        self.scope_gate = scope_gate or getattr(retriever, "scope_gate", None)
         self.revision = getattr(retriever, "revision", "unknown")
         self.limits, self.planner = limits or Limits(), planner
         if provider.name.startswith("openai:") and (
@@ -383,13 +384,18 @@ class Agent:
             }
 
         identity = client.identity()
+        route = routing.classify(question)
         rejection = (
             "action_not_permitted"
-            if routing.classify(question) == routing.ACTION
+            if route == routing.ACTION
             else "not_in_docs"
             if routing.unsupported_topic(question)
             else None
         )
+        if not rejection and route == routing.DOCS and self.scope_gate is not None:
+            admitted, _ = self.scope_gate.admits(question)
+            if not admitted:
+                rejection = "not_in_docs"
         if rejection:
             return finish(
                 {

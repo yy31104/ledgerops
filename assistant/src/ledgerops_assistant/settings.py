@@ -7,6 +7,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from ledgerops_assistant.agent import Limits
+from ledgerops_assistant.policy import METHODS, default_retrieval
 
 
 @dataclass(repr=False)
@@ -15,12 +16,15 @@ class Settings:
     database_url: str = field(default="", repr=False)
     providers: tuple[str, ...] = ("fake",)
     embedder: str = "bge"
+    retrieval: str = field(default_factory=default_retrieval)
     console_url: str = "http://127.0.0.1:8080"
     web_dist: Path = Path(__file__).resolve().parents[2] / "web" / "dist"
     demo_token: str = field(default="", repr=False)
     limits: Limits = field(default_factory=Limits)
 
     def __post_init__(self):
+        if self.retrieval not in METHODS:
+            raise ValueError("retrieval must be vector or hybrid")
         if not self.demo_token:
             return
         try:
@@ -58,6 +62,7 @@ class Settings:
             web_dist=Path(os.environ.get("LEDGEROPS_ASSISTANT_WEB_DIST", str(cls.web_dist))),
             providers=providers,
             embedder=os.environ.get("LEDGEROPS_ASSISTANT_EMBEDDER", "bge"),
+            retrieval=os.environ.get("LEDGEROPS_ASSISTANT_RETRIEVAL", default_retrieval()),
             console_url=os.environ.get("LEDGEROPS_ASSISTANT_CONSOLE_URL", "http://127.0.0.1:8080"),
             demo_token=os.environ.get("LEDGEROPS_ASSISTANT_DEMO_TOKEN", ""),
             limits=Limits(

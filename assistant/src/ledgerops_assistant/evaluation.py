@@ -33,6 +33,7 @@ from ledgerops_assistant import routing
 from ledgerops_assistant.answer import ScopeGate, answer
 from ledgerops_assistant.context import CONTEXT_POLICY, MAX_CONTEXT_BYTES, ContextRetriever
 from ledgerops_assistant.corpus import CHUNKER_VERSION, CORPUS_VERSION, load_corpus
+from ledgerops_assistant.policy import default_retrieval
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import (
     BM25Retriever,
@@ -176,7 +177,9 @@ def calibrate_gate(gate_retriever, questions: list[dict]) -> dict:
     for q in questions:
         if q["expected_route"] not in (routing.DOCS, routing.OUT_OF_SCOPE):
             continue
-        if routing.classify(q["question"]) != routing.DOCS:
+        if routing.classify(q["question"]) != routing.DOCS or routing.unsupported_topic(
+            q["question"]
+        ):
             continue
         hits = gate_retriever.search(q["question"], 1)
         scored.append((q, hits[0].score if hits else 0.0))
@@ -334,7 +337,8 @@ def run(args) -> dict:
     gate_report = calibrate_gate(vector, [q for q in all_questions if q["split"] == "dev"])
     gate = ScopeGate(vector, gate_report["threshold"])
     expanded = getattr(args, "context", "expanded") == "expanded"
-    answer_retriever = ContextRetriever(hybrid, corpus) if expanded else hybrid
+    selected = vector if getattr(args, "retrieval", default_retrieval()) == "vector" else hybrid
+    answer_retriever = ContextRetriever(selected, corpus) if expanded else selected
     answers = evaluate_answers(
         questions, answer_retriever, get_provider(args.provider), gate, corpus.revision
     )
@@ -387,6 +391,7 @@ def run(args) -> dict:
         "fusion": {"rrf_k": fusion_k, "depth": 50, "weights": [1.0, 1.0], "unit": "chunk"},
         "context": {
             "policy": CONTEXT_POLICY if expanded else "raw-five-chunks",
+            "retrieval_method": getattr(args, "retrieval", default_retrieval()),
             "max_json_bytes": MAX_CONTEXT_BYTES if expanded else None,
             "ranking_metrics_use_expansion": False,
             "stats": context_stats,
@@ -444,6 +449,7 @@ def main(argv=None) -> int:
     parser.add_argument("--embedder", choices=("bge", "hashing"), default="bge")
     parser.add_argument("--provider", default="fake")
     parser.add_argument("--context", choices=("expanded", "raw"), default="expanded")
+    parser.add_argument("--retrieval", choices=("vector", "hybrid"), default=default_retrieval())
     parser.add_argument("--fusion", choices=("legacy", "tuned"), default="tuned")
     parser.add_argument("--backend", choices=("postgres", "memory"), default="postgres")
     parser.add_argument("--setup-database", action="store_true")

@@ -120,10 +120,10 @@ _MERCHANT_ID = re.compile(r"(?i:\bmerchant)\s+[A-Z][\w-]*\b")
 # general detector for every possible unsupported financial question.
 _EXTERNAL_CAPABILITY = re.compile(
     r"\b(foreign\s+exchange|forex|exchange\s+rates?|currency\s+conversion|"
-    r"card\s+(networks?|authori[sz]ation|acquirers?|interchange|fees?)|credit[-\s]+cards?|"
+    r"cards?|interchange|merchant\s+category|mcc|credit\s+cards?|"
     r"cardholders?|"
-    r"visa|mastercard|amex|chargebacks?|swift|sepa|ach|iban|"
-    r"taxes|taxation|tax\s+(rates?|returns?|withholding|reporting)|vat|"
+    r"visa|mastercard|amex|chargebacks?|swift|sepa|ach|iban|psd2|sca|blik|nbp|"
+    r"tax(?:es|ation)?|vat|"
     r"withholding\s+tax|sanctions|kyc|aml|pci(?:[-\s]+dss)?|"
     r"bank(?:ing)?\s+(fees?|holidays?|cutoffs?|cut-offs?|routing))\b",
     re.IGNORECASE,
@@ -132,7 +132,9 @@ _EXTERNAL_CAPABILITY = re.compile(
 
 def unsupported_topic(question: str) -> bool:
     """Known external capabilities that the operator documentation does not provide."""
-    return bool(_EXTERNAL_CAPABILITY.search(question))
+    # Hyphenated financial terms carry the same meaning as their spaced form.
+    normalized = re.sub(r"[-_\u2010-\u2015]+", " ", question)
+    return bool(_EXTERNAL_CAPABILITY.search(normalized))
 
 
 def _permitted_request(body: str) -> bool:
