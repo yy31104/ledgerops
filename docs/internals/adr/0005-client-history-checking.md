@@ -1,6 +1,6 @@
 # ADR 0005: check recorded client histories for isolation anomalies
 
-Date: 2026-11-05. Status: accepted, test-only.
+Date: 2026-11-05. Scope: test-only.
 
 ## Context
 

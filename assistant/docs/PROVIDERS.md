@@ -1,19 +1,52 @@
-# Switchable answer providers
+# Answer providers
 
-`fake` is the default and the only generation provider in CI. `openai_api` uses the Responses API with an explicit model and API key. `ollama` uses a configured local model. All return the same strict answer schema and pass citation validation.
+| Provider | Use |
+|---|---|
+| `fake` | Deterministic sentence copier for CI and local wiring checks |
+| `openai_api` | Responses API with an explicit model, API key and token prices |
+| `ollama` | A configured local model |
+| `chatgpt_subscription` | Existing ChatGPT sign-in through the official Codex Python SDK; local CLI only |
 
-`chatgpt_subscription` is implemented through the official `openai-codex` Python SDK (pinned by uv.lock). It reuses an existing ChatGPT sign-in; the adapter never reads, copies or exports the credential file. API-key sign-in is rejected for this route. It is deliberately disabled in CI and in the HTTP service.
+All providers return the same strict answer schema. Citation checks accept only
+passage IDs supplied to that call; they do not establish semantic correctness.
+
+## Local ChatGPT subscription
+
+The adapter uses `openai-codex`, pinned in `uv.lock`. Sign in through the official
+CLI with `codex login`, then run from `assistant/`:
 
 ```sh
-cd assistant
 uv sync --locked --extra subscription
-LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1 uv run --locked --extra subscription python -m ledgerops_assistant --backend memory --provider chatgpt_subscription "Does a timeout release the hold?"
+LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1 uv run --locked --extra subscription \
+  python -m ledgerops_assistant --backend memory --provider chatgpt_subscription \
+  "Does a timeout release the hold?"
 ```
 
-Install the official CLI and sign in with `codex login` if needed. This consumes ChatGPT plan usage; availability follows the account. The SDK uses the configured model default with explicit low reasoning effort for short structured turns. It runs in an empty temporary working directory with ephemeral threads, read-only filesystem mode, denied escalation, disabled shell/unified execution, web search and configured MCP/app integrations, and a process-group deadline. These are application controls, not independently verified OS isolation. Use trusted local material; this adapter is not a hosted multi-user completion API. The SDK turn interface does not expose a hard output-token cap, so the agent's deadline and concise-answer instructions bound this route.
+The SDK owns sign-in. The adapter never reads or copies its credential file and
+rejects API-key accounts. Calls consume ChatGPT plan quota; a per-request dollar
+bill cannot be inferred from the subscription price. This provider is disabled in
+CI and the HTTP service.
 
-Limited live checks used the pinned SDK and existing ChatGPT sign-in without an API key: cited timeout/hold, admission-limit and reconciliation answers, one no-answer refusal and one synthetic document-injection case. A synthetic GET-only workflow with two public-document passages then completed six low-effort model calls: the model selected payout, operation, investigation and metrics reads; changing metric age from 10 to 43 preserved handoff, changing payout amount rejected review, and repeated resume preserved one draft without generation. Two earlier workflow attempts safely refused; one recorded a 30-second call timeout. Low effort improved this smoke run's latency but does not guarantee completion. These checks establish neither representative answer quality nor comprehensive injection resistance or independent OS isolation. CI continues to use fake generation only.
+Each call uses an empty temporary directory, an ephemeral thread, read-only
+filesystem mode and a process-group deadline. Shell execution, web search and
+MCP/app integrations are disabled; escalation is denied. These settings constrain
+the SDK but do not prove independent OS isolation. Use trusted local material.
+The SDK turn interface has no hard output-token cap; deadlines and concise-answer
+instructions bound the call.
 
-For API mode, install `uv sync --locked --extra openai`, set `OPENAI_API_KEY` outside Git and choose `LEDGEROPS_ASSISTANT_OPENAI_MODEL`. Ollama uses `LEDGEROPS_ASSISTANT_OLLAMA_MODEL`. The request itself never chooses a URL or credentials. Usage counts are recorded when provided; no cost estimate is inferred from a ChatGPT plan price.
+Historical smoke checks exercised cited answers, a refusal and draft recovery.
+They are not representative answer-quality or injection-safety measurements.
+Published answer ratings are AI-rated; human review is pending.
 
-Official documentation checked 2026-11-05: [authentication](https://learn.chatgpt.com/docs/auth), [Python SDK](https://learn.chatgpt.com/docs/codex-sdk). The current [Sign in with ChatGPT documentation](https://developers.openai.com/siwc/token-sharing-open-source) also describes plan usage for OSS and locally hosted apps. That separate OAuth integration is outside this local SDK adapter.
+## API and Ollama
+
+For API mode, install `uv sync --locked --extra openai`, keep `OPENAI_API_KEY`
+outside Git and set `LEDGEROPS_ASSISTANT_OPENAI_MODEL`. Set positive
+`MODEL_INPUT_USD_PER_MILLION` and `MODEL_OUTPUT_USD_PER_MILLION` for that model.
+For Ollama, set `LEDGEROPS_ASSISTANT_OLLAMA_MODEL` and its local server address.
+A request cannot choose a URL or credential. Provider token counts are recorded
+when available; configured-price estimates and budget reservations are distinct
+from billed cost.
+
+Official references: [authentication](https://learn.chatgpt.com/docs/auth),
+[Python SDK](https://learn.chatgpt.com/docs/codex-sdk).

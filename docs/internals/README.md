@@ -9,6 +9,5 @@ Return to the [six operating guides](../README.md) for the reader path.
 - Decisions: [initialization](adr/0001-initialization.md), [ledger foundation](adr/0002-ledger-foundation.md), [purchase admission](adr/0003-purchase-admission.md), [contention and recovery](adr/0004-contention-and-recovery.md), [client histories](adr/0005-client-history-checking.md).
 
 The assistant indexes an explicit operations corpus. This index and the project
-homepage are navigation, not retrieval evidence. Corpus changes require a reviewed
-development-label migration and a new baseline; moving a file cannot silently
-relabel an old holdout result.
+homepage are navigation, not retrieval evidence. Changes to those inputs need matching development labels and a new baseline.
+Historical holdout results retain their original source paths and versions.

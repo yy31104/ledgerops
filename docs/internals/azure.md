@@ -124,7 +124,7 @@ from the [Azure Retail Prices API](https://prices.azure.com/api/retail/prices)
 on 2026-11-05, filtered to `Azure Container Apps`, `westeurope`, `Consumption`:
 active vCPU $0.000034/s, idle vCPU $0.000004/s, memory $0.000004/GiB-s.
 The CPU/memory rows below are before subscription-wide free grants, request
-charges and tax. Other rows retain the earlier rough estimates; check them in
+charges and tax. Other rows are rough estimates; check them in
 the [Azure pricing calculator](https://azure.microsoft.com/pricing/calculator/).
 
 | Item | Assumption | Low | High |
