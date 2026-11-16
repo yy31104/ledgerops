@@ -43,7 +43,7 @@ from ledgerops_assistant.retrieval import (
 )
 
 ASSISTANT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_QUESTIONS = ASSISTANT_ROOT / "eval" / "v4-dev" / "questions.jsonl"
+DEFAULT_QUESTIONS = ASSISTANT_ROOT / "eval" / "v11-dev" / "questions.jsonl"
 CACHE_DIR = ASSISTANT_ROOT / ".cache" / "index"
 
 
@@ -226,6 +226,7 @@ def evaluate_answers(questions, retriever, provider, gate, revision) -> dict:
                 "cites_relevant": bool(cited & set(q["relevant_sections"])),
                 "dropped_citations": len(result.dropped_citations),
                 "answer": result.text,
+                "generation_called": bool(result.provider),
                 "latency_ms": round((time.perf_counter() - started) * 1000, 3),
                 "usage": result.usage,
                 "citations": [c.chunk_id for c in result.citations],

@@ -1,5 +1,5 @@
 {
   "method": "vector",
-  "scope_threshold": 0.5956,
-  "basis": "Provisional development choice; the preregistered paired holdout rule determines the release default."
+  "scope_threshold": 0.5512,
+  "basis": "Development threshold; retrieval default follows the preregistered held-out comparison."
 }

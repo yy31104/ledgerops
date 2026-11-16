@@ -54,3 +54,16 @@ def test_runtime_builds_the_selected_read_only_retriever(
     assert called == expected
     assert context.revision == "source-revision"
     assert context.search("question", 5) == []
+
+
+def test_release_default_and_threshold_match_the_current_development_baseline():
+    import json
+    from pathlib import Path
+
+    from ledgerops_assistant.policy import scope_threshold
+
+    baseline = json.loads(
+        (Path(__file__).resolve().parents[1] / "eval/baselines/v1.1-dev.json").read_text()
+    )
+    assert scope_threshold() == baseline["scope_gate"]["threshold"]
+    assert default_retrieval() == baseline["context"]["retrieval_method"]

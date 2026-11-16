@@ -68,7 +68,7 @@ _FOLLOWUP = re.compile(
 )
 _MUTATING_FOLLOWUP = re.compile(rf"\band\s+(?:please\s+)?(?:{_VERBS})\b", re.IGNORECASE)
 _QUESTION = re.compile(
-    r"(?:^|[.!?]\s+|,\s+)\s*(?:what|why|when|where|which|who|how|"
+    r"(?:^|[.!?;]\s+|,\s+)\s*(?:what|why|when|where|which|who|how|"
     r"can|could|should|would|will|does|"
     r"do(?!\s+(?:whatever|anything|everything|something|it|this|that|as|what)\b)|"
     r"did|is|are|was|were|has|have|may|must)\b",

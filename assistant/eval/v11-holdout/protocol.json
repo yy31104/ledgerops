@@ -1,0 +1,63 @@
+{
+  "study": "operations-v4-v1.1",
+  "population": {
+    "authored_docs": 60,
+    "authored_non_docs": 34,
+    "retained_docs": 55,
+    "retained_non_docs": 30,
+    "by_route": {
+      "docs": 55,
+      "action": 18,
+      "out_of_scope": 10,
+      "live_state": 2
+    },
+    "source_groups": 41
+  },
+  "primary": "Mean Recall@5 over documentation questions, ranked by distinct source sections.",
+  "intervals": {
+    "resamples": 10000,
+    "seed": 20261116,
+    "method": "Question-weighted nonparametric bootstrap; primary interval resamples source-section clusters with replacement. Also report paired question bootstrap. Percentiles 2.5/97.5, linear interpolation."
+  },
+  "methods": [
+    "pgvector_hnsw",
+    "hybrid k=10",
+    "legacy hybrid k=60",
+    "PostgreSQL FTS"
+  ],
+  "secondary": [
+    "MRR@10",
+    "nDCG@5",
+    "Hit@1",
+    "Hit@5",
+    "raw-five-chunk section coverage",
+    "expanded-pack section coverage",
+    "exact quoted-evidence coverage (quote fragments, not semantic correctness)"
+  ],
+  "paired_comparisons": {
+    "hybrid_vs": [
+      "pgvector_hnsw",
+      "legacy_hybrid",
+      "postgres_fts"
+    ],
+    "metrics": [
+      "recall@5",
+      "mrr@10",
+      "hit@1"
+    ],
+    "intervals": [
+      "paired question 95%",
+      "paired source-section cluster 95%"
+    ],
+    "interpretation": "An interval containing zero means no detectable difference, not equivalence."
+  },
+  "default_rule": "Use hybrid only if hybrid-minus-vector mean Recall@5 is positive and its paired section-cluster 95% lower bound is above zero. Otherwise use vector. This one prespecified method selection is not parameter tuning or an independent validation of the selected method.",
+  "configuration": "Embedding, fusion, chunking and context algorithms freeze before scoring. No parameters, questions, facts or labels change after the run. Only the prespecified release default metadata can change according to the rule.",
+  "scope": "Cosine threshold comes only from the expanded development set. Fake generation measures routing/refusal; it does not establish real-model injection resistance or answer correctness.",
+  "attempt": "One exclusive run.json claim before model/database setup. Any subsequent failure consumes the attempt; preserve failed/partial output. No retry flag, overwrites or later retuning on these questions.",
+  "baseline": "Frozen development-baseline.json binds the threshold and source corpus. CI continues to gate development only; no v1.1 holdout metrics run in CI.",
+  "labels": "Synthetic, source-audited; not independently human-labelled. Source-section partition avoids original development primaries in the holdout, but shared facts can still occur through alternate supporting sections. No unseen-fact or real-operator-traffic claim.",
+  "context_metrics": "Expanded-pack and exact quoted-evidence coverage describe selected candidates before refusal; also report generation calls and delivered section coverage for the selected method, counting unsent packs as zero. Quote coverage is an unweighted per-question fraction of declared exact source quotes, with its question/quote denominator; it is not semantic answer correctness.",
+  "launch": "The held-out command requires the exact pushed freeze commit and a clean tracked working tree. All frozen input/implementation bytes are checked before the exclusive attempt.",
+  "baseline_after_selection": "If the prespecified rule selects a different default, regenerate the development-only release baseline for that method. Keep the pre-run development-baseline.json inside this study unchanged."
+}

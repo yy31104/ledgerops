@@ -7,5 +7,6 @@
   "docs": 55,
   "total": 63,
   "labels": "Synthetic; human annotation is not available.",
-  "new_audited_sha256": "44583cf97bb2f1c16bd55f5eef6d966c763a0e19cd36e2d270414bf4af65dec4"
+  "new_audited_sha256": "44583cf97bb2f1c16bd55f5eef6d966c763a0e19cd36e2d270414bf4af65dec4",
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229"
 }

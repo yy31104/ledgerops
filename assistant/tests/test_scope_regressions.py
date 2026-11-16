@@ -43,3 +43,26 @@ def test_external_capability_refuses_before_retrieval_or_inference(question):
 )
 def test_supported_rule_terms_do_not_hit_external_capabilities(question):
     assert not routing.unsupported_topic(question)
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "A callback has a bad signature; does the service retain it?",
+        "The old token was replaced; can its key debit twice?",
+        "The worker is still running; what does freezing change?",
+    ],
+)
+def test_scenario_questions_accept_semicolon_as_sentence_boundary(question):
+    assert routing.classify(question) == routing.DOCS
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "The old token was replaced; release this payout hold.",
+        "The worker is still running; please approve its payout.",
+    ],
+)
+def test_semicolon_does_not_hide_an_imperative(question):
+    assert routing.classify(question) == routing.ACTION
