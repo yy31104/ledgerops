@@ -19,6 +19,81 @@ and ADR evidence. Historical holdout labels/results are unchanged and unrerun.
 CI uses the compact `eval/baselines/operations-v4.json` baseline. A regression test
 changes README bytes and proves the corpus digest remains identical.
 
+### Current development results
+
+Operations-v4 has **20 files, 170 chunks and 98 sections**, corpus digest
+`822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229`.
+The 32 documentation development questions retain their wording/required facts.
+Homepage-source exclusions and path changes are explicit in
+[the migration manifest](../eval/v4-dev/manifest.json). There is no new blind
+retrieval score on this corpus. These development figures do not replace historical
+v3 scores with a claim of improvement; the relevance population has changed.
+
+| Method | Recall@5 | MRR@10 | Hit@1 | nDCG@5 |
+|---|---:|---:|---:|---:|
+| PostgreSQL FTS | 0.6458 | 0.5790 | 0.4062 | 0.5498 |
+| pgvector HNSW | 0.7552 | 0.7193 | 0.5938 | 0.6611 |
+| Hybrid k=60 | 0.7135 | 0.7397 | 0.6562 | 0.6715 |
+| Default hybrid k=10 | 0.7448 | 0.7406 | 0.6562 | 0.6830 |
+
+Exact vector rankings match HNSW on this small corpus. Default hybrid raw-five-
+chunk section coverage is 0.6979; expanded context coverage is 0.8073, averaging
+11.03 chunks and 17,680 serialized bytes. Hybrid does not lead vector Recall@5.
+No fusion, encoder, chunking or context parameter was tuned in this release.
+The v1-011 source remains outside the supplied context and its strict xfail remains.
+
+Reproduce the development gate with fake generation:
+
+```sh
+cd assistant
+uv run --locked python scripts/evaluate_local.py --split dev \
+  --baseline eval/baselines/operations-v4.json --output .cache/current-dev.json
+```
+
+### Real answer sample on operations-v4
+
+All 32 development documentation questions were sent once through the existing
+local ChatGPT-plan adapter using the official Codex SDK. This is a non-blind
+sample, with synthetic required-fact labels. An assistant manually compared every
+answer against those facts and current source text: **27 complete, 5 incomplete,
+0 wrong, 0 refused and 0 runtime errors**. No unsupported factual addition was
+identified; this does not establish general answer or injection safety. It is not
+independent human review. [Per-question judgements](../eval/answer-review.json)
+retain the grading criterion and omissions.
+
+The incomplete answers are v1-007 (new identity/key), 011 (80/0/80 and no journal),
+013 (non-callback quarantine behavior), 014 (maker/checker ordering), and 024
+(23/25-hour DST days). Source revision `db7e124` and source hashes are in the raw
+record. Subsequent refusal-grammar changes do not change retrieval or generation;
+this sample was not rerun to obtain better answers.
+
+Median single-answer latency was **8.185 s**, p95 **9.562 s**, with provider-reported
+**513,295 input + 4,044 output tokens** across 32 calls. The SDK harness contributes
+to these counters. Quota consumption is recorded per call; billed USD is unknown
+because this subscription route supplies no per-request invoice. The SDK account's
+default model was used without an explicit model pin, limiting reproducibility.
+
+The exclusive-record script preserves partial failures and has no automatic retry:
+
+```sh
+cd assistant
+LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1 uv run --locked --extra subscription \
+  python -m scripts.review_current_answers --development-report .cache/current-dev.json \
+  --output .cache/new-explicitly-authorized-sample.json
+```
+
+### Independent refusal checks
+
+A separate-context source-only author wrote a fresh 40-item sample after the first
+hardening implementation. Code/questions were frozen and pushed at `48c7379`
+before its single fake-generation run. It achieved only **25/40 exact routes** and
+**22/34 correct refusals**, with **0/6 false refusals** on documentation controls.
+The failed result is retained in [the frozen study](../eval/refusal-v4/summary.json).
+Its questions were not used for subsequent development. Aggregate failures
+motivated a separate closed-request-grammar development cycle and another
+independently authored sample. Finite routing and topic rules remain supplemental;
+caller permissions and closed GET tools enforce the actual access boundary.
+
 ## v3 holdout
 
 ### Frozen inputs and objective audit

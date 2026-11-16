@@ -12,6 +12,8 @@ With Docker, Python 3.12 and [uv](https://docs.astral.sh/uv/) installed:
 
 ```sh
 make demo-payout-crash
+# Include the assistant API restart and draft-resume acceptance:
+make verify-release
 ```
 
 The demo creates disposable services, submits a payout, waits for the provider's

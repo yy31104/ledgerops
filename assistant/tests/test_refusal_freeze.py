@@ -4,9 +4,12 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
 
-def test_independent_refusal_sample_is_bound_to_its_manifest():
-    study = Path(__file__).resolve().parents[1] / "eval/refusal-v4"
+
+@pytest.mark.parametrize("version", ["refusal-v4", "refusal-v5"])
+def test_independent_refusal_sample_is_bound_to_its_manifest(version):
+    study = Path(__file__).resolve().parents[1] / "eval" / version
     manifest = json.loads((study / "manifest.json").read_text())
     assert (
         hashlib.sha256((study / "questions.jsonl").read_bytes()).hexdigest()

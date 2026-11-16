@@ -112,3 +112,12 @@ disposable PostgreSQL; it does not approve or execute a financial proposal.
 
 References: [LangGraph interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts),
 [PostgreSQL checkpointer](https://docs.langchain.com/oss/python/langgraph/add-memory).
+
+## Reported request usage
+
+Provider token counters aggregate planning and answer calls, including malformed
+outputs. An exception or missing counter marks the total incomplete. API pricing
+estimates use the explicitly configured uncached token rates and are separate
+from the conservative budget reservation. Subscription usage is labelled
+`subscription_quota`, with unknown billed USD. SSE and request spans include model
+call counts, completeness and measured latency. Counters do not establish a bill.

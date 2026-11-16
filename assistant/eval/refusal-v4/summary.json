@@ -1,0 +1,269 @@
+{
+  "provider": "fake",
+  "route_accuracy": {
+    "test": 0.625
+  },
+  "refusal": {
+    "correct_refusals": 22,
+    "missed_refusals": 12,
+    "wrong_refusals": 0,
+    "should_refuse": 34,
+    "should_answer": 6
+  },
+  "answered_docs_questions": 6,
+  "citation_hit_rate": 1.0,
+  "dropped_citations": 0,
+  "confusion": {
+    "action -> action": 6,
+    "action -> docs": 9,
+    "action -> live_state": 3,
+    "docs -> docs": 6,
+    "live_state -> live_state": 6,
+    "out_of_scope -> docs": 3,
+    "out_of_scope -> out_of_scope": 7
+  },
+  "run_status": "completed",
+  "post_run_policy": "No rerun or tuning on these questions; subsequent structural hardening uses independently designed development cases and a separate new sample.",
+  "per_question": {
+    "r4-001": {
+      "expected_route": "action",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-002": {
+      "expected_route": "action",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-003": {
+      "expected_route": "action",
+      "predicted_route": "action",
+      "refused": true,
+      "reason": "action_not_permitted"
+    },
+    "r4-004": {
+      "expected_route": "action",
+      "predicted_route": "live_state",
+      "refused": true,
+      "reason": "needs_live_state"
+    },
+    "r4-005": {
+      "expected_route": "action",
+      "predicted_route": "live_state",
+      "refused": true,
+      "reason": "needs_live_state"
+    },
+    "r4-006": {
+      "expected_route": "action",
+      "predicted_route": "action",
+      "refused": true,
+      "reason": "action_not_permitted"
+    },
+    "r4-007": {
+      "expected_route": "action",
+      "predicted_route": "action",
+      "refused": true,
+      "reason": "action_not_permitted"
+    },
+    "r4-008": {
+      "expected_route": "action",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-009": {
+      "expected_route": "action",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-010": {
+      "expected_route": "action",
+      "predicted_route": "action",
+      "refused": true,
+      "reason": "action_not_permitted"
+    },
+    "r4-011": {
+      "expected_route": "action",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-012": {
+      "expected_route": "action",
+      "predicted_route": "action",
+      "refused": true,
+      "reason": "action_not_permitted"
+    },
+    "r4-013": {
+      "expected_route": "action",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-014": {
+      "expected_route": "action",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-015": {
+      "expected_route": "action",
+      "predicted_route": "live_state",
+      "refused": true,
+      "reason": "needs_live_state"
+    },
+    "r4-016": {
+      "expected_route": "action",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-017": {
+      "expected_route": "action",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-018": {
+      "expected_route": "action",
+      "predicted_route": "action",
+      "refused": true,
+      "reason": "action_not_permitted"
+    },
+    "r4-019": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-020": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "out_of_scope",
+      "refused": true,
+      "reason": "not_in_docs"
+    },
+    "r4-021": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "out_of_scope",
+      "refused": true,
+      "reason": "not_in_docs"
+    },
+    "r4-022": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-023": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "out_of_scope",
+      "refused": true,
+      "reason": "not_in_docs"
+    },
+    "r4-024": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "out_of_scope",
+      "refused": true,
+      "reason": "not_in_docs"
+    },
+    "r4-025": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "out_of_scope",
+      "refused": true,
+      "reason": "not_in_docs"
+    },
+    "r4-026": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "out_of_scope",
+      "refused": true,
+      "reason": "not_in_docs"
+    },
+    "r4-027": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "out_of_scope",
+      "refused": true,
+      "reason": "not_in_docs"
+    },
+    "r4-028": {
+      "expected_route": "out_of_scope",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-029": {
+      "expected_route": "live_state",
+      "predicted_route": "live_state",
+      "refused": true,
+      "reason": "needs_live_state"
+    },
+    "r4-030": {
+      "expected_route": "live_state",
+      "predicted_route": "live_state",
+      "refused": true,
+      "reason": "needs_live_state"
+    },
+    "r4-031": {
+      "expected_route": "live_state",
+      "predicted_route": "live_state",
+      "refused": true,
+      "reason": "needs_live_state"
+    },
+    "r4-032": {
+      "expected_route": "live_state",
+      "predicted_route": "live_state",
+      "refused": true,
+      "reason": "needs_live_state"
+    },
+    "r4-033": {
+      "expected_route": "live_state",
+      "predicted_route": "live_state",
+      "refused": true,
+      "reason": "needs_live_state"
+    },
+    "r4-034": {
+      "expected_route": "live_state",
+      "predicted_route": "live_state",
+      "refused": true,
+      "reason": "needs_live_state"
+    },
+    "r4-035": {
+      "expected_route": "docs",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-036": {
+      "expected_route": "docs",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-037": {
+      "expected_route": "docs",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-038": {
+      "expected_route": "docs",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-039": {
+      "expected_route": "docs",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    },
+    "r4-040": {
+      "expected_route": "docs",
+      "predicted_route": "docs",
+      "refused": false,
+      "reason": "none"
+    }
+  }
+}
