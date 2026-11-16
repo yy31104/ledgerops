@@ -17,7 +17,7 @@ make demo-payout-crash
 The demo creates disposable services, submits a payout, waits for the provider's
 durable payment, kills the worker, and restarts it. Recovery uses the same provider
 key and LOOKUP. The final screen checks one provider payment, one ledger settlement,
-one outgoing journal and a healthy independent verifier, including replayed evidence.
+one outgoing journal and a healthy independent verifier, including a replayed admission request and a further worker scan.
 It removes only its own test resources. See the [recovery walkthrough](articles/provider-paid-worker-died.md).
 
 For purchase, reversal and projection-drift examples, run `make demo`.

@@ -1,0 +1,159 @@
+{
+  "review_type": "Assistant manually compared all 32 answers with required facts and current source text; not independent human labels.",
+  "population": "All 32 development documentation questions, non-blind, synthetic labels. No tuning or re-generation.",
+  "raw_sha256": "d3ca826544bac8f4584149ca2ee4d8af6aa19e673d406c2420ce56f6b6ba3a9e",
+  "sample_commit": "db7e124082a72924c1627892ace822ef7b1a54c7",
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+  "grading": "Complete only if all required facts are present and correct; otherwise incomplete/wrong/refused/error. Citation hit is not correctness.",
+  "counts": {
+    "complete": 27,
+    "incomplete": 5,
+    "wrong": 0,
+    "refused": 0,
+    "runtime_error": 0
+  },
+  "fabrication_review": "No unsupported factual addition identified in this manual source check; not proof of semantic or injection safety.",
+  "latency_ms": {
+    "p50": 8185.123500000001,
+    "p95": 9561.8146,
+    "mean": 8013.75471875
+  },
+  "usage": {
+    "input_tokens": 513295,
+    "output_tokens": 4044,
+    "model_calls": 32,
+    "billing": "subscription_quota",
+    "billed_usd": null,
+    "limitations": "SDK counters include harness overhead. No per-call subscription invoice or explicit model pin available."
+  },
+  "judgements": {
+    "v1-001": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-002": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-003": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-004": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-005": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-006": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-007": {
+      "verdict": "incomplete",
+      "note": "Omits that a new attempt requires a new operation ID and key."
+    },
+    "v1-008": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-009": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-010": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-011": {
+      "verdict": "incomplete",
+      "note": "Omits 80/0/80 and absence of an outgoing journal; known source coverage failure."
+    },
+    "v1-012": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-013": {
+      "verdict": "incomplete",
+      "note": "Describes callback 401 but omits bounded quarantine/no financial incident for other unauthenticated provider messages."
+    },
+    "v1-014": {
+      "verdict": "incomplete",
+      "note": "Does not explicitly state proposal, distinct approver, then execution order."
+    },
+    "v1-015": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-016": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-017": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-018": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-019": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-020": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-021": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-022": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-023": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-024": {
+      "verdict": "incomplete",
+      "note": "Omits 23/25-hour DST days."
+    },
+    "v1-025": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-026": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-027": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-028": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-029": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-030": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-031": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    },
+    "v1-032": {
+      "verdict": "complete",
+      "note": "All labelled required facts present; no unsupported addition identified."
+    }
+  }
+}

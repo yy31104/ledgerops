@@ -140,10 +140,5 @@ jobs:
           npm ci
           npm run build
           npm test
-      - name: Start the local demo with stand-in embeddings
-        run: python3 assistant/scripts/compose.py up --hashing
-      - name: Check local readiness
-        run: curl --fail --silent http://127.0.0.1:8088/health/ready
-      - name: Stop the local demo
-        if: always()
-        run: python3 assistant/scripts/compose.py down
+      - name: Verify isolated Compose restart and review
+        run: python3 assistant/scripts/verify_release.py

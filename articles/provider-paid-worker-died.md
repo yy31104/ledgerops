@@ -39,7 +39,7 @@ not prove whether the provider executed a payment.
 Run `make demo-payout-crash`. The screen identifies the provider's durable commit,
 the killed process, lease expiry, LOOKUP recovery and final independent checks.
 It inspects provider execution/effect counts and ledger settlement/journal counts,
-then replays the observation and runs the invariant verifier. The GIF in the
+then replays the original admission request, scans once more, and runs the invariant verifier. The GIF in the
 homepage records this real local run; it is not a sequence of illustrative slides.
 
 The result is one provider payment and one ledger settlement for this injected

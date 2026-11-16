@@ -38,9 +38,9 @@ def test_explicit_corpus_rejects_escaping_symlinks(tmp_path, monkeypatch):
 
 def test_current_corpus_keeps_deployment_and_rename_proposals_out(corpus):
     excluded = {
-        "docs/AZURE.md",
-        "docs/KUBERNETES.md",
-        "docs/adr/0005-client-history-checking.md",
+        "docs/internals/azure.md",
+        "docs/internals/kubernetes.md",
+        "docs/internals/adr/0005-client-history-checking.md",
         "docs/RENAME-PROPOSAL.md",
     }
     assert not excluded.intersection(corpus.file_digests)

@@ -41,3 +41,7 @@ benchmark:
 
 service:
 	$(UV) run --locked python -m ledgerops.service
+
+.PHONY: verify-release
+verify-release: demo-payout-crash
+	python3 assistant/scripts/verify_release.py

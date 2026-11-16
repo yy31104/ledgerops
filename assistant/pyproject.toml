@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ledgerops-assistant"
-version = "0.1.0"
+version = "1.0.0"
 description = "Operator assistant for LedgerOps: cited answers from the docs, no write access"
 requires-python = ">=3.12,<3.13"
 dependencies = [
