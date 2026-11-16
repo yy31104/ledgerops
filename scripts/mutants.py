@@ -6,6 +6,7 @@ import difflib
 import hashlib
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -86,18 +87,14 @@ MUTANTS = {
             (
                 DISPATCH,
                 "def _transport(client, claim):\n",
-                (
-                    "def _transport(client, claim):\n    from dataclasses "
-                    "import replace\n    claim = replace(claim, provider_k"
-                    "ey=claim.provider_key.rsplit('.', 1)[0] + '.' + uuid"
-                    "4().hex * 2)\n"
-                ),
+                "def _transport(client, claim):\n"
+                "    from dataclasses import replace\n"
+                "    if claim.action == 'LOOKUP':\n"
+                "        claim = replace(claim, provider_key="
+                "claim.provider_key.rsplit('.', 1)[0] + '.' + uuid4().hex * 2)\n",
             ),
         ),
-        (
-            DISPATCH_TEST
-            + "test_authenticated_not_found_resends_exact_original_identity_before_deadline",
-        ),
+        (DISPATCH_TEST + "test_retry_transport_uses_the_persisted_provider_key",),
         "Reuse the retained provider key",
     ),
     "timeout-hold": Mutant(
@@ -220,6 +217,27 @@ MUTANTS = {
 }
 
 
+# A failing test is evidence only at its selected contract assertion. The SQL
+# transition error is an explicitly reviewed secondary guard, not a catch-all.
+FAILURE_SIGNATURES = {
+    "claim-before-commit": (
+        r"(?:AssertionError: )?assert <TransactionStatus\.INTRANS: 2> "
+        r"== <TransactionStatus\.IDLE: 0>"
+    ),
+    "provider-key": r"AssertionError: transport must use the stored provider key",
+    "timeout-hold": r"AssertionError: assert .+ == \(80, 62, 18\)",
+    "claim-lease": r"(?:AssertionError: )?assert DispatchClaim\(.+\) is None",
+    "observation-replay": r"AssertionError: assert 'BLOCKED' == 'REPLAYED'",
+    "balance-lock": (
+        r"AssertionError: blocked at the wrong statement: UPDATE ledger\.account_balance"
+    ),
+    "balance-floor": r"Failed: DID NOT RAISE CheckViolation",
+    "idempotency-key": (
+        r"psycopg\.errors\.CheckViolation: request allows only one transition to terminal"
+    ),
+}
+
+
 def digest_sources(root):
     digest = hashlib.sha256()
     for path in sorted((Path(root) / "src").rglob("*")):
@@ -230,6 +248,9 @@ def digest_sources(root):
 
 def apply_mutant(root, mutant):
     """Validate every anchor before changing any file, then return the exact patch."""
+    marker = Path(root) / ".ledgerops-mutation-applied.json"
+    if marker.exists() or marker.is_symlink():
+        raise ValueError("a mutation was already applied to this copy")
     texts, originals = {}, {}
     for name, before, after in mutant.edits:
         path = Path(root) / name
@@ -252,6 +273,10 @@ def apply_mutant(root, mutant):
         )
         for name, text in texts.items()
     )
+    with marker.open("x") as stream:
+        json.dump(
+            {"edits_sha256": hashlib.sha256(json.dumps(mutant.edits).encode()).hexdigest()}, stream
+        )
     for name, text in texts.items():
         (Path(root) / name).write_text(text)
     return patch
@@ -305,7 +330,7 @@ def cleanup_containers(label):
         )
 
 
-def junit_result(path, returncode):
+def junit_result(path, returncode, expected_failures=None):
     if not path.exists():
         return {"status": "invalid", "reason": "missing JUnit report", "failed_tests": []}
     try:
@@ -313,39 +338,51 @@ def junit_result(path, returncode):
     except ET.ParseError:
         return {"status": "invalid", "reason": "malformed JUnit report", "failed_tests": []}
     cases = report.findall(".//testcase")
+
+    def node_id(case):
+        return case.get("classname", "").replace(".", "/") + ".py::" + case.get("name", "")
+
     errors = [case for case in cases if case.find("error") is not None]
     failures = [case for case in cases if case.find("failure") is not None]
     skipped = [case for case in cases if case.find("skipped") is not None]
-    infrastructure = any(
-        word in (failure.text or "")
-        for case in failures
-        for failure in case.findall("failure")
-        for word in ("psycopg.OperationalError", "psycopg.InterfaceError", "docker.errors.")
-    )
+    expected_failures = expected_failures or {}
+    messages = {}
+    semantic = bool(failures)
+    for case in failures:
+        nodes = case.findall("failure")
+        if len(nodes) != 1:
+            semantic = False
+            continue
+        failure = nodes[0]
+        message = failure.get("message", failure.text or "").splitlines()
+        first = message[0] if message else ""
+        key = node_id(case)
+        messages[key] = first
+        pattern = expected_failures.get(key)
+        if not pattern or re.fullmatch(pattern, first) is None:
+            semantic = False
     status = (
         "passed"
         if returncode == 0 and cases and not skipped and not errors and not failures
         else "failed"
-        if returncode == 1 and failures and not errors and not infrastructure
+        if returncode == 1 and semantic and not skipped and not errors
         else "invalid"
     )
-    return {
+    result = {
         "status": status,
         "cases": len(cases),
-        "test_ids": [
-            case.get("classname", "").replace(".", "/") + ".py::" + case.get("name", "")
-            for case in cases
-        ],
-        "failed_tests": [
-            case.get("classname", "").replace(".", "/") + ".py::" + case.get("name", "")
-            for case in failures
-        ],
+        "test_ids": [node_id(case) for case in cases],
+        "failed_tests": [node_id(case) for case in failures],
+        "failure_messages": messages,
         "errors": len(errors),
         "skipped": len(skipped),
     }
+    if failures and not semantic:
+        result["reason"] = "failure does not match the selected semantic assertion"
+    return result
 
 
-def run_tests(copy, tests, artifacts, label, timeout):
+def run_tests(copy, tests, artifacts, label, timeout, *, expected_failures=None):
     artifacts = artifacts.resolve()
     artifacts.mkdir()
     xml = artifacts / "junit.xml"
@@ -399,7 +436,7 @@ def run_tests(copy, tests, artifacts, label, timeout):
             else "runner deadline exceeded",
         }
     else:
-        result = junit_result(xml, proc.returncode)
+        result = junit_result(xml, proc.returncode, expected_failures)
     finally:
         try:
             cleanup_containers(label)
@@ -447,6 +484,7 @@ def exercise(root, name, artifacts, timeout=120):
         "tests": mutant.tests,
         "source_sha256": before,
         "status": "invalid",
+        "failure_signature": FAILURE_SIGNATURES.get(name),
     }
     artifacts.mkdir()
     try:
@@ -459,7 +497,16 @@ def exercise(root, name, artifacts, timeout=120):
                     patch = apply_mutant(copy, mutant)
                     (artifacts / "mutation.patch").write_text(patch)
                     record["patch_sha256"] = hashlib.sha256(patch.encode()).hexdigest()
-                record[trial] = run_tests(copy, mutant.tests, artifacts / trial, label, timeout)
+                pattern = FAILURE_SIGNATURES.get(name)
+                expected = {node: pattern for node in mutant.tests} if pattern else {}
+                record[trial] = run_tests(
+                    copy,
+                    mutant.tests,
+                    artifacts / trial,
+                    label,
+                    timeout,
+                    expected_failures=expected,
+                )
                 if record[trial]["status"] in {"passed", "failed"} and record[trial].get(
                     "test_ids"
                 ) != list(mutant.tests):

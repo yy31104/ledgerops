@@ -384,3 +384,29 @@ def test_mismatched_retained_provider_instruction_is_refused_before_claim_or_net
     assert payout_state(seeded_db) == before
     assert before["transport_attempt"] == []
     assert money(seeded_db, golden)[:3] == (80, 62, 18)
+
+
+def test_retry_transport_uses_the_persisted_provider_key(seeded_db, golden):
+    command = setup_payout(seeded_db, golden)
+    with seeded_db.connect("reader") as reader:
+        key, original = reader.execute(
+            "SELECT provider_key,provider_request FROM ledger.payout WHERE operation_id=%s",
+            (command.operation_id.value,),
+        ).fetchone()
+    with seeded_db.connect("worker") as conn:
+
+        def respond(action, sent_key, raw):
+            assert sent_key == key, "transport must use the stored provider key"
+            if action == "LOOKUP":
+                return signed_lookup(sent_key)
+            assert raw == original
+            raise TimeoutError("synthetic lost response")
+
+        client = Client(conn, respond)
+        assert run(conn, command, client, NOW).outcome == "TIMEOUT"
+        recovered = run(conn, command, client, next_due(seeded_db))
+        assert recovered.observation is not None
+        assert recovered.observation.state == "NOT_FOUND"
+        assert run(conn, command, client, next_due(seeded_db)).outcome == "TIMEOUT"
+        assert [call[0] for call in client.calls] == ["PUT", "LOOKUP", "PUT"]
+    assert money(seeded_db, golden)[:3] == (80, 62, 18)

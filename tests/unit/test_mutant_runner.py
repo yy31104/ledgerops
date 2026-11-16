@@ -4,6 +4,7 @@ import ast
 import shutil
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 
 import pytest
@@ -67,7 +68,9 @@ def test_junit_does_not_count_infrastructure_collection_or_skips_as_kills(
         + node
         + "</testcase></testsuite></testsuites>"
     )
-    result = mutants.junit_result(report, code)
+    result = mutants.junit_result(
+        report, code, {"tests/unit/test_a.py::test_a": r"(?:AssertionError: )?assert 2 == 1"}
+    )
     assert result["status"] == status
     assert result["test_ids"] == ["tests/unit/test_a.py::test_a"]
 
@@ -157,7 +160,7 @@ def test_only_matching_tests_after_a_passing_control_can_kill(
     def copy_source(source, target, label):
         shutil.copytree(source / "src", target / "src")
 
-    def run_tests(copy, tests, artifacts, label, timeout):
+    def run_tests(copy, tests, artifacts, label, timeout, **kwargs):
         trial = control if not calls else changed
         calls.append(trial)
         if trial == "invalid":
@@ -197,7 +200,7 @@ def test_interrupt_stops_the_matrix_even_when_cleanup_is_incomplete(tmp_path, mo
     monkeypatch.setattr(
         mutants,
         "run_tests",
-        lambda *a: {
+        lambda *a, **k: {
             "status": "invalid",
             "interrupted": True,
             "reason": "owned-container cleanup failed",
@@ -243,3 +246,109 @@ def test_evidence_manifest_pins_every_file_and_rejects_links(tmp_path):
     (tmp_path / "leak").symlink_to(tmp_path / "output.txt")
     with pytest.raises(ValueError, match="symlinks"):
         mutants.evidence_manifest(tmp_path)
+
+
+def failure_report(path, node, message):
+    file, name = node.split("::")
+    suite = ET.Element("testsuites")
+    case = ET.SubElement(
+        ET.SubElement(suite, "testsuite"),
+        "testcase",
+        classname=file.removesuffix(".py").replace("/", "."),
+        name=name,
+    )
+    ET.SubElement(case, "failure", message=message).text = message
+    ET.ElementTree(suite).write(path, encoding="unicode")
+
+
+@pytest.mark.parametrize(
+    "name,message",
+    [
+        (
+            "claim-before-commit",
+            "assert <TransactionStatus.INTRANS: 2> == <TransactionStatus.IDLE: 0>",
+        ),
+        ("provider-key", "AssertionError: transport must use the stored provider key"),
+        ("timeout-hold", "AssertionError: assert (80, 0, 80) == (80, 62, 18)"),
+        ("claim-lease", "assert DispatchClaim(action='LOOKUP') is None"),
+        ("observation-replay", "AssertionError: assert 'BLOCKED' == 'REPLAYED'"),
+        (
+            "balance-lock",
+            "AssertionError: blocked at the wrong statement: UPDATE ledger.account_balance",
+        ),
+        ("balance-floor", "Failed: DID NOT RAISE CheckViolation"),
+        (
+            "idempotency-key",
+            "psycopg.errors.CheckViolation: request allows only one transition to terminal",
+        ),
+    ],
+)
+def test_each_mutant_accepts_only_its_named_contract_failure(tmp_path, name, message):
+    node = mutants.MUTANTS[name].tests[0]
+    path = tmp_path / "junit.xml"
+    failure_report(path, node, message)
+    expected = {node: mutants.FAILURE_SIGNATURES[name]}
+    assert mutants.junit_result(path, 1, expected)["status"] == "failed"
+    assert mutants.junit_result(path, 1)["status"] == "invalid"
+    failure_report(path, "other.py::unrelated", message)
+    assert mutants.junit_result(path, 1, expected)["status"] == "invalid"
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "NameError: name 'key' is not defined",
+        "UnboundLocalError: local variable 'response' referenced before assignment",
+        "AttributeError: 'NoneType' object has no attribute 'state'",
+        "Failed: helper watchdog timed out waiting for a row lock",
+        "AssertionError: an unrelated condition broke",
+        "psycopg.errors.CheckViolation: unrelated database check",
+    ],
+)
+def test_programming_errors_and_watchdogs_are_never_contract_detections(tmp_path, message):
+    path = tmp_path / "junit.xml"
+    node = mutants.MUTANTS["provider-key"].tests[0]
+    failure_report(path, node, message)
+    expected = {node: mutants.FAILURE_SIGNATURES["provider-key"]}
+    result = mutants.junit_result(path, 1, expected)
+    assert result["status"] == "invalid"
+    assert result["reason"] == "failure does not match the selected semantic assertion"
+
+
+def test_real_pytest_fail_from_a_helper_watchdog_is_not_a_kill(tmp_path):
+    path = tmp_path / "test_watchdog.py"
+    path.write_text(
+        "import pytest\n"
+        "def helper(): pytest.fail('watchdog timed out waiting for a provider')\n"
+        "def test_contract(): helper()\n"
+    )
+    xml = tmp_path / "junit.xml"
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "-q", "--junitxml", str(xml), str(path)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=20,
+        check=False,
+    )
+    assert result.returncode == 1
+    observed = mutants.junit_result(
+        xml,
+        result.returncode,
+        {"test_watchdog.py::test_contract": r"AssertionError: timeout must retain the hold"},
+    )
+    assert observed["status"] == "invalid"
+    assert observed["failed_tests"] == ["test_watchdog.py::test_contract"]
+
+
+def test_prefix_preserving_patch_cannot_be_applied_twice(tmp_path):
+    mutation = mutants.MUTANTS["provider-key"]
+    for name, _, _ in mutation.edits:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(mutants.ROOT / name, path)
+    mutants.apply_mutant(tmp_path, mutation)
+    once = (tmp_path / mutation.edits[0][0]).read_bytes()
+    with pytest.raises(ValueError, match="already applied"):
+        mutants.apply_mutant(tmp_path, mutation)
+    assert (tmp_path / mutation.edits[0][0]).read_bytes() == once
