@@ -27,3 +27,14 @@ must use their original recorded code/corpus checkout and restored files at the
 original relative paths. Do not combine old labels with renamed current sources.
 The default unit suite does not download evidence; CI runs the explicit archive
 verification separately. No v3 retrieval or generation runs in CI.
+
+## Current release sample
+
+The [v1.0.0 release](https://github.com/yy31104/ledgerops/releases/tag/v1.0.0)
+contains `ledgerops-evidence-v1.0.0.tar.gz`: current development evaluation, the
+32-answer subscription record and both once-run refusal samples, including the
+failed first check. `release-evidence-manifest.json` pins its archive and four raw
+files; `release-summary.json` keeps summaries. Use the same restore command with
+that manifest after publication. `answer-review.json` contains per-question manual
+assistant judgements; the refusal study folders retain frozen protocols, data and
+run controls. No claim of independent human labels is made.
