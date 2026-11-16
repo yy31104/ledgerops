@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "scope": "post_hoc_copied_sentence_attribution",
-  "created_at": "2026-11-11T20:04:03+00:00",
-  "analysis_sha256": "fe2af8a4faf6b6a8c2c5b176aec9ce040820969c2869cd35c630edbc7c1191bc",
+  "created_at": "2026-11-13T13:39:41+00:00",
+  "analysis_sha256": "007d276c34ef527176e17aed39c1f8a2e020e732dbc6abe1ce44d4bf5ef619d2",
   "source_corpus_digest": "6d7831b77af0d596e4693f06c827abcf75d6b79cfee1be369d27b9e96be00e91",
   "dev_questions_sha256": "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c",
   "original_six_records_sha256": {
