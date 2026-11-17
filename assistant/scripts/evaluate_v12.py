@@ -147,17 +147,25 @@ def run(output, study=STUDY, expected_commit=None):
                 "hybrid": Cached(HybridRetriever(fts, vector, rrf_k=10)),
                 "legacy_hybrid": Cached(HybridRetriever(fts, vector, rrf_k=60)),
             }
-            context = ContextRetriever(methods["hybrid"], corpus)
+            contexts = {name: ContextRetriever(m, corpus) for name, m in methods.items()}
+            context = contexts["hybrid"]
             for q in docs:
+                relevant = q["relevant_sections"]
                 row = {"group": q["group"]}
                 for name, method in methods.items():
                     hits = method.search(q["question"], 30)
-                    row[name] = {**score_ranking(rank_sections(hits), q["relevant_sections"])}
-                chunks = context.context(q["question"], 5)
-                row["hybrid"]["expanded_context_coverage"] = len(
-                    {c.section_id for c in chunks} & set(q["relevant_sections"])
-                ) / len(q["relevant_sections"])
-                row["hybrid"]["quoted_evidence_coverage"] = quote_coverage(chunks, q)
+                    chunks = contexts[name].context(q["question"], 5)
+                    row[name] = {
+                        **score_ranking(rank_sections(hits), relevant),
+                        "raw_five_chunk_coverage": score_ranking(rank_sections(hits[:5]), relevant)[
+                            "recall@5"
+                        ],
+                        "expanded_context_coverage": len(
+                            {c.section_id for c in chunks} & set(relevant)
+                        )
+                        / len(relevant),
+                        "quoted_evidence_coverage": quote_coverage(chunks, q),
+                    }
                 rows[q["id"]] = row
             answers = evaluate_answers(
                 questions,
@@ -212,10 +220,11 @@ def run(output, study=STUDY, expected_commit=None):
                     r["hybrid"]["expanded_context_coverage"] for r in rows.values()
                 )
                 / len(rows),
-                "mean_quote_coverage": sum(
-                    rows[q["id"]]["hybrid"]["quoted_evidence_coverage"] for q in quoted
-                )
-                / len(quoted)
+                "mean_quote_coverage": {
+                    name: sum(rows[q["id"]][name]["quoted_evidence_coverage"] for q in quoted)
+                    / len(quoted)
+                    for name in methods
+                }
                 if quoted
                 else None,
                 "questions_with_quotes": len(quoted),
