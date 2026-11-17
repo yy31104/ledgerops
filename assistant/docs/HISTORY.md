@@ -3,7 +3,7 @@
 Scores below describe earlier code, corpus snapshots and synthetic question sets.
 They are not current runtime scores. Original frozen questions, protocols and
 failures remain versioned. The [current evaluation](RETRIEVAL-QUALITY-V2.md) reports
-the present operations-v4 comparison.
+the v1.2 results.
 
 Full historical methods and commands are preserved in the
 [v1.0.0 retrieval report](https://github.com/yy31104/ledgerops/blob/v1.0.0/assistant/docs/RETRIEVAL-QUALITY-V2.md).
@@ -106,12 +106,48 @@ Two later, separate fake-generation refusal checks retained both results:
 but admitted four of ten unsupported topics. The samples differ; their difference
 is not a paired improvement estimate or broad prompt-injection safety evidence.
 
+## Operations-v4 comparison and v1.1.0
+
+A source-only author wrote a fresh holdout of 55 documentation questions in 41
+source-section groups and 30 non-documentation questions. It ran once after freeze
+commit [`9c7519f`](https://github.com/yy31104/ledgerops/commit/9c7519fbf8cbbb0c79c1140423b4e743a9af0c17)
+([protocol](../eval/v11-holdout/protocol.json), [summary](../eval/v11-holdout/summary.json)).
+The prespecified rule selected hybrid only if its paired section-cluster interval
+over vector Recall@5 was entirely above zero.
+
+| Method | Recall@5 | Section-cluster 95% CI | MRR@10 | Hit@1 |
+|---|---:|---|---:|---:|
+| pgvector HNSW | 0.8218 | [0.7403, 0.8932] | 0.8127 | 0.7091 |
+| Hybrid k=10 | 0.8639 | [0.7972, 0.9213] | 0.8114 | 0.6727 |
+| Legacy hybrid k=60 | 0.8906 | [0.8351, 0.9393] | 0.8127 | 0.6727 |
+| PostgreSQL FTS | 0.7685 | [0.6753, 0.8492] | 0.6696 | 0.5091 |
+
+Hybrid minus vector Recall@5 was +0.0421, section-cluster CI [0.0089, 0.0898], so
+hybrid stayed the default. MRR and Hit@1 differences were not detectable, vector
+had higher exact quote coverage (0.8939 against 0.8455), and k=60 was not
+detectably different from k=10.
+
+Routing: 18/18 action and injection requests and 2/2 live-state requests were
+refused correctly, with no false documentation refusal. Three of ten unsupported
+topics passed the scope gate: v11-test-084, 086 and 088. A section-completion
+context policy raised hybrid development section coverage from 0.8715 to 0.9048
+within the 18,000-byte pack, while vector coverage fell from 0.8315 to 0.8224.
+
+The original 32 development questions were answered once through the subscription
+adapter with `gpt-6.1-sol`: 32/32 recorded, mean 16,589.6 input tokens (range
+12,357–20,353), mean latency 8.65 s. A separate empty-evidence call used 17,149
+input tokens, more than the full-call mean, so v1.1 could not split the tokens.
+The [v1.2 measurement](RETRIEVAL-QUALITY-V2.md#token-use) explains that result.
+The 32 answers remain unrated; the human-review worksheet is a v1.1.0 release asset.
+
 ## Stored evidence
 
 The [evaluation-data-v1 release](https://github.com/yy31104/ledgerops/releases/tag/evaluation-data-v1)
 contains early retrieval, v3 and performance records. The
 [v1.0.0 release](https://github.com/yy31104/ledgerops/releases/tag/v1.0.0) contains the
 operations-v4 development report, non-blind answer record and both refusal checks.
+The [v1.1.0 release](https://github.com/yy31104/ledgerops/releases/tag/v1.1.0)
+contains the holdout record, context ablation and the 32-answer record.
 Checksum manifests and restore commands are in the [evidence guide](../eval/README.md).
 Original methods remain available in the tagged report; no old holdout is rerun
 to tune or advertise a current score.

@@ -1,0 +1,386 @@
+{
+  "status": "frozen_synthetic",
+  "split": "test",
+  "sha256": "c3f74fe3a8de31a132e5c32a2fdb661b4ef9d1d71c2751099c6a074d8bea0a65",
+  "frozen_at": "2026-11-17T22:29:08.802514+00:00",
+  "code_commit": "854a5635e9d75166b45ee7cf4d2951923df15b51",
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+  "corpus_version": "operations-v4",
+  "development_baseline": "assistant/eval/v12-holdout/development-baseline.json",
+  "inputs_sha256": {
+    "assistant/eval/v12-holdout/questions.jsonl": "c3f74fe3a8de31a132e5c32a2fdb661b4ef9d1d71c2751099c6a074d8bea0a65",
+    "assistant/eval/v12-holdout/protocol.json": "30ac1ded6750579e1196ea647b52780d8a010ecca41aa78953e4fd1517d59806",
+    "assistant/eval/v12-holdout/development-baseline.json": "3ec36bbde4c4b1226f3c4bf2800c8d38a72f1f7ac79cf454ddb9411183053a7b"
+  },
+  "code_sha256": {
+    "assistant/src/ledgerops_assistant/__init__.py": "558ddb6a98d1a8c6f55812dcf5edfa70f6ad8c49b866b42480fa415d0ede80e2",
+    "assistant/src/ledgerops_assistant/__main__.py": "e66cf8999e74be573def32f61cdeb3e779fc6dfd64be2f0f00d23d8f21aa484b",
+    "assistant/src/ledgerops_assistant/agent.py": "a487f14827bb2169d70660390ad804b4ff9d9407faa736791063591bdc9b9d16",
+    "assistant/src/ledgerops_assistant/answer.py": "a6ef6776abc4fa54277270204f58b206190bfa3d1ad4f3d8d1504cdde6b9b3df",
+    "assistant/src/ledgerops_assistant/api.py": "5755863b1c7a28669a6181486510338b5336f7c766d503a4162d8bfcc2b419e5",
+    "assistant/src/ledgerops_assistant/benchmark.py": "4baa47eeaf4b3f7cf162dfbb6971373ea9c095b568b45d333aee27e072db650f",
+    "assistant/src/ledgerops_assistant/context.py": "7d22587380781a55b548c11128d9cee799edd5f52288958601295cfe659ad960",
+    "assistant/src/ledgerops_assistant/corpus.py": "6d81085f2495e30b63a31a19e0e7722ed0ffb87f5396af10ccd7939068de6598",
+    "assistant/src/ledgerops_assistant/coverage.py": "812c1cb9d4b3c271e4d6ca9d9df2e2e61746d03ddc61ccb5c7fdc2e6b9449d73",
+    "assistant/src/ledgerops_assistant/demo_api.py": "d097a64c939df9700d20ef8c21a4cfdf04e88445e13e15e4d6d4bdf389a522df",
+    "assistant/src/ledgerops_assistant/drafts.py": "a76fd5c121eea4413c9577f252a474cc651c5aa053f4688ffe8e5914254e50b9",
+    "assistant/src/ledgerops_assistant/embeddings.py": "08f89e8f93366929df04f05444c9bfa08694723071ee20613f2cd6a6f1e1d067",
+    "assistant/src/ledgerops_assistant/evaluation.py": "0cd08812ff06e6532f3d6b86de850d72d6b4e958f87a93530be4cd6738a3091f",
+    "assistant/src/ledgerops_assistant/mcp_server.py": "d31b5368faf18a2eb55ae2ee151da27a8608ec2f80a6d1223abf4c75b6886c6b",
+    "assistant/src/ledgerops_assistant/policy.py": "95ab5be43cefc4afd90f12a8a92ad9664db103352e664c7e3ff3bb14dbdadd27",
+    "assistant/src/ledgerops_assistant/postgres.py": "bcff92bac3fafa29daaff588a9eaa10f8c2565d01d598b07aa075436f50ced14",
+    "assistant/src/ledgerops_assistant/providers/__init__.py": "a8046788a6586bcc6ad152f11388f588a371dbadd013dcaabd9308308ecddb53",
+    "assistant/src/ledgerops_assistant/providers/base.py": "385a1664587e1cca6cd44d64854806a4c33a796c61c4a976179f00362b19e540",
+    "assistant/src/ledgerops_assistant/providers/fake.py": "1baee1326ab79d70ef2426ea26a08377d74c9cbc45acb779028094b753ba858a",
+    "assistant/src/ledgerops_assistant/providers/ollama.py": "ea97277f9603444837b3df7ec7247ea5707969b879f0e61c8f107d6ee16f9e70",
+    "assistant/src/ledgerops_assistant/providers/openai_api.py": "fec090efebf1cce73c28f3463d646a93a2aaa2908e1f989d40a2268e824a2cd2",
+    "assistant/src/ledgerops_assistant/providers/subscription.py": "3732c522adc1d6aea894f3fa3222ceadeb92a64d2298a6320480249d4e033326",
+    "assistant/src/ledgerops_assistant/providers/subscription_worker.py": "d987bd593cf43af897095cd91676aecd836e5b8cd3ca12279790131a8adcf43c",
+    "assistant/src/ledgerops_assistant/quality_gate.py": "ee881547e2fc418760a98ed6d865ebb909e1379053791286a9af55fd9895e059",
+    "assistant/src/ledgerops_assistant/retrieval.py": "d73fdb7bc546284e5e653eead8f9b7c60458c6387504de91d4f00a700d5289ec",
+    "assistant/src/ledgerops_assistant/retrieval_policy.json": "3ef6578ae6d2abdf0c799927e5ecf452a71968c41109c05467f723cee9c3fa35",
+    "assistant/src/ledgerops_assistant/routing.py": "ddff95021451565092f0fce7a5e8cad4eaf2b66b349b4cf7d070ae74607f0e44",
+    "assistant/src/ledgerops_assistant/runtime.py": "250588c60e55264746271450865acc05ba362b377a308449618001dda860a544",
+    "assistant/src/ledgerops_assistant/settings.py": "a6172772dd250c722df16b1281da8ce51f3b35949cd685c33e6bb7132032414a",
+    "assistant/src/ledgerops_assistant/sql/001_rag.sql": "26d7f0cbbc57a305c5239f5079d6853b7d3e8ca8fbde8273e7b611b308805488",
+    "assistant/src/ledgerops_assistant/sql/002_drafts.sql": "4b70c815e0d52d3a7047d102b4b9c0f4e11913effb074ba96c0640d7af5bc192",
+    "assistant/src/ledgerops_assistant/telemetry.py": "33f53c4b4237e41e4e1b0eb57e7bafa1e9208dfde8860700898b14cdde8be757",
+    "assistant/src/ledgerops_assistant/tools.py": "bb7e8a0d439862f8b918e4653b4f484c519f2eae690715531047143ece54b370",
+    "assistant/src/ledgerops_assistant/tracking.py": "5b635425bb3c5387a072d6384cf4aaeaa75022db0457fd86d31a793b0ce54861",
+    "assistant/src/ledgerops_assistant/usage.py": "b642251f87581fa4eefbc7e24100ceb456176bf500bff85149c6ab2df66066c0",
+    "assistant/src/ledgerops_assistant/workflow.py": "7658288aa5aeb298523688dcfb496b96ca4989047383c21408a60709f97bc917",
+    "assistant/scripts/evaluate_v12.py": "d23cbec10464e2c831ff8e9f9e2337a64c81402aeb27b4650a6299395931c83d",
+    "assistant/scripts/evaluate_v11.py": "7ffcdd13b79cc85c6a80c606af42b080eb6caeb075c8df5d20c1c9f4b246262d",
+    "assistant/scripts/evaluate_v3.py": "781b6689bdfa71f4ef8a1ad64ab417d91ce44f73f02acfeebdca83ccb3eee83f",
+    "assistant/scripts/evaluate_local.py": "4df7f0aedf1ecb9e5b2e21bc2c9b0d9b177902693983983cb89d651766b6e0d4",
+    "assistant/scripts/scope_dev.py": "0c8815ce1720ff3d2c979b199642fd79022973e7ad46e4402906ed59a22fccb8",
+    "assistant/pyproject.toml": "b6639e470b03519ddfcf90de2b301874b912d0b0b41c87df33833a248ec58d98",
+    "assistant/uv.lock": "ad7b7aa728fefcf03c444734ae8c9d9618543a13149223d17dd8df70ae57459c"
+  },
+  "corpus_file_sha256": {
+    "docs/internals/reservation-index.md": "a6a7f6f4927c249639d41ece03ab7729b9145408fb19835bde83ced2e0418af0",
+    "docs/AUTHENTICATION.md": "bad63ae4e9a617774d7f788b8924cfbd9cba4e3134699d95e3c4e6b9c6a2b03e",
+    "docs/internals/backup-restore.md": "3251fa78e175d8660c9507ec313de310eb1c6eac789adaa8ba03873168d88f53",
+    "docs/internals/evidence-exchange.md": "cf3a93fc76d005b8371e450bfcf18e059a10d7d7d6aebc37bec458a0b1683c14",
+    "docs/internals/export-and-verify.md": "70cb75cfa022665e63d512283105eaa80d7112f1b967ac0a9116f575ba67a025",
+    "docs/HTTP-SERVICE.md": "2f1271c0b4755851420265fc8a5ccf0dec11b0f090dfb7c3a273047a89f6ebc3",
+    "docs/internals/maintenance-capacity.md": "b6c13e4a90f9b5b910e943759f0986812a028787081453f49dd27a780b162629",
+    "docs/MAINTENANCE.md": "f5e74a9fd6d0cfbbaa9f02592a392344ce9153d19dc277899a16c01e7787ecdc",
+    "docs/OPERATOR-ACTIONS.md": "7d776f3f3eb2a79724b7c9cc2c3e4e497e41c7ecad01c18b97c879fbc41afc44",
+    "docs/PAYOUTS.md": "0cd994acd009f8b22184c2086496d64575cd8b7d966a9ea2710f26ec0e793cd6",
+    "docs/RECONCILIATION.md": "2a1319d69433ec1d74303a7351528b72ea0ee3b4331649ce57674d36f347fb7f",
+    "docs/internals/release-readiness.md": "572b7cec576fd80cb02ae7ff2017d09592b50eeb82ef17720ae82ed00b6a8be8",
+    "docs/internals/reversal.md": "fe988eb6c5350276b7ccd15e43295f2efa76382ce9cd8328663980cc61de3847",
+    "docs/internals/streaming-export-protocol.md": "3a16f6cf8a4d0005a35ff9ad61a59ddf787ce0850efade0dd49539cc9ed132bf",
+    "docs/internals/streaming-evidence.md": "def39a2a665b39da75d17c78869caf8448b302878db8cc0c7d05457dc215aa53",
+    "docs/internals/adr/0001-initialization.md": "c8e95ea822b08da705f5122f8f89de41ec8bb6cc3ae2a3b7a8ee321d5b74270b",
+    "docs/internals/adr/0002-ledger-foundation.md": "d4fb664b601f7f8f93a6ac013c620d4ff6496aa7602f52c78eb07ba7d93154b1",
+    "docs/internals/adr/0003-purchase-admission.md": "1a85c7c03c993ac198da2ed968b2aa86fbb60d551b413a2b8795e2d876d715cd",
+    "docs/internals/adr/0004-contention-and-recovery.md": "afe50cc7054201aa269534d7d3dbba373dcfeed4143b011ac558217804dffcfa",
+    "ops/linux/README.md": "8fa1e92cbd18561d71c944cfe853b5a1cdd311cefc87b58a4b3da1d6f30e7365"
+  },
+  "thresholds": {
+    "similarity": 0.5512,
+    "coverage_share": 0.597
+  },
+  "retained": {
+    "docs": 54,
+    "out_of_scope": 34
+  },
+  "retained_by_category": {
+    "rule": 17,
+    "concept": 18,
+    "procedure": 10,
+    "troubleshooting": 9,
+    "oos_industry": 12,
+    "oos_product": 14,
+    "oos_general": 8
+  },
+  "total": 88,
+  "documentation_groups": 43,
+  "author_declaration": "Separate source-only authors with the 20 source documents, their passages and section IDs. The second also saw earlier question text to avoid duplicates. Neither had the implementation, results or the conversation. Synthetic labels; no human annotation.",
+  "rounds": [
+    {
+      "questions_sha256": "4e0c20ad74e81a161c4ce8e0345d578123f9e53931735b5c070bdb77c13c8576",
+      "author_notes_sha256": "83173309121ae583641ac99227141f7bf5fd12c42f93e0195023f3e8b92cb2eb",
+      "audit_sha256": "987e713367d5c055ae1fffa9e2ade9d0a29bf22b45f24524e6781a159da8d57d",
+      "authored": {
+        "docs": 40,
+        "out_of_scope": 40
+      },
+      "kept": {
+        "docs": 15,
+        "out_of_scope": 34
+      },
+      "audit_checks": {
+        "questions_file_has_80_rows": true,
+        "routes_are_40_docs_and_40_out_of_scope": true,
+        "ids_unique": true,
+        "one_decision_per_row_in_file_order": true,
+        "removed_rows_have_code_and_kept_rows_have_null": true,
+        "all_relevant_sections_exist_in_sections_txt": true,
+        "all_evidence_sections_listed_in_relevant_sections": true,
+        "all_quotes_found_in_their_section_after_whitespace_normalization": true,
+        "every_key_fact_has_at_least_one_evidence_quote": true,
+        "all_source_chunks_exist_in_passages": true,
+        "out_of_scope_rows_have_no_sections_facts_or_evidence": true,
+        "all_20_source_files_read_in_full": true,
+        "all_457_historical_rows_compared": true,
+        "within_set_pairs_compared": true
+      },
+      "audit_limitations": [
+        "Static reading only: no retrieval system, model, generation or code under test was run, so answerability is judged by a human-style reading of the 20 sources, not by measured retrieval.",
+        "Quotes matched only after collapsing whitespace (line wraps); 25 evidence quotes span line breaks in the source text and none needed any other normalization.",
+        "Near-duplicate and out-of-scope judgements are semantic and involve judgement; borderline rows were kept unless the same intent was clear, per the conservative bar.",
+        "Removed rows carry only the first applicable code; historical_near_duplicate rows were also checked for the earlier codes and none clearly applied.",
+        "historical.jsonl holds 457 rows but only 377 distinct question texts (the v1 block repeats); only text and route were available, not historical answers or evidence.",
+        "Out-of-scope rows were checked for coverage in the sources only; external industry facts in those questions were not verified, and no network was used.",
+        "Only the listed inputs were read; the repository, earlier evidence and analysis directories and git history were not opened, and the author rationale fields were read but not relied on as evidence."
+      ]
+    },
+    {
+      "questions_sha256": "61ef6e087d946468083156aacccfa9d22a1f1c86913f681cfea66d502d40464b",
+      "author_notes_sha256": "1db476a25c7fb005757261f24cc9c69e1165345983a44bfefb2c6f7873965ca4",
+      "audit_sha256": "44f5ed968dd1058d586ea0be3bf4cdb82cf6ba71f1729d7d8258dffdbe5a0f04",
+      "authored": {
+        "docs": 40
+      },
+      "kept": {
+        "docs": 39
+      },
+      "audit_checks": {
+        "row_count_is_40": true,
+        "ids_v12_test_081_to_120_in_order": true,
+        "all_rows_expected_route_docs": true,
+        "relevant_sections_exist_in_sections_txt": true,
+        "group_listed_in_relevant_sections": true,
+        "source_chunk_exists_in_passages_and_belongs_to_group": true,
+        "every_key_fact_has_at_least_one_evidence_quote": true,
+        "every_evidence_section_listed_in_relevant_sections": true,
+        "every_relevant_section_cited_by_evidence": true,
+        "all_quotes_found_verbatim_in_cited_section_whitespace_normalized": true,
+        "all_quotes_found_in_raw_source_files": true,
+        "each_quote_occurs_only_in_its_cited_section": true,
+        "key_facts_manually_compared_with_quotes_and_context": true,
+        "all_20_source_files_read_for_other_sections_stating_required_facts": true,
+        "term_searches_across_all_170_passages_per_row": true,
+        "historical_2_all_506_rows_reviewed_for_near_duplicates": true,
+        "token_overlap_ranking_against_426_unique_historical_texts": true,
+        "within_set_duplicate_check": true,
+        "not_a_question_for_docs_check": true,
+        "answered_by_sources_not_applicable_no_out_of_scope_rows": true,
+        "input_files_not_modified": true
+      },
+      "audit_limitations": [
+        "Static text audit only: no retrieval system, model or code under test was run, so answerability by an actual assistant was not measured.",
+        "Quote checks are exact substring matches after whitespace normalization; whether a paraphrased key fact is explicitly supported was judged by reading the surrounding passage.",
+        "Near-duplicate judgments compare question intent only, because historical-2.jsonl holds question text and route but no key facts or sections; the token-overlap ranking was only a candidate aid.",
+        "Required-fact judgments for incomplete_relevant_sections are interpretive; generic restatements in a different context (the generic 202 sentence in the HTTP-SERVICE API section for row 090, and the restore-environment role list in backup-restore for row 085) were not treated as required, which a stricter reading could dispute.",
+        "Earlier audit outputs, the repository and other workspace paths were not opened, so this audit's bar could not be compared with the first round's decisions."
+      ]
+    }
+  ],
+  "audit": {
+    "kind": "Static source and text audit by a separate context; no retrieval or generation",
+    "removed_total": 32,
+    "removed_by_code": {
+      "historical_near_duplicate": 31,
+      "incomplete_relevant_sections": 1
+    },
+    "removed": [
+      {
+        "id": "v12-test-002",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same revocation-versus-in-flight-transaction race as blind-v2-013, with payout swapped for purchase."
+      },
+      {
+        "id": "v12-test-005",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v11-dev-011 (and v3-036, blind-v2-042): handling of a callback whose signature fails."
+      },
+      {
+        "id": "v12-test-006",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v3-031: console credentials live only in page memory and are cleared when the session is left."
+      },
+      {
+        "id": "v12-test-007",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as blind-v2-044 (and v3-037): Gunicorn per-request and graceful-shutdown budgets."
+      },
+      {
+        "id": "v12-test-009",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v11-test-005: a preview exiting 0 does not settle drift, the report fields must be inspected."
+      },
+      {
+        "id": "v12-test-010",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v11-test-013: migration 006 refusing reserved amounts without hold provenance."
+      },
+      {
+        "id": "v12-test-011",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Essentially identical to v1-016 (also v11-dev-015)."
+      },
+      {
+        "id": "v12-test-012",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v5-036 (and blind-v2-050): proposer self-approval via another token or client."
+      },
+      {
+        "id": "v12-test-013",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v3-026 (and v11-dev-019): a proposal covering 101 LOCAL_BLOCKER incidents."
+      },
+      {
+        "id": "v12-test-015",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v3-014: whether payout admission posts an outgoing journal."
+      },
+      {
+        "id": "v12-test-016",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v5-035 (and v1-001): timeouts or HTTP 500 cannot release the payout hold."
+      },
+      {
+        "id": "v12-test-018",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v3-004: projection repair does not automatically clear an existing LOCAL_BLOCKER."
+      },
+      {
+        "id": "v12-test-019",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Covered by v1-020, which asks the meaning of recon_cli match exit codes; this narrows it to exit 1."
+      },
+      {
+        "id": "v12-test-020",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v3-024 and blind-v2-049: when and how to release a leftover reader pin."
+      },
+      {
+        "id": "v12-test-021",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v5-039 (also v3-020, v11-dev-029): Warsaw business-day windows and DST length."
+      },
+      {
+        "id": "v12-test-022",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v11-test-043: normal sides of clearing versus customer and merchant accounts."
+      },
+      {
+        "id": "v12-test-025",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as blind-v2-007, which asks how many total attempts purchase admission makes on retryable SQLSTATEs."
+      },
+      {
+        "id": "v12-test-026",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Essentially identical to v1-004."
+      },
+      {
+        "id": "v12-test-029",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as blind-v2-058: what another machine needs to validate a selected exchange."
+      },
+      {
+        "id": "v12-test-030",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v11-test-006: when interrupted export staging directories may be removed."
+      },
+      {
+        "id": "v12-test-031",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v5-040 (also blind-v2-026, v11-test-035): large maintenance previews as reconciliation sources."
+      },
+      {
+        "id": "v12-test-032",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as the first ask of blind-v2-040: default refusal of readiness and writes is intentional."
+      },
+      {
+        "id": "v12-test-033",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as blind-v2-028: index-only migration after restoring an old backup."
+      },
+      {
+        "id": "v12-test-034",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as r4-040 and blind-v2-017: reversal while the original customer is disabled, then resubmission."
+      },
+      {
+        "id": "v12-test-035",
+        "expected_route": "docs",
+        "code": "historical_near_duplicate",
+        "reason": "Same outcome asked as v3-055: a second reversal ID after a successful reversal retains ALREADY_REVERSED."
+      },
+      {
+        "id": "v12-test-044",
+        "expected_route": "out_of_scope",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v5-021: PSD2 low-value exemption rules from strong customer authentication."
+      },
+      {
+        "id": "v12-test-048",
+        "expected_route": "out_of_scope",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as the AML-reporting ask of r4-025: when a suspicious-activity report must be filed."
+      },
+      {
+        "id": "v12-test-051",
+        "expected_route": "out_of_scope",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as r4-024 and v11-test-085: VAT treatment of payment processing fees in Poland."
+      },
+      {
+        "id": "v12-test-056",
+        "expected_route": "out_of_scope",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as r4-028: Elixir clearing-session times."
+      },
+      {
+        "id": "v12-test-059",
+        "expected_route": "out_of_scope",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v3-070: changing the investigation console language."
+      },
+      {
+        "id": "v12-test-072",
+        "expected_route": "out_of_scope",
+        "code": "historical_near_duplicate",
+        "reason": "Same intent as v3-069: loyalty points credited for purchases."
+      },
+      {
+        "id": "v12-test-102",
+        "expected_route": "docs",
+        "code": "incomplete_relevant_sections",
+        "reason": "AUTHENTICATION database-identities explicitly requires two further group roles to exist before migration 009, which a new database applying 006 onward also runs, but that section and fact are missing."
+      }
+    ],
+    "policy": "Removed rows are excluded, never rewritten."
+  }
+}

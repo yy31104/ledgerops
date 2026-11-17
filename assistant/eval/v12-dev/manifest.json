@@ -1,0 +1,17 @@
+{
+  "description": "Operations-v4 development questions for v1.2: the 63 v1.1 development records plus all 85 v1.1 holdout records, which were scored once and are now development data. Earlier files are unchanged.",
+  "questions_sha256": "5f0a56ce089316e55435324efcab2f9eae43b5c6cfced3833d2032113a93ae21",
+  "v11_development_sha256": "51122343e2b4d9b5528e249900a994daaff523fde87a41bdb7aae8bb413b9fcf",
+  "v11_holdout_sha256": "475462a31a6a2579ea06796a5557b39f3bc3c2730d83f39f5f23db6a9351307e",
+  "total": 148,
+  "docs": 110,
+  "by_route": {
+    "docs": 110,
+    "action": 22,
+    "out_of_scope": 12,
+    "live_state": 4
+  },
+  "changes": "Holdout rows keep their IDs, wording, facts and labels; only split becomes dev. v1-007 receives label version 2; see LABEL-CHANGES.md.",
+  "labels": "Synthetic; human annotation is not available.",
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229"
+}

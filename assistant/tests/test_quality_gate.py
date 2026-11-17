@@ -82,3 +82,20 @@ def test_gate_rejects_recalibrated_scope_threshold():
     new["scope_gate"]["threshold"] = 0.56
     with pytest.raises(ValueError, match="scope threshold"):
         check_regression(new, old)
+
+
+def test_gate_rejects_a_new_coverage_threshold_or_more_documentation_refusals():
+    old = baseline()
+    old["scope_gate"] = {
+        "threshold": 0.55,
+        "coverage_threshold": 0.6,
+        "coverage": {"docs_refused": 0},
+    }
+    changed = deepcopy(old)
+    changed["scope_gate"]["coverage_threshold"] = 0.5
+    with pytest.raises(ValueError, match="coverage threshold"):
+        check_regression(changed, old)
+    refused = deepcopy(old)
+    refused["scope_gate"]["coverage"]["docs_refused"] = 1
+    with pytest.raises(ValueError, match="documentation refusals"):
+        check_regression(refused, old)

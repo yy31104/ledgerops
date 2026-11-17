@@ -12,25 +12,28 @@ The panel above uses synthetic data and fake generation.
 
 | Check | Sample | Result |
 |---|---|---|
-| Retrieval on operations-v4 | 55 fresh documentation questions | Hybrid Recall@5 **0.8639**, 95% CI **[0.7972, 0.9213]** |
-| Routing and refusal, fake generation | 30 fresh non-documentation questions | 27/30 correct routes and refusals; 3/10 unsupported topics still pass |
-| Answer completeness, subscription model | Original 32 development questions | New answers ungraded; human review pending |
+| Scope gate, new frozen check | 34 unsupported and 54 documentation questions | **10/34** unsupported pass (v1.1 gate: 19/34); **0/54** documentation refused |
+| Retrieval, same check | 54 new documentation questions | Hybrid Recall@5 **0.9167**, 95% CI [0.8426, 0.9737] |
+| Development set (tuned on) | 12 unsupported and 110 documentation questions | 0/12 pass (v1.1: 4/12); 0/110 refused; hybrid Recall@5 0.8495 |
+| Input tokens, subscription adapter | 24 controlled calls; 32 v1.1 answers | Codex framing and tools were 79% of v1.1 input, passages 18%; isolated calls use 7,801 |
+| Answer completeness, subscription model | Original 32 development questions | Ungraded; human review pending |
 
-Hybrid remains the default: its paired Recall@5 gain over vector is 0.0421
-(95% section-cluster CI [0.0089, 0.0898]). It does not beat vector on every metric,
-and the higher point estimate for the older k=60 hybrid is not detectably different.
-Both vector and hybrid remain available through
-`LEDGEROPS_ASSISTANT_RETRIEVAL=vector` or `hybrid`.
+The new coverage check refuses questions that name an acronym the docs never use
+or whose specific terms are mostly absent. It still lets through unsupported
+product features described in the docs' own words. Hybrid stays the default from
+the v1.1 comparison; on the new check its Recall@5 gain over vector is +0.0432,
+95% CI [-0.0096, 0.1000], not a detectable difference. Both remain available
+through `LEDGEROPS_ASSISTANT_RETRIEVAL=vector` or `hybrid`.
 
-The earlier completeness rating was AI-rated; human review is pending. The new
-32-answer [worksheet](https://github.com/yy31104/ledgerops/releases/download/v1.1.0/human-review.csv)
-has blank judgement columns.
+The 32-answer [worksheet](https://github.com/yy31104/ledgerops/releases/download/v1.1.0/human-review.csv)
+has blank judgement columns; human review is pending. Judge v1-007 against its
+[new label version](eval/v12-dev/LABEL-CHANGES.md).
 
 These synthetic questions do not represent real operator traffic. Retrieval
 coverage is not answer accuracy, and fake generation does not test a real model's
 response to injection. See the [current evaluation](docs/RETRIEVAL-QUALITY-V2.md)
-for failures, intervals, source coverage and token measurements. Earlier scores
-belong to their recorded corpus snapshots; see [evaluation history](docs/HISTORY.md).
+for failures, intervals and the token split. Earlier results, including v1.1, are
+in the [evaluation history](docs/HISTORY.md).
 
 ## Try it locally
 
@@ -82,7 +85,7 @@ uv run --locked ruff format --check .
 uv run --locked python -m pytest
 uv run --locked python -m pytest -m postgres
 uv run --locked python scripts/evaluate_local.py --split dev \
-  --baseline eval/baselines/v1.1-dev.json --output .cache/report.json
+  --baseline eval/baselines/v1.2-dev.json --output .cache/report.json
 npm --prefix web ci
 npm --prefix web run build
 npm --prefix web test

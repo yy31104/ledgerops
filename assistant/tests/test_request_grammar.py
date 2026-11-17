@@ -142,9 +142,9 @@ def test_explicit_explanations_and_scenario_questions_remain_docs(question):
 
 
 def test_all_existing_development_documentation_questions_keep_their_route():
-    # Inspect only the existing development split. No holdout is opened or scored.
+    # Inspect only the development split, which now includes the consumed v1.1 holdout.
     rows = [json.loads(line) for line in DEFAULT_QUESTIONS.read_text().splitlines()]
     docs = [row for row in rows if row["split"] == "dev" and row["expected_route"] == DOCS]
-    assert len(docs) == 55
+    assert len(docs) == 110
     assert all(classify(row["question"]) == DOCS for row in docs)
     assert not any(unsupported_topic(row["question"]) for row in docs)

@@ -10,9 +10,10 @@ from psycopg import sql
 from ledgerops_assistant.answer import ScopeGate
 from ledgerops_assistant.context import ContextRetriever
 from ledgerops_assistant.corpus import load_corpus
+from ledgerops_assistant.coverage import DocumentCoverage
 from ledgerops_assistant.drafts import setup as setup_drafts
 from ledgerops_assistant.embeddings import BgeSmallEmbedder, HashingEmbedder
-from ledgerops_assistant.policy import scope_threshold
+from ledgerops_assistant.policy import coverage_threshold, scope_threshold
 from ledgerops_assistant.postgres import PostgresRetriever, corpus_key, index_corpus, setup
 from ledgerops_assistant.retrieval import HybridRetriever
 from ledgerops_assistant.settings import Settings
@@ -45,8 +46,12 @@ def retriever_for(settings):
         )
     retriever.revision = found[0]
     context = ContextRetriever(retriever, corpus)
+    coverage = DocumentCoverage(corpus, coverage_threshold())
+    # Cosine scores are calibrated for the real encoder only; coverage needs no embeddings.
     if settings.embedder == "bge":
-        context.scope_gate = ScopeGate(vector, scope_threshold())
+        context.scope_gate = ScopeGate(vector, scope_threshold(), coverage=coverage)
+    else:
+        context.scope_gate = ScopeGate(None, None, coverage=coverage)
     return context
 
 

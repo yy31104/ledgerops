@@ -1,0 +1,27 @@
+{
+  "archive_bytes": 120126,
+  "archive_sha256": "ba8c1a0e3a11d1abd8459544445421078ad2e81eb708eb56e7fec9ce4190ec7d",
+  "asset": "ledgerops-evidence-v1.2.0.tar.gz",
+  "files": {
+    "assistant/eval/results/v1.2-development.json": {
+      "bytes": 407465,
+      "sha256": "5c5d412f79a54cd75389c5f18d1763ed545a859d23de11d658657610e429694d"
+    },
+    "assistant/eval/results/v1.2-holdout.json": {
+      "bytes": 251540,
+      "sha256": "37868875d52f453ea84bb05364ac72a8af384fc2afca5618bfc51de91bde01af"
+    },
+    "assistant/eval/results/v1.2-scope-development.json": {
+      "bytes": 330270,
+      "sha256": "3e5ecf63206c1e41e6154e5ead231c55153cfc621b16cab6c21201b01ee21e7c"
+    },
+    "assistant/eval/results/v1.2-token-calls.json": {
+      "bytes": 54147,
+      "sha256": "baa966601d29a617936a6993236cff0af9551e595d01f5a6dd2fc0f08bc329fa"
+    }
+  },
+  "release_tag": "v1.2.0",
+  "schema_version": 1,
+  "source_commit": "8c1912a37295e9d720771d90bd9da3c7fd1ec47c",
+  "url": "https://github.com/yy31104/ledgerops/releases/download/v1.2.0/ledgerops-evidence-v1.2.0.tar.gz"
+}

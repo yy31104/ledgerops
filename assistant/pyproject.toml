@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ledgerops-assistant"
-version = "1.1.0"
+version = "1.2.0"
 description = "Operator assistant for LedgerOps: cited answers from the docs, no write access"
 requires-python = ">=3.12,<3.13"
 dependencies = [
@@ -30,6 +30,8 @@ openai = ["openai>=1.80,<3"]
 subscription = [
     "openai-codex>=0.163.0",
 ]
+# Local token counts for scripts/token_attribution.py only.
+measurement = ["tiktoken>=0.12,<1"]
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "ruff==0.16.9"]
