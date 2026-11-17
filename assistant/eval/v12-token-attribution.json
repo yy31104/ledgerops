@@ -1,0 +1,438 @@
+{
+  "schema_version": 1,
+  "model": "gpt-6.1-sol",
+  "tokenizer": "o200k_base (tiktoken)",
+  "question": "v1-001",
+  "started_at": "2026-11-17T16:55:06.161434+00:00",
+  "calls": {
+    "planned": 24,
+    "recorded": 24,
+    "single_model_request": 24,
+    "turn_items": [
+      "{\"AgentMessageThreadItem\": 1, \"FunctionCallOutputThreadItem\": 1, \"ReasoningThreadItem\": 1}",
+      "{\"AgentMessageThreadItem\": 1, \"FunctionCallOutputThreadItem\": 1}"
+    ]
+  },
+  "input_tokens_by_condition": {
+    "empty (v1.1 adapter)": [
+      17239,
+      9440,
+      9442,
+      9442
+    ],
+    "empty (isolated)": [
+      4731,
+      4731,
+      4731,
+      4731
+    ],
+    "full (v1.1 adapter)": [
+      12512,
+      12512,
+      20305,
+      12510
+    ],
+    "full (isolated)": [
+      7801,
+      7801,
+      7801,
+      7801
+    ],
+    "passages-0 (isolated)": [
+      4739,
+      4739
+    ],
+    "passages-3 (isolated)": [
+      5775,
+      5775
+    ],
+    "passages-6 (isolated)": [
+      6396,
+      6396
+    ],
+    "double-instructions (isolated)": [
+      8134,
+      8134
+    ]
+  },
+  "context_regression_isolated": {
+    "intercept": 4739.0,
+    "slope": 1.0,
+    "max_abs_residual": 0.0,
+    "x": "local o200k_base tokens of the supplied passages",
+    "y": "reported input tokens"
+  },
+  "instructions": {
+    "local_tokens": 333,
+    "measured_by_doubling": 333
+  },
+  "isolated_fixed_framing": {
+    "intercept": 4739.0,
+    "our_instructions_schema_framing_question": 464,
+    "codex_added_input_rendered": 629,
+    "tool_definitions_and_other_framing": 3646.0
+  },
+  "codex_added_input": {
+    "v1.1 adapter": [
+      {
+        "section": "skills_instructions",
+        "role": "developer",
+        "tokens": 1441
+      },
+      {
+        "section": "permissions",
+        "role": "developer",
+        "tokens": 64
+      },
+      {
+        "section": "collaboration_mode",
+        "role": "developer",
+        "tokens": 200
+      },
+      {
+        "section": "recommended_plugins",
+        "role": "developer",
+        "tokens": 261
+      },
+      {
+        "section": "multi_agent_role",
+        "role": "developer",
+        "tokens": 530
+      },
+      {
+        "section": "multi_agent_mode",
+        "role": "developer",
+        "tokens": 99
+      },
+      {
+        "section": "environment_context",
+        "role": "user",
+        "tokens": 170
+      }
+    ],
+    "isolated": [
+      {
+        "section": "multi_agent_role",
+        "role": "developer",
+        "tokens": 530
+      },
+      {
+        "section": "multi_agent_mode",
+        "role": "developer",
+        "tokens": 99
+      }
+    ]
+  },
+  "empty_evidence_contrast": {
+    "v1.1 adapter": [
+      17239,
+      9440,
+      9442,
+      9442
+    ],
+    "isolated": [
+      4731,
+      4731,
+      4731,
+      4731
+    ]
+  },
+  "v11_answers": {
+    "per_answer": [
+      {
+        "id": "v1-001",
+        "reported_input": 20219,
+        "instructions_and_schema": 450,
+        "question": 8,
+        "retrieved_context": 3068,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13928
+      },
+      {
+        "id": "v1-002",
+        "reported_input": 12460,
+        "instructions_and_schema": 450,
+        "question": 17,
+        "retrieved_context": 3003,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6225
+      },
+      {
+        "id": "v1-003",
+        "reported_input": 20220,
+        "instructions_and_schema": 450,
+        "question": 11,
+        "retrieved_context": 3068,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13926
+      },
+      {
+        "id": "v1-004",
+        "reported_input": 20285,
+        "instructions_and_schema": 450,
+        "question": 12,
+        "retrieved_context": 3130,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13928
+      },
+      {
+        "id": "v1-005",
+        "reported_input": 12554,
+        "instructions_and_schema": 450,
+        "question": 8,
+        "retrieved_context": 3108,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6223
+      },
+      {
+        "id": "v1-006",
+        "reported_input": 20315,
+        "instructions_and_schema": 450,
+        "question": 13,
+        "retrieved_context": 3163,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13924
+      },
+      {
+        "id": "v1-007",
+        "reported_input": 20353,
+        "instructions_and_schema": 450,
+        "question": 23,
+        "retrieved_context": 3191,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13924
+      },
+      {
+        "id": "v1-008",
+        "reported_input": 12632,
+        "instructions_and_schema": 450,
+        "question": 17,
+        "retrieved_context": 3179,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6221
+      },
+      {
+        "id": "v1-009",
+        "reported_input": 20130,
+        "instructions_and_schema": 450,
+        "question": 15,
+        "retrieved_context": 2974,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13926
+      },
+      {
+        "id": "v1-010",
+        "reported_input": 20136,
+        "instructions_and_schema": 450,
+        "question": 12,
+        "retrieved_context": 2981,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13928
+      },
+      {
+        "id": "v1-011",
+        "reported_input": 12496,
+        "instructions_and_schema": 450,
+        "question": 14,
+        "retrieved_context": 3048,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6219
+      },
+      {
+        "id": "v1-012",
+        "reported_input": 20055,
+        "instructions_and_schema": 450,
+        "question": 13,
+        "retrieved_context": 2899,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13928
+      },
+      {
+        "id": "v1-013",
+        "reported_input": 12580,
+        "instructions_and_schema": 450,
+        "question": 12,
+        "retrieved_context": 3130,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6223
+      },
+      {
+        "id": "v1-014",
+        "reported_input": 20142,
+        "instructions_and_schema": 450,
+        "question": 17,
+        "retrieved_context": 2982,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13928
+      },
+      {
+        "id": "v1-015",
+        "reported_input": 20005,
+        "instructions_and_schema": 450,
+        "question": 11,
+        "retrieved_context": 2849,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13930
+      },
+      {
+        "id": "v1-016",
+        "reported_input": 12486,
+        "instructions_and_schema": 450,
+        "question": 13,
+        "retrieved_context": 3035,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6223
+      },
+      {
+        "id": "v1-017",
+        "reported_input": 20048,
+        "instructions_and_schema": 450,
+        "question": 10,
+        "retrieved_context": 2893,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13930
+      },
+      {
+        "id": "v1-018",
+        "reported_input": 12498,
+        "instructions_and_schema": 450,
+        "question": 10,
+        "retrieved_context": 3052,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6221
+      },
+      {
+        "id": "v1-019",
+        "reported_input": 12564,
+        "instructions_and_schema": 450,
+        "question": 19,
+        "retrieved_context": 3113,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6217
+      },
+      {
+        "id": "v1-020",
+        "reported_input": 12517,
+        "instructions_and_schema": 450,
+        "question": 10,
+        "retrieved_context": 3071,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6221
+      },
+      {
+        "id": "v1-021",
+        "reported_input": 20031,
+        "instructions_and_schema": 450,
+        "question": 14,
+        "retrieved_context": 2872,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13930
+      },
+      {
+        "id": "v1-022",
+        "reported_input": 20207,
+        "instructions_and_schema": 450,
+        "question": 10,
+        "retrieved_context": 3052,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13930
+      },
+      {
+        "id": "v1-023",
+        "reported_input": 12547,
+        "instructions_and_schema": 450,
+        "question": 14,
+        "retrieved_context": 3099,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6219
+      },
+      {
+        "id": "v1-024",
+        "reported_input": 20237,
+        "instructions_and_schema": 450,
+        "question": 9,
+        "retrieved_context": 3085,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13928
+      },
+      {
+        "id": "v1-025",
+        "reported_input": 20286,
+        "instructions_and_schema": 450,
+        "question": 9,
+        "retrieved_context": 3132,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13930
+      },
+      {
+        "id": "v1-026",
+        "reported_input": 20177,
+        "instructions_and_schema": 450,
+        "question": 9,
+        "retrieved_context": 3027,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13926
+      },
+      {
+        "id": "v1-027",
+        "reported_input": 12446,
+        "instructions_and_schema": 450,
+        "question": 13,
+        "retrieved_context": 2995,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6223
+      },
+      {
+        "id": "v1-028",
+        "reported_input": 12357,
+        "instructions_and_schema": 450,
+        "question": 9,
+        "retrieved_context": 2914,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6219
+      },
+      {
+        "id": "v1-029",
+        "reported_input": 12591,
+        "instructions_and_schema": 450,
+        "question": 18,
+        "retrieved_context": 3137,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6221
+      },
+      {
+        "id": "v1-030",
+        "reported_input": 20295,
+        "instructions_and_schema": 450,
+        "question": 8,
+        "retrieved_context": 3142,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 13930
+      },
+      {
+        "id": "v1-031",
+        "reported_input": 12458,
+        "instructions_and_schema": 450,
+        "question": 11,
+        "retrieved_context": 3007,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6225
+      },
+      {
+        "id": "v1-032",
+        "reported_input": 12541,
+        "instructions_and_schema": 450,
+        "question": 15,
+        "retrieved_context": 3088,
+        "codex_added_input": 2765,
+        "tool_definitions_and_other_framing": 6223
+      }
+    ],
+    "tool_definitions_and_other_framing": {
+      "min": 6217,
+      "median": 13924.0,
+      "max": 13930
+    },
+    "note": "Codex-added input is rendered with today's local configuration; the v1.1 calls ran on 2026-11-16 with the same adapter settings."
+  }
+}

@@ -36,6 +36,7 @@ def test_adapter_passes_schema_but_not_api_key_to_worker(monkeypatch):
     assert "OPENAI_BASE_URL" not in seen["env"] and seen["start_new_session"] is True
     assert seen["request"]["schema"] == ANSWER_SCHEMA
     assert seen["request"]["model"] == "gpt-6.1-sol"
+    assert seen["request"]["isolated"] is True
 
 
 @pytest.mark.parametrize("account_type", ["chatgpt", "apiKey"])
@@ -94,12 +95,33 @@ def test_sdk_worker_is_ephemeral_and_denies_escalation(monkeypatch, capsys, acco
         "features.unified_exec=false",
         "mcp_servers={}",
         "apps._default.enabled=false",
+        # Without these, Codex adds the local user's skills, plugins and tools.
+        "skills.include_instructions=false",
+        "include_collaboration_mode_instructions=false",
+        "include_permissions_instructions=false",
+        "include_environment_context=false",
+        "features.plugins=false",
+        "features.apps=false",
+        "features.multi_agent=false",
+        "features.image_generation=false",
+        "features.computer_use=false",
+        "features.browser_use=false",
+        "features.goals=false",
+        "features.tool_suggest=false",
+        "features.view_image=false",
     }
     assert seen["ephemeral"] and seen["approval_mode"] == "never"
     assert seen["model"] == "gpt-6.1-sol"
     assert seen["run"]["effort"] == "low"
     assert seen["sandbox"] == "read-only" and seen["run"]["output_schema"] == ANSWER_SCHEMA
-    assert json.loads(capsys.readouterr().out)["usage"]["billing"] == "chatgpt_plan"
+    usage = json.loads(capsys.readouterr().out)["usage"]
+    assert usage["billing"] == "chatgpt_plan" and usage["isolated"] is True
+    assert set(usage["last_request"]) == {
+        "input_tokens",
+        "output_tokens",
+        "cached_input_tokens",
+        "reasoning_output_tokens",
+    }
 
 
 def test_subscription_deadline_kills_the_worker_process_group(monkeypatch):

@@ -30,6 +30,8 @@ openai = ["openai>=1.80,<3"]
 subscription = [
     "openai-codex>=0.163.0",
 ]
+# Local token counts for scripts/token_attribution.py only.
+measurement = ["tiktoken>=0.12,<1"]
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "ruff==0.16.9"]
