@@ -1,0 +1,27 @@
+{
+  "study": "operations-v4-v1.2-scope",
+  "purpose": "Blind check of the v1.2 scope gate: unsupported questions that still pass, and documentation questions that are wrongly refused.",
+  "population": {
+    "round_1": "40 documentation and 40 out-of-scope questions (16 oos_industry, 16 oos_product, 8 oos_general) from a source-only author.",
+    "round_1_audit": "Static audit kept 15 documentation and 34 out-of-scope rows; all 31 removals were near-duplicates of earlier questions.",
+    "round_2": "Because 15 documentation controls are too few, a second source-only author wrote 40 more documentation questions. It also saw earlier question text (no implementation or results) so it could avoid duplicates. The same audit rules apply.",
+    "retained": "Final retained counts and every removal are recorded in manifest.json; removed rows are never rewritten."
+  },
+  "authoring": "Separate contexts with only the 20 source documents, their passages and section IDs wrote the questions; the second author also saw earlier question text to avoid duplicates. Neither had the implementation, results or this conversation.",
+  "audit": "A second separate context with the sources, the new questions and earlier question text (no implementation or results) removed rows that the sources answer, unsupported or incompletely labelled facts, action or live-state requests, and near-duplicates of earlier questions.",
+  "primary": "v1.2 out-of-scope pass rate: share of retained out-of-scope questions that reach generation, with a 95% Wilson interval.",
+  "false_refusal": "v1.2 documentation refusal rate on retained documentation questions, with a 95% Wilson interval. The v1.2 gate should refuse no more documentation questions than the v1.1 gate on the same questions; report both counts and IDs either way.",
+  "comparison": "The released v1.1 gate (routing.py at the v1.1.0 merge, cosine 0.5512) scored on the same questions.",
+  "secondary": [
+    "pass counts by out-of-scope kind",
+    "first refusal stage for each refused question",
+    "route accuracy",
+    "Recall@5, MRR@10, nDCG@5, Hit@1, Hit@5 for FTS, pgvector, hybrid k=10 and legacy hybrid k=60 on documentation questions, with question and section-cluster bootstrap intervals (10,000 resamples, seed 20261117)",
+    "hybrid expanded-context section coverage and exact quote coverage"
+  ],
+  "configuration": "Coverage threshold 0.597 and cosine threshold 0.5512 come from development data and are bound by development-baseline.json. Generation is fake. No threshold, rule, stop word, label or question changes after the run.",
+  "attempt": "One exclusive run.json claim before model or database setup. Any later failure consumes the attempt and keeps partial output. No retry, overwrite or rerun on these questions.",
+  "launch": "The runner requires the exact pushed freeze commit and a clean tracked tree, and checks all frozen input and implementation bytes first.",
+  "labels": "Synthetic. Not human-labelled. No claim about real operator traffic or real-model behavior.",
+  "after_the_run": "These questions become development data. Failures stay in the published record."
+}
