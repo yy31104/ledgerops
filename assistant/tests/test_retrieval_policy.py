@@ -52,6 +52,8 @@ def test_runtime_builds_the_selected_read_only_retriever(
     monkeypatch.setattr(runtime, "PostgresRetriever", retriever)
     context = runtime.retriever_for(Settings(database_url="synthetic-assistant", retrieval=method))
     assert called == expected
+    # Coverage needs no embeddings, so even the stand-in encoder gets it.
+    assert context.scope_gate.coverage is not None
     assert context.revision == "source-revision"
     assert context.search("question", 5) == []
 
@@ -60,10 +62,12 @@ def test_release_default_and_threshold_match_the_current_development_baseline():
     import json
     from pathlib import Path
 
-    from ledgerops_assistant.policy import scope_threshold
+    from ledgerops_assistant.policy import coverage_threshold, scope_threshold
 
     baseline = json.loads(
-        (Path(__file__).resolve().parents[1] / "eval/baselines/v1.1-dev.json").read_text()
+        (Path(__file__).resolve().parents[1] / "eval/baselines/v1.2-dev.json").read_text()
     )
     assert scope_threshold() == baseline["scope_gate"]["threshold"]
+    assert coverage_threshold() == baseline["scope_gate"]["coverage_threshold"]
+    assert baseline["scope_gate"]["coverage"]["docs_refused"] == 0
     assert default_retrieval() == baseline["context"]["retrieval_method"]

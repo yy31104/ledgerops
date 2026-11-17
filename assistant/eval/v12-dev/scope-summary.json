@@ -1,0 +1,103 @@
+{
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+  "inputs_sha256": {
+    "assistant/eval/v12-dev/questions.jsonl": "5f0a56ce089316e55435324efcab2f9eae43b5c6cfced3833d2032113a93ae21",
+    "assistant/eval/v1-draft/questions.jsonl": "1f1ac04b54f87a8e4524a12375d2fca4654b530785a7f7f2d84bed681f3cc94c",
+    "assistant/eval/refusal-v4/questions.jsonl": "8646143ef32440b4e8c44cf969eaeaf831e382af947a6f8d4fcef6227c65cacb",
+    "assistant/eval/refusal-v5/questions.jsonl": "7e49ad50c34150be9264fdc14d69a2a666509536c821d42eafe59cbe4669d970",
+    "assistant/eval/v3-holdout/questions.jsonl": "a0ad5762c7b49d952ede287a22f4bceceb6daafc7da1950c446ce9c8c6a960ef",
+    "assistant/eval/v2-holdout/questions.jsonl": "653bf40dcdc1117bd42c165710b028b27622359a8c546129db7d901626396677"
+  },
+  "coverage_threshold": 0.597,
+  "similarity_threshold": 0.5512,
+  "calibration": {
+    "threshold": 0.597,
+    "documentation_max_share": 0.573,
+    "next_out_of_scope_share": 0.621,
+    "documentation_with_unknown_codes": 0,
+    "rule": "midpoint between the largest documentation share and the next out-of-scope share; no development documentation question is refused"
+  },
+  "pool": {
+    "rows": 318,
+    "by_route": {
+      "docs": 193,
+      "live_state": 18,
+      "action": 70,
+      "out_of_scope": 37
+    },
+    "by_source": {
+      "v12-dev": 148,
+      "v1-draft": 18,
+      "refusal-v4": 40,
+      "refusal-v5": 40,
+      "v3-holdout": 47,
+      "v2-holdout": 25
+    }
+  },
+  "current_development": {
+    "v1.1": {
+      "out_of_scope": 12,
+      "out_of_scope_passed": 4,
+      "out_of_scope_pass_rate": 0.3333,
+      "documentation": 110,
+      "documentation_refused": 0,
+      "documentation_refusal_rate": 0.0,
+      "passed_ids": [
+        "v1-038",
+        "v11-test-084",
+        "v11-test-086",
+        "v11-test-088"
+      ],
+      "refused_ids": []
+    },
+    "v1.2": {
+      "out_of_scope": 12,
+      "out_of_scope_passed": 0,
+      "out_of_scope_pass_rate": 0.0,
+      "documentation": 110,
+      "documentation_refused": 0,
+      "documentation_refusal_rate": 0.0,
+      "passed_ids": [],
+      "refused_ids": []
+    }
+  },
+  "all_development": {
+    "v1.1": {
+      "out_of_scope": 37,
+      "out_of_scope_passed": 9,
+      "out_of_scope_pass_rate": 0.2432,
+      "documentation": 193,
+      "documentation_refused": 0,
+      "documentation_refusal_rate": 0.0,
+      "passed_ids": [
+        "v1-038",
+        "v11-test-084",
+        "v11-test-086",
+        "v11-test-088",
+        "v1-053",
+        "v1-054",
+        "r4-028",
+        "v3-068",
+        "v3-070"
+      ],
+      "refused_ids": []
+    },
+    "v1.2": {
+      "out_of_scope": 37,
+      "out_of_scope_passed": 2,
+      "out_of_scope_pass_rate": 0.0541,
+      "documentation": 193,
+      "documentation_refused": 0,
+      "documentation_refusal_rate": 0.0,
+      "passed_ids": [
+        "v1-053",
+        "v3-068"
+      ],
+      "refused_ids": []
+    }
+  },
+  "route_accuracy": {
+    "v11": 0.9591,
+    "v12": 0.9811
+  }
+}

@@ -39,5 +39,12 @@ def check_regression(report: dict, baseline: dict) -> None:
             )
 
     if "scope_gate" in baseline:
-        if report.get("scope_gate", {}).get("threshold") != baseline["scope_gate"]["threshold"]:
-            raise ValueError("scope threshold changed; review a new baseline")
+        for name in ("threshold", "coverage_threshold"):
+            if name in baseline["scope_gate"] and (
+                report.get("scope_gate", {}).get(name) != baseline["scope_gate"][name]
+            ):
+                raise ValueError(f"scope {name.replace('_', ' ')} changed; review a new baseline")
+        old_refusals = baseline["scope_gate"].get("coverage", {}).get("docs_refused")
+        new_refusals = report.get("scope_gate", {}).get("coverage", {}).get("docs_refused")
+        if old_refusals is not None and (new_refusals is None or new_refusals > old_refusals):
+            raise ValueError(f"documentation refusals increased: {new_refusals} > {old_refusals}")

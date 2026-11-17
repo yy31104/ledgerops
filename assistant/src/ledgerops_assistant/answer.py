@@ -2,8 +2,9 @@
 
     question
       -> routing.classify: action? live state? (no model involved)
+      -> ScopeGate coverage: does the documentation mention what is asked?
       -> retriever.search: top passages
-      -> ScopeGate: is the best passage close enough to be about this at all?
+      -> ScopeGate similarity: is the best passage close enough to be about this at all?
       -> provider.draft: answer text + cited passage IDs
       -> grounding check: keep only citations of passages actually given;
          no valid citation means no answer
@@ -65,23 +66,31 @@ class Answer:
 
 
 class ScopeGate:
-    """Refuse when even the best passage is far from the question.
+    """Refuse documentation questions the indexed sources cannot answer.
 
-    The score comes from one retriever whose scores mean the same thing for every
-    question (cosine similarity for the vector retriever). The threshold is chosen on
-    the dev split of the evaluation set and checked on the test split.
+    Two independent checks. ``coverage`` asks whether the corpus uses the question's
+    own terms (see ``coverage.DocumentCoverage``); it needs no embeddings. The
+    similarity check refuses when even the best passage is far from the question,
+    using one retriever whose scores mean the same thing for every question (cosine
+    similarity for the vector retriever). Both thresholds come from development data.
     """
 
-    def __init__(self, retriever: Retriever, threshold: float):
-        self.retriever, self.threshold = retriever, threshold
+    def __init__(self, retriever: Retriever | None, threshold: float | None, *, coverage=None):
+        if (retriever is None) != (threshold is None):
+            raise ValueError("a similarity gate needs both a retriever and a threshold")
+        self.retriever, self.threshold, self.coverage = retriever, threshold, coverage
+
+    def covers(self, question: str) -> bool:
+        return self.coverage is None or self.coverage.covers(question)
 
     def top_score(self, question: str) -> float:
         hits = self.retriever.search(question, 1)
         return hits[0].score if hits else 0.0
 
-    def admits(self, question: str) -> tuple[bool, float]:
-        score = self.top_score(question)
-        return score >= self.threshold, score
+    def admits(self, question: str) -> tuple[bool, float | None]:
+        score = self.top_score(question) if self.retriever is not None else None
+        similar = score is None or score >= self.threshold
+        return self.covers(question) and similar, score
 
 
 def _citation(chunk: Chunk, revision: str) -> Citation:
@@ -104,6 +113,8 @@ def answer(
         return Answer(question, routing.OUT_OF_SCOPE, NOT_IN_DOCS_TEXT, True, "not_in_docs")
     if route == routing.LIVE_STATE:
         return Answer(question, route, LIVE_STATE_TEXT, True, "needs_live_state")
+    if gate is not None and not gate.covers(question):
+        return Answer(question, routing.OUT_OF_SCOPE, NOT_IN_DOCS_TEXT, True, "not_in_docs")
 
     passages = retrieve_passages(retriever, question, top_n)
     retrieved = [chunk.chunk_id for chunk in passages]

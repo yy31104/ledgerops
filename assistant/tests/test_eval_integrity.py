@@ -13,6 +13,8 @@ from ledgerops_assistant.evaluation import (
 from ledgerops_assistant.providers.base import parse_draft
 
 V4_QUESTIONS = DEFAULT_QUESTIONS.parents[1] / "v4-dev/questions.jsonl"
+V11_QUESTIONS = DEFAULT_QUESTIONS.parents[1] / "v11-dev/questions.jsonl"
+V11_HOLDOUT = DEFAULT_QUESTIONS.parents[1] / "v11-holdout/questions.jsonl"
 
 HISTORICAL_QUESTIONS = DEFAULT_QUESTIONS.parents[1] / "v1-draft/questions.jsonl"
 
@@ -131,14 +133,41 @@ def test_operations_dev_labels_are_bound_without_importing_historical_holdout(co
 
 
 def test_expanded_development_keeps_historical_rows_and_source_labels(corpus):
-    manifest = json.loads(DEFAULT_QUESTIONS.with_name("manifest.json").read_text())
-    assert (
-        hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest() == manifest["questions_sha256"]
-    )
-    rows = [json.loads(line) for line in DEFAULT_QUESTIONS.read_text().splitlines()]
+    manifest = json.loads(V11_QUESTIONS.with_name("manifest.json").read_text())
+    assert hashlib.sha256(V11_QUESTIONS.read_bytes()).hexdigest() == manifest["questions_sha256"]
+    rows = [json.loads(line) for line in V11_QUESTIONS.read_text().splitlines()]
     original = [json.loads(line) for line in V4_QUESTIONS.read_text().splitlines()]
     assert rows[: len(original)] == original
     assert len(rows) == manifest["total"] == 63
     assert sum(row["expected_route"] == "docs" for row in rows) == manifest["docs"] == 55
     assert all(row["split"] == "dev" for row in rows)
+    assert all(set(row["relevant_sections"]) <= corpus.section_ids() for row in rows)
+
+
+def test_v12_development_adds_the_consumed_holdout_and_one_versioned_label(corpus):
+    manifest = json.loads(DEFAULT_QUESTIONS.with_name("manifest.json").read_text())
+    assert (
+        hashlib.sha256(DEFAULT_QUESTIONS.read_bytes()).hexdigest() == manifest["questions_sha256"]
+    )
+    for path, key in (
+        (V11_QUESTIONS, "v11_development_sha256"),
+        (V11_HOLDOUT, "v11_holdout_sha256"),
+    ):
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == manifest[key]
+    rows = [json.loads(line) for line in DEFAULT_QUESTIONS.read_text().splitlines()]
+    earlier = [json.loads(line) for line in V11_QUESTIONS.read_text().splitlines()]
+    earlier += [
+        {**json.loads(line), "split": "dev"} for line in V11_HOLDOUT.read_text().splitlines()
+    ]
+    assert len(rows) == len(earlier) == manifest["total"] == 148
+    for row, old in zip(rows, earlier, strict=True):
+        if row["id"] == "v1-007":
+            changed = {"key_facts", "label_version", "source_gap"}
+            assert {k: v for k, v in row.items() if k not in changed} == {
+                k: v for k, v in old.items() if k not in changed
+            }
+            assert row["key_facts"][0] == old["key_facts"][0]
+        else:
+            assert row == old
+    assert sum(row["expected_route"] == "docs" for row in rows) == manifest["docs"] == 110
     assert all(set(row["relevant_sections"]) <= corpus.section_ids() for row in rows)

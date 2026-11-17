@@ -10,8 +10,9 @@ invalidate them. Retrieval is scored on the ranked list of distinct sections.
 - MRR@10: 1 / rank of the first relevant section (0 if not in the top 10), averaged.
 
 Only questions the docs should answer are scored for retrieval. Routing and the scope
-gate are scored on every question. The gate threshold is chosen on the dev split only;
-the test split shows whether that choice holds on questions it was not chosen on.
+gate are scored on every question. Gate thresholds come from development data only:
+the release coverage and pinned-encoder similarity thresholds are fixed in
+``retrieval_policy.json``; a stand-in encoder is calibrated on the dev split.
 """
 
 import argparse
@@ -33,7 +34,8 @@ from ledgerops_assistant import routing
 from ledgerops_assistant.answer import ScopeGate, answer
 from ledgerops_assistant.context import CONTEXT_POLICY, MAX_CONTEXT_BYTES, ContextRetriever
 from ledgerops_assistant.corpus import CHUNKER_VERSION, CORPUS_VERSION, load_corpus
-from ledgerops_assistant.policy import default_retrieval
+from ledgerops_assistant.coverage import DocumentCoverage
+from ledgerops_assistant.policy import coverage_threshold, default_retrieval, scope_threshold
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import (
     BM25Retriever,
@@ -43,7 +45,7 @@ from ledgerops_assistant.retrieval import (
 )
 
 ASSISTANT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_QUESTIONS = ASSISTANT_ROOT / "eval" / "v11-dev" / "questions.jsonl"
+DEFAULT_QUESTIONS = ASSISTANT_ROOT / "eval" / "v12-dev" / "questions.jsonl"
 CACHE_DIR = ASSISTANT_ROOT / ".cache" / "index"
 
 
@@ -171,8 +173,11 @@ def paired_bootstrap(base: dict, other: dict, metric: str, *, resamples=2000, se
     }
 
 
-def calibrate_gate(gate_retriever, questions: list[dict]) -> dict:
-    """Pick the cosine threshold that best separates docs from out-of-scope on dev."""
+def calibrate_gate(gate_retriever, questions: list[dict], coverage=None) -> dict:
+    """Pick the cosine threshold that best separates docs from out-of-scope on dev.
+
+    Questions already refused before similarity scoring do not influence the threshold.
+    """
     scored = []
     for q in questions:
         if q["expected_route"] not in (routing.DOCS, routing.OUT_OF_SCOPE):
@@ -180,6 +185,8 @@ def calibrate_gate(gate_retriever, questions: list[dict]) -> dict:
         if routing.classify(q["question"]) != routing.DOCS or routing.unsupported_topic(
             q["question"]
         ):
+            continue
+        if coverage is not None and not coverage.covers(q["question"]):
             continue
         hits = gate_retriever.search(q["question"], 1)
         scored.append((q, hits[0].score if hits else 0.0))
@@ -204,6 +211,31 @@ def calibrate_gate(gate_retriever, questions: list[dict]) -> dict:
                 if q["expected_route"] == routing.OUT_OF_SCOPE
             },
         },
+    }
+
+
+def coverage_report(coverage, questions: list[dict]) -> dict:
+    """Coverage decisions for documentation-routed questions, by expected route."""
+    rows = {}
+    for q in questions:
+        if routing.classify(q["question"]) != routing.DOCS:
+            continue
+        measured = coverage.measure(q["question"])
+        rows[q["id"]] = {
+            "expected_route": q["expected_route"],
+            "covered": coverage.covers(q["question"]),
+            "uncovered_share": measured.uncovered_share,
+            "unknown_codes": list(measured.unknown_codes),
+        }
+    return {
+        "threshold": coverage.threshold,
+        "docs_refused": sum(
+            not r["covered"] for r in rows.values() if r["expected_route"] == routing.DOCS
+        ),
+        "out_of_scope_refused": sum(
+            not r["covered"] for r in rows.values() if r["expected_route"] == routing.OUT_OF_SCOPE
+        ),
+        "per_question": rows,
     }
 
 
@@ -335,8 +367,17 @@ def run(args) -> dict:
         }
         for b, o in pairs
     }
-    gate_report = calibrate_gate(vector, [q for q in all_questions if q["split"] == "dev"])
-    gate = ScopeGate(vector, gate_report["threshold"])
+    dev_questions = [q for q in all_questions if q["split"] == "dev"]
+    coverage = DocumentCoverage(corpus, coverage_threshold())
+    gate_report = calibrate_gate(vector, dev_questions, coverage)
+    gate_report["calibrated_threshold"] = gate_report["threshold"]
+    if args.embedder == "bge":
+        # The pinned encoder's similarity threshold is a fixed release value.
+        gate_report["threshold"] = scope_threshold()
+        gate_report["threshold_source"] = "retrieval_policy.json"
+    gate_report["coverage"] = coverage_report(coverage, dev_questions)
+    gate_report["coverage_threshold"] = coverage.threshold
+    gate = ScopeGate(vector, gate_report["threshold"], coverage=coverage)
     expanded = getattr(args, "context", "expanded") == "expanded"
     selected = vector if getattr(args, "retrieval", default_retrieval()) == "vector" else hybrid
     answer_retriever = ContextRetriever(selected, corpus) if expanded else selected

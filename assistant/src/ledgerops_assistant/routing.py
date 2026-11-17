@@ -6,8 +6,9 @@ Three kinds of question are not documentation questions:
   write access, so it refuses whatever the model would say;
 - questions about the current state of one specific object ("was payout X paid?"):
   the docs describe rules, not facts, so the answer has to come from the live API;
-- questions the docs do not cover: detected after retrieval, from how weak the best
-  match is (see ``answer.ScopeGate``).
+- questions the docs do not cover: a few named external capabilities below, then
+  the question's terms against the indexed corpus and the strength of the best match
+  (see ``answer.ScopeGate`` and ``coverage``).
 
 Assistant-directed requests use a closed grammar: explanation and read requests
 are permitted; other directives fail closed, including unfamiliar operation verbs.
