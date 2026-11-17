@@ -1,8 +1,11 @@
 # Evaluation evidence
 
-Current development labels: `v11-dev/questions.jsonl` (55 documentation questions
-and eight routing controls); CI baseline: `baselines/v1.1-dev.json`. Only development retrieval metrics gate CI. New
-homepage edits do not alter the explicit operational corpus.
+Current development labels: `v12-dev/questions.jsonl` (148 rows: the v1.1
+development set plus the consumed v1.1 holdout, 110 documentation questions);
+CI baseline: `baselines/v1.2-dev.json`. Only development metrics gate CI, including
+documentation refusals by the scope gate. `v12-dev/LABEL-CHANGES.md` records the
+one label change (v1-007, version 2). New homepage edits do not alter the explicit
+operational corpus.
 
 Historical v1/v2/v3 question sets, manifests, protocols and one-run controls remain
 versioned. Their source paths and code hashes identify historical snapshots, not
@@ -54,3 +57,16 @@ and the once-generated 32-answer subscription record. The separate
 judgement columns. No human score is available. `mutation-evidence-v1.1.0.tar.gz`
 contains pristine controls, exact patches, failed test IDs and checksum evidence.
 All raw records stay in release assets; tracked summaries do not replace them.
+
+## v1.2 scope study and token measurement
+
+`v12-dev/scope-summary.json` compares the v1.1 and v1.2 scope gates on every
+earlier question set, now development data. `v12-holdout/` holds the new frozen
+questions, protocol, manifest (with the static audit and every removal), the
+one-run record and an aggregate summary. `v12-token-attribution.json` summarizes
+the controlled subscription calls and the per-answer split of the v1.1 answers.
+
+The [v1.2.0 release](https://github.com/yy31104/ledgerops/releases/tag/v1.2.0)
+contains `ledgerops-evidence-v1.2.0.tar.gz`, pinned by `v12-evidence-manifest.json`:
+the development report, per-question scope decisions, the holdout record and the
+raw token calls. Restore it with the command above and that manifest.

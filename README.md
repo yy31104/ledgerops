@@ -98,9 +98,10 @@ contract; an application retry loop alone cannot provide it. The provider must
 support the documented idempotency, lookup and closure semantics.
 
 For documentation questions, the assistant defaults to PostgreSQL full-text plus
-pgvector, fused with RRF. A new frozen comparison supports that choice for section
+pgvector, fused with RRF. A frozen comparison supports that choice for section
 Recall@5; pure vector search remains selectable and has higher exact-quote coverage.
-The [evaluation report](assistant/docs/RETRIEVAL-QUALITY-V2.md) shows both results.
+Before retrieval, a coverage check refuses questions whose terms the corpus never
+uses. The [evaluation report](assistant/docs/RETRIEVAL-QUALITY-V2.md) shows the results.
 The assistant provides bounded source context to a model.
 References are checked against the supplied passages. LangGraph persists draft
 review checkpoints in PostgreSQL and rechecks identity and evidence on resume.

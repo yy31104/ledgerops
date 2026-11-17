@@ -99,5 +99,9 @@
   "route_accuracy": {
     "v11": 0.9591,
     "v12": 0.9811
+  },
+  "raw_record": {
+    "path": "assistant/eval/results/v1.2-scope-development.json",
+    "sha256": "3e5ecf63206c1e41e6154e5ead231c55153cfc621b16cab6c21201b01ee21e7c"
   }
 }

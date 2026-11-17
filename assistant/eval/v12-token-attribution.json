@@ -434,5 +434,9 @@
       "max": 13930
     },
     "note": "Codex-added input is rendered with today's local configuration; the v1.1 calls ran on 2026-11-16 with the same adapter settings."
+  },
+  "raw_record": {
+    "path": "assistant/eval/results/v1.2-token-calls.json",
+    "sha256": "baa966601d29a617936a6993236cff0af9551e595d01f5a6dd2fc0f08bc329fa"
   }
 }
