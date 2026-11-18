@@ -4,5 +4,7 @@
   "coverage_threshold": 0.597,
   "basis": "Preregistered operations-v4 holdout: hybrid-minus-vector Recall@5 section-cluster 95% interval excludes zero on the positive side. Synthetic labels; this method choice is not a second validation.",
   "coverage_basis": "Calibrated on all earlier question sets used as development data: midpoint between the largest documentation uncovered share and the next out-of-scope share. No development documentation question is refused.",
-  "study": "eval/v11-holdout/manifest.json"
+  "study": "eval/v11-holdout/manifest.json",
+  "support_threshold": 0.050153920000000005,
+  "support_basis": "Single-span passage support calibrated on the v1.2 development set and consumed v1.2 holdout."
 }

@@ -1,0 +1,115 @@
+{
+  "corpus": "operations-v4",
+  "reference": "7e637477223983917257fbb96d9c85ffcace979e",
+  "development_hashes": {
+    "assistant/eval/v12-dev/questions.jsonl": "5f0a56ce089316e55435324efcab2f9eae43b5c6cfced3833d2032113a93ae21",
+    "assistant/eval/v12-holdout/questions.jsonl": "c3f74fe3a8de31a132e5c32a2fdb661b4ef9d1d71c2751099c6a074d8bea0a65"
+  },
+  "support_threshold": 0.050153920000000005,
+  "reference_rates": {
+    "out_of_scope_passed": {
+      "count": 10,
+      "n": 46,
+      "rate": 0.21739130434782608,
+      "wilson_ci95": [
+        0.1226,
+        0.3557
+      ]
+    },
+    "documentation_refused": {
+      "count": 0,
+      "n": 164,
+      "rate": 0.0,
+      "wilson_ci95": [
+        0.0,
+        0.0229
+      ]
+    }
+  },
+  "candidate_rates": {
+    "out_of_scope_passed": {
+      "count": 0,
+      "n": 46,
+      "rate": 0.0,
+      "wilson_ci95": [
+        0.0,
+        0.0771
+      ]
+    },
+    "documentation_refused": {
+      "count": 8,
+      "n": 164,
+      "rate": 0.04878048780487805,
+      "wilson_ci95": [
+        0.0249,
+        0.0933
+      ]
+    }
+  },
+  "neighboring_development_cutoffs": [
+    {
+      "threshold": 0.049112220000000005,
+      "out_of_scope_passed": {
+        "count": 1,
+        "n": 46,
+        "rate": 0.021739130434782608,
+        "wilson_ci95": [
+          0.0038,
+          0.1134
+        ]
+      },
+      "documentation_refused": {
+        "count": 8,
+        "n": 164,
+        "rate": 0.04878048780487805,
+        "wilson_ci95": [
+          0.0249,
+          0.0933
+        ]
+      }
+    },
+    {
+      "threshold": 0.050153920000000005,
+      "out_of_scope_passed": {
+        "count": 0,
+        "n": 46,
+        "rate": 0.0,
+        "wilson_ci95": [
+          0.0,
+          0.0771
+        ]
+      },
+      "documentation_refused": {
+        "count": 8,
+        "n": 164,
+        "rate": 0.04878048780487805,
+        "wilson_ci95": [
+          0.0249,
+          0.0933
+        ]
+      }
+    },
+    {
+      "threshold": 0.05952487000000001,
+      "out_of_scope_passed": {
+        "count": 0,
+        "n": 46,
+        "rate": 0.0,
+        "wilson_ci95": [
+          0.0,
+          0.0771
+        ]
+      },
+      "documentation_refused": {
+        "count": 9,
+        "n": 164,
+        "rate": 0.054878048780487805,
+        "wilson_ci95": [
+          0.0291,
+          0.101
+        ]
+      }
+    }
+  ],
+  "raw_report_sha256": "3ec502969867fb0be630ca989bff06694391f96f9b25dcc4456938da6451aa24"
+}

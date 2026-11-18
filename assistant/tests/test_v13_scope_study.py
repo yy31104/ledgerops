@@ -57,3 +57,13 @@ def test_paired_recall_preserves_outcomes_inside_source_groups():
     assert report["clusters"] == 2
     assert report["difference"] == 0.125
     assert report["section_cluster_ci95"] == [0.125, 0.125]
+
+
+def test_release_support_cutoff_is_bound_to_a_development_record():
+    from ledgerops_assistant.policy import support_threshold
+
+    record = json.loads((STUDY / "development.json").read_text())
+    assert support_threshold() == record["support_threshold"]
+    root = Path(__file__).resolve().parents[2]
+    for name, digest in record["development_hashes"].items():
+        assert hashlib.sha256((root / name).read_bytes()).hexdigest() == digest
