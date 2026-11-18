@@ -148,7 +148,7 @@ class VetoEvidence:
         numeric = bool(_QUANTITY_QUESTION.search(inquiry))
         pack_words = set()
         body_matches, span_matches = [], []
-        common, rare_window, quantity_match, heading, coherence = 0., 0., 0., 0., 0.
+        common, rare_window, quantity_match, heading, coherence = 0.0, 0.0, 0.0, 0.0, 0.0
         for chunk in passages:
             profile = self.profiles.get(chunk)
             if profile is None:
@@ -157,11 +157,11 @@ class VetoEvidence:
             body_matches.append(_share(weights, profile.body))
             common = max(common, _share(breadth, profile.body))
             window_peak = max(
-                (_share(rare_weights, terms) for terms in profile.windows), default=0.
+                (_share(rare_weights, terms) for terms in profile.windows), default=0.0
             )
             rare_window = max(rare_window, window_peak)
             heading = max(heading, _share(weights, profile.heading))
-            span_peak = 0.
+            span_peak = 0.0
             for terms, contains_quantity in profile.spans:
                 match = _share(weights, terms)
                 span_peak = max(span_peak, match)
@@ -180,8 +180,8 @@ class VetoEvidence:
             _share(rare_weights, self.source_frequency),
             rare_window,
             quantity_match,
-            max(body_matches, default=0.) / max(0.000001, _share(weights, pack_words)),
-            max(span_matches, default=0.) - sum(span_matches) / max(len(span_matches), 1),
+            max(body_matches, default=0.0) / max(0.000001, _share(weights, pack_words)),
+            max(span_matches, default=0.0) - sum(span_matches) / max(len(span_matches), 1),
             heading,
             _share(uniform, self.source_frequency),
             coherence,
