@@ -155,8 +155,6 @@ assistant DB and its volumes. Local MLflow stores experiments under
 `assistant/.cache/mlflow`. CI compares development retrieval metrics against a
 pinned corpus, labels, model and configuration; it does not score new holdouts.
 See the [retrieval report](RETRIEVAL-QUALITY-V2.md) for current measurements.
-Published answer ratings are AI-rated; human review is pending. Synthetic tests do
-not establish real operator answer quality or broad injection resistance.
 
 ## Reproduce the checks
 

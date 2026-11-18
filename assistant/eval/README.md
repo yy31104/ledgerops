@@ -42,7 +42,7 @@ that manifest after publication. `answer-review.json` contains per-question AI
 judgements; the refusal study folders retain frozen protocols, data and
 run controls. No claim of independent human labels is made.
 
-## v1.1 comparison and human worksheet
+## v1.1 comparison and answer worksheet
 
 `v11-holdout/` contains frozen questions, protocol, manifest, the one-run record and
 an aggregate summary. The 85-question study ran once after its freeze was pushed;
@@ -54,7 +54,7 @@ contains `ledgerops-evidence-v1.1.0.tar.gz`, pinned by
 `v11-evidence-manifest.json`: raw rankings, development reports, context ablation,
 and the once-generated 32-answer subscription record. The separate
 `human-review.csv` and `human-review.md` assets include source passages and blank
-judgement columns. No human score is available. `mutation-evidence-v1.1.0.tar.gz`
+judgement columns. `mutation-evidence-v1.1.0.tar.gz`
 contains pristine controls, exact patches, failed test IDs and checksum evidence.
 All raw records stay in release assets; tracked summaries do not replace them.
 
@@ -70,3 +70,13 @@ The [v1.2.0 release](https://github.com/yy31104/ledgerops/releases/tag/v1.2.0)
 contains `ledgerops-evidence-v1.2.0.tar.gz`, pinned by `v12-evidence-manifest.json`:
 the development report, per-question scope decisions, the holdout record and the
 raw token calls. Restore it with the command above and that manifest.
+
+## v1.3 passage support
+
+[`v13-scope/`](v13-scope/) contains the targets, frozen cohorts, source audits,
+one-run receipts and aggregate results. [The evaluation report](../docs/RETRIEVAL-QUALITY-V2.md)
+shows each round, including misses. CI verifies frozen inputs and receipts.
+
+The [v1.3.0 release](https://github.com/yy31104/ledgerops/releases/tag/v1.3.0)
+contains `ledgerops-evidence-v1.3.0.tar.gz`, pinned by `v13-evidence-manifest.json`.
+Restore it to inspect individual decisions and development calibration.

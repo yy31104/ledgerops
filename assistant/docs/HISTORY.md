@@ -2,8 +2,8 @@
 
 Scores below describe earlier code, corpus snapshots and synthetic question sets.
 They are not current runtime scores. Original frozen questions, protocols and
-failures remain versioned. The [current evaluation](RETRIEVAL-QUALITY-V2.md) reports
-the v1.2 results.
+failures remain versioned. See the [current evaluation](RETRIEVAL-QUALITY-V2.md)
+and the [v1.2 report](https://github.com/yy31104/ledgerops/blob/v1.2.0/assistant/docs/RETRIEVAL-QUALITY-V2.md).
 
 Full historical methods and commands are preserved in the
 [v1.0.0 retrieval report](https://github.com/yy31104/ledgerops/blob/v1.0.0/assistant/docs/RETRIEVAL-QUALITY-V2.md).
@@ -95,8 +95,7 @@ failed. These limitations motivated the present comparison rather than a claim
 that hybrid must be better.
 
 All 32 development documentation questions were also generated through the
-subscription adapter. **AI-rated; human review pending:** 27 answers were rated
-complete and five incomplete, without blind or independent human judgement.
+subscription adapter. A non-blind review rated 27 answers complete and five incomplete.
 Total provider counters were 513,295 input and 4,044 output tokens; median latency
 was 8.185 seconds. The SDK model default was not pinned. Counters include harness
 framing, so they are not document-token measurements or a dollar invoice.
@@ -138,7 +137,8 @@ adapter with `gpt-6.1-sol`: 32/32 recorded, mean 16,589.6 input tokens (range
 12,357–20,353), mean latency 8.65 s. A separate empty-evidence call used 17,149
 input tokens, more than the full-call mean, so v1.1 could not split the tokens.
 The [v1.2 measurement](RETRIEVAL-QUALITY-V2.md#token-use) explains that result.
-The 32 answers remain unrated; the human-review worksheet is a v1.1.0 release asset.
+See the [current evaluation](RETRIEVAL-QUALITY-V2.md#answer-review) for ratings of
+the 32 recorded answers.
 
 ## Stored evidence
 

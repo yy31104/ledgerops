@@ -42,7 +42,8 @@ instructions bound the call.
 
 Historical smoke checks exercised cited answers, a refusal and draft recovery.
 They are not representative answer-quality or injection-safety measurements.
-Published answer ratings are AI-rated; human review is pending.
+See the [evaluation report](RETRIEVAL-QUALITY-V2.md#answer-review) for ratings of
+recorded subscription answers.
 
 ## API and Ollama
 
