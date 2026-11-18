@@ -18,8 +18,11 @@ from dataclasses import asdict, dataclass, field
 from ledgerops_assistant import routing
 from ledgerops_assistant.context import retrieve_passages
 from ledgerops_assistant.corpus import Chunk
+from ledgerops_assistant.coverage import DocumentCoverage
+from ledgerops_assistant.policy import coverage_threshold, support_threshold
 from ledgerops_assistant.providers.base import Provider
 from ledgerops_assistant.retrieval import Retriever
+from ledgerops_assistant.support import PassageSupport
 
 LIVE_STATE_TEXT = (
     "The docs describe rules, not the current state of a payout or account. Read it from "
@@ -68,17 +71,50 @@ class Answer:
 class ScopeGate:
     """Refuse documentation questions the indexed sources cannot answer.
 
-    Two independent checks. ``coverage`` asks whether the corpus uses the question's
+    ``coverage`` asks whether the corpus uses the question's
     own terms (see ``coverage.DocumentCoverage``); it needs no embeddings. The
     similarity check refuses when even the best passage is far from the question,
     using one retriever whose scores mean the same thing for every question (cosine
-    similarity for the vector retriever). Both thresholds come from development data.
+    similarity for the vector retriever). The final check looks for local support
+    in the passages that fit the request. Thresholds come from development data.
     """
 
-    def __init__(self, retriever: Retriever | None, threshold: float | None, *, coverage=None):
+    def __init__(
+        self,
+        retriever: Retriever | None,
+        threshold: float | None,
+        *,
+        coverage=None,
+        support: PassageSupport | None = None,
+        support_threshold: float | None = None,
+    ):
         if (retriever is None) != (threshold is None):
             raise ValueError("a similarity gate needs both a retriever and a threshold")
+        if (support is None) != (support_threshold is None) or (
+            support_threshold is not None and not 0 <= support_threshold <= 1
+        ):
+            raise ValueError("a passage gate needs a support scorer and a threshold in [0, 1]")
         self.retriever, self.threshold, self.coverage = retriever, threshold, coverage
+        self.support, self.support_threshold = support, support_threshold
+
+    @classmethod
+    def for_corpus(cls, retriever, threshold, corpus):
+        """Build the configured documentation gate for the service or CLI."""
+        coverage = DocumentCoverage(corpus, coverage_threshold())
+        cutoff = support_threshold()
+        return cls(
+            retriever,
+            threshold,
+            coverage=coverage,
+            support=PassageSupport(coverage) if cutoff is not None else None,
+            support_threshold=cutoff,
+        )
+
+    def supports(self, question: str, passages: list[Chunk]) -> bool:
+        return self.support is None or (
+            bool(passages)
+            and self.support.measure(question, passages).score >= self.support_threshold
+        )
 
     def covers(self, question: str) -> bool:
         return self.coverage is None or self.coverage.covers(question)
@@ -133,6 +169,9 @@ def answer(
             )
     if not passages:
         return Answer(question, routing.OUT_OF_SCOPE, NOT_IN_DOCS_TEXT, True, "not_in_docs")
+
+    if gate is not None and not gate.supports(question, passages):
+        return Answer(question, routing.OUT_OF_SCOPE, UNGROUNDED_TEXT, True, "not_in_docs")
 
     draft = provider.draft(question, passages)
     given = {chunk.chunk_id: chunk for chunk in passages}

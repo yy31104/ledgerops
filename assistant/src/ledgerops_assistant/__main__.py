@@ -12,9 +12,7 @@ import sys
 from ledgerops_assistant.answer import ScopeGate, answer
 from ledgerops_assistant.context import ContextRetriever
 from ledgerops_assistant.corpus import load_corpus
-from ledgerops_assistant.coverage import DocumentCoverage
 from ledgerops_assistant.evaluation import CACHE_DIR
-from ledgerops_assistant.policy import coverage_threshold
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import BM25Retriever, HybridRetriever, VectorRetriever
 
@@ -63,7 +61,7 @@ def main(argv=None) -> int:
         args.question,
         ContextRetriever(retriever[args.method], corpus),
         get_provider(args.provider),
-        gate=ScopeGate(vector, args.gate, coverage=DocumentCoverage(corpus, coverage_threshold())),
+        gate=ScopeGate.for_corpus(vector, args.gate, corpus),
         revision=corpus.revision,
     )
     if args.json:
