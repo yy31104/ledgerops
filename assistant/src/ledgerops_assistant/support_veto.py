@@ -163,7 +163,6 @@ CONDITIONAL_WITNESS_WEIGHTS = RelationFeatures(
 )
 
 
-
 def conditional_veto_score(features: VetoFeatures, inquiry: str) -> float:
     if has_fronted_or_coordinated_inquiry(inquiry):
         return relation_score(

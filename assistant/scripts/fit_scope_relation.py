@@ -189,8 +189,8 @@ def fit(questions_files, score_files, *, mode="compact-relation"):
     if conditional:
         cutoff = selected["threshold"]
         admitted_witnesses = [
-            (raw, focused)
-            for eligible, score, (raw, focused) in zip(admitted, values, winning_witnesses, strict=True)
+            witness
+            for eligible, score, witness in zip(admitted, values, winning_witnesses, strict=True)
             if eligible and score >= cutoff
         ]
         report.update(
