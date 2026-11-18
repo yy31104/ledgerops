@@ -238,19 +238,60 @@ def calibration(output):
     print(json.dumps({key: report[key] for key in ("chosen", "reference")}, indent=2))
 
 
+def frozen_code_paths():
+    assistant = ROOT / "assistant"
+    return {
+        path.relative_to(ROOT).as_posix()
+        for path in [
+            *(assistant / "src/ledgerops_assistant").rglob("*.py"),
+            *(assistant / "src/ledgerops_assistant").rglob("*.sql"),
+            assistant / "src/ledgerops_assistant/retrieval_policy.json",
+            assistant / "scripts/evaluate_v13.py",
+            assistant / "scripts/evaluate_v11.py",
+            assistant / "scripts/evaluate_v12.py",
+            assistant / "scripts/evaluate_local.py",
+            assistant / "pyproject.toml",
+            assistant / "uv.lock",
+        ]
+    }
+
+
+def verify_frozen_checkout(folder, expected_commit):
+    head = git("rev-parse", "HEAD").decode().strip()
+    if head != expected_commit or git("status", "--porcelain"):
+        raise ValueError("run from the exact pushed freeze commit with a clean tracked tree")
+    manifest_path = (folder / "manifest.json").relative_to(ROOT)
+    if git("show", f"{head}:{manifest_path}") != (ROOT / manifest_path).read_bytes():
+        raise ValueError("manifest differs from the frozen commit")
+    manifest = verify(folder)
+    required = {
+        PROTOCOL.relative_to(ROOT).as_posix(),
+        (folder / "questions.jsonl").relative_to(ROOT).as_posix(),
+        (STUDY / "development.json").relative_to(ROOT).as_posix(),
+    }
+    inputs = set(manifest["inputs_sha256"])
+    code = set(manifest["code_sha256"])
+    if not required <= inputs or not frozen_code_paths() <= code:
+        raise ValueError("manifest omits required study or executable inputs")
+    for name in sorted(inputs | code):
+        if git("show", f"{head}:{name}") != (ROOT / name).read_bytes():
+            raise ValueError(f"frozen input differs from the commit: {name}")
+    ref = git("rev-parse", "--symbolic-full-name", "@{upstream}").decode().strip()
+    prefix = "refs/remotes/origin/"
+    if not ref.startswith(prefix):
+        raise ValueError("freeze branch must track origin")
+    ref = "refs/heads/" + ref.removeprefix(prefix)
+    pushed = git("ls-remote", "--exit-code", "origin", ref).decode().split()
+    if pushed != [head, ref]:
+        raise ValueError("origin does not point to the requested freeze commit")
+    return manifest, head
+
+
 def run(trial, output, expected_commit):
     if not 1 <= trial <= 3:
         raise ValueError("round must be from 1 to 3")
     folder = STUDY / f"round-{trial}"
-    manifest = verify(folder)
-    head = git("rev-parse", "HEAD").decode().strip()
-    remote = git("rev-parse", "@{upstream}").decode().strip()
-    if (
-        head != expected_commit
-        or head != remote
-        or git("status", "--porcelain", "--untracked-files=no")
-    ):
-        raise ValueError("run from the exact pushed freeze commit with a clean tracked tree")
+    manifest, head = verify_frozen_checkout(folder, expected_commit)
     config = json.loads(
         (ROOT / "assistant/src/ledgerops_assistant/retrieval_policy.json").read_text()
     )
@@ -275,6 +316,7 @@ def run(trial, output, expected_commit):
         "status": "running",
         "round": trial,
         "freeze_commit": head,
+        "verified_origin_head": head,
         "manifest_sha256": sha(folder / "manifest.json"),
         "started_at": datetime.now(UTC).isoformat(),
     }
