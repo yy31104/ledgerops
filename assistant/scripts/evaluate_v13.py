@@ -19,7 +19,10 @@ STUDY = EVAL / "v13-scope"
 PROTOCOL = STUDY / "protocol.json"
 CONTINUATION = STUDY / "CONTINUATION.md"
 QUESTION_ROUTING = STUDY / "QUESTION-ROUTING.md"
-VETO_FIT = STUDY / "compact-veto-fit.json"
+FIT_RECORDS = {
+    "compact-veto": STUDY / "compact-veto-fit.json",
+    "conditional-veto": STUDY / "conditional-veto-fit.json",
+}
 REFERENCE = "7e637477223983917257fbb96d9c85ffcace979e"
 TARGET_COMMIT = "5e316fdb401399708ba54a1ebb5645aec60777ae"
 CONTINUATION_COMMIT = "2943f57fbe61b2b3226e5a222c899fc5ee605db1"
@@ -281,7 +284,7 @@ def frozen_code_paths():
             *(assistant / "src/ledgerops_assistant").rglob("*.sql"),
             assistant / "src/ledgerops_assistant/retrieval_policy.json",
             assistant / "scripts/evaluate_v13.py",
-            assistant / "scripts/fit_scope_relation.py",
+            *(assistant / "scripts").glob("fit_scope_*.py"),
             assistant / "scripts/evaluate_v11.py",
             assistant / "scripts/evaluate_v12.py",
             assistant / "scripts/evaluate_local.py",
@@ -312,8 +315,8 @@ def verify_frozen_checkout(folder, expected_commit):
         required.add(CONTINUATION.relative_to(ROOT).as_posix())
     if manifest["round"] >= QUESTION_ROUTING_ROUND:
         required.add(QUESTION_ROUTING.relative_to(ROOT).as_posix())
-    if manifest.get("support_mode") == "compact-veto":
-        required.add(VETO_FIT.relative_to(ROOT).as_posix())
+    if fit_record := FIT_RECORDS.get(manifest.get("support_mode")):
+        required.add(fit_record.relative_to(ROOT).as_posix())
     if not required <= inputs or not frozen_code_paths() <= code:
         raise ValueError("manifest omits required study or executable inputs")
     for name in sorted(inputs | code):
@@ -369,7 +372,8 @@ def run(trial, output, expected_commit):
         or development.get("support_mode", "single-span") != mode
     ):
         raise ValueError("release settings do not match the frozen candidate")
-    if mode == "compact-veto" and development["fit_report_sha256"] != sha(VETO_FIT):
+    fit_record = FIT_RECORDS.get(mode)
+    if fit_record and development["fit_report_sha256"] != sha(fit_record):
         raise ValueError("development cutoff does not match the frozen fit record")
     questions = [json.loads(line) for line in (folder / "questions.jsonl").read_text().splitlines()]
     counts = Counter(q["expected_route"] for q in questions)
@@ -447,7 +451,14 @@ def run(trial, output, expected_commit):
             json.dumps(
                 {
                     k: report[k]
-                    for k in ("reference", "candidate", "recall", "targets_met", "passed")
+                    for k in (
+                        "reference",
+                        "before_support",
+                        "candidate",
+                        "recall",
+                        "targets_met",
+                        "passed",
+                    )
                 },
                 indent=2,
             )
