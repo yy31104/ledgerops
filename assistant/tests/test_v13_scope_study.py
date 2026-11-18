@@ -1,5 +1,6 @@
 import hashlib
 import json
+import math
 from pathlib import Path
 
 from scripts.evaluate_v13 import (
@@ -39,7 +40,7 @@ def test_calibration_prefers_scope_reduction_within_documentation_constraint():
         {"id": "y", "expected_route": "out_of_scope", "reference_admitted": False, "score": 0.9},
     ]
     selected, curve = select_threshold(docs + outside)
-    assert selected["threshold"] == 0.8
+    assert selected["threshold"] == math.nextafter(0.6, math.inf)
     assert selected["documentation_refused"]["count"] == 1
     assert selected["out_of_scope_passed"]["count"] == 0
     assert curve[0]["out_of_scope_passed"]["count"] == 1

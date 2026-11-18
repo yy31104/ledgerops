@@ -65,8 +65,9 @@ def rates(rows, key, *, details=True):
 
 def select_threshold(rows):
     scores = {row["score"] for row in rows if row["reference_admitted"]}
-    # These cutoffs represent every distinct admission pattern and both endpoints.
-    cutoffs = sorted({0.0, *scores, math.nextafter(max(scores, default=0.0), math.inf)})
+    # Crossing an observed score changes admission. Use the lowest float in
+    # each interval to implement the registered more-permissive tie break.
+    cutoffs = [0.0, *sorted(math.nextafter(score, math.inf) for score in scores)]
     curve = []
     for threshold in cutoffs:
         updated = [
@@ -124,6 +125,8 @@ def pinned_reference():
         "postgres.py",
         "retrieval.py",
         "routing.py",
+        "coverage.py",
+        "context.py",
         "sql/001_rag.sql",
     ):
         path = checkout / name
