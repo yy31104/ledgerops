@@ -1,0 +1,50 @@
+{
+  "study": "operations-v4-v1.3-scope",
+  "reference": {
+    "release": "v1.2.0",
+    "commit": "7e637477223983917257fbb96d9c85ffcace979e",
+    "corpus": "operations-v4",
+    "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+    "similarity_threshold": 0.5512,
+    "coverage_threshold": 0.597
+  },
+  "targets": {
+    "out_of_scope_pass_rate_max": 0.10,
+    "documentation_false_refusal_rate_max": 0.05,
+    "paired_recall_at_5_ci_lower_min": -0.03
+  },
+  "population": {
+    "minimum_retained_documentation": 60,
+    "minimum_retained_out_of_scope": 60,
+    "minimum_out_of_scope_product_share": 0.50,
+    "out_of_scope_product": "An unsupported capability asked about using vocabulary already present in the documentation.",
+    "audit": "A separate source-only context authors each round. Claude statically checks labels and evidence before deduplication against all earlier questions. Count minima after exclusions and assign each documentation question its primary source section as its cluster."
+  },
+  "measurement": {
+    "out_of_scope_pass_rate": "Out-of-scope questions admitted to documentation answer generation divided by all retained out-of-scope questions.",
+    "documentation_false_refusal_rate": "Documentation questions stopped before answer generation divided by all retained documentation questions.",
+    "recall_at_5": "Mean per-question fraction of labelled source sections retrieved among the first five distinct ranked sections. Score raw hybrid retrieval for both versions on every retained documentation question, including refused questions.",
+    "comparison": "Use the same frozen questions, labels and corpus for the candidate and the v1.2.0 reference. Keep hybrid retrieval fixed. Scope decisions use fake answer generation and are separate from raw Recall@5.",
+    "threshold_rule": "Compare unrounded rate point estimates and the unrounded paired Recall@5 interval lower bound. A round passes when all three targets pass."
+  },
+  "intervals": {
+    "confidence": 0.95,
+    "rates": "Wilson score intervals for both versions.",
+    "paired_recall_at_5": "Candidate minus reference per question. Draw primary source-section clusters with replacement, drawing as many as observed. Retain paired observations and average over all questions in each draw. Use linear percentiles at 2.5 and 97.5.",
+    "resamples": 10000,
+    "seed": 20261118
+  },
+  "calibration": {
+    "data": "Use existing development data, the consumed v1.2 holdout and any completed failed v1.3 round. Keep frozen source records unchanged.",
+    "fixed": "Keep v1.2.0 routing, the topic list, similarity and coverage thresholds, corpus and retrieval. The new passage support check can only further restrict the documentation route.",
+    "search": "Test a representative cutoff for each distinct admission pattern induced by the new support score on development, including pass-all and refuse-all for the new check.",
+    "selection": "Among cutoffs at or below 5% documentation false refusal, minimize out-of-scope pass rate, then documentation false refusal rate, then prefer the more permissive cutoff. If none satisfies the documentation constraint, minimize documentation false refusal first, then out-of-scope pass rate, then prefer the more permissive cutoff."
+  },
+  "rounds": {
+    "maximum": 3,
+    "freeze": "Push this protocol before new data. For each round, push a freeze that binds the candidate, question set, source, thresholds and runner before scoring.",
+    "attempt": "Record one exclusive attempt per pushed round before setup. Preserve partial evidence on failure. Each claimed attempt counts toward the round limit.",
+    "after_failure": "Publish the result, retain misses and use a completed failed round only as development data.",
+    "release": "Stop at the first passing round. If all three rounds fail, choose among completed candidates by fewest missed targets, then smallest sum of target shortfalls in rate units, then latest round. Report the selected candidate's own frozen result and all round outcomes."
+  }
+}
