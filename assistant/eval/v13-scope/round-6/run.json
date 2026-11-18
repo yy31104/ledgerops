@@ -1,0 +1,10 @@
+{
+  "status": "completed",
+  "round": 6,
+  "freeze_commit": "c38790da651badbe20729eae6d7c134cdc323857",
+  "verified_origin_head": "c38790da651badbe20729eae6d7c134cdc323857",
+  "manifest_sha256": "f7afee153c921cbc7ba0de414cd975bf2a098f9088d9cc76a6abc3e76969b9fc",
+  "started_at": "2026-11-18T17:27:10.313513+00:00",
+  "result_sha256": "85e4e4b289241cb171d105e87af2465a2ca1481461600781e6dafddbb521a100",
+  "finished_at": "2026-11-18T17:34:42.074283+00:00"
+}

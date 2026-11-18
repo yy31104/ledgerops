@@ -1,0 +1,104 @@
+{
+  "round": 6,
+  "freeze_commit": "c38790da651badbe20729eae6d7c134cdc323857",
+  "status": "completed",
+  "support_threshold": 1.0,
+  "counts": {
+    "docs": 144,
+    "out_of_scope": 109
+  },
+  "product_gaps": 76,
+  "support_mode": "subscription-evidence",
+  "subscription": {
+    "model": "gpt-6.1-sol",
+    "context_sections": 10,
+    "context_bytes": 36000,
+    "request_timeout_seconds": 120
+  },
+  "scope_usage": {
+    "requests": 219,
+    "invalid_verdicts": 0,
+    "median_request_ms": 5295.38,
+    "input_tokens": 2359031,
+    "output_tokens": 11711,
+    "cached_input_tokens": 534016
+  },
+  "recall": {
+    "n": 144,
+    "clusters": 57,
+    "reference": 0.9201388888888888,
+    "candidate": 0.9201388888888888,
+    "difference": 0.0,
+    "section_cluster_ci95": [
+      0.0,
+      0.0
+    ]
+  },
+  "reference": {
+    "out_of_scope_passed": {
+      "count": 75,
+      "n": 109,
+      "rate": 0.6880733944954128,
+      "wilson_ci95": [
+        0.596,
+        0.7674
+      ]
+    },
+    "documentation_refused": {
+      "count": 2,
+      "n": 144,
+      "rate": 0.013888888888888888,
+      "wilson_ci95": [
+        0.0038,
+        0.0492
+      ]
+    }
+  },
+  "before_support": {
+    "out_of_scope_passed": {
+      "count": 75,
+      "n": 109,
+      "rate": 0.6880733944954128,
+      "wilson_ci95": [
+        0.596,
+        0.7674
+      ]
+    },
+    "documentation_refused": {
+      "count": 0,
+      "n": 144,
+      "rate": 0.0,
+      "wilson_ci95": [
+        0.0,
+        0.026
+      ]
+    }
+  },
+  "candidate": {
+    "out_of_scope_passed": {
+      "count": 2,
+      "n": 109,
+      "rate": 0.01834862385321101,
+      "wilson_ci95": [
+        0.005,
+        0.0644
+      ]
+    },
+    "documentation_refused": {
+      "count": 11,
+      "n": 144,
+      "rate": 0.0763888888888889,
+      "wilson_ci95": [
+        0.0432,
+        0.1316
+      ]
+    }
+  },
+  "targets_met": {
+    "out_of_scope": true,
+    "documentation": false,
+    "retrieval": true
+  },
+  "passed": false,
+  "raw_result_sha256": "85e4e4b289241cb171d105e87af2465a2ca1481461600781e6dafddbb521a100"
+}
