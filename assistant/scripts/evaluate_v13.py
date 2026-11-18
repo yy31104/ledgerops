@@ -5,7 +5,7 @@ import json
 import math
 import runpy
 import subprocess
-from collections import Counter, defaultdict, deque
+from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from statistics import median
@@ -274,7 +274,7 @@ def measure(questions, *, threshold=None, update=None, semantic=False):
 
 def semantic_decisions(questions, rows, update):
     """Use the same local verifier as the CLI. Keep at most three requests in flight."""
-    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
     from dataclasses import asdict
     from time import perf_counter
 
@@ -319,21 +319,35 @@ def semantic_decisions(questions, rows, update):
             "scope_elapsed_ms": round(elapsed, 2) if proof.usage else None,
         }
 
-    results = []
-    pending = deque()
-
-    def collect():
-        results.append(pending.popleft().result())
-        update(results)
-
+    results, pending = {}, {}
+    error = None
+    remaining = iter(enumerate(rows))
     with ThreadPoolExecutor(max_workers=3) as pool:
-        for row in rows:
-            if len(pending) == 3:
-                collect()
-            pending.append(pool.submit(verify_row, row))
+
+        def submit_next():
+            item = next(remaining, None)
+            if item is not None:
+                index, row = item
+                pending[pool.submit(verify_row, row)] = index
+
+        for _ in range(3):
+            submit_next()
         while pending:
-            collect()
-    return results
+            done, _ = wait(pending, return_when=FIRST_COMPLETED)
+            for task in sorted(done, key=pending.__getitem__):
+                index = pending.pop(task)
+                try:
+                    results[index] = task.result()
+                except Exception as exc:
+                    error = error or exc
+                update([results[i] for i in sorted(results)])
+            # Finish collecting the in-flight calls after a failure, with no new starts.
+            if error is None:
+                for _ in done:
+                    submit_next()
+    if error is not None:
+        raise error
+    return [results[i] for i in sorted(results)]
 
 
 def calibration(output):

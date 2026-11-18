@@ -201,6 +201,8 @@ def test_failed_setup_consumes_the_frozen_attempt(monkeypatch, tmp_path):
 def test_subscription_judgments_count_invalid_quotes_as_refusals(monkeypatch):
     from types import SimpleNamespace
 
+    import pytest
+
     from ledgerops_assistant import corpus
     from ledgerops_assistant.providers import subscription
     from scripts import evaluate_v13 as runner
@@ -241,3 +243,15 @@ def test_subscription_judgments_count_invalid_quotes_as_refusals(monkeypatch):
     assert [row["candidate_admitted"] for row in results] == [True, False, False]
     assert not results[1]["support"]["valid"]
     assert results[2]["support"]["usage"] == {}
+
+    class TimedOutFixture(LocalFixture):
+        def generate(self, instructions, message, schema):
+            if json.loads(message)["question"] == "Does a receipt persist?":
+                raise TimeoutError("fixture deadline")
+            return super().generate(instructions, message, schema)
+
+    monkeypatch.setattr(subscription, "SubscriptionProvider", lambda **_: TimedOutFixture())
+    checkpoints = []
+    with pytest.raises(TimeoutError, match="fixture deadline"):
+        runner.semantic_decisions(questions, records, checkpoints.append)
+    assert [row["id"] for row in checkpoints[-1]] == ["two", "three"]
