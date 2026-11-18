@@ -32,9 +32,9 @@ documentation questions.
 The CLI option asks `gpt-6.1-sol` whether the supplied passages support the
 question. For a positive decision, the application checks the passage ID and
 the model-selected excerpt, ignoring whitespace differences. The
-verifier and answer share the same evidence pack. The 56,000-byte pack delivered
-every labelled quote for 658 of 666 development questions with quotes, up from
-636 with the 36,000-byte pack. See the
+verifier and answer share the same evidence pack. The 56,000-byte pack included
+a labelled excerpt for each required fact on 658 of 666 development questions
+with quotes, up from 636 at 36,000 bytes. See the
 [pack comparison](../eval/v13-scope/subscription-expansion-development.json) and
 [verification method](../eval/v13-scope/SUBSCRIPTION-EVIDENCE.md).
 
