@@ -33,7 +33,7 @@ class RelationFeatures(NamedTuple):
 # Ridge logistic fit on the consumed development rows. The offline fit script
 # produces raw-space weights in RelationFeatures order.
 INTERCEPT = -5.658121514416356
-_WITNESS_ODDS_MULTIPLIER = math.exp(0.5)
+FOCUSED_WITNESS_LOG_ODDS_SHIFT = 0.5
 WEIGHTS = RelationFeatures(
     local_focus=5.610682390117219,
     question_body_coverage=2.803424413636381,
@@ -158,9 +158,10 @@ def relation_score(features, *, intercept=INTERCEPT, weights=WEIGHTS):
     return 1.0 / (1.0 + math.exp(-logit))
 
 
-def witness_score(witness, *, focused):
+def witness_score(witness, *, focused, log_odds_shift=FOCUSED_WITNESS_LOG_ODDS_SHIFT):
     """Increase the odds for a passage containing multiple query terms in a span."""
     witness = round(witness, 8)
     if not focused:
         return witness
-    return _WITNESS_ODDS_MULTIPLIER * witness / (1 + (_WITNESS_ODDS_MULTIPLIER - 1) * witness)
+    odds_multiplier = math.exp(log_odds_shift)
+    return odds_multiplier * witness / (1 + (odds_multiplier - 1) * witness)

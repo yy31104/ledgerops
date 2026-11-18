@@ -1,0 +1,105 @@
+{
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+  "scored_rows": 849,
+  "fitting_rows": 679,
+  "intercept": -6.942046341753068,
+  "weights": {
+    "local_focus": 1.974530601779362,
+    "question_body_coverage": 1.4935509558961866,
+    "inquiry_span_coverage": 1.6359988219889952,
+    "last_terms_coverage": 0.17111815965102792,
+    "final_clause_coverage": 1.8121430731898238,
+    "negated_inquiry": -0.4130978860963043,
+    "common_inquiry_body_coverage": 1.8417871679185074,
+    "rare_inquiry_prose_known": 1.1500598681880327,
+    "rare_inquiry_window_coverage": 0.9564909306551779,
+    "quantity_inquiry_span_coverage": 1.5995202815305305,
+    "inquiry_pack_cohesion": 0.994436357416403,
+    "inquiry_span_margin": 1.871455408101735,
+    "inquiry_heading_coverage": 1.7159184848504876,
+    "inquiry_prose_known": 1.8567831147693181,
+    "inquiry_span_coherence": 1.2123689913757012
+  },
+  "calibration": {
+    "threshold": 0.5162088300000001,
+    "out_of_scope_passed": {
+      "count": 29,
+      "n": 376,
+      "rate": 0.07712765957446809,
+      "wilson_ci95": [
+        0.0542,
+        0.1086
+      ]
+    },
+    "documentation_refused": {
+      "count": 22,
+      "n": 473,
+      "rate": 0.046511627906976744,
+      "wilson_ci95": [
+        0.0309,
+        0.0694
+      ]
+    }
+  },
+  "mode": "conditional-veto",
+  "development_hashes": {
+    "assistant/eval/v12-dev/questions.jsonl": "5f0a56ce089316e55435324efcab2f9eae43b5c6cfced3833d2032113a93ae21",
+    "assistant/eval/v12-holdout/questions.jsonl": "c3f74fe3a8de31a132e5c32a2fdb661b4ef9d1d71c2751099c6a074d8bea0a65",
+    "assistant/eval/v13-scope/round-1/questions.jsonl": "2f8a64c6881dae85a3166acbef58cc0bf04a3d1004a3649115ea15703834a025",
+    "assistant/eval/v13-scope/round-2/questions.jsonl": "ca0a0864d38923dfaff1428b292a6f73259a1d426d086731d878f80e4e0a3b21",
+    "assistant/eval/v13-scope/round-3/questions.jsonl": "7837b6ac49b2e3a5562274a1a3901a3ebb7cbb7700646484cd26986fbda005cc",
+    "assistant/eval/v13-scope/round-4/questions.jsonl": "4ca9253eeff7b0c6338c5c8bbd3910840593dbf8ea70c47dca6ba8cb908d691d"
+  },
+  "evidence_pack_hashes": {
+    ".cache/v13-development-r5-routing.json": "05dd5f38631b8c44c303ed480c9967058f81e5590acd3177d614fff59bcfd824"
+  },
+  "ridge": 50.0,
+  "intercept_ridge": 1e-05,
+  "historical_v12_bundle_sample_weight": 0.7,
+  "focused_witness_log_odds_shift": 2.5,
+  "witness_intercept": -6.005401354380323,
+  "witness_weights": {
+    "local_focus": 5.4556218351818115,
+    "question_body_coverage": 4.440986196229519,
+    "question_pair_specificity": -0.09187018697439109,
+    "question_span_coverage": 3.3565253656291976,
+    "inquiry_span_coverage": 6.141536420522036,
+    "last_terms_coverage": -3.0502336938176406,
+    "final_clause_coverage": 4.811766614548429,
+    "inquiry_pair_alignment": 5.193391913703807,
+    "paired_question_final_clause": -0.12335848254863124,
+    "specific_pair_inquiry": 0.8645298068302132,
+    "specific_body_inquiry": 3.455874461969575,
+    "negated_inquiry": -1.2709517701676474
+  },
+  "context_fitting_rows": 138,
+  "context_intercept": -5.409053642712563,
+  "context_weights": {
+    "local_focus": 1.913713019870838,
+    "question_body_coverage": 1.4485035191969913,
+    "inquiry_span_coverage": 1.560914451130211,
+    "last_terms_coverage": 0.11875952913658169,
+    "final_clause_coverage": 1.7952531159989669,
+    "negated_inquiry": -0.21565120912226635,
+    "common_inquiry_body_coverage": 2.068760339492755,
+    "rare_inquiry_prose_known": 1.1753233557429468,
+    "rare_inquiry_window_coverage": 0.8858855673546979,
+    "quantity_inquiry_span_coverage": 1.5221230437245927,
+    "inquiry_pack_cohesion": 1.2758233064174962,
+    "inquiry_span_margin": 1.7790226545977037,
+    "inquiry_heading_coverage": 1.768726011501466,
+    "inquiry_prose_known": 1.577602709297045,
+    "inquiry_span_coherence": 1.1342630837192849
+  },
+  "context_ridge": 100.0,
+  "context_intercept_ridge": 2.0,
+  "witness_ridge": 2.0,
+  "effective_raw_witness_cutoff": {
+    "focused": 0.08053190131056182,
+    "other": 0.5162088300000001
+  },
+  "minimum_admitted_raw_witness": {
+    "focused": 0.0894984,
+    "other": 0.84166787
+  }
+}

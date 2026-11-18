@@ -7,7 +7,13 @@ from ledgerops_assistant.corpus import Chunk
 from ledgerops_assistant.coverage import DocumentCoverage
 from ledgerops_assistant.support import PassageSupport, _question_parts
 from ledgerops_assistant.support_relation import relation_score, witness_score
-from ledgerops_assistant.support_veto import VETO_WITNESS_INTERCEPT, VETO_WITNESS_WEIGHTS
+from ledgerops_assistant.support_veto import (
+    CONDITIONAL_WITNESS_INTERCEPT,
+    CONDITIONAL_WITNESS_WEIGHTS,
+    VETO_WITNESS_INTERCEPT,
+    VETO_WITNESS_WEIGHTS,
+    has_fronted_or_coordinated_inquiry,
+)
 
 
 def passage(body, index=1, *, heading="Details"):
@@ -37,20 +43,23 @@ def test_corpus_veto_ignores_link_targets_and_fenced_text():
     assert {"intern", "directori", "password", "signatur"}.isdisjoint(scorer.veto.source_frequency)
 
 
-def test_plain_prose_witness_remains_independent_from_the_bundle():
+@pytest.mark.parametrize(
+    ("mode", "intercept", "weights"),
+    [
+        ("compact-veto", VETO_WITNESS_INTERCEPT, VETO_WITNESS_WEIGHTS),
+        ("conditional-veto", CONDITIONAL_WITNESS_INTERCEPT, CONDITIONAL_WITNESS_WEIGHTS),
+    ],
+)
+def test_plain_prose_witness_remains_independent_from_the_bundle(mode, intercept, weights):
     receipt = passage("The receipt exists.")
     context = passage("Reserve retry limits.", 2)
     question = "Reserve retry limits. Does the receipt signature expire overnight?"
     corpus = corpus_for(receipt, context)
-    scorer = PassageSupport(DocumentCoverage(corpus, 0.597), mode="compact-veto", corpus=corpus)
+    scorer = PassageSupport(DocumentCoverage(corpus, 0.597), mode=mode, corpus=corpus)
     _, candidates = scorer.relation_features(question, [receipt, context])
     [(proof, features, focused)] = candidates
     score = witness_score(
-        relation_score(
-            features,
-            intercept=VETO_WITNESS_INTERCEPT,
-            weights=VETO_WITNESS_WEIGHTS,
-        ),
+        relation_score(features, intercept=intercept, weights=weights),
         focused=focused,
     )
 
@@ -62,13 +71,14 @@ def test_plain_prose_witness_remains_independent_from_the_bundle():
     assert scorer.measure(question, [context]).score == 0.0
 
 
-def test_configured_veto_requires_a_procedure_witness(monkeypatch):
+@pytest.mark.parametrize("mode", ["compact-veto", "conditional-veto"])
+def test_configured_veto_requires_a_procedure_witness(monkeypatch, mode):
     from ledgerops_assistant import answer
 
     question = "How can I cancel an expired receipt?"
     denial = passage("You cannot cancel an expired receipt.")
     proof = passage("A caller can cancel an expired receipt.", 2)
-    monkeypatch.setattr(answer, "support_mode", lambda: "compact-veto")
+    monkeypatch.setattr(answer, "support_mode", lambda: mode)
     monkeypatch.setattr(answer, "support_threshold", lambda: 0.3)
     corpus = corpus_for(denial, proof, passage("A snapshot preserves earlier records.", 3))
     gate = ScopeGate.for_corpus(None, None, corpus)
@@ -76,3 +86,16 @@ def test_configured_veto_requires_a_procedure_witness(monkeypatch):
     assert not gate.supports(question, [denial])
     assert gate.supports(question, [denial, proof])
     assert gate.support.measure(question, [denial, proof]).chunk_id == proof.chunk_id
+
+
+@pytest.mark.parametrize(
+    ("inquiry", "expected"),
+    [
+        ("If a worker restarts, how does it read receipts?", True),
+        ("Does a worker record receipts, and where can a caller see the record?", True),
+        ("Does a worker report a transient error?", False),
+        ("Is the receipt signed, or is it?", False),
+    ],
+)
+def test_fronted_or_coordinated_inquiry(inquiry, expected):
+    assert has_fronted_or_coordinated_inquiry(inquiry) is expected

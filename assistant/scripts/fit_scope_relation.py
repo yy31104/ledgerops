@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -10,12 +11,21 @@ import numpy as np
 from ledgerops_assistant.corpus import load_corpus
 from ledgerops_assistant.coverage import DocumentCoverage
 from ledgerops_assistant.support import PassageSupport, _question_parts
-from ledgerops_assistant.support_relation import RelationFeatures, relation_score, witness_score
-from ledgerops_assistant.support_veto import VetoFeatures
+from ledgerops_assistant.support_relation import (
+    FOCUSED_WITNESS_LOG_ODDS_SHIFT,
+    RelationFeatures,
+    relation_score,
+    witness_score,
+)
+from ledgerops_assistant.support_veto import (
+    CONDITIONAL_FOCUSED_WITNESS_LOG_ODDS_SHIFT,
+    VetoFeatures,
+    has_fronted_or_coordinated_inquiry,
+)
 from scripts.evaluate_v13 import ROOT, select_threshold
 
 
-def fit_logistic(features, labels, *, weights=None, intercept_ridge=1e-6):
+def fit_logistic(features, labels, *, weights=None, intercept_ridge=1e-6, ridge=2.0, prior=None):
     """Fit L2-regularized logistic regression and convert to raw feature units."""
     if weights is None:
         center = features.mean(axis=0)
@@ -27,12 +37,16 @@ def fit_logistic(features, labels, *, weights=None, intercept_ridge=1e-6):
         scale = np.sqrt(np.maximum(variance, 1e-8))
     design = np.column_stack([np.ones(len(features)), (features - center) / scale])
     coefficients = np.zeros(design.shape[1])
-    ridge = np.array([intercept_ridge] + [2.0] * features.shape[1])
+    penalties = np.array([intercept_ridge] + [ridge] * features.shape[1])
+    target = np.zeros_like(coefficients)
+    if prior is not None:
+        intercept, slopes = prior
+        target = np.r_[intercept + slopes @ center, slopes * scale]
     for _ in range(35):
         fitted = _sigmoid(design @ coefficients)
         curvature = design.T @ ((weights * fitted * (1 - fitted))[:, None] * design)
-        curvature += np.diag(ridge)
-        gradient = design.T @ ((fitted - labels) * weights) + ridge * coefficients
+        curvature += np.diag(penalties)
+        gradient = design.T @ ((fitted - labels) * weights) + penalties * (coefficients - target)
         step = np.linalg.solve(curvature, gradient)
         coefficients -= step
         if np.max(np.abs(step)) < 1e-6:
@@ -66,7 +80,8 @@ def fit(questions_files, score_files, *, mode="compact-relation"):
     corpus = load_corpus()
     by_id = corpus.by_id()
     scorer = PassageSupport(DocumentCoverage(corpus, 0.597), mode=mode, corpus=corpus)
-    features, veto_features, witnesses = [], [], []
+    conditional = mode == "conditional-veto"
+    features, veto_features, witnesses, contextual = [], [], [], []
     for row in rows:
         question = questions[row["id"]]
         if question["expected_route"] != row["expected_route"]:
@@ -77,11 +92,15 @@ def fit(questions_files, score_files, *, mode="compact-relation"):
         features.append(values)
         witnesses.append([(feature, focused) for _, feature, focused in candidates])
         if scorer.veto:
-            veto_features.append(scorer.veto.features(values, _question_parts(text)[1], passages))
+            inquiry = _question_parts(text)[1]
+            veto_features.append(scorer.veto.features(values, inquiry, passages))
+            if conditional:
+                contextual.append(has_fronted_or_coordinated_inquiry(inquiry))
 
     features = np.array(features)
     labels = np.array([row["expected_route"] == "docs" for row in rows], dtype=float)
-    admitted = np.array([row["reference_admitted"] for row in rows], dtype=bool)
+    eligibility_field = "candidate_eligible" if conditional else "reference_admitted"
+    admitted = np.array([row[eligibility_field] for row in rows], dtype=bool)
     intercept_ridge = 1e-5 if scorer.veto else 1e-6
     intercept, weights = fit_logistic(
         features[admitted], labels[admitted], intercept_ridge=intercept_ridge
@@ -91,31 +110,61 @@ def fit(questions_files, score_files, *, mode="compact-relation"):
     if scorer.veto:
         bundle_vectors = np.array(veto_features)
         bundle_fields = VetoFeatures._fields
-        # Give the older v1.2 development rows half the weight of the v1.3 cohorts.
-        sample_weights = np.array([1.0 if row["id"].startswith("v13-r") else 0.5 for row in rows])
+        historical_weight = 0.7 if conditional else 0.5
+        bundle_ridge = 50.0 if conditional else 2.0
+        sample_weights = np.array(
+            [1.0 if row["id"].startswith("v13-r") else historical_weight for row in rows]
+        )
         bundle_intercept, bundle_weights = fit_logistic(
             bundle_vectors[admitted],
             labels[admitted],
             weights=sample_weights[admitted],
             intercept_ridge=intercept_ridge,
+            ridge=bundle_ridge,
         )
 
-    values = []
-    for bundle, candidates in zip(bundle_vectors, witnesses, strict=True):
-        witness = max(
-            (
-                witness_score(
-                    relation_score(feature, intercept=intercept, weights=weights),
-                    focused=focused,
-                )
-                for feature, focused in candidates
-            ),
-            default=0.0,
+    odds_shift = FOCUSED_WITNESS_LOG_ODDS_SHIFT
+    if conditional:
+        context_rows = admitted & np.array(contextual, dtype=bool)
+        context_intercept, context_weights = fit_logistic(
+            bundle_vectors[context_rows],
+            labels[context_rows],
+            weights=sample_weights[context_rows],
+            intercept_ridge=2.0,
+            ridge=2 * bundle_ridge,
+            prior=(bundle_intercept, bundle_weights),
         )
-        veto = relation_score(bundle, intercept=bundle_intercept, weights=bundle_weights)
+        odds_shift = CONDITIONAL_FOCUSED_WITNESS_LOG_ODDS_SHIFT
+    odds_multiplier = math.exp(odds_shift)
+    values, winning_witnesses = [], []
+    for index, (bundle, candidates) in enumerate(zip(bundle_vectors, witnesses, strict=True)):
+        raw = [
+            (relation_score(feature, intercept=intercept, weights=weights), focused)
+            for feature, focused in candidates
+        ]
+        witness, raw_witness, focused = max(
+            (
+                (
+                    witness_score(score, focused=focus, log_odds_shift=odds_shift),
+                    round(score, 8),
+                    focus,
+                )
+                for score, focus in raw
+            ),
+            key=lambda item: item[0],
+            default=(0.0, 0.0, False),
+        )
+        if conditional and contextual[index]:
+            veto = relation_score(bundle, intercept=context_intercept, weights=context_weights)
+        else:
+            veto = relation_score(bundle, intercept=bundle_intercept, weights=bundle_weights)
         values.append(round(min(witness, veto), 8))
+        winning_witnesses.append((raw_witness, focused))
     selected, _ = select_threshold(
-        [{**row, "score": value} for row, value in zip(rows, values, strict=True)]
+        [
+            {**row, "score": value, "candidate_eligible": bool(eligible)}
+            for row, value, eligible in zip(rows, values, admitted, strict=True)
+        ]
     )
     report = {
         "corpus_digest": corpus.digest,
@@ -130,12 +179,37 @@ def fit(questions_files, score_files, *, mode="compact-relation"):
             mode=mode,
             development_hashes=_hashes(questions_files),
             evidence_pack_hashes=_hashes(score_files),
-            ridge=2.0,
+            ridge=bundle_ridge,
             intercept_ridge=intercept_ridge,
-            historical_v12_bundle_sample_weight=0.5,
-            focused_witness_log_odds_shift=0.5,
+            historical_v12_bundle_sample_weight=historical_weight,
+            focused_witness_log_odds_shift=odds_shift,
             witness_intercept=intercept,
             witness_weights=dict(zip(RelationFeatures._fields, weights.tolist(), strict=True)),
+        )
+    if conditional:
+        cutoff = selected["threshold"]
+        admitted_witnesses = [
+            (raw, focused)
+            for eligible, score, (raw, focused) in zip(admitted, values, winning_witnesses, strict=True)
+            if eligible and score >= cutoff
+        ]
+        report.update(
+            context_fitting_rows=int(context_rows.sum()),
+            context_intercept=context_intercept,
+            context_weights=dict(zip(bundle_fields, context_weights.tolist(), strict=True)),
+            context_ridge=2 * bundle_ridge,
+            context_intercept_ridge=2.0,
+            witness_ridge=2.0,
+            effective_raw_witness_cutoff={
+                "focused": cutoff / (odds_multiplier - (odds_multiplier - 1) * cutoff),
+                "other": cutoff,
+            },
+            minimum_admitted_raw_witness={
+                label: min(
+                    (raw for raw, focused in admitted_witnesses if focused == flag), default=None
+                )
+                for label, flag in (("focused", True), ("other", False))
+            },
         )
     return report
 
@@ -145,7 +219,9 @@ def main():
     parser.add_argument("--questions", nargs="+", type=Path, required=True)
     parser.add_argument("--scores", nargs="+", type=Path, required=True)
     parser.add_argument(
-        "--mode", choices=("compact-relation", "compact-veto"), default="compact-relation"
+        "--mode",
+        choices=("compact-relation", "compact-veto", "conditional-veto"),
+        default="compact-relation",
     )
     args = parser.parse_args()
     print(json.dumps(fit(args.questions, args.scores, mode=args.mode), indent=2))

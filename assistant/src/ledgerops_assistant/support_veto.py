@@ -8,8 +8,8 @@ from functools import lru_cache
 from itertools import pairwise
 from typing import NamedTuple
 
-from ledgerops_assistant.coverage import STOPWORDS, stem
-from ledgerops_assistant.support_relation import RelationFeatures
+from ledgerops_assistant.coverage import STOPWORDS, stem, tokens
+from ledgerops_assistant.support_relation import RelationFeatures, relation_score
 
 _TOKEN = re.compile(r"[A-Za-z][A-Za-z0-9]*|[0-9]+(?:[A-Za-z][A-Za-z0-9]*)?")
 _LINK = re.compile(r"!?\[([^\]]*)\]\([^)]*\)")
@@ -25,6 +25,32 @@ _QUANTITY = re.compile(
     r"hundred|thousand|million)\b",
     re.I,
 )
+
+
+_FRONTED = re.compile(
+    r"^\s*(?:if|when|while|under|after|before|in|for|once|given|assuming|during|with)\b",
+    re.I,
+)
+_QUESTION_WORDS = r"what|which|who|whom|whose|why|where|when|how"
+_AUXILIARIES = r"do|does|did|is|are|can|could|should|would|will|was|were|has|have|must|may"
+_POLAR_HEADS = frozenset((*_AUXILIARIES.split("|"), "whether"))
+_AUXILIARY = re.compile(rf"\b(?:{_AUXILIARIES})\b", re.I)
+_COORDINATED = re.compile(
+    rf"(?:[,;]\s*|\b(?:and|or|then)\s+)(?P<head>{_QUESTION_WORDS}|{_AUXILIARIES}|whether)\b",
+    re.I,
+)
+
+
+def has_fronted_or_coordinated_inquiry(inquiry: str) -> bool:
+    if _FRONTED.match(inquiry):
+        return True
+    for match in _COORDINATED.finditer(inquiry):
+        if match["head"].lower() not in _POLAR_HEADS or _AUXILIARY.search(inquiry, match.end()):
+            return True
+        words = tokens(inquiry[match.start("head") :])
+        if sum(len(word) > 1 and word.lower() not in STOPWORDS for word in words) >= 3:
+            return True
+    return False
 
 
 class VetoFeatures(NamedTuple):
@@ -79,6 +105,73 @@ VETO_WITNESS_WEIGHTS = RelationFeatures(
     specific_body_inquiry=3.561141517989047,
     negated_inquiry=-2.176992236809105,
 )
+
+
+# The conditional fit reuses the same features and pools the contextual
+# inquiry coefficients toward the overall fit.
+CONDITIONAL_FOCUSED_WITNESS_LOG_ODDS_SHIFT = 2.5
+CONDITIONAL_VETO_INTERCEPT = -6.942046341753068
+CONDITIONAL_VETO_WEIGHTS = VetoFeatures(
+    local_focus=1.974530601779362,
+    question_body_coverage=1.4935509558961866,
+    inquiry_span_coverage=1.6359988219889952,
+    last_terms_coverage=0.17111815965102792,
+    final_clause_coverage=1.8121430731898238,
+    negated_inquiry=-0.4130978860963043,
+    common_inquiry_body_coverage=1.8417871679185074,
+    rare_inquiry_prose_known=1.1500598681880327,
+    rare_inquiry_window_coverage=0.9564909306551779,
+    quantity_inquiry_span_coverage=1.5995202815305305,
+    inquiry_pack_cohesion=0.994436357416403,
+    inquiry_span_margin=1.871455408101735,
+    inquiry_heading_coverage=1.7159184848504876,
+    inquiry_prose_known=1.8567831147693181,
+    inquiry_span_coherence=1.2123689913757012,
+)
+CONDITIONAL_CONTEXT_INTERCEPT = -5.409053642712563
+CONDITIONAL_CONTEXT_WEIGHTS = VetoFeatures(
+    local_focus=1.913713019870838,
+    question_body_coverage=1.4485035191969913,
+    inquiry_span_coverage=1.560914451130211,
+    last_terms_coverage=0.11875952913658169,
+    final_clause_coverage=1.7952531159989669,
+    negated_inquiry=-0.21565120912226635,
+    common_inquiry_body_coverage=2.068760339492755,
+    rare_inquiry_prose_known=1.1753233557429468,
+    rare_inquiry_window_coverage=0.8858855673546979,
+    quantity_inquiry_span_coverage=1.5221230437245927,
+    inquiry_pack_cohesion=1.2758233064174962,
+    inquiry_span_margin=1.7790226545977037,
+    inquiry_heading_coverage=1.768726011501466,
+    inquiry_prose_known=1.577602709297045,
+    inquiry_span_coherence=1.1342630837192849,
+)
+CONDITIONAL_WITNESS_INTERCEPT = -6.005401354380323
+CONDITIONAL_WITNESS_WEIGHTS = RelationFeatures(
+    local_focus=5.4556218351818115,
+    question_body_coverage=4.440986196229519,
+    question_pair_specificity=-0.09187018697439109,
+    question_span_coverage=3.3565253656291976,
+    inquiry_span_coverage=6.141536420522036,
+    last_terms_coverage=-3.0502336938176406,
+    final_clause_coverage=4.811766614548429,
+    inquiry_pair_alignment=5.193391913703807,
+    paired_question_final_clause=-0.12335848254863124,
+    specific_pair_inquiry=0.8645298068302132,
+    specific_body_inquiry=3.455874461969575,
+    negated_inquiry=-1.2709517701676474,
+)
+
+
+
+def conditional_veto_score(features: VetoFeatures, inquiry: str) -> float:
+    if has_fronted_or_coordinated_inquiry(inquiry):
+        return relation_score(
+            features, intercept=CONDITIONAL_CONTEXT_INTERCEPT, weights=CONDITIONAL_CONTEXT_WEIGHTS
+        )
+    return relation_score(
+        features, intercept=CONDITIONAL_VETO_INTERCEPT, weights=CONDITIONAL_VETO_WEIGHTS
+    )
 
 
 _stem = lru_cache(maxsize=8192)(stem)
