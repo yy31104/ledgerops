@@ -5,116 +5,117 @@
     "assistant/eval/v12-dev/questions.jsonl": "5f0a56ce089316e55435324efcab2f9eae43b5c6cfced3833d2032113a93ae21",
     "assistant/eval/v12-holdout/questions.jsonl": "c3f74fe3a8de31a132e5c32a2fdb661b4ef9d1d71c2751099c6a074d8bea0a65",
     "assistant/eval/v13-scope/round-1/questions.jsonl": "2f8a64c6881dae85a3166acbef58cc0bf04a3d1004a3649115ea15703834a025",
-    "assistant/eval/v13-scope/round-2/questions.jsonl": "ca0a0864d38923dfaff1428b292a6f73259a1d426d086731d878f80e4e0a3b21"
+    "assistant/eval/v13-scope/round-2/questions.jsonl": "ca0a0864d38923dfaff1428b292a6f73259a1d426d086731d878f80e4e0a3b21",
+    "assistant/eval/v13-scope/round-3/questions.jsonl": "7837b6ac49b2e3a5562274a1a3901a3ebb7cbb7700646484cd26986fbda005cc"
   },
-  "support_threshold": 0.43744150000000004,
-  "support_mode": "compact-relation",
+  "support_threshold": 0.33779600000000004,
+  "support_mode": "compact-veto",
   "reference_rates": {
     "out_of_scope_passed": {
-      "count": 119,
-      "n": 216,
-      "rate": 0.5509259259259259,
+      "count": 178,
+      "n": 302,
+      "rate": 0.5894039735099338,
       "wilson_ci95": [
-        0.4843,
-        0.6158
+        0.5331,
+        0.6434
       ]
     },
     "documentation_refused": {
-      "count": 3,
-      "n": 326,
-      "rate": 0.009202453987730062,
+      "count": 5,
+      "n": 398,
+      "rate": 0.01256281407035176,
       "wilson_ci95": [
-        0.0031,
-        0.0267
+        0.0054,
+        0.0291
       ]
     }
   },
   "candidate_rates": {
     "out_of_scope_passed": {
-      "count": 16,
-      "n": 216,
-      "rate": 0.07407407407407407,
+      "count": 23,
+      "n": 302,
+      "rate": 0.076158940397351,
       "wilson_ci95": [
-        0.0461,
-        0.1169
+        0.0513,
+        0.1117
       ]
     },
     "documentation_refused": {
-      "count": 16,
-      "n": 326,
-      "rate": 0.049079754601226995,
+      "count": 19,
+      "n": 398,
+      "rate": 0.04773869346733668,
       "wilson_ci95": [
-        0.0304,
-        0.0782
+        0.0308,
+        0.0734
       ]
     }
   },
   "neighboring_development_cutoffs": [
     {
-      "threshold": 0.42832354000000006,
+      "threshold": 0.33531095000000005,
       "out_of_scope_passed": {
-        "count": 17,
-        "n": 216,
-        "rate": 0.0787037037037037,
+        "count": 24,
+        "n": 302,
+        "rate": 0.07947019867549669,
         "wilson_ci95": [
-          0.0497,
-          0.1224
+          0.054,
+          0.1155
         ]
       },
       "documentation_refused": {
-        "count": 16,
-        "n": 326,
-        "rate": 0.049079754601226995,
+        "count": 19,
+        "n": 398,
+        "rate": 0.04773869346733668,
         "wilson_ci95": [
-          0.0304,
-          0.0782
+          0.0308,
+          0.0734
         ]
       }
     },
     {
-      "threshold": 0.43744150000000004,
+      "threshold": 0.33779600000000004,
       "out_of_scope_passed": {
-        "count": 16,
-        "n": 216,
-        "rate": 0.07407407407407407,
+        "count": 23,
+        "n": 302,
+        "rate": 0.076158940397351,
         "wilson_ci95": [
-          0.0461,
-          0.1169
+          0.0513,
+          0.1117
         ]
       },
       "documentation_refused": {
-        "count": 16,
-        "n": 326,
-        "rate": 0.049079754601226995,
+        "count": 19,
+        "n": 398,
+        "rate": 0.04773869346733668,
         "wilson_ci95": [
-          0.0304,
-          0.0782
+          0.0308,
+          0.0734
         ]
       }
     },
     {
-      "threshold": 0.4417487600000001,
+      "threshold": 0.3400146700000001,
       "out_of_scope_passed": {
-        "count": 16,
-        "n": 216,
-        "rate": 0.07407407407407407,
+        "count": 23,
+        "n": 302,
+        "rate": 0.076158940397351,
         "wilson_ci95": [
-          0.0461,
-          0.1169
+          0.0513,
+          0.1117
         ]
       },
       "documentation_refused": {
-        "count": 17,
-        "n": 326,
-        "rate": 0.05214723926380368,
+        "count": 20,
+        "n": 398,
+        "rate": 0.05025125628140704,
         "wilson_ci95": [
           0.0328,
-          0.0819
+          0.0763
         ]
       }
     }
   ],
-  "raw_report_sha256": "03e305ffa80643718ca1c2d0d7550be17a56a6102508d84c0ff7ab49b9333404",
-  "support_commit": "63c153b1847e36caff33755339e1c158ef37cd84",
-  "fit_report_sha256": "d389ce69bb4c955d6c9cffb3b10d0bef5361303627a477396263547d14c5daf2"
+  "raw_report_sha256": "7426705e024b5c2960a79e9d06515f2791da5480b824d3005efca711a3550e63",
+  "support_commit": "af25d7acf9aa95558f02fd0100872fb98a10e0ae",
+  "fit_report_sha256": "fe4dfa2ea8a308deb2b1ad00041642c2f985550898fcd3df8fe11f01f80c051d"
 }
