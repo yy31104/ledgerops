@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+- Add optional ChatGPT subscription passage verification to the local HTTP assistant.
+- On 204 frozen questions, the verified profile admitted 1/102 unsupported questions and refused 2/102 documentation questions. Both HTTP profiles had Recall@5 of 0.8464.
+- The default Compose demo uses the offline rule. Median HTTP latency was 0.36 s offline and 5.88 s with verification.
+
 ## 1.3.0
 - Recognize informational question openings before checking passage support.
 - Add the optional local CLI subscription verifier.

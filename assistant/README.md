@@ -16,11 +16,14 @@ The panel above uses synthetic data and fake generation.
 | Documentation questions refused | 7/102 (6.9%) | **2/102 (2.0%)** |
 | Hybrid Recall@5 | 0.8464 | **0.8464** |
 
-The [local HTTP profile](docs/PROVIDERS.md#verify-passages-in-the-local-http-service)
-met all three targets on 204 new frozen questions. It checks documentation
-passages using a ChatGPT subscription before the answer provider runs. The trial
-used fake answer generation. The [evaluation](docs/RETRIEVAL-QUALITY-V2.md#http-scope-trial)
-includes confidence intervals and failure cases.
+The default Compose demo uses the offline rule in the left column, with
+subscription verification off.
+
+The optional HTTP profile in the right column requires a local ChatGPT sign-in.
+It met all three targets on 204 frozen questions with fake answer generation.
+Median HTTP latency was 0.36 s offline and 5.88 s with verification.
+[Enable passage verification](docs/PROVIDERS.md#verify-passages-in-the-local-http-service).
+[Read the evaluation](docs/RETRIEVAL-QUALITY-V2.md#http-scope-trial).
 
 ## Try it locally
 

@@ -40,12 +40,30 @@ and raw report hash.
 The evaluated profile is available on a host-local loopback bind. Compose uses the
 offline rule. The trial measures scope decisions on synthetic questions.
 
+### The two scope checks
+
+Both profiles first use routing, corpus vocabulary and vector similarity to
+screen documentation questions. The offline profile combines a score for the
+best matching passage with a fitted check of the full passage set. It uses word
+and phrase matches and how the terms relate within the text. Shared vocabulary
+can give unsupported questions a high score. Compose uses this inexpensive
+check without a model sign-in.
+
+The optional profile asks the subscription model whether one supplied passage
+answers the question. A positive verdict must name a passage and quote its text.
+The answer provider receives the same fitted passages. The model call adds
+latency and uses ChatGPT plan quota.
+
 ## Earlier CLI scope trial
 
 The local CLI's subscription verifier admitted **1/108 (0.9%)** unsupported
 questions and refused **4/103 (3.9%)** documentation questions in round 7.
-Hybrid Recall@5 was **0.9110** for both gates. That cohort met all three
-[registered targets](../eval/v13-scope/protocol.json).
+Hybrid Recall@5 was **0.9110** for both gates. The CLI series stopped at the first
+passing round after six earlier rounds informed changes. That stopping rule can
+make the selected result optimistic. The documentation refusal interval was
+**1.5%–9.6%**.
+The separately frozen 204-question HTTP trial passed on its first attempt with
+a fixed candidate. [Registered CLI targets](../eval/v13-scope/protocol.json).
 
 ## Scope decisions
 
@@ -107,11 +125,11 @@ documentation question. Both gates use the same ranking. Paired intervals use
 
 ## Answer review
 
-Two separate GPT-6.2 Sol sessions rated the saved v1.1 answers and six scope
-labels, and a third resolved the disputed scope label. The local answer review
-found **30/32 complete, 2 incomplete, 0 incorrect**. Both sessions agreed on all
-32 answer grades (Cohen's κ 1.00) and 5/6 scope labels (κ 0.60). See the
-[review summary](../eval/v13-scope/answer-review-summary.json) and
+Two sessions of the same GPT-6.2 Sol model rated the saved v1.1 answers and six
+scope labels. A third session resolved the disputed scope label. The two
+sessions agreed on all 32 answer grades (Cohen's κ 1.00) and 5/6 scope labels
+(κ 0.60). The saved answers were **30/32 complete, 2 incomplete, 0 incorrect**.
+[Review summary](../eval/v13-scope/answer-review-summary.json) ·
 [v1-007 label correction](../eval/v12-dev/LABEL-CHANGES.md).
 
 The scope trials use synthetic questions. Rounds 6 and 7 use a real subscription

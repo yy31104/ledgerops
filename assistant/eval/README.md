@@ -89,3 +89,9 @@ processes and compared their final SSE responses. It used a real subscription
 verifier in the candidate and fake generation in both arms. The checkout and
 upstream branch had to match the freeze. CI verifies the hashes and saved
 outcome without submitting requests.
+
+The [v1.3.1 release](https://github.com/yy31104/ledgerops/releases/tag/v1.3.1)
+contains the original per-question HTTP report in `ledgerops-evidence-v1.3.1.tar.gz`.
+Restore it with the command above and
+[`v131-evidence-manifest.json`](v131-evidence-manifest.json). The restored report's
+SHA-256 matches the [single-run receipt](http-scope/run.json).
