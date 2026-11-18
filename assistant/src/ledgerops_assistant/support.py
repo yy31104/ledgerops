@@ -57,16 +57,17 @@ def _spans(body):
 
 
 @lru_cache(maxsize=256)
-def _span_terms(body):
-    return tuple((span, frozenset(terms(span))) for span in _spans(body))
+def _span_terms(body, procedure):
+    spans = _spans(body)
+    if procedure:
+        spans = (clause.strip() for span in spans for clause in _CONTRAST.split(span))
+    return tuple((span, frozenset(terms(span))) for span in spans if span)
 
 
 def _denies_action(span, action):
     span = span.replace("\u2019", "'")
-    if any(stem(word.lower()) == action for word in _DENIED_ACTION.findall(span)):
-        return True
-    return any(
-        _UNAVAILABLE.search(clause) and action in terms(clause) for clause in _CONTRAST.split(span)
+    return bool(_UNAVAILABLE.search(span)) or any(
+        stem(word.lower()) == action for word in _DENIED_ACTION.findall(span)
     )
 
 
@@ -95,7 +96,7 @@ class PassageSupport:
         discount = (1 - self.coverage.measure(question).uncovered_share) / total
         best = Support()
         for chunk in passages:
-            for span, present in _span_terms(chunk.body):
+            for span, present in _span_terms(chunk.body, bool(action)):
                 if action and (
                     action not in present
                     or not any(term != action and term in present for term in weights)

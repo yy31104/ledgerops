@@ -92,6 +92,18 @@ def test_unrelated_negative_clause_keeps_the_supported_action(tmp_path):
     assert gate_for(tmp_path, source).supports(QUESTION, [source])
 
 
+def test_contrast_clause_must_independently_support_the_procedure(tmp_path):
+    denied = "You cannot export a snapshot while maintenance is active"
+    supported = "you can export a snapshot after maintenance ends."
+    source = chunk("supported", f"{denied}, but {supported}")
+    unrelated = chunk("unrelated", f"{denied}, but you can export a run report.")
+    gate = gate_for(tmp_path, source, unrelated)
+
+    result = gate.support.measure(QUESTION, [source])
+    assert result.witness == supported and gate.supports(QUESTION, [source])
+    assert gate.support.measure(QUESTION, [unrelated]).witness is None
+
+
 class ObservedFake(FakeProvider):
     def __init__(self):
         self.calls = 0
