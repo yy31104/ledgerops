@@ -519,6 +519,7 @@ def main():
         "status": "started",
     }
     if args.freeze_commit:
+        record["verified_origin_head"] = args.freeze_commit
         record["manifest_sha256"] = sha(STUDY / "manifest.json")
     with receipt.open("x") as file:
         json.dump(record, file, indent=2)
