@@ -1,0 +1,38 @@
+{
+  "study": "operations-v4-http-scope",
+  "corpus_digest": "822d084db36d3721a49fa80ca052722a6b0a1bd4d2fc2c4c81eb78628876a229",
+  "reference_http_commit": "2144be109763f12033fc7c27c8c6bbab37ffa601",
+  "reference_retrieval_commit": "7e637477223983917257fbb96d9c85ffcace979e",
+  "targets": {
+    "out_of_scope_pass_rate_max": 0.1,
+    "documentation_false_refusal_rate_max": 0.05,
+    "paired_recall_at_5_ci_lower_min": -0.03
+  },
+  "authoring": {
+    "minimum_documentation": 60,
+    "minimum_out_of_scope": 60,
+    "minimum_product_gap_share": 0.5,
+    "rules": "Independent writers see only the operations-v4 sources and question schema. Review labels, exact quotations, and duplicate information needs against earlier questions without running retrieval or either service. Exclusions happen before freezing. Retain every eligible draft question."
+  },
+  "candidate": {
+    "scope": "Host-local loopback HTTP service with subscription passage verification explicitly enabled by the server operator.",
+    "verifier_model": "gpt-6.1-sol",
+    "generation_provider": "fake",
+    "retrieval": "PostgreSQL pgvector plus full-text hybrid, RRF k=10, BGE-small",
+    "calibration": "Use only consumed development and former holdout material. Preserve raw hybrid ranks, corpus, topic list and similarity/coverage thresholds. Validate the existing round 7 passage profile through HTTP before freezing."
+  },
+  "measurement": {
+    "http": "Submit each question once per arm to authenticated POST /v1/assist and read the final SSE result. An answer with refused=false is an admission. Report refusal reasons, service or verifier errors, per-request timings, verifier usage, and counts for both arms.",
+    "out_of_scope": "Number of unsupported questions admitted divided by all unsupported questions.",
+    "documentation": "Number of documentation questions refused divided by all documentation questions.",
+    "retrieval": "Compare raw production hybrid rankings against the v1.2 ranking on each documentation question, including refused questions. Recall@5 counts labelled sections among the first five distinct ranked sections.",
+    "intervals": "Use 95% Wilson intervals for rates and a 95% paired percentile interval for Recall@5, clustering by the primary documentation section.",
+    "bootstrap_seed": 20261118,
+    "bootstrap_resamples": 10000,
+    "success": "All three bounds must pass using unrounded values. An incomplete run or infrastructure error cannot establish a pass."
+  },
+  "freeze": {
+    "attempts": 1,
+    "policy": "Push the protocol before authoring. Push the audited questions, configuration and runner hashes before starting. Exclusively create the run receipt before the first trial request. Preserve a failure or partial run and never replay the cohort. CI checks integrity but does not run the trial."
+  }
+}
