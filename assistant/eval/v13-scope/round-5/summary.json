@@ -1,0 +1,90 @@
+{
+  "round": 5,
+  "freeze_commit": "05d892dab47baa4966098e445e8fdb5e5425b97b",
+  "status": "completed",
+  "support_threshold": 0.5162088300000001,
+  "counts": {
+    "docs": 81,
+    "out_of_scope": 101
+  },
+  "product_gaps": 68,
+  "support_mode": "conditional-veto",
+  "recall": {
+    "n": 81,
+    "clusters": 45,
+    "reference": 0.9279835390946503,
+    "candidate": 0.9279835390946503,
+    "difference": 0.0,
+    "section_cluster_ci95": [
+      0.0,
+      0.0
+    ]
+  },
+  "reference": {
+    "out_of_scope_passed": {
+      "count": 64,
+      "n": 101,
+      "rate": 0.6336633663366337,
+      "wilson_ci95": [
+        0.5364,
+        0.7211
+      ]
+    },
+    "documentation_refused": {
+      "count": 2,
+      "n": 81,
+      "rate": 0.024691358024691357,
+      "wilson_ci95": [
+        0.0068,
+        0.0856
+      ]
+    }
+  },
+  "before_support": {
+    "out_of_scope_passed": {
+      "count": 64,
+      "n": 101,
+      "rate": 0.6336633663366337,
+      "wilson_ci95": [
+        0.5364,
+        0.7211
+      ]
+    },
+    "documentation_refused": {
+      "count": 2,
+      "n": 81,
+      "rate": 0.024691358024691357,
+      "wilson_ci95": [
+        0.0068,
+        0.0856
+      ]
+    }
+  },
+  "candidate": {
+    "out_of_scope_passed": {
+      "count": 22,
+      "n": 101,
+      "rate": 0.21782178217821782,
+      "wilson_ci95": [
+        0.1485,
+        0.3078
+      ]
+    },
+    "documentation_refused": {
+      "count": 5,
+      "n": 81,
+      "rate": 0.06172839506172839,
+      "wilson_ci95": [
+        0.0267,
+        0.1365
+      ]
+    }
+  },
+  "targets_met": {
+    "out_of_scope": false,
+    "documentation": false,
+    "retrieval": true
+  },
+  "passed": false,
+  "raw_result_sha256": "559e370f57e52ce30829d51d60b7c2f7290ac75045adfd46230d6d7e8b8df909"
+}

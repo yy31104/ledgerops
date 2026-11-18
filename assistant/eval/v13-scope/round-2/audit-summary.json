@@ -1,0 +1,139 @@
+{
+  "audit_version": 1,
+  "round": 2,
+  "draft_sha256": "853e1de9bea7ee0045d8edf25562171b634a429c9495ac60e18b5bd209cc24a6",
+  "prepared_sha256": "965989a7333ff695cbc7ee013a743c9737e25cfb5c9280d712dbdd401d8b1ff3",
+  "questions_sha256": "ca0a0864d38923dfaff1428b292a6f73259a1d426d086731d878f80e4e0a3b21",
+  "passages_sha256": "401802aaadd7919d5643da746c5c16a77163804ec8a8c6e94c8e9d13d207e099",
+  "source_file_sha256": {
+    "docs/AUTHENTICATION.md": "bad63ae4e9a617774d7f788b8924cfbd9cba4e3134699d95e3c4e6b9c6a2b03e",
+    "docs/HTTP-SERVICE.md": "2f1271c0b4755851420265fc8a5ccf0dec11b0f090dfb7c3a273047a89f6ebc3",
+    "docs/MAINTENANCE.md": "f5e74a9fd6d0cfbbaa9f02592a392344ce9153d19dc277899a16c01e7787ecdc",
+    "docs/OPERATOR-ACTIONS.md": "7d776f3f3eb2a79724b7c9cc2c3e4e497e41c7ecad01c18b97c879fbc41afc44",
+    "docs/PAYOUTS.md": "0cd994acd009f8b22184c2086496d64575cd8b7d966a9ea2710f26ec0e793cd6",
+    "docs/RECONCILIATION.md": "2a1319d69433ec1d74303a7351528b72ea0ee3b4331649ce57674d36f347fb7f",
+    "docs/internals/adr/0001-initialization.md": "c8e95ea822b08da705f5122f8f89de41ec8bb6cc3ae2a3b7a8ee321d5b74270b",
+    "docs/internals/adr/0002-ledger-foundation.md": "d4fb664b601f7f8f93a6ac013c620d4ff6496aa7602f52c78eb07ba7d93154b1",
+    "docs/internals/adr/0003-purchase-admission.md": "1a85c7c03c993ac198da2ed968b2aa86fbb60d551b413a2b8795e2d876d715cd",
+    "docs/internals/adr/0004-contention-and-recovery.md": "afe50cc7054201aa269534d7d3dbba373dcfeed4143b011ac558217804dffcfa",
+    "docs/internals/backup-restore.md": "3251fa78e175d8660c9507ec313de310eb1c6eac789adaa8ba03873168d88f53",
+    "docs/internals/evidence-exchange.md": "cf3a93fc76d005b8371e450bfcf18e059a10d7d7d6aebc37bec458a0b1683c14",
+    "docs/internals/export-and-verify.md": "70cb75cfa022665e63d512283105eaa80d7112f1b967ac0a9116f575ba67a025",
+    "docs/internals/maintenance-capacity.md": "b6c13e4a90f9b5b910e943759f0986812a028787081453f49dd27a780b162629",
+    "docs/internals/release-readiness.md": "572b7cec576fd80cb02ae7ff2017d09592b50eeb82ef17720ae82ed00b6a8be8",
+    "docs/internals/reservation-index.md": "a6a7f6f4927c249639d41ece03ab7729b9145408fb19835bde83ced2e0418af0",
+    "docs/internals/reversal.md": "fe988eb6c5350276b7ccd15e43295f2efa76382ce9cd8328663980cc61de3847",
+    "docs/internals/streaming-evidence.md": "def39a2a665b39da75d17c78869caf8448b302878db8cc0c7d05457dc215aa53",
+    "docs/internals/streaming-export-protocol.md": "3a16f6cf8a4d0005a35ff9ad61a59ddf787ce0850efade0dd49539cc9ed132bf",
+    "ops/linux/README.md": "8fa1e92cbd18561d71c944cfe853b5a1cdd311cefc87b58a4b3da1d6f30e7365"
+  },
+  "review_input_count": 201,
+  "review_output_sha256": [
+    "adb28ec97518f3f7560ef7f11d20d9c2f6fcbe5e87d96d8bbba5a91734caf812",
+    "e1b30bea33283405f705bea19252cd12e04deaa047c417b99053e221a161374e",
+    "0682a968ea25f468b0504c3137cafdcb5135be46a954ddcd88809715468a23bd"
+  ],
+  "prior_count": 625,
+  "retained": {
+    "documentation": 96,
+    "out_of_scope": 95,
+    "product_gaps": 61,
+    "meets_population": true
+  },
+  "static_exclusions": [],
+  "review_exclusions": [
+    {
+      "id": "v13-r2-013",
+      "code": "answerability",
+      "sections": [
+        "docs/OPERATOR-ACTIONS.md#reviewing-in-the-console",
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62",
+        "docs/HTTP-SERVICE.md#investigation-console"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r2-087",
+      "code": "sections",
+      "sections": [
+        "docs/MAINTENANCE.md#preparation-and-identities",
+        "docs/internals/export-and-verify.md#commands",
+        "docs/internals/release-readiness.md#verification-and-maintenance-for-larger-workspaces",
+        "docs/internals/streaming-evidence.md#commands"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r2-091",
+      "code": "sections",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#identity-and-transaction-order",
+        "docs/internals/adr/0003-purchase-admission.md#outcomes-and-error-precedence"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r2-095",
+      "code": "sections",
+      "sections": [
+        "docs/MAINTENANCE.md#run-in-order",
+        "docs/PAYOUTS.md#roles-migrations-and-rebuilds",
+        "docs/internals/maintenance-capacity.md#large-source-maintenance"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r2-107",
+      "code": "sections",
+      "sections": [
+        "docs/internals/release-readiness.md#scope-of-deployment-claims",
+        "ops/linux/README.md#resource-limits-and-cleanup",
+        "ops/linux/README.md#disposable-synthetic-acceptance"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r2-138",
+      "code": "sections",
+      "sections": [
+        "docs/internals/backup-restore.md#commands",
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r2-154",
+      "code": "sections",
+      "sections": [
+        "ops/linux/README.md#disposable-synthetic-acceptance",
+        "ops/linux/README.md#resource-limits-and-cleanup"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r2-158",
+      "code": "answerability",
+      "sections": [
+        "docs/MAINTENANCE.md#preparation-and-identities",
+        "docs/MAINTENANCE.md#run-in-order"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r2-165",
+      "code": "facts",
+      "sections": [
+        "docs/HTTP-SERVICE.md#api"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r2-171",
+      "code": "facts",
+      "sections": [
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs"
+      ],
+      "duplicate_refs": []
+    }
+  ]
+}

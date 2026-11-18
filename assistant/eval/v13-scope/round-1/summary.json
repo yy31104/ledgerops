@@ -1,0 +1,69 @@
+{
+  "round": 1,
+  "freeze_commit": "b2d5e14be08a21622a6fbd358c3291f65d14c55e",
+  "status": "completed",
+  "support_threshold": 0.050153920000000005,
+  "counts": {
+    "docs": 66,
+    "out_of_scope": 75
+  },
+  "product_gaps": 51,
+  "recall": {
+    "n": 66,
+    "clusters": 41,
+    "reference": 0.9002525252525252,
+    "candidate": 0.9002525252525252,
+    "difference": 0.0,
+    "section_cluster_ci95": [
+      0.0,
+      0.0
+    ]
+  },
+  "reference": {
+    "out_of_scope_passed": {
+      "count": 46,
+      "n": 75,
+      "rate": 0.6133333333333333,
+      "wilson_ci95": [
+        0.5002,
+        0.7154
+      ]
+    },
+    "documentation_refused": {
+      "count": 1,
+      "n": 66,
+      "rate": 0.015151515151515152,
+      "wilson_ci95": [
+        0.0027,
+        0.081
+      ]
+    }
+  },
+  "candidate": {
+    "out_of_scope_passed": {
+      "count": 30,
+      "n": 75,
+      "rate": 0.4,
+      "wilson_ci95": [
+        0.2966,
+        0.5131
+      ]
+    },
+    "documentation_refused": {
+      "count": 4,
+      "n": 66,
+      "rate": 0.06060606060606061,
+      "wilson_ci95": [
+        0.0238,
+        0.1457
+      ]
+    }
+  },
+  "targets_met": {
+    "out_of_scope": false,
+    "documentation": false,
+    "retrieval": true
+  },
+  "passed": false,
+  "raw_result_sha256": "3672c2e612c3d9ed88b3bdb024c77f7aaf52c27fd5979d9da9d7f364ee121771"
+}

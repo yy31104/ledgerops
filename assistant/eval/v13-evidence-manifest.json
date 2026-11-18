@@ -1,0 +1,95 @@
+{
+  "archive_bytes": 907794,
+  "archive_sha256": "1c239dcf3c22749fa1be804edd4d447489a57d8bc33a70fe83950b8ff815f2b4",
+  "asset": "ledgerops-evidence-v1.3.0.tar.gz",
+  "files": {
+    "assistant/eval/results/v13-development-final.json": {
+      "bytes": 609035,
+      "sha256": "3ec502969867fb0be630ca989bff06694391f96f9b25dcc4456938da6451aa24"
+    },
+    "assistant/eval/results/v13-development-r2.json": {
+      "bytes": 936574,
+      "sha256": "c4570f052a511638090443f36ad3a771b42b10634b552d9ba2de161fdb9d5314"
+    },
+    "assistant/eval/results/v13-development-r3-release.json": {
+      "bytes": 1401073,
+      "sha256": "03e305ffa80643718ca1c2d0d7550be17a56a6102508d84c0ff7ab49b9333404"
+    },
+    "assistant/eval/results/v13-development-r4.json": {
+      "bytes": 1769730,
+      "sha256": "7426705e024b5c2960a79e9d06515f2791da5480b824d3005efca711a3550e63"
+    },
+    "assistant/eval/results/v13-development-r5-routing.json": {
+      "bytes": 2182922,
+      "sha256": "05dd5f38631b8c44c303ed480c9967058f81e5590acd3177d614fff59bcfd824"
+    },
+    "assistant/eval/results/v13-development-r5.json": {
+      "bytes": 2186220,
+      "sha256": "e07c5a938b17132da2ac601d848c7ee7b10c26f25bfbfd2be5ed31e032a3053c"
+    },
+    "assistant/eval/results/v13-fit-r3-final-witness.json": {
+      "bytes": 1165,
+      "sha256": "d389ce69bb4c955d6c9cffb3b10d0bef5361303627a477396263547d14c5daf2"
+    },
+    "assistant/eval/results/v13-round-1.json": {
+      "bytes": 293982,
+      "sha256": "3672c2e612c3d9ed88b3bdb024c77f7aaf52c27fd5979d9da9d7f364ee121771"
+    },
+    "assistant/eval/results/v13-round-2.json": {
+      "bytes": 417628,
+      "sha256": "f7c04685ba03f683bb12c6e3d78a82b805cbcebaeb2dfd2293cd334728925297"
+    },
+    "assistant/eval/results/v13-round-3.json": {
+      "bytes": 328681,
+      "sha256": "0282b9abfc31f33ca1ba19914930276b868335f75f264280f126b025e95e276b"
+    },
+    "assistant/eval/results/v13-round-4.json": {
+      "bytes": 305845,
+      "sha256": "457ba4b88eb8179c0d1cf137529d3f145b64203a648e806c924843655f8ecd53"
+    },
+    "assistant/eval/results/v13-round-5.json": {
+      "bytes": 386301,
+      "sha256": "559e370f57e52ce30829d51d60b7c2f7290ac75045adfd46230d6d7e8b8df909"
+    },
+    "assistant/eval/results/v13-round-6.json": {
+      "bytes": 949610,
+      "sha256": "85e4e4b289241cb171d105e87af2465a2ca1481461600781e6dafddbb521a100"
+    },
+    "assistant/eval/results/v13-round-7.json": {
+      "bytes": 913320,
+      "sha256": "fc756e9c0c7b8df75a4f1a858da3561c7c13c5d76f24a430cdef3de59fbc6ffb"
+    },
+    "assistant/eval/results/v13-semantic-dev-probe.json": {
+      "bytes": 42029,
+      "sha256": "d4f4a1f5c351f25c79c5c8755ef7b3bbd7f8b254a5a78132f3411e38b31d677a"
+    },
+    "assistant/eval/results/v13-semantic-expanded-dev.json": {
+      "bytes": 1964,
+      "sha256": "8c9fa13a8498f9e913b2f98580aa9d526609c4f276189e947dc28373233aa999"
+    },
+    "assistant/eval/results/v13-semantic-expanded-probe.json": {
+      "bytes": 62544,
+      "sha256": "4f877cc4d33a5fb1590629ee7423debb2f114a8b4334e2ae15ef2281a0451b5f"
+    },
+    "assistant/eval/results/v13-semantic-final-probe.json": {
+      "bytes": 7678,
+      "sha256": "273b2b089ec434f15e6754598f663ebc731737b0e881e7eafd4549a4d1189b66"
+    },
+    "assistant/eval/results/v13-semantic-profile-dev.json": {
+      "bytes": 1688,
+      "sha256": "a7f6078299020838097dd4b6504988b4a36e103c18fc99b49789063cbbe26048"
+    },
+    "assistant/eval/results/v13-semantic-profile-probe.json": {
+      "bytes": 14037,
+      "sha256": "1df3a8466487bb3acb54b3dde7fc69569222e59fceb84f4ac69aafccda54f717"
+    },
+    "assistant/eval/results/v13-semantic-rare-context.json": {
+      "bytes": 762,
+      "sha256": "840d0dff990d3936ae69db20eac2015f7e2ce9a4b646d1a03d38d18f9fffbf47"
+    }
+  },
+  "release_tag": "v1.3.0",
+  "schema_version": 1,
+  "source_commit": "3552750d612acc2a8db869e3dc2225017d6cd12d",
+  "url": "https://github.com/yy31104/ledgerops/releases/download/v1.3.0/ledgerops-evidence-v1.3.0.tar.gz"
+}

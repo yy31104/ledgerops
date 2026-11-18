@@ -4,5 +4,8 @@
   "coverage_threshold": 0.597,
   "basis": "Preregistered operations-v4 holdout: hybrid-minus-vector Recall@5 section-cluster 95% interval excludes zero on the positive side. Synthetic labels; this method choice is not a second validation.",
   "coverage_basis": "Calibrated on all earlier question sets used as development data: midpoint between the largest documentation uncovered share and the next out-of-scope share. No development documentation question is refused.",
-  "study": "eval/v11-holdout/manifest.json"
+  "study": "eval/v11-holdout/manifest.json",
+  "support_threshold": 0.5162088300000001,
+  "support_basis": "One supplied passage provides the witness. A separate prose score accounts for questions with a leading condition or coordinated parts. The cutoff uses consumed development data.",
+  "support_mode": "conditional-veto"
 }

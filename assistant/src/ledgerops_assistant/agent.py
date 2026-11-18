@@ -85,6 +85,7 @@ class OperatorContext:
 
 class AgentState(TypedDict, total=False):
     question: str
+    route: str
     owner_key: str
     steps: int
     cost_usd: float
@@ -200,6 +201,14 @@ class Agent:
         tool = next((t for t in options if t not in done), "finish")
         return {"tool": tool, "object_id": match.group() if match and tool != "finish" else None}
 
+    def _unsupported_documents(self, state, documents):
+        if state.get("route") != routing.DOCS:
+            return False
+        supports = getattr(self.scope_gate, "supports", None)
+        return supports is not None and not supports(
+            state["question"], [Chunk(**d) for d in documents]
+        )
+
     def _decide(self, state, runtime: Runtime[OperatorContext]):
         if reason := self._guard(state, runtime.context):
             return {"next": "end", "result": refusal(reason)}
@@ -212,7 +221,7 @@ class Agent:
             return {"next": "end", "result": refusal(reason)}
         if reason := self._guard(state, runtime.context):
             return {"next": "end", "result": refusal(reason)}
-        _, message = self._fit_documents(
+        documents, message = self._fit_documents(
             state["documents"],
             lambda documents: json.dumps(
                 {
@@ -223,6 +232,8 @@ class Agent:
                 }
             ),
         )
+        if self._unsupported_documents(state, documents):
+            return {"next": "end", "result": refusal("not_in_docs")}
         reserved, usage, called = 0, {}, False
         try:
             reserved = self._reserve(state, message)
@@ -316,6 +327,8 @@ class Agent:
                 state["question"], [Chunk(**d) for d in documents] + api_chunks
             ),
         )
+        if self._unsupported_documents(state, documents):
+            return {"result": refusal("not_in_docs")}
         chunks = [Chunk(**d) for d in documents] + api_chunks
         if not chunks:
             return {"result": refusal("no_evidence")}
@@ -413,6 +426,7 @@ class Agent:
             )
         initial = AgentState(
             question=question,
+            route=route,
             owner_key=identity.owner_key,
             steps=0,
             cost_usd=0,

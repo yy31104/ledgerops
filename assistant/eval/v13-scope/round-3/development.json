@@ -1,0 +1,120 @@
+{
+  "corpus": "operations-v4",
+  "reference": "7e637477223983917257fbb96d9c85ffcace979e",
+  "development_hashes": {
+    "assistant/eval/v12-dev/questions.jsonl": "5f0a56ce089316e55435324efcab2f9eae43b5c6cfced3833d2032113a93ae21",
+    "assistant/eval/v12-holdout/questions.jsonl": "c3f74fe3a8de31a132e5c32a2fdb661b4ef9d1d71c2751099c6a074d8bea0a65",
+    "assistant/eval/v13-scope/round-1/questions.jsonl": "2f8a64c6881dae85a3166acbef58cc0bf04a3d1004a3649115ea15703834a025",
+    "assistant/eval/v13-scope/round-2/questions.jsonl": "ca0a0864d38923dfaff1428b292a6f73259a1d426d086731d878f80e4e0a3b21"
+  },
+  "support_threshold": 0.43744150000000004,
+  "support_mode": "compact-relation",
+  "reference_rates": {
+    "out_of_scope_passed": {
+      "count": 119,
+      "n": 216,
+      "rate": 0.5509259259259259,
+      "wilson_ci95": [
+        0.4843,
+        0.6158
+      ]
+    },
+    "documentation_refused": {
+      "count": 3,
+      "n": 326,
+      "rate": 0.009202453987730062,
+      "wilson_ci95": [
+        0.0031,
+        0.0267
+      ]
+    }
+  },
+  "candidate_rates": {
+    "out_of_scope_passed": {
+      "count": 16,
+      "n": 216,
+      "rate": 0.07407407407407407,
+      "wilson_ci95": [
+        0.0461,
+        0.1169
+      ]
+    },
+    "documentation_refused": {
+      "count": 16,
+      "n": 326,
+      "rate": 0.049079754601226995,
+      "wilson_ci95": [
+        0.0304,
+        0.0782
+      ]
+    }
+  },
+  "neighboring_development_cutoffs": [
+    {
+      "threshold": 0.42832354000000006,
+      "out_of_scope_passed": {
+        "count": 17,
+        "n": 216,
+        "rate": 0.0787037037037037,
+        "wilson_ci95": [
+          0.0497,
+          0.1224
+        ]
+      },
+      "documentation_refused": {
+        "count": 16,
+        "n": 326,
+        "rate": 0.049079754601226995,
+        "wilson_ci95": [
+          0.0304,
+          0.0782
+        ]
+      }
+    },
+    {
+      "threshold": 0.43744150000000004,
+      "out_of_scope_passed": {
+        "count": 16,
+        "n": 216,
+        "rate": 0.07407407407407407,
+        "wilson_ci95": [
+          0.0461,
+          0.1169
+        ]
+      },
+      "documentation_refused": {
+        "count": 16,
+        "n": 326,
+        "rate": 0.049079754601226995,
+        "wilson_ci95": [
+          0.0304,
+          0.0782
+        ]
+      }
+    },
+    {
+      "threshold": 0.4417487600000001,
+      "out_of_scope_passed": {
+        "count": 16,
+        "n": 216,
+        "rate": 0.07407407407407407,
+        "wilson_ci95": [
+          0.0461,
+          0.1169
+        ]
+      },
+      "documentation_refused": {
+        "count": 17,
+        "n": 326,
+        "rate": 0.05214723926380368,
+        "wilson_ci95": [
+          0.0328,
+          0.0819
+        ]
+      }
+    }
+  ],
+  "raw_report_sha256": "03e305ffa80643718ca1c2d0d7550be17a56a6102508d84c0ff7ab49b9333404",
+  "support_commit": "63c153b1847e36caff33755339e1c158ef37cd84",
+  "fit_report_sha256": "d389ce69bb4c955d6c9cffb3b10d0bef5361303627a477396263547d14c5daf2"
+}

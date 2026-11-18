@@ -1,0 +1,79 @@
+{
+  "support_mode": "subscription-evidence",
+  "support_threshold": 1.0,
+  "subscription": {
+    "model": "gpt-6.1-sol",
+    "context_sections": 10,
+    "context_bytes": 36000,
+    "request_timeout_seconds": 120
+  },
+  "development_hashes": {
+    "assistant/eval/v12-dev/questions.jsonl": "5f0a56ce089316e55435324efcab2f9eae43b5c6cfced3833d2032113a93ae21",
+    "assistant/eval/v12-holdout/questions.jsonl": "c3f74fe3a8de31a132e5c32a2fdb661b4ef9d1d71c2751099c6a074d8bea0a65",
+    "assistant/eval/v13-scope/round-1/questions.jsonl": "2f8a64c6881dae85a3166acbef58cc0bf04a3d1004a3649115ea15703834a025",
+    "assistant/eval/v13-scope/round-2/questions.jsonl": "ca0a0864d38923dfaff1428b292a6f73259a1d426d086731d878f80e4e0a3b21",
+    "assistant/eval/v13-scope/round-3/questions.jsonl": "7837b6ac49b2e3a5562274a1a3901a3ebb7cbb7700646484cd26986fbda005cc",
+    "assistant/eval/v13-scope/round-4/questions.jsonl": "4ca9253eeff7b0c6338c5c8bbd3910840593dbf8ea70c47dca6ba8cb908d691d",
+    "assistant/eval/v13-scope/round-5/questions.jsonl": "cab67302155d539bd4c3da21eac3c064d2273a798662dbf3c2e19c6864f73f98"
+  },
+  "profile_comparison": {
+    "5/18000": {
+      "chunks": 6358,
+      "bytes": 7222544,
+      "section_hit": 536,
+      "quoted_questions": 522,
+      "exact_quote_hit": 485,
+      "all_fact_quotes_hit": 484
+    },
+    "8/28000": {
+      "chunks": 10008,
+      "bytes": 11383511,
+      "section_hit": 546,
+      "quoted_questions": 522,
+      "exact_quote_hit": 495,
+      "all_fact_quotes_hit": 494
+    },
+    "10/36000": {
+      "chunks": 12863,
+      "bytes": 14679433,
+      "section_hit": 547,
+      "quoted_questions": 522,
+      "exact_quote_hit": 499,
+      "all_fact_quotes_hit": 498
+    },
+    "12/42000": {
+      "chunks": 15067,
+      "bytes": 17138605,
+      "section_hit": 547,
+      "quoted_questions": 522,
+      "exact_quote_hit": 497,
+      "all_fact_quotes_hit": 496
+    }
+  },
+  "selected_supplement": {
+    "maximum_document_frequency": 3,
+    "maximum_passages": 3,
+    "all_fact_quotes_hit": 504,
+    "quoted_questions": 522
+  },
+  "initial_stress_probe": {
+    "docs_supported": 9,
+    "docs": 12,
+    "unsupported_admitted": 0,
+    "out_of_scope": 12
+  },
+  "final_path_probe": {
+    "docs_supported": 1,
+    "docs": 1,
+    "unsupported_admitted": 0,
+    "out_of_scope": 1,
+    "earlier_development_timeout": 1
+  },
+  "release_profile_reports": {
+    "v13-semantic-dev-probe.json": "d4f4a1f5c351f25c79c5c8755ef7b3bbd7f8b254a5a78132f3411e38b31d677a",
+    "v13-semantic-final-probe.json": "273b2b089ec434f15e6754598f663ebc731737b0e881e7eafd4549a4d1189b66",
+    "v13-semantic-profile-dev.json": "a7f6078299020838097dd4b6504988b4a36e103c18fc99b49789063cbbe26048",
+    "v13-semantic-profile-probe.json": "1df3a8466487bb3acb54b3dde7fc69569222e59fceb84f4ac69aafccda54f717",
+    "v13-semantic-rare-context.json": "840d0dff990d3936ae69db20eac2015f7e2ce9a4b646d1a03d38d18f9fffbf47"
+  }
+}

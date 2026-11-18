@@ -3,6 +3,8 @@
 import json
 from importlib.resources import files
 
+from ledgerops_assistant.support import SUPPORT_MODES
+
 METHODS = {"vector", "hybrid"}
 
 
@@ -29,3 +31,17 @@ def coverage_threshold():
     if type(value) is not float or not 0 < value <= 1:
         raise ValueError("invalid release coverage threshold")
     return value
+
+
+def support_threshold():
+    value = _policy().get("support_threshold")
+    if value is not None and (type(value) not in (float, int) or not 0 <= value <= 1):
+        raise ValueError("invalid release passage support threshold")
+    return float(value) if value is not None else None
+
+
+def support_mode():
+    mode = _policy().get("support_mode", "single-span")
+    if mode not in SUPPORT_MODES:
+        raise ValueError("invalid release passage support mode")
+    return mode
