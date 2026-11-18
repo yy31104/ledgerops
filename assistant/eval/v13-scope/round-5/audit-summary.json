@@ -1,0 +1,765 @@
+{
+  "audit_version": 1,
+  "round": 5,
+  "draft_sha256": "dc6047e940fe6b9f4f574f8f88dff982009b75377a8054954bc4efe2e7d4c84c",
+  "prepared_sha256": "8e5df72fff7cc10b43e84442ca4eeb002ee18864ea6597952c35f06334d338ac",
+  "questions_sha256": "cab67302155d539bd4c3da21eac3c064d2273a798662dbf3c2e19c6864f73f98",
+  "passages_sha256": "401802aaadd7919d5643da746c5c16a77163804ec8a8c6e94c8e9d13d207e099",
+  "source_file_sha256": {
+    "docs/AUTHENTICATION.md": "bad63ae4e9a617774d7f788b8924cfbd9cba4e3134699d95e3c4e6b9c6a2b03e",
+    "docs/HTTP-SERVICE.md": "2f1271c0b4755851420265fc8a5ccf0dec11b0f090dfb7c3a273047a89f6ebc3",
+    "docs/MAINTENANCE.md": "f5e74a9fd6d0cfbbaa9f02592a392344ce9153d19dc277899a16c01e7787ecdc",
+    "docs/OPERATOR-ACTIONS.md": "7d776f3f3eb2a79724b7c9cc2c3e4e497e41c7ecad01c18b97c879fbc41afc44",
+    "docs/PAYOUTS.md": "0cd994acd009f8b22184c2086496d64575cd8b7d966a9ea2710f26ec0e793cd6",
+    "docs/RECONCILIATION.md": "2a1319d69433ec1d74303a7351528b72ea0ee3b4331649ce57674d36f347fb7f",
+    "docs/internals/adr/0001-initialization.md": "c8e95ea822b08da705f5122f8f89de41ec8bb6cc3ae2a3b7a8ee321d5b74270b",
+    "docs/internals/adr/0002-ledger-foundation.md": "d4fb664b601f7f8f93a6ac013c620d4ff6496aa7602f52c78eb07ba7d93154b1",
+    "docs/internals/adr/0003-purchase-admission.md": "1a85c7c03c993ac198da2ed968b2aa86fbb60d551b413a2b8795e2d876d715cd",
+    "docs/internals/adr/0004-contention-and-recovery.md": "afe50cc7054201aa269534d7d3dbba373dcfeed4143b011ac558217804dffcfa",
+    "docs/internals/backup-restore.md": "3251fa78e175d8660c9507ec313de310eb1c6eac789adaa8ba03873168d88f53",
+    "docs/internals/evidence-exchange.md": "cf3a93fc76d005b8371e450bfcf18e059a10d7d7d6aebc37bec458a0b1683c14",
+    "docs/internals/export-and-verify.md": "70cb75cfa022665e63d512283105eaa80d7112f1b967ac0a9116f575ba67a025",
+    "docs/internals/maintenance-capacity.md": "b6c13e4a90f9b5b910e943759f0986812a028787081453f49dd27a780b162629",
+    "docs/internals/release-readiness.md": "572b7cec576fd80cb02ae7ff2017d09592b50eeb82ef17720ae82ed00b6a8be8",
+    "docs/internals/reservation-index.md": "a6a7f6f4927c249639d41ece03ab7729b9145408fb19835bde83ced2e0418af0",
+    "docs/internals/reversal.md": "fe988eb6c5350276b7ccd15e43295f2efa76382ce9cd8328663980cc61de3847",
+    "docs/internals/streaming-evidence.md": "def39a2a665b39da75d17c78869caf8448b302878db8cc0c7d05457dc215aa53",
+    "docs/internals/streaming-export-protocol.md": "3a16f6cf8a4d0005a35ff9ad61a59ddf787ce0850efade0dd49539cc9ed132bf",
+    "ops/linux/README.md": "8fa1e92cbd18561d71c944cfe853b5a1cdd311cefc87b58a4b3da1d6f30e7365"
+  },
+  "review_input_count": 255,
+  "review_output_sha256": [
+    "02709e702b88ad99ebf0f21d239a6d855ff6a51da4b64f6d8d8aa87897d7fd04",
+    "f147f33ce3c7fc2874dde97a0b4ab7ebda7f4d3d15324168cf6317c1b90a258f",
+    "20a38b1bf44bddfd072f7355601d3a890d163c6df01bffbe79cf552c1859192b",
+    "8594b332e94aaa10e72d387a97e282526db26fba7afe5dc65ac3c7528b0d834d"
+  ],
+  "prior_count": 1255,
+  "retained": {
+    "documentation": 81,
+    "out_of_scope": 101,
+    "product_gaps": 68,
+    "meets_population": true
+  },
+  "static_exclusions": [],
+  "review_exclusions": [
+    {
+      "id": "v13-r5-001",
+      "code": "wording",
+      "sections": [
+        "docs/internals/reservation-index.md#export-and-backup-compatibility",
+        "docs/internals/export-and-verify.md#large-inputs-explicit-format-10"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-003",
+      "code": "duplicate",
+      "sections": [
+        "docs/AUTHENTICATION.md#bootstrap-rotation-and-revocation"
+      ],
+      "duplicate_refs": [
+        "prior-1249"
+      ]
+    },
+    {
+      "id": "v13-r5-005",
+      "code": "facts",
+      "sections": [
+        "docs/internals/backup-restore.md#commands"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-007",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/evidence-exchange.md#selected-synthetic-evidence-exchange-v1"
+      ],
+      "duplicate_refs": [
+        "prior-0520"
+      ]
+    },
+    {
+      "id": "v13-r5-008",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/evidence-exchange.md#selected-synthetic-evidence-exchange-v1",
+        "docs/internals/release-readiness.md#recovery-identity-and-operator-actions"
+      ],
+      "duplicate_refs": [
+        "prior-0393",
+        "prior-1060"
+      ]
+    },
+    {
+      "id": "v13-r5-010",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/evidence-exchange.md#selected-synthetic-evidence-exchange-v1"
+      ],
+      "duplicate_refs": [
+        "prior-0522"
+      ]
+    },
+    {
+      "id": "v13-r5-012",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/export-and-verify.md#commands"
+      ],
+      "duplicate_refs": [
+        "prior-0526"
+      ]
+    },
+    {
+      "id": "v13-r5-015",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries"
+      ],
+      "duplicate_refs": [
+        "prior-0169"
+      ]
+    },
+    {
+      "id": "v13-r5-019",
+      "code": "duplicate",
+      "sections": [
+        "docs/HTTP-SERVICE.md#api"
+      ],
+      "duplicate_refs": [
+        "prior-0487"
+      ]
+    },
+    {
+      "id": "v13-r5-021",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/maintenance-capacity.md#large-source-maintenance"
+      ],
+      "duplicate_refs": [
+        "prior-0673"
+      ]
+    },
+    {
+      "id": "v13-r5-022",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/maintenance-capacity.md#large-source-maintenance"
+      ],
+      "duplicate_refs": [
+        "prior-0502"
+      ]
+    },
+    {
+      "id": "v13-r5-024",
+      "code": "duplicate",
+      "sections": [
+        "docs/MAINTENANCE.md#preparation-and-identities"
+      ],
+      "duplicate_refs": [
+        "prior-0171"
+      ]
+    },
+    {
+      "id": "v13-r5-027",
+      "code": "duplicate",
+      "sections": [
+        "docs/MAINTENANCE.md#failures-and-retries"
+      ],
+      "duplicate_refs": [
+        "prior-0318"
+      ]
+    },
+    {
+      "id": "v13-r5-028",
+      "code": "duplicate",
+      "sections": [
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62"
+      ],
+      "duplicate_refs": [
+        "prior-0076"
+      ]
+    },
+    {
+      "id": "v13-r5-029",
+      "code": "duplicate",
+      "sections": [
+        "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+      ],
+      "duplicate_refs": [
+        "prior-0097"
+      ]
+    },
+    {
+      "id": "v13-r5-030",
+      "code": "duplicate",
+      "sections": [
+        "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+      ],
+      "duplicate_refs": [
+        "prior-1048"
+      ]
+    },
+    {
+      "id": "v13-r5-034",
+      "code": "sections",
+      "sections": [
+        "docs/PAYOUTS.md#dispatch-and-recovery",
+        "docs/internals/adr/0004-contention-and-recovery.md#payout-dispatch-without-a-distributed-transaction"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-036",
+      "code": "duplicate",
+      "sections": [
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+      ],
+      "duplicate_refs": [
+        "prior-0508"
+      ]
+    },
+    {
+      "id": "v13-r5-037",
+      "code": "duplicate",
+      "sections": [
+        "docs/RECONCILIATION.md#obtain-provider-evidence-first"
+      ],
+      "duplicate_refs": [
+        "prior-1030"
+      ]
+    },
+    {
+      "id": "v13-r5-038",
+      "code": "duplicate",
+      "sections": [
+        "docs/RECONCILIATION.md#read-the-report"
+      ],
+      "duplicate_refs": [
+        "prior-0384"
+      ]
+    },
+    {
+      "id": "v13-r5-040",
+      "code": "duplicate",
+      "sections": [
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs"
+      ],
+      "duplicate_refs": [
+        "prior-0511"
+      ]
+    },
+    {
+      "id": "v13-r5-041",
+      "code": "duplicate",
+      "sections": [
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs"
+      ],
+      "duplicate_refs": [
+        "prior-0511"
+      ]
+    },
+    {
+      "id": "v13-r5-042",
+      "code": "duplicate",
+      "sections": [
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs"
+      ],
+      "duplicate_refs": [
+        "prior-1033"
+      ]
+    },
+    {
+      "id": "v13-r5-044",
+      "code": "sections",
+      "sections": [
+        "docs/internals/release-readiness.md#scope-of-deployment-claims",
+        "ops/linux/README.md#disposable-synthetic-acceptance"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-046",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/reversal.md#python-entry-point"
+      ],
+      "duplicate_refs": [
+        "prior-0356",
+        "prior-0450"
+      ]
+    },
+    {
+      "id": "v13-r5-048",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/reversal.md#results-and-retries"
+      ],
+      "duplicate_refs": [
+        "prior-0479"
+      ]
+    },
+    {
+      "id": "v13-r5-051",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10"
+      ],
+      "duplicate_refs": [
+        "prior-0890"
+      ]
+    },
+    {
+      "id": "v13-r5-053",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10"
+      ],
+      "duplicate_refs": [
+        "prior-1058"
+      ]
+    },
+    {
+      "id": "v13-r5-055",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10"
+      ],
+      "duplicate_refs": [
+        "prior-0850"
+      ]
+    },
+    {
+      "id": "v13-r5-058",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/adr/0001-initialization.md#trust-boundary-and-changed-guarantees",
+        "docs/internals/adr/0002-ledger-foundation.md#foundation-decisions"
+      ],
+      "duplicate_refs": [
+        "prior-1066",
+        "prior-0179"
+      ]
+    },
+    {
+      "id": "v13-r5-060",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/adr/0004-contention-and-recovery.md#bounded-retry"
+      ],
+      "duplicate_refs": [
+        "prior-0475"
+      ]
+    },
+    {
+      "id": "v13-r5-062",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/adr/0004-contention-and-recovery.md#deterministic-contention-evidence"
+      ],
+      "duplicate_refs": [
+        "prior-0690"
+      ]
+    },
+    {
+      "id": "v13-r5-064",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#build-initialize-and-start"
+      ],
+      "duplicate_refs": [
+        "prior-0538"
+      ]
+    },
+    {
+      "id": "v13-r5-065",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#build-initialize-and-start"
+      ],
+      "duplicate_refs": [
+        "prior-0859"
+      ]
+    },
+    {
+      "id": "v13-r5-068",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#resource-limits-and-cleanup"
+      ],
+      "duplicate_refs": [
+        "prior-1222"
+      ]
+    },
+    {
+      "id": "v13-r5-069",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ],
+      "duplicate_refs": [
+        "prior-0176"
+      ]
+    },
+    {
+      "id": "v13-r5-070",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#backup-restore-and-reopening",
+        "docs/internals/backup-restore.md#commands"
+      ],
+      "duplicate_refs": [
+        "prior-0864"
+      ]
+    },
+    {
+      "id": "v13-r5-071",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#worker-fail-stop-and-incident-response"
+      ],
+      "duplicate_refs": [
+        "prior-0544"
+      ]
+    },
+    {
+      "id": "v13-r5-072",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/reservation-index.md#active-hold-queries-and-index-upgrades"
+      ],
+      "duplicate_refs": [
+        "prior-0536"
+      ]
+    },
+    {
+      "id": "v13-r5-074",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/reservation-index.md#upgrade-boundaries"
+      ],
+      "duplicate_refs": [
+        "prior-1063"
+      ]
+    },
+    {
+      "id": "v13-r5-076",
+      "code": "duplicate",
+      "sections": [
+        "docs/AUTHENTICATION.md#bootstrap-rotation-and-revocation"
+      ],
+      "duplicate_refs": [
+        "prior-0303"
+      ]
+    },
+    {
+      "id": "v13-r5-078",
+      "code": "sections",
+      "sections": [
+        "docs/AUTHENTICATION.md#restoring-an-old-backup",
+        "docs/internals/backup-restore.md#commands",
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-080",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/backup-restore.md#recovery-checks-and-bounds"
+      ],
+      "duplicate_refs": [
+        "prior-0145"
+      ]
+    },
+    {
+      "id": "v13-r5-084",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries"
+      ],
+      "duplicate_refs": [
+        "prior-0523"
+      ]
+    },
+    {
+      "id": "v13-r5-086",
+      "code": "duplicate",
+      "sections": [
+        "docs/HTTP-SERVICE.md#configuration-and-startup"
+      ],
+      "duplicate_refs": [
+        "prior-0875"
+      ]
+    },
+    {
+      "id": "v13-r5-090",
+      "code": "sections",
+      "sections": [
+        "docs/MAINTENANCE.md#preparation-and-identities",
+        "docs/MAINTENANCE.md#run-in-order"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-091",
+      "code": "duplicate",
+      "sections": [
+        "docs/MAINTENANCE.md#run-in-order",
+        "docs/internals/adr/0002-ledger-foundation.md#foundation-decisions"
+      ],
+      "duplicate_refs": [
+        "prior-0470"
+      ]
+    },
+    {
+      "id": "v13-r5-092",
+      "code": "sections",
+      "sections": [
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62",
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+        "docs/internals/release-readiness.md#supported-flows"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-097",
+      "code": "sections",
+      "sections": [
+        "docs/PAYOUTS.md#dispatch-and-recovery",
+        "docs/PAYOUTS.md#bounded-payout-worker-process",
+        "docs/HTTP-SERVICE.md#configuration-and-startup"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-100",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/streaming-evidence.md#full-source-authority-reaches-approvals"
+      ],
+      "duplicate_refs": [
+        "prior-0851"
+      ]
+    },
+    {
+      "id": "v13-r5-104",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#disposable-synthetic-acceptance"
+      ],
+      "duplicate_refs": [
+        "prior-1207"
+      ]
+    },
+    {
+      "id": "v13-r5-107",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#worker-fail-stop-and-incident-response"
+      ],
+      "duplicate_refs": [
+        "prior-0544"
+      ]
+    },
+    {
+      "id": "v13-r5-108",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#upgrade-and-rollback"
+      ],
+      "duplicate_refs": [
+        "prior-0806"
+      ]
+    },
+    {
+      "id": "v13-r5-117",
+      "code": "answerability",
+      "sections": [
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-120",
+      "code": "answerability",
+      "sections": [
+        "docs/internals/evidence-exchange.md#selected-synthetic-evidence-exchange-v1"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-121",
+      "code": "answerability",
+      "sections": [
+        "docs/internals/evidence-exchange.md#selected-synthetic-evidence-exchange-v1"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-122",
+      "code": "answerability",
+      "sections": [
+        "docs/internals/evidence-exchange.md#selected-synthetic-evidence-exchange-v1"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-123",
+      "code": "answerability",
+      "sections": [
+        "docs/internals/evidence-exchange.md#selected-synthetic-evidence-exchange-v1"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-128",
+      "code": "duplicate",
+      "sections": [],
+      "duplicate_refs": [
+        "prior-0584"
+      ]
+    },
+    {
+      "id": "v13-r5-170",
+      "code": "answerability",
+      "sections": [
+        "docs/PAYOUTS.md#bounded-payout-worker-process"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-502",
+      "code": "duplicate",
+      "sections": [
+        "docs/HTTP-SERVICE.md#investigation-console"
+      ],
+      "duplicate_refs": [
+        "v13-r5-089"
+      ]
+    },
+    {
+      "id": "v13-r5-503",
+      "code": "duplicate",
+      "sections": [
+        "docs/HTTP-SERVICE.md#resource-limits-and-shutdown"
+      ],
+      "duplicate_refs": [
+        "v13-r5-020"
+      ]
+    },
+    {
+      "id": "v13-r5-504",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/adr/0002-ledger-foundation.md#foundation-decisions"
+      ],
+      "duplicate_refs": [
+        "prior-0672"
+      ]
+    },
+    {
+      "id": "v13-r5-505",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#identity-and-transaction-order"
+      ],
+      "duplicate_refs": [
+        "prior-0473"
+      ]
+    },
+    {
+      "id": "v13-r5-506",
+      "code": "duplicate",
+      "sections": [
+        "docs/PAYOUTS.md#dispatch-and-recovery"
+      ],
+      "duplicate_refs": [
+        "v13-r5-096"
+      ]
+    },
+    {
+      "id": "v13-r5-513",
+      "code": "sections",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#identity-and-transaction-order",
+        "docs/internals/adr/0003-purchase-admission.md#service-boundary-and-authorization",
+        "docs/AUTHENTICATION.md#ordering-revocation-and-transactions"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-517",
+      "code": "duplicate",
+      "sections": [
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs"
+      ],
+      "duplicate_refs": [
+        "v13-r5-043"
+      ]
+    },
+    {
+      "id": "v13-r5-520",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/backup-restore.md#commands"
+      ],
+      "duplicate_refs": [
+        "v13-r5-004"
+      ]
+    },
+    {
+      "id": "v13-r5-522",
+      "code": "duplicate",
+      "sections": [
+        "ops/linux/README.md#disposable-synthetic-acceptance"
+      ],
+      "duplicate_refs": [
+        "prior-0903"
+      ]
+    },
+    {
+      "id": "v13-r5-525",
+      "code": "duplicate",
+      "sections": [
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+      ],
+      "duplicate_refs": [
+        "v13-r5-098"
+      ]
+    },
+    {
+      "id": "v13-r5-532",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/adr/0001-initialization.md#verification-and-recovery"
+      ],
+      "duplicate_refs": [
+        "prior-0467"
+      ]
+    },
+    {
+      "id": "v13-r5-533",
+      "code": "sections",
+      "sections": [
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries",
+        "docs/internals/export-and-verify.md#what-the-report-establishes",
+        "docs/PAYOUTS.md#roles-migrations-and-rebuilds"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r5-535",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/backup-restore.md#artifact-and-authority"
+      ],
+      "duplicate_refs": [
+        "prior-0515",
+        "prior-1025"
+      ]
+    }
+  ]
+}
