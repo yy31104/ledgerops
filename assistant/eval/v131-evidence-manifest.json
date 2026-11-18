@@ -1,0 +1,15 @@
+{
+  "archive_bytes": 57064,
+  "archive_sha256": "fbf3a443b247fd44a401261b37b741154fd6c1b930ffe9efb1218b390bfb67fa",
+  "asset": "ledgerops-evidence-v1.3.1.tar.gz",
+  "files": {
+    "assistant/eval/results/http-scope-v1.3.1.json": {
+      "bytes": 1018846,
+      "sha256": "c14f8bfa767c83204d9ef1141df2af32007cb9e8fa009be3d71c0bffca0fe5b9"
+    }
+  },
+  "release_tag": "v1.3.1",
+  "schema_version": 1,
+  "source_commit": "35c07579172f3a22db7259e7a147bbfe628d6390",
+  "url": "https://github.com/yy31104/ledgerops/releases/download/v1.3.1/ledgerops-evidence-v1.3.1.tar.gz"
+}
