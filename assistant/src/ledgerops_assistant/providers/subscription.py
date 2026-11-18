@@ -5,8 +5,27 @@ import os
 import signal
 import subprocess
 import sys
+import threading
+import time
+from contextlib import suppress
 
 from ledgerops_assistant.providers.base import parse_draft, user_message
+
+_WORKER_LEDGEROPS_ENV = {
+    "LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION",
+    "LEDGEROPS_ASSISTANT_SERVER",
+}
+_WORKER_EXCLUDED_ENV = {
+    "OPENAI_API_KEY",
+    "OPENAI_BASE_URL",
+    "ASSISTANT_RUNTIME_PASSWORD",
+    "DATABASE_URL",
+}
+
+
+def _kill_worker(proc):
+    with suppress(ProcessLookupError):
+        os.killpg(proc.pid, signal.SIGKILL)
 
 
 class SubscriptionProvider:
@@ -23,11 +42,32 @@ class SubscriptionProvider:
         )
 
     def generate(
-        self, instructions: str, message: str, schema: dict, *, timeout=None, max_output_tokens=512
+        self,
+        instructions: str,
+        message: str,
+        schema: dict,
+        *,
+        timeout=None,
+        max_output_tokens=512,
+        cancel=None,
     ) -> tuple[str, dict]:
+        deadline = time.monotonic() + (
+            min(self.timeout, timeout) if timeout is not None else self.timeout
+        )
+        if cancel is not None and cancel.is_set():
+            raise TimeoutError("local subscription request was cancelled")
+        if time.monotonic() >= deadline:
+            raise TimeoutError("local subscription request exceeded its deadline")
+
         # Never read, copy or export auth.json. The official SDK owns authentication.
         env = {
-            k: v for k, v in os.environ.items() if k not in ("OPENAI_API_KEY", "OPENAI_BASE_URL")
+            key: value
+            for key, value in os.environ.items()
+            if key in _WORKER_LEDGEROPS_ENV
+            or (
+                key not in _WORKER_EXCLUDED_ENV
+                and not key.startswith(("LEDGEROPS_", "PG", "POSTGRES_"))
+            )
         }
         proc = subprocess.Popen(
             [sys.executable, "-m", "ledgerops_assistant.providers.subscription_worker"],
@@ -38,6 +78,18 @@ class SubscriptionProvider:
             env=env,
             start_new_session=True,
         )
+        done = threading.Event()
+
+        def stop_on_cancel():
+            while not done.wait(0.1):
+                if cancel.is_set():
+                    _kill_worker(proc)
+                    return
+
+        watcher = None
+        if cancel is not None:
+            watcher = threading.Thread(target=stop_on_cancel, daemon=True)
+            watcher.start()
         try:
             output, _ = proc.communicate(
                 json.dumps(
@@ -49,12 +101,18 @@ class SubscriptionProvider:
                         "isolated": self.isolated,
                     }
                 ),
-                timeout=min(self.timeout, timeout) if timeout else self.timeout,
+                timeout=max(0, deadline - time.monotonic()),
             )
         except subprocess.TimeoutExpired:
-            os.killpg(proc.pid, signal.SIGKILL)
+            _kill_worker(proc)
             proc.communicate()
             raise TimeoutError("local subscription request exceeded its deadline") from None
+        finally:
+            done.set()
+            if watcher is not None:
+                watcher.join()
+        if cancel is not None and cancel.is_set():
+            raise TimeoutError("local subscription request was cancelled")
         if proc.returncode:
             raise RuntimeError(
                 "local Codex request failed; check login and the optional SDK install"
