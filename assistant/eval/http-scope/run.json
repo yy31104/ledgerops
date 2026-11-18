@@ -1,0 +1,12 @@
+{
+  "started_at": "2026-11-18T19:10:36.534393+00:00",
+  "freeze_commit": "7a43fc4252fd8e52f05bf978e2d4ebe0b083a849",
+  "cohort_size": 204,
+  "status": "completed",
+  "verified_origin_head": "7a43fc4252fd8e52f05bf978e2d4ebe0b083a849",
+  "manifest_sha256": "056a2baaf6af80e8aa05742f0b697912498d1098ad58d040d9eb1b662baa5ac0",
+  "passed": true,
+  "finished_at": "2026-11-18T19:18:59.121282+00:00",
+  "records": 204,
+  "report_sha256": "c14f8bfa767c83204d9ef1141df2af32007cb9e8fa009be3d71c0bffca0fe5b9"
+}

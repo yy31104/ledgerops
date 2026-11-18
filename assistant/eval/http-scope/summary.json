@@ -1,0 +1,177 @@
+{
+  "candidate": {
+    "documentation_refused": {
+      "count": 2,
+      "ids": [
+        "http-doc-169",
+        "http-doc-262"
+      ],
+      "n": 102,
+      "rate": 0.0196078431372549,
+      "wilson_ci95": [
+        0.0054,
+        0.0687
+      ]
+    },
+    "out_of_scope_passed": {
+      "count": 1,
+      "ids": [
+        "http-oos-053"
+      ],
+      "n": 102,
+      "rate": 0.00980392156862745,
+      "wilson_ci95": [
+        0.0017,
+        0.0535
+      ]
+    }
+  },
+  "candidate_failures": [
+    {
+      "expected_route": "out_of_scope",
+      "id": "http-oos-053",
+      "reason": "none",
+      "route": "docs",
+      "verification": "supported"
+    },
+    {
+      "expected_route": "docs",
+      "id": "http-doc-169",
+      "reason": "not_in_docs",
+      "route": "docs",
+      "verification": "unsupported"
+    },
+    {
+      "expected_route": "docs",
+      "id": "http-doc-262",
+      "reason": "not_in_docs",
+      "route": "docs",
+      "verification": "unsupported"
+    }
+  ],
+  "candidate_refusal_reasons": {
+    "not_in_docs": 103
+  },
+  "freeze_commit": "7a43fc4252fd8e52f05bf978e2d4ebe0b083a849",
+  "http_median_ms": {
+    "candidate_http": 5878.745,
+    "reference_http": 359.005
+  },
+  "passed": true,
+  "population": {
+    "documentation": 102,
+    "meets_population": true,
+    "out_of_scope": 102,
+    "product_gaps": 73
+  },
+  "raw_result_sha256": "c14f8bfa767c83204d9ef1141df2af32007cb9e8fa009be3d71c0bffca0fe5b9",
+  "records": 204,
+  "reference": {
+    "documentation_refused": {
+      "count": 7,
+      "ids": [
+        "http-doc-021",
+        "http-doc-114",
+        "http-doc-148",
+        "http-doc-153",
+        "http-doc-169",
+        "http-doc-182",
+        "http-doc-252"
+      ],
+      "n": 102,
+      "rate": 0.06862745098039216,
+      "wilson_ci95": [
+        0.0336,
+        0.1349
+      ]
+    },
+    "out_of_scope_passed": {
+      "count": 50,
+      "ids": [
+        "http-oos-001",
+        "http-oos-004",
+        "http-oos-005",
+        "http-oos-006",
+        "http-oos-007",
+        "http-oos-008",
+        "http-oos-014",
+        "http-oos-015",
+        "http-oos-016",
+        "http-oos-017",
+        "http-oos-019",
+        "http-oos-021",
+        "http-oos-023",
+        "http-oos-027",
+        "http-oos-028",
+        "http-oos-031",
+        "http-oos-033",
+        "http-oos-035",
+        "http-oos-036",
+        "http-oos-037",
+        "http-oos-039",
+        "http-oos-041",
+        "http-oos-047",
+        "http-oos-049",
+        "http-oos-051",
+        "http-oos-052",
+        "http-oos-054",
+        "http-oos-060",
+        "http-oos-061",
+        "http-oos-062",
+        "http-oos-065",
+        "http-oos-066",
+        "http-oos-068",
+        "http-oos-070",
+        "http-oos-072",
+        "http-oos-073",
+        "http-oos-074",
+        "http-oos-076",
+        "http-oos-077",
+        "http-oos-078",
+        "http-oos-079",
+        "http-oos-080",
+        "http-oos-081",
+        "http-oos-083",
+        "http-oos-084",
+        "http-oos-085",
+        "http-oos-086",
+        "http-oos-087",
+        "http-oos-088",
+        "http-oos-090"
+      ],
+      "n": 102,
+      "rate": 0.49019607843137253,
+      "wilson_ci95": [
+        0.3953,
+        0.5858
+      ]
+    }
+  },
+  "retrieval": {
+    "candidate": 0.8464052287581699,
+    "clusters": 50,
+    "difference": 0.0,
+    "n": 102,
+    "reference": 0.8464052287581699,
+    "section_cluster_ci95": [
+      0.0,
+      0.0
+    ]
+  },
+  "status": "completed",
+  "targets": {
+    "documentation": true,
+    "out_of_scope": true,
+    "retrieval": true
+  },
+  "verifier": {
+    "calls": 180,
+    "invalid_verdicts": 0,
+    "median_ms": 5680.093416507589,
+    "usage": {
+      "cached_input_tokens": 584192,
+      "input_tokens": 2555135,
+      "output_tokens": 9622
+    }
+  }
+}
