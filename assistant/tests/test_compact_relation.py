@@ -5,7 +5,7 @@ import pytest
 
 from ledgerops_assistant.corpus import Chunk
 from ledgerops_assistant.support import PassageSupport
-from ledgerops_assistant.support_relation import INTERCEPT, WEIGHTS, cap_witness_score
+from ledgerops_assistant.support_relation import INTERCEPT, WEIGHTS, witness_score
 
 
 def passage(body, index=1):
@@ -24,12 +24,13 @@ def test_compact_features_and_scored_witness():
     question = "Connection retry. Can the receipt expire without signature?"
     chunks = [passage("A receipt expires after restart. No signature is needed.")]
     features, candidates = scorer.relation_features(question, chunks)
-    [(witness, single)] = candidates
+    [(witness, single, focused)] = candidates
 
     assert features == pytest.approx(
         (0.5, 0.5, 0.5, 1 / 3, 0.5, 0.5, 0.5, 0.4, 0.5, 0.5, 0.5, 0.25)
     )
     assert single == features
+    assert focused
     logit = INTERCEPT + sum(weight * value for weight, value in zip(WEIGHTS, features, strict=True))
     expected = round(1 / (1 + math.exp(-logit)), 8)
     result = scorer.measure(question, chunks)
@@ -80,10 +81,10 @@ def test_direct_procedure_requires_action_and_subject_in_one_prose_span(question
     assert result.score > 0.45
 
 
-def test_bundle_can_only_decrease_adjusted_score():
-    assert cap_witness_score(0.4, 0.2) == 0.2
-    assert cap_witness_score(0.4, 0.99) == cap_witness_score(0.4, 1.0)
-    assert cap_witness_score(0.0, 1.0) == 0.0
+def test_only_focused_witnesses_receive_a_score_increase():
+    assert witness_score(0.4, focused=False) == 0.4
+    assert 0.4 < witness_score(0.4, focused=True) < 1.0
+    assert witness_score(0.0, focused=True) == 0.0
 
 
 def test_background_passage_cannot_turn_one_inquiry_term_into_a_witness():
@@ -91,7 +92,10 @@ def test_background_passage_cannot_turn_one_inquiry_term_into_a_witness():
     question = "Reserve retry limits. Does the receipt signature expire overnight?"
     chunks = [passage("The receipt exists."), passage("Reserve retry limits.", 2)]
 
-    assert scorer.measure(question, chunks).score == 0.0
+    standalone = scorer.measure(question, chunks[:1])
+    combined = scorer.measure(question, chunks)
+    assert combined.score <= standalone.score
+    assert combined.witness == standalone.witness == chunks[0].body
 
 
 def test_background_procedure_does_not_replace_the_action_in_the_inquiry():

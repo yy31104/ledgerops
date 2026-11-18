@@ -10,10 +10,10 @@ from ledgerops_assistant.corpus import _FENCE
 from ledgerops_assistant.coverage import stem, terms
 from ledgerops_assistant.support_relation import (
     RelationFeatures,
-    cap_witness_score,
     merge_relation_features,
     passage_relations,
     relation_score,
+    witness_score,
 )
 
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
@@ -154,22 +154,28 @@ class PassageSupport:
         for chunk, proof, (features, alternate) in zip(passages, local, measured, strict=True):
             bundle = merge_relation_features(bundle, features)
             if require_affirmative and proof.witness:
-                candidates.append((proof, features))
+                candidates.append((proof, features, True))
             elif not require_affirmative and alternate:
-                candidates.append((Support(chunk_id=chunk.chunk_id, witness=alternate), features))
+                witness = Support(chunk_id=chunk.chunk_id, witness=alternate)
+                candidates.append((witness, features, True))
+            elif not require_affirmative and proof.witness:
+                candidates.append((proof, features, False))
         return bundle, candidates
 
     def _measure_compact_relation(self, question, passages):
         bundle, candidates = self.relation_features(question, passages)
         winner = max(
-            ((relation_score(features), witness) for witness, features in candidates),
+            (
+                (witness_score(relation_score(features), focused=focused), witness)
+                for witness, features, focused in candidates
+            ),
             key=lambda candidate: candidate[0],
             default=None,
         )
         if winner is None:
             return Support()
         score, witness = winner
-        return replace(witness, score=cap_witness_score(score, relation_score(bundle)))
+        return replace(witness, score=min(score, relation_score(bundle)))
 
     def _measure_single_span(self, question, passages):
         weights = {term: self.coverage.idf(term) ** 3 for term in sorted(terms(question))}

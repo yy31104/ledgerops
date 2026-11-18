@@ -9,7 +9,7 @@ import numpy as np
 from ledgerops_assistant.corpus import load_corpus
 from ledgerops_assistant.coverage import DocumentCoverage
 from ledgerops_assistant.support import PassageSupport
-from ledgerops_assistant.support_relation import RelationFeatures, cap_witness_score, relation_score
+from ledgerops_assistant.support_relation import RelationFeatures, relation_score, witness_score
 from scripts.evaluate_v13 import select_threshold
 
 
@@ -57,7 +57,7 @@ def fit(questions_files, score_files):
         passages = [by_id[chunk_id] for chunk_id in row["passage_ids"]]
         values, candidates = scorer.relation_features(question["question"], passages)
         features.append(values)
-        witnesses.append([feature for _, feature in candidates])
+        witnesses.append([(feature, focused) for _, feature, focused in candidates])
 
     features = np.array(features)
     labels = np.array([row["expected_route"] == "docs" for row in rows], dtype=float)
@@ -69,8 +69,11 @@ def fit(questions_files, score_files):
 
     values = []
     for bundle, candidates in zip(features, witnesses, strict=True):
-        witness = max(map(score, candidates), default=0.0)
-        values.append(round(cap_witness_score(witness, score(bundle)), 8))
+        witness = max(
+            (witness_score(score(feature), focused=focused) for feature, focused in candidates),
+            default=0.0,
+        )
+        values.append(round(min(witness, score(bundle)), 8))
     selected, _ = select_threshold(
         [{**row, "score": float(value)} for row, value in zip(rows, values, strict=True)]
     )

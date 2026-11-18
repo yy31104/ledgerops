@@ -32,21 +32,21 @@ class RelationFeatures(NamedTuple):
 
 # Ridge logistic fit on the consumed development rows. The offline fit script
 # produces raw-space weights in RelationFeatures order.
-INTERCEPT = -5.658121514416359
+INTERCEPT = -5.658121514416356
 _WITNESS_ODDS_MULTIPLIER = math.exp(0.5)
 WEIGHTS = RelationFeatures(
-    local_focus=5.610682390117223,
+    local_focus=5.610682390117219,
     question_body_coverage=2.803424413636381,
-    question_pair_specificity=1.438343176180732,
-    question_span_coverage=2.754474894643833,
+    question_pair_specificity=1.4383431761807317,
+    question_span_coverage=2.754474894643831,
     inquiry_span_coverage=7.029481287921298,
-    last_terms_coverage=-3.7016411706485015,
-    final_clause_coverage=3.764220212202325,
-    inquiry_pair_alignment=2.2354909707779345,
-    paired_question_final_clause=0.3274429470890017,
-    specific_pair_inquiry=2.9059158407063648,
-    specific_body_inquiry=3.735807325590645,
-    negated_inquiry=-1.7519812598775173,
+    last_terms_coverage=-3.7016411706485,
+    final_clause_coverage=3.764220212202324,
+    inquiry_pair_alignment=2.2354909707779327,
+    paired_question_final_clause=0.3274429470890011,
+    specific_pair_inquiry=2.9059158407063683,
+    specific_body_inquiry=3.735807325590646,
+    negated_inquiry=-1.751981259877518,
 )
 
 
@@ -97,7 +97,6 @@ def passage_relations(coverage, query, inquiry, passages):
     yes_no = bool(_YES_NO.match(inquiry))
 
     required_overlap = min(2, len(question))
-    required_focus_overlap = min(2, len(inquiry_weights))
     for body, spans, local_focus in passages:
         spans = tuple((text, _passage_sequence(text), words) for text, words in spans)
         body_coverage = _coverage(specific_question, set(_passage_sequence(body)))
@@ -130,7 +129,6 @@ def passage_relations(coverage, query, inquiry, passages):
             if (
                 focus * context > best_witness_score
                 and len(question.keys() & words) >= required_overlap
-                and len(inquiry_weights.keys() & words) >= required_focus_overlap
             ):
                 best_witness_score, witness = focus * context, text
 
@@ -160,8 +158,9 @@ def relation_score(features, *, intercept=INTERCEPT, weights=WEIGHTS):
     return 1.0 / (1.0 + math.exp(-logit))
 
 
-def cap_witness_score(witness, bundle):
-    """A bundle can veto the single-chunk score. Evidence cannot come from the bundle."""
+def witness_score(witness, *, focused):
+    """Increase the odds for a passage containing multiple query terms in a span."""
     witness = round(witness, 8)
-    boosted = _WITNESS_ODDS_MULTIPLIER * witness / (1 + (_WITNESS_ODDS_MULTIPLIER - 1) * witness)
-    return min(boosted, bundle)
+    if not focused:
+        return witness
+    return _WITNESS_ODDS_MULTIPLIER * witness / (1 + (_WITNESS_ODDS_MULTIPLIER - 1) * witness)
