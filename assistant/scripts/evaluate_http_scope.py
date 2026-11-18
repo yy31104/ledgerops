@@ -21,6 +21,7 @@ from uuid import uuid4
 
 import httpx
 
+from ledgerops_assistant import routing
 from ledgerops_assistant.corpus import CORPUS_FILES, load_corpus
 from ledgerops_assistant.demo_api import Handler
 from ledgerops_assistant.embeddings import BgeSmallEmbedder
@@ -51,11 +52,27 @@ FAILED_REQUESTS = {
     "authentication_required",
     "cancelled",
     "deadline_exceeded",
+    "forbidden",
+    "invalid_response",
     "model_or_budget_error",
+    "not_found_or_hidden",
     "passage_verifier_unavailable",
     "rate_limited",
+    "response_too_large",
     "timeout",
     "upstream_unavailable",
+}
+QUESTION_FIELDS = {
+    "id",
+    "split",
+    "expected_route",
+    "category",
+    "group",
+    "question",
+    "relevant_sections",
+    "key_facts",
+    "evidence",
+    "source_chunk",
 }
 
 
@@ -88,6 +105,62 @@ def tracked_inputs():
     )
 
 
+def validate_cohort(questions, spec, corpus, audit):
+    chunks = corpus.by_id()
+    sections = corpus.section_ids()
+    for q in questions:
+        if (
+            set(q) != QUESTION_FIELDS
+            or q["split"] != "test"
+            or not isinstance(q["id"], str)
+            or not q["id"]
+            or not isinstance(q["question"], str)
+            or not q["question"].strip()
+        ):
+            raise ValueError("invalid holdout question schema")
+        if q["expected_route"] == "docs":
+            source = chunks.get(q["source_chunk"])
+            relevant = set(q["relevant_sections"])
+            facts = q["key_facts"]
+            evidence = q["evidence"]
+            if (
+                q["category"] != "documentation"
+                or source is None
+                or q["group"] != source.section_id
+                or q["group"] not in relevant
+                or relevant - sections
+                or not 1 <= len(facts) <= 2
+                or {item["fact_index"] for item in evidence} != set(range(len(facts)))
+                or {item["section_id"] for item in evidence} != relevant
+            ):
+                raise ValueError("invalid documentation labels")
+        elif (
+            q["expected_route"] != "out_of_scope"
+            or q["category"] not in {"product_gap", "unrelated"}
+            or q["group"] != q["category"]
+            or q["source_chunk"] is not None
+            or any(q[field] != [] for field in ("relevant_sections", "key_facts", "evidence"))
+        ):
+            raise ValueError("invalid unsupported labels")
+
+    counts = Counter(row["expected_route"] for row in questions)
+    gaps = sum(
+        row["expected_route"] == "out_of_scope" and row["category"] == "product_gap"
+        for row in questions
+    )
+    targets = spec["authoring"]
+    if (
+        len(questions) != len({row["id"] for row in questions})
+        or audit["documentation"] != counts["docs"]
+        or audit["out_of_scope"] != counts["out_of_scope"]
+        or audit["product_gaps"] != gaps
+        or counts["docs"] < targets["minimum_documentation"]
+        or counts["out_of_scope"] < targets["minimum_out_of_scope"]
+        or gaps / counts["out_of_scope"] < targets["minimum_product_gap_share"]
+    ):
+        raise ValueError("invalid frozen cohort")
+
+
 def frozen_questions(expected_commit, spec, corpus):
     head = git("rev-parse", "HEAD").decode().strip()
     if head != expected_commit or git("status", "--porcelain"):
@@ -108,19 +181,12 @@ def frozen_questions(expected_commit, spec, corpus):
         raise ValueError("the freeze does not match the tracked trial inputs")
     if manifest["corpus_digest"] != corpus.digest or manifest["protocol_commit"] != PROTOCOL_COMMIT:
         raise ValueError("invalid freeze corpus or protocol")
-    questions = rows_at(STUDY / "questions.jsonl")
-    targets = spec["authoring"]
-    counts = Counter(row["expected_route"] for row in questions)
-    gaps = sum(row["category"] == "product_gap" for row in questions)
-    if (
-        len(questions) != len({row["id"] for row in questions})
-        or counts.keys() != {"docs", "out_of_scope"}
-        or counts["docs"] < targets["minimum_documentation"]
-        or counts["out_of_scope"] < targets["minimum_out_of_scope"]
-        or gaps / counts["out_of_scope"] < targets["minimum_product_gap_share"]
-        or any(set(row["relevant_sections"]) - corpus.section_ids() for row in questions)
-    ):
-        raise ValueError("invalid frozen cohort")
+    question_file = STUDY / "questions.jsonl"
+    audit = json.loads((STUDY / "audit-summary.json").read_text())
+    if audit["questions_sha256"] != sha(question_file):
+        raise ValueError("the audit does not match the frozen questions")
+    questions = rows_at(question_file)
+    validate_cohort(questions, spec, corpus, audit["retained"])
     return questions
 
 
@@ -263,8 +329,29 @@ def request_pair(reference, candidate, headers, question):
         return ask(client, reference, question), ask(client, candidate, question)
 
 
+def valid_candidate(response, model):
+    route = response["route"]
+    if route not in {routing.ACTION, routing.DOCS, routing.LIVE_STATE}:
+        return False
+    verification = response["verification"]
+    if verification is None:
+        return not response["admitted"] or route == routing.LIVE_STATE
+    if route != routing.DOCS or not verification.get("passage_ids"):
+        return False
+    status = verification["status"]
+    legal_status = {"supported", "unsupported", "invalid"}
+    usage = verification.get("usage", {})
+    return (
+        status in legal_status
+        and (not response["admitted"] or status == "supported")
+        and (usage.get("model"), usage.get("billing")) == (model, "chatgpt_plan")
+    )
+
+
 def score_trial(questions, spec, corpus, output, report):
     check_ranks(spec["reference_retrieval_commit"])
+    if spec["candidate"]["verifier_model"] != MODEL:
+        raise ValueError("trial verifier model differs from the preregistered model")
     if any(os.environ.get(key) for key in SERVER_KEYS):
         raise ValueError("run the local subscription study outside CI and without paid API config")
     if os.environ.get("LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION") != "1":
@@ -331,16 +418,10 @@ def score_trial(questions, spec, corpus, output, report):
                         row.update(
                             candidate_recall=recall, reference_recall=recall, ranked_sections=ranked
                         )
-                    verification = candidate["verification"]
                     if {baseline["reason"], candidate["reason"]} & FAILED_REQUESTS:
                         errors.append({"id": q["id"], "error": "service_failure"})
-                    if verification is not None:
-                        usage = verification.get("usage", {})
-                        if verification["status"] == "error" or (
-                            usage.get("model"),
-                            usage.get("billing"),
-                        ) != (MODEL, "chatgpt_plan"):
-                            errors.append({"id": q["id"], "error": "verifier_contract"})
+                    if not valid_candidate(candidate, MODEL):
+                        errors.append({"id": q["id"], "error": "verifier_contract"})
                     rows.append(row)
                 if errors:
                     report["errors"].extend(errors)
