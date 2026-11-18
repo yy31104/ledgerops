@@ -3,6 +3,8 @@
 import json
 from importlib.resources import files
 
+from ledgerops_assistant.support import SUPPORT_MODES
+
 METHODS = {"vector", "hybrid"}
 
 
@@ -40,6 +42,6 @@ def support_threshold():
 
 def support_mode():
     mode = _policy().get("support_mode", "single-span")
-    if mode not in {"single-span", "local-focus"}:
+    if mode not in SUPPORT_MODES:
         raise ValueError("invalid release passage support mode")
     return mode

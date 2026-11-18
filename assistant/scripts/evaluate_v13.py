@@ -250,6 +250,7 @@ def frozen_code_paths():
             *(assistant / "src/ledgerops_assistant").rglob("*.sql"),
             assistant / "src/ledgerops_assistant/retrieval_policy.json",
             assistant / "scripts/evaluate_v13.py",
+            assistant / "scripts/fit_scope_relation.py",
             assistant / "scripts/evaluate_v11.py",
             assistant / "scripts/evaluate_v12.py",
             assistant / "scripts/evaluate_local.py",
@@ -269,8 +270,10 @@ def verify_frozen_checkout(folder, expected_commit):
     manifest = verify(folder)
     required = {
         PROTOCOL.relative_to(ROOT).as_posix(),
+        (STUDY / "REVIEW-METHOD.md").relative_to(ROOT).as_posix(),
         (folder / "questions.jsonl").relative_to(ROOT).as_posix(),
         (folder / "development.json").relative_to(ROOT).as_posix(),
+        (folder / "audit-summary.json").relative_to(ROOT).as_posix(),
     }
     inputs = set(manifest["inputs_sha256"])
     code = set(manifest["code_sha256"])

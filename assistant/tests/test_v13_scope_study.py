@@ -30,6 +30,19 @@ def test_frozen_trials_remain_bound_to_their_archived_inputs():
             assert hashlib.sha256(original).hexdigest() == expected
 
 
+def test_reported_trials_match_their_one_run_receipts():
+    for summary_path in sorted(STUDY.glob("round-*/summary.json")):
+        manifest = (summary_path.parent / "manifest.json").read_bytes()
+        receipt = json.loads((summary_path.parent / "run.json").read_text())
+        summary = json.loads(summary_path.read_text())
+        assert receipt["manifest_sha256"] == hashlib.sha256(manifest).hexdigest()
+        assert receipt["freeze_commit"] == receipt["verified_origin_head"]
+        assert summary["freeze_commit"] == receipt["freeze_commit"]
+        assert summary["status"] == receipt["status"]
+        if receipt["status"] == "completed":
+            assert summary["raw_result_sha256"] == receipt["result_sha256"]
+
+
 def test_calibration_prefers_scope_reduction_within_documentation_constraint():
     docs = [
         {"id": str(i), "expected_route": "docs", "reference_admitted": True, "score": 0.8}

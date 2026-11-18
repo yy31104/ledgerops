@@ -8,6 +8,13 @@ from itertools import pairwise
 
 from ledgerops_assistant.corpus import _FENCE
 from ledgerops_assistant.coverage import stem, terms
+from ledgerops_assistant.support_relation import (
+    RelationFeatures,
+    cap_witness_score,
+    merge_relation_features,
+    passage_relations,
+    relation_score,
+)
 
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 _LIST_ITEM = re.compile(r"^\s*(?:[-+*]|[0-9]+[.)])\s+")
@@ -29,6 +36,7 @@ _UNAVAILABLE = re.compile(
 _CONTRAST = re.compile(r";|\bbut\b", re.I)
 _INQUIRY_END = re.compile(r"(?<=[?!.;])\s+")
 _PRODUCT_NAME = re.compile(r"\bLedgerOps\b", re.I)
+SUPPORT_MODES = frozenset({"single-span", "local-focus", "compact-relation"})
 
 
 @dataclass(frozen=True)
@@ -92,6 +100,14 @@ def _weighted_recall(weights, total, present):
     return sum(weight for term, weight in weights.items() if term in present) / total
 
 
+def _question_parts(question):
+    query = _PRODUCT_NAME.sub("", question).strip()
+    inquiry = next(
+        (part.strip() for part in reversed(_INQUIRY_END.split(query)) if part.strip()), ""
+    )
+    return query, inquiry
+
+
 class PassageSupport:
     """Measure lexical support within the selected document evidence.
 
@@ -99,22 +115,66 @@ class PassageSupport:
     checks the entire query against two adjacent spans and its last inquiry
     against one span of the same chunk. An explicit denial can answer a question
     about capability availability. A procedure with a known action needs an
-    affirmative witness for the action and another subject term.
+    affirmative witness for the action and another subject term. Compact-relation
+    combines span, adjacent span and query-part features fitted on development data.
     """
 
     def __init__(self, coverage, *, mode="single-span"):
-        if mode not in ("single-span", "local-focus"):
+        if mode not in SUPPORT_MODES:
             raise ValueError(f"unknown passage support mode: {mode}")
         self.coverage = coverage
         self.mode = mode
 
     def measure(self, question, passages):
-        if self.mode == "local-focus":
+        if self.mode == "compact-relation":
+            best = self._measure_compact_relation(question, passages)
+        elif self.mode == "local-focus":
             best = self._measure_local_focus(question, passages)
         else:
             best = self._measure_single_span(question, passages)
         # Quantize the final score so an identical cutoff survives platform rounding.
         return replace(best, score=round(min(best.score, 1.0), 8))
+
+    def relation_features(self, question, passages):
+        """Return a bundle for vetoing and independent positive chunk witnesses."""
+        query, inquiry = _question_parts(question)
+        procedure = _PROCEDURE.match(inquiry)
+        action = stem(procedure[1].lower()) if procedure else None
+        inquiry_terms = terms(inquiry)
+        require_affirmative = action in self.coverage.frequency and action in inquiry_terms
+        local = [self._measure_local_focus(question, [chunk]) for chunk in passages]
+        spans = (
+            (chunk.body, _span_terms(chunk.body, False), round(proof.score, 8))
+            for chunk, proof in zip(passages, local, strict=True)
+        )
+        bundle = RelationFeatures(*([0.0] * len(RelationFeatures._fields)))
+        candidates = []
+        measured = passage_relations(self.coverage, query, inquiry, spans)
+        for chunk, proof, (features, alternate) in zip(passages, local, measured, strict=True):
+            bundle = merge_relation_features(bundle, features)
+            if require_affirmative:
+                if proof.witness and _affirmative_action(
+                    proof.witness, terms(proof.witness), action, inquiry_terms
+                ):
+                    candidates.append((proof, features))
+                continue
+            if proof.witness:
+                candidates.append((proof, features))
+            elif alternate:
+                candidates.append((Support(chunk_id=chunk.chunk_id, witness=alternate), features))
+        return bundle, candidates
+
+    def _measure_compact_relation(self, question, passages):
+        bundle, candidates = self.relation_features(question, passages)
+        winner = max(
+            ((relation_score(features), witness) for witness, features in candidates),
+            key=lambda candidate: candidate[0],
+            default=None,
+        )
+        if winner is None:
+            return Support()
+        score, witness = winner
+        return replace(witness, score=cap_witness_score(score, relation_score(bundle)))
 
     def _measure_single_span(self, question, passages):
         weights = {term: self.coverage.idf(term) ** 3 for term in sorted(terms(question))}
@@ -138,8 +198,7 @@ class PassageSupport:
         return best
 
     def _measure_local_focus(self, question, passages):
-        query = _PRODUCT_NAME.sub("", question).strip()
-        inquiry = next((part for part in reversed(_INQUIRY_END.split(query)) if part.strip()), "")
+        query, inquiry = _question_parts(question)
         weights = {term: self.coverage.idf(term) for term in sorted(terms(query))}
         inquiry_terms = terms(inquiry)
         focus_weights = {term: weight for term, weight in weights.items() if term in inquiry_terms}

@@ -1,0 +1,83 @@
+import math
+from types import SimpleNamespace
+
+import pytest
+
+from ledgerops_assistant.corpus import Chunk
+from ledgerops_assistant.support import PassageSupport
+from ledgerops_assistant.support_relation import INTERCEPT, WEIGHTS, cap_witness_score
+
+
+def passage(body, index=1):
+    return Chunk(
+        f"test#details/{index}", "test#details", "test.md", "Test", "Details", f"Test\n\n{body}"
+    )
+
+
+def compact_scorer(*known_terms):
+    coverage = SimpleNamespace(idf=lambda _: 1.0, frequency=set(known_terms))
+    return PassageSupport(coverage, mode="compact-relation")
+
+
+def test_compact_features_and_scored_witness():
+    scorer = compact_scorer()
+    question = "Connection retry. Can the receipt expire without signature?"
+    chunks = [passage("A receipt expires after restart. No signature is needed.")]
+    features, candidates = scorer.relation_features(question, chunks)
+    [(witness, single)] = candidates
+
+    assert features == pytest.approx(
+        (0.5, 0.5, 0.5, 1 / 3, 0.5, 0.5, 0.5, 0.4, 0.5, 0.5, 0.5, 0.25)
+    )
+    assert single == features
+    logit = INTERCEPT + sum(weight * value for weight, value in zip(WEIGHTS, features, strict=True))
+    expected = round(1 / (1 + math.exp(-logit)), 8)
+    result = scorer.measure(question, chunks)
+    assert result.score == expected
+    assert result.chunk_id == witness.chunk_id == chunks[0].chunk_id
+    assert result.witness == witness.witness == "A receipt expires after restart."
+
+
+def test_fenced_text_does_not_supply_a_prose_witness():
+    scorer = compact_scorer()
+    question = "Can the receipt expire without signature?"
+    chunks = [passage("```text\nreceipt expires without signature\n```")]
+    features, candidates = scorer.relation_features(question, chunks)
+
+    assert features.question_body_coverage == pytest.approx(1.0)
+    assert features.inquiry_span_coverage == 0.0
+    assert features.inquiry_pair_alignment == 0.0
+    assert candidates == []
+    assert scorer.measure(question, chunks).score == 0.0
+    assert scorer.measure(question, []).score == 0.0
+
+
+def test_availability_and_procedure_keep_distinct_negation_signals():
+    scorer = compact_scorer()
+    chunks = [passage("A caller cannot cancel a payout.")]
+    available, _ = scorer.relation_features("Can a caller cancel a payout?", chunks)
+    procedure, _ = scorer.relation_features("How can a caller cancel a payout?", chunks)
+
+    assert available.negated_inquiry == pytest.approx(1.0)
+    assert procedure.negated_inquiry == 0.0
+
+
+def test_direct_procedure_requires_action_and_subject_in_one_prose_span():
+    scorer = compact_scorer("cancel")
+    question = "How can I cancel an expired payout?"
+    action = passage("To cancel a checkout, contact an operator.")
+    subject = passage("A payout expires without a response.", 2)
+    denial = passage("You cannot cancel an expired payout.", 3)
+    proof = passage("A caller can cancel an expired payout.", 4)
+
+    assert scorer.measure(question, [action, subject, denial]).score == 0.0
+    result = scorer.measure(question, [action, subject, denial, proof])
+    assert result.chunk_id == proof.chunk_id
+    assert result.witness == proof.body
+    assert result.score > 0.45
+
+
+def test_bundle_can_only_decrease_adjusted_score():
+    assert cap_witness_score(0.4, 0.2) == 0.2
+    assert cap_witness_score(0.4, 0.99) == cap_witness_score(0.4, 1.0)
+    assert cap_witness_score(0.0, 1.0) == 0.0
