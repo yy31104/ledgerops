@@ -1,0 +1,104 @@
+{
+  "round": 7,
+  "freeze_commit": "79ca6e1288e4e29c30399171f01b297095a811f1",
+  "status": "completed",
+  "support_threshold": 1.0,
+  "counts": {
+    "docs": 103,
+    "out_of_scope": 108
+  },
+  "product_gaps": 75,
+  "support_mode": "subscription-evidence",
+  "subscription": {
+    "model": "gpt-6.1-sol",
+    "context_sections": 12,
+    "context_bytes": 56000,
+    "request_timeout_seconds": 120
+  },
+  "scope_usage": {
+    "requests": 178,
+    "invalid_verdicts": 0,
+    "median_request_ms": 5971.725,
+    "input_tokens": 2529198,
+    "output_tokens": 8929,
+    "cached_input_tokens": 519680
+  },
+  "recall": {
+    "n": 103,
+    "clusters": 50,
+    "reference": 0.9110032362459547,
+    "candidate": 0.9110032362459547,
+    "difference": 0.0,
+    "section_cluster_ci95": [
+      0.0,
+      0.0
+    ]
+  },
+  "reference": {
+    "out_of_scope_passed": {
+      "count": 77,
+      "n": 108,
+      "rate": 0.7129629629629629,
+      "wilson_ci95": [
+        0.6215,
+        0.7898
+      ]
+    },
+    "documentation_refused": {
+      "count": 2,
+      "n": 103,
+      "rate": 0.019417475728155338,
+      "wilson_ci95": [
+        0.0053,
+        0.0681
+      ]
+    }
+  },
+  "before_support": {
+    "out_of_scope_passed": {
+      "count": 77,
+      "n": 108,
+      "rate": 0.7129629629629629,
+      "wilson_ci95": [
+        0.6215,
+        0.7898
+      ]
+    },
+    "documentation_refused": {
+      "count": 2,
+      "n": 103,
+      "rate": 0.019417475728155338,
+      "wilson_ci95": [
+        0.0053,
+        0.0681
+      ]
+    }
+  },
+  "candidate": {
+    "out_of_scope_passed": {
+      "count": 1,
+      "n": 108,
+      "rate": 0.009259259259259259,
+      "wilson_ci95": [
+        0.0016,
+        0.0506
+      ]
+    },
+    "documentation_refused": {
+      "count": 4,
+      "n": 103,
+      "rate": 0.038834951456310676,
+      "wilson_ci95": [
+        0.0152,
+        0.0956
+      ]
+    }
+  },
+  "targets_met": {
+    "out_of_scope": true,
+    "documentation": true,
+    "retrieval": true
+  },
+  "passed": true,
+  "raw_result_sha256": "fc756e9c0c7b8df75a4f1a858da3561c7c13c5d76f24a430cdef3de59fbc6ffb"
+}
