@@ -5,9 +5,10 @@ import json
 import math
 import runpy
 import subprocess
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, deque
 from datetime import UTC, datetime
 from pathlib import Path
+from statistics import median
 from tempfile import TemporaryDirectory
 
 from scripts.evaluate_v11 import Cached, sha, verify, write
@@ -19,6 +20,8 @@ STUDY = EVAL / "v13-scope"
 PROTOCOL = STUDY / "protocol.json"
 CONTINUATION = STUDY / "CONTINUATION.md"
 QUESTION_ROUTING = STUDY / "QUESTION-ROUTING.md"
+SUBSCRIPTION_EVIDENCE = STUDY / "SUBSCRIPTION-EVIDENCE.md"
+SUBSCRIPTION_CONTEXT = STUDY / "SUBSCRIPTION-CONTEXT.md"
 FIT_RECORDS = {
     "compact-veto": STUDY / "compact-veto-fit.json",
     "conditional-veto": STUDY / "conditional-veto-fit.json",
@@ -27,8 +30,13 @@ REFERENCE = "7e637477223983917257fbb96d9c85ffcace979e"
 TARGET_COMMIT = "5e316fdb401399708ba54a1ebb5645aec60777ae"
 CONTINUATION_COMMIT = "2943f57fbe61b2b3226e5a222c899fc5ee605db1"
 QUESTION_ROUTING_COMMIT = "04c4b56131c8d6175ce4b3ab6c817af1815fbf9a"
+SUBSCRIPTION_EVIDENCE_COMMIT = "7aa4021f436804b737eeeadaceb7194cf437230c"
+SUBSCRIPTION_CONTEXT_COMMIT = "75f167b61608c52abe3f164a7a8c122fe50b8dc5"
 ORIGINAL_ROUNDS = 3
 QUESTION_ROUTING_ROUND = 5
+SUBSCRIPTION_ROUND = 6
+SUBSCRIPTION_MODE = "subscription-evidence"
+SUBSCRIPTION_MODEL = "gpt-6.1-sol"
 DEV_FILES = [EVAL / v / "questions.jsonl" for v in ("v12-dev", "v12-holdout")]
 
 
@@ -159,8 +167,8 @@ def pinned_reference():
     return reference["classify"]
 
 
-def measure(questions, *, threshold=None, update=None):
-    """Use released ranking, real local embeddings and the same passages for both gates."""
+def measure(questions, *, threshold=None, update=None, semantic=False):
+    """Collect eligibility, raw ranks and the selected candidate evidence pack."""
     from dataclasses import asdict
 
     from ledgerops_assistant import routing
@@ -174,7 +182,8 @@ def measure(questions, *, threshold=None, update=None):
     from ledgerops_assistant.postgres import PostgresRetriever, index_corpus, setup
     from ledgerops_assistant.providers.fake import FakeProvider
     from ledgerops_assistant.retrieval import HybridRetriever, rank_sections
-    from ledgerops_assistant.support import PassageSupport
+    from ledgerops_assistant.support import PassageSupport, Support
+    from ledgerops_assistant.support_semantic import CONTEXT_SECTIONS, SubscriptionContextRetriever
     from scripts.evaluate_local import temporary_database
 
     classify_reference = pinned_reference()
@@ -187,7 +196,7 @@ def measure(questions, *, threshold=None, update=None):
     if any(set(q["relevant_sections"]) - corpus.section_ids() for q in questions):
         raise ValueError("question labels contain a missing section")
     coverage = DocumentCoverage(corpus, coverage_threshold())
-    support = PassageSupport(coverage, mode=support_mode(), corpus=corpus)
+    support = None if semantic else PassageSupport(coverage, mode=support_mode(), corpus=corpus)
     embedder = BgeSmallEmbedder()
     rows = []
     with temporary_database() as dsn:
@@ -197,6 +206,8 @@ def measure(questions, *, threshold=None, update=None):
         fts = Cached(PostgresRetriever(dsn, key, embedder, method="fts"))
         hybrid = Cached(HybridRetriever(fts, vector, rrf_k=10))
         context = ContextRetriever(hybrid, corpus)
+        candidate_context = SubscriptionContextRetriever(hybrid, corpus) if semantic else context
+        top_n = CONTEXT_SECTIONS if semantic else 5
         reference = ScopeGate(vector, scope_threshold(), coverage=coverage)
         candidate = (
             ScopeGate(
@@ -220,10 +231,17 @@ def measure(questions, *, threshold=None, update=None):
                 revision=corpus.revision,
                 classify_route=classify_reference,
             )
-            eligible = answer(text, context, provider, gate=reference, revision=corpus.revision)
+            eligible = answer(
+                text,
+                candidate_context,
+                provider,
+                gate=reference,
+                revision=corpus.revision,
+                top_n=top_n,
+            )
             admitted = bool(eligible.provider)
-            pack = retrieve_passages(context, text, 5) if admitted else []
-            proof = support.measure(text, pack)
+            pack = retrieve_passages(candidate_context, text, top_n) if admitted else []
+            proof = support.measure(text, pack) if support is not None else Support()
             row = {
                 "id": question["id"],
                 "expected_route": question["expected_route"],
@@ -252,6 +270,70 @@ def measure(questions, *, threshold=None, update=None):
             if update:
                 update(rows)
     return rows
+
+
+def semantic_decisions(questions, rows, update):
+    """Use the same local verifier as the CLI. Keep at most three requests in flight."""
+    from concurrent.futures import ThreadPoolExecutor
+    from dataclasses import asdict
+    from time import perf_counter
+
+    from ledgerops_assistant.corpus import load_corpus
+    from ledgerops_assistant.providers.fake import FakeProvider
+    from ledgerops_assistant.providers.subscription import SubscriptionProvider
+    from ledgerops_assistant.support_semantic import (
+        REQUEST_TIMEOUT,
+        SUPPORT_THRESHOLD,
+        SubscriptionPassageSupport,
+    )
+
+    chunks = load_corpus().by_id()
+    texts = {question["id"]: question["question"] for question in questions}
+    verifier = SubscriptionPassageSupport(
+        SubscriptionProvider(model=SUBSCRIPTION_MODEL, timeout=REQUEST_TIMEOUT)
+    )
+    fake = FakeProvider()
+
+    def verify_row(row):
+        passages = [chunks[key] for key in row["passage_ids"]]
+        start = perf_counter()
+        proof = verifier.measure(texts[row["id"]], passages)
+        elapsed = (perf_counter() - start) * 1000
+        if proof.usage and (
+            proof.usage["billing"] != "chatgpt_plan" or proof.usage["model"] != SUBSCRIPTION_MODEL
+        ):
+            raise ValueError("verifier billing or model differs from the freeze")
+        admitted = row["candidate_eligible"] and proof.valid and proof.score >= SUPPORT_THRESHOLD
+        reason = row["before_support_reason"]
+        if admitted:
+            draft = fake.draft(texts[row["id"]], passages)
+            reason = draft.refusal_reason if draft.refused else "none"
+        elif row["candidate_eligible"]:
+            reason = "not_in_docs"
+        return {
+            **row,
+            "score": proof.score,
+            "support": asdict(proof),
+            "candidate_admitted": admitted,
+            "candidate_reason": reason,
+            "scope_elapsed_ms": round(elapsed, 2) if proof.usage else None,
+        }
+
+    results = []
+    pending = deque()
+
+    def collect():
+        results.append(pending.popleft().result())
+        update(results)
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        for row in rows:
+            if len(pending) == 3:
+                collect()
+            pending.append(pool.submit(verify_row, row))
+        while pending:
+            collect()
+    return results
 
 
 def calibration(output):
@@ -315,6 +397,11 @@ def verify_frozen_checkout(folder, expected_commit):
         required.add(CONTINUATION.relative_to(ROOT).as_posix())
     if manifest["round"] >= QUESTION_ROUTING_ROUND:
         required.add(QUESTION_ROUTING.relative_to(ROOT).as_posix())
+    if manifest["round"] >= SUBSCRIPTION_ROUND:
+        required.update(
+            path.relative_to(ROOT).as_posix()
+            for path in (SUBSCRIPTION_EVIDENCE, SUBSCRIPTION_CONTEXT)
+        )
     if fit_record := FIT_RECORDS.get(manifest.get("support_mode")):
         required.add(fit_record.relative_to(ROOT).as_posix())
     if not required <= inputs or not frozen_code_paths() <= code:
@@ -346,6 +433,13 @@ def verify_schedule(trial):
         "show", f"{QUESTION_ROUTING_COMMIT}:{QUESTION_ROUTING.relative_to(ROOT)}"
     ):
         raise ValueError("the registered question-routing correction changed")
+    if trial >= SUBSCRIPTION_ROUND:
+        for path, commit in (
+            (SUBSCRIPTION_EVIDENCE, SUBSCRIPTION_EVIDENCE_COMMIT),
+            (SUBSCRIPTION_CONTEXT, SUBSCRIPTION_CONTEXT_COMMIT),
+        ):
+            if path.read_bytes() != git("show", f"{commit}:{path.relative_to(ROOT)}"):
+                raise ValueError("the registered subscription verification changed")
     for previous in range(1, trial):
         summary = STUDY / f"round-{previous}" / "summary.json"
         if not summary.is_file() or json.loads(summary.read_text())["passed"]:
@@ -362,16 +456,43 @@ def run(trial, output, expected_commit):
         (ROOT / "assistant/src/ledgerops_assistant/retrieval_policy.json").read_text()
     )
     threshold = manifest["support_threshold"]
-    mode = config.get("support_mode", "single-span")
+    mode = manifest.get("support_mode", "single-span")
+    semantic = mode == SUBSCRIPTION_MODE
     development = json.loads((folder / "development.json").read_text())
     if (
-        config["support_threshold"] != threshold
+        semantic != (trial >= SUBSCRIPTION_ROUND)
         or development["support_threshold"] != threshold
         or config["method"] != "hybrid"
-        or manifest.get("support_mode", "single-span") != mode
         or development.get("support_mode", "single-span") != mode
+        or (
+            not semantic
+            and (
+                config["support_threshold"] != threshold
+                or config.get("support_mode", "single-span") != mode
+            )
+        )
     ):
         raise ValueError("release settings do not match the frozen candidate")
+    if semantic:
+        from ledgerops_assistant.support_semantic import (
+            CONTEXT_BYTES,
+            CONTEXT_SECTIONS,
+            REQUEST_TIMEOUT,
+            SUPPORT_THRESHOLD,
+        )
+
+        subscription = {
+            "model": SUBSCRIPTION_MODEL,
+            "context_sections": CONTEXT_SECTIONS,
+            "context_bytes": CONTEXT_BYTES,
+            "request_timeout_seconds": REQUEST_TIMEOUT,
+        }
+        if (
+            threshold != SUPPORT_THRESHOLD
+            or manifest["subscription"] != subscription
+            or development["subscription"] != subscription
+        ):
+            raise ValueError("subscription profile differs from the frozen candidate")
     fit_record = FIT_RECORDS.get(mode)
     if fit_record and (
         development["fit_report_sha256"] != sha(fit_record)
@@ -426,7 +547,24 @@ def run(trial, output, expected_commit):
             report["rows"] = rows
             write(output, report)
 
-        rows = measure(questions, threshold=threshold, update=checkpoint)
+        if semantic:
+            report["subscription"] = subscription
+            packs = measure(questions, update=checkpoint, semantic=True)
+            rows = semantic_decisions(questions, packs, checkpoint)
+            timings = [
+                row["scope_elapsed_ms"] for row in rows if row["scope_elapsed_ms"] is not None
+            ]
+            report["scope_usage"] = {
+                "requests": len(timings),
+                "invalid_verdicts": sum(not row["support"]["valid"] for row in rows),
+                "median_request_ms": median(timings) if timings else None,
+                **{
+                    field: sum(row["support"]["usage"].get(field, 0) or 0 for row in rows)
+                    for field in ("input_tokens", "output_tokens", "cached_input_tokens")
+                },
+            }
+        else:
+            rows = measure(questions, threshold=threshold, update=checkpoint)
         recall = paired_recall([r for r in rows if r["expected_route"] == "docs"])
         target = json.loads(PROTOCOL.read_text())["targets"]
         reference, candidate = rates(rows, "reference_admitted"), rates(rows, "candidate_admitted")

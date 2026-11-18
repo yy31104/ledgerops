@@ -12,7 +12,9 @@ import sys
 from ledgerops_assistant.answer import ScopeGate, answer
 from ledgerops_assistant.context import ContextRetriever
 from ledgerops_assistant.corpus import load_corpus
+from ledgerops_assistant.coverage import DocumentCoverage
 from ledgerops_assistant.evaluation import CACHE_DIR
+from ledgerops_assistant.policy import coverage_threshold, scope_threshold
 from ledgerops_assistant.providers import get_provider
 from ledgerops_assistant.retrieval import BM25Retriever, HybridRetriever, VectorRetriever
 
@@ -29,9 +31,21 @@ def main(argv=None) -> int:
     parser.add_argument("--setup-database", action="store_true")
     parser.add_argument("--method", choices=("bm25", "vector", "hybrid"), default="hybrid")
     parser.add_argument("--embedder", choices=("bge", "hashing"), default="bge")
-    parser.add_argument("--gate", type=float, default=DEFAULT_GATE)
+    parser.add_argument("--gate", type=float)
+    parser.add_argument(
+        "--scope-verifier",
+        choices=("subscription",),
+        help="use the local ChatGPT subscription to check passage support",
+    )
     parser.add_argument("--json", action="store_true", help="print the full answer record")
     args = parser.parse_args(argv)
+
+    verifier = None
+    if args.scope_verifier == "subscription":
+        from ledgerops_assistant.providers.subscription import SubscriptionProvider
+        from ledgerops_assistant.support_semantic import REQUEST_TIMEOUT, SubscriptionPassageSupport
+
+        verifier = SubscriptionPassageSupport(SubscriptionProvider(timeout=REQUEST_TIMEOUT))
 
     corpus = load_corpus()
     if args.embedder == "bge":
@@ -57,11 +71,35 @@ def main(argv=None) -> int:
         bm25 = BM25Retriever(corpus)
         vector = VectorRetriever(corpus, embedder, cache_dir=CACHE_DIR)
     retriever = {"bm25": bm25, "vector": vector, "hybrid": HybridRetriever(bm25, vector)}
+    similarity = args.gate
+    if similarity is None:
+        similarity = scope_threshold() if verifier is not None else DEFAULT_GATE
+    if verifier is None:
+        gate = ScopeGate.for_corpus(vector, similarity, corpus)
+        context = ContextRetriever(retriever[args.method], corpus)
+        top_n = 5
+    else:
+        from ledgerops_assistant.support_semantic import (
+            CONTEXT_SECTIONS,
+            SUPPORT_THRESHOLD,
+            SubscriptionContextRetriever,
+        )
+
+        gate = ScopeGate(
+            vector,
+            similarity,
+            coverage=DocumentCoverage(corpus, coverage_threshold()),
+            support=verifier,
+            support_threshold=SUPPORT_THRESHOLD,
+        )
+        context = SubscriptionContextRetriever(retriever[args.method], corpus)
+        top_n = CONTEXT_SECTIONS
     result = answer(
         args.question,
-        ContextRetriever(retriever[args.method], corpus),
+        context,
         get_provider(args.provider),
-        gate=ScopeGate.for_corpus(vector, args.gate, corpus),
+        gate=gate,
+        top_n=top_n,
         revision=corpus.revision,
     )
     if args.json:

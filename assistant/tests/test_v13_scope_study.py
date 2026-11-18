@@ -196,3 +196,48 @@ def test_failed_setup_consumes_the_frozen_attempt(monkeypatch, tmp_path):
     with pytest.raises(FileExistsError):
         runner.run(1, second, "frozen")
     assert not second.exists()
+
+
+def test_subscription_judgments_count_invalid_quotes_as_refusals(monkeypatch):
+    from types import SimpleNamespace
+
+    from ledgerops_assistant import corpus
+    from ledgerops_assistant.providers import subscription
+    from scripts import evaluate_v13 as runner
+
+    body = "The receipt persists after restart."
+    chunk = corpus.Chunk("test#rule/1", "test#rule", "test.md", "Rules", "Rule", f"Rule\n\n{body}")
+    monkeypatch.setattr(
+        corpus, "load_corpus", lambda: SimpleNamespace(by_id=lambda: {chunk.chunk_id: chunk})
+    )
+
+    class LocalFixture:
+        def generate(self, _instructions, message, _schema):
+            question = json.loads(message)["question"]
+            quote = body if question == "Does a receipt persist?" else "A different sentence."
+            return json.dumps({"supported": True, "chunk_id": chunk.chunk_id, "quote": quote}), {
+                "billing": "chatgpt_plan",
+                "model": runner.SUBSCRIPTION_MODEL,
+            }
+
+    monkeypatch.setattr(subscription, "SubscriptionProvider", lambda **_: LocalFixture())
+    questions = [
+        {"id": "one", "question": "Does a receipt persist?"},
+        {"id": "two", "question": "Does it persist for twenty days?"},
+        {"id": "three", "question": "Approve a payout."},
+    ]
+    records = [
+        {
+            "id": question["id"],
+            "candidate_eligible": index < 2,
+            "before_support_reason": "none" if index < 2 else "action_not_permitted",
+            "passage_ids": [chunk.chunk_id] if index < 2 else [],
+        }
+        for index, question in enumerate(questions)
+    ]
+    sizes = []
+    results = runner.semantic_decisions(questions, records, lambda rows: sizes.append(len(rows)))
+    assert sizes == [1, 2, 3]
+    assert [row["candidate_admitted"] for row in results] == [True, False, False]
+    assert not results[1]["support"]["valid"]
+    assert results[2]["support"]["usage"] == {}

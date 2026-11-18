@@ -14,8 +14,9 @@ Every refusal names its reason, so an evaluation can tell "refused correctly" fr
 "refused because retrieval missed".
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, field
+from typing import Protocol
 
 from ledgerops_assistant import routing
 from ledgerops_assistant.context import retrieve_passages
@@ -24,7 +25,7 @@ from ledgerops_assistant.coverage import DocumentCoverage
 from ledgerops_assistant.policy import coverage_threshold, support_mode, support_threshold
 from ledgerops_assistant.providers.base import Provider
 from ledgerops_assistant.retrieval import Retriever
-from ledgerops_assistant.support import PassageSupport
+from ledgerops_assistant.support import PassageSupport, Support
 
 LIVE_STATE_TEXT = (
     "The docs describe rules, not the current state of a payout or account. Read it from "
@@ -70,6 +71,10 @@ class Answer:
         return asdict(self)
 
 
+class _PassageScorer(Protocol):
+    def measure(self, question: str, passages: Sequence[Chunk]) -> Support: ...
+
+
 class ScopeGate:
     """Refuse documentation questions the indexed sources cannot answer.
 
@@ -87,7 +92,7 @@ class ScopeGate:
         threshold: float | None,
         *,
         coverage=None,
-        support: PassageSupport | None = None,
+        support: _PassageScorer | None = None,
         support_threshold: float | None = None,
     ):
         if (retriever is None) != (threshold is None):

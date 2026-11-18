@@ -22,6 +22,17 @@ LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1 uv run --locked --extra subscription \
   "Does a timeout release the hold?"
 ```
 
+Add `--scope-verifier subscription` to the local CLI to verify documentation
+passage support through the same subscription adapter. After routing, coverage
+and similarity checks pass, the verifier must quote a supplied passage body
+before the selected answer provider runs. The subscription extra and environment
+opt-in also apply when the verifier is selected on its own.
+
+For the evaluation profile, use the local PostgreSQL assistant index and hybrid
+retrieval with `--backend postgres --scope-verifier subscription`. The verifier
+and answer receive the same evidence, bounded to 36,000 bytes. The CLI uses the
+released 0.5512 similarity cutoff for this option unless you pass `--gate`.
+
 The default subscription model is `gpt-6.1-sol`; set
 `LEDGEROPS_ASSISTANT_SUBSCRIPTION_MODEL` to choose another supported model.
 
