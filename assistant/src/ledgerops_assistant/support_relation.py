@@ -97,6 +97,7 @@ def passage_relations(coverage, query, inquiry, passages):
     yes_no = bool(_YES_NO.match(inquiry))
 
     required_overlap = min(2, len(question))
+    required_focus_overlap = min(2, len(inquiry_weights))
     for body, spans, local_focus in passages:
         spans = tuple((text, _passage_sequence(text), words) for text, words in spans)
         body_coverage = _coverage(specific_question, set(_passage_sequence(body)))
@@ -129,6 +130,7 @@ def passage_relations(coverage, query, inquiry, passages):
             if (
                 focus * context > best_witness_score
                 and len(question.keys() & words) >= required_overlap
+                and len(inquiry_weights.keys() & words) >= required_focus_overlap
             ):
                 best_witness_score, witness = focus * context, text
 

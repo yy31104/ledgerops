@@ -62,9 +62,12 @@ def test_availability_and_procedure_keep_distinct_negation_signals():
     assert procedure.negated_inquiry == 0.0
 
 
-def test_direct_procedure_requires_action_and_subject_in_one_prose_span():
+@pytest.mark.parametrize(
+    "question",
+    ["How can I cancel an expired payout?", "Please explain how to cancel an expired payout?"],
+)
+def test_direct_procedure_requires_action_and_subject_in_one_prose_span(question):
     scorer = compact_scorer("cancel")
-    question = "How can I cancel an expired payout?"
     action = passage("To cancel a checkout, contact an operator.")
     subject = passage("A payout expires without a response.", 2)
     denial = passage("You cannot cancel an expired payout.", 3)
@@ -81,3 +84,22 @@ def test_bundle_can_only_decrease_adjusted_score():
     assert cap_witness_score(0.4, 0.2) == 0.2
     assert cap_witness_score(0.4, 0.99) == cap_witness_score(0.4, 1.0)
     assert cap_witness_score(0.0, 1.0) == 0.0
+
+
+def test_background_passage_cannot_turn_one_inquiry_term_into_a_witness():
+    scorer = compact_scorer()
+    question = "Reserve retry limits. Does the receipt signature expire overnight?"
+    chunks = [passage("The receipt exists."), passage("Reserve retry limits.", 2)]
+
+    assert scorer.measure(question, chunks).score == 0.0
+
+
+def test_background_procedure_does_not_replace_the_action_in_the_inquiry():
+    scorer = compact_scorer("request", "cancel")
+    question = "I know how to request a payout. How can I cancel a pending payout?"
+    proof = passage("To cancel a pending payout, open the operator console and select Cancel.")
+
+    result = scorer.measure(question, [proof])
+
+    assert result.witness == proof.body
+    assert result.score > 0.45

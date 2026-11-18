@@ -138,11 +138,12 @@ class PassageSupport:
     def relation_features(self, question, passages):
         """Return a bundle for vetoing and independent positive chunk witnesses."""
         query, inquiry = _question_parts(question)
-        procedure = _PROCEDURE.match(inquiry)
-        action = stem(procedure[1].lower()) if procedure else None
+        action = _requested_action(inquiry)
         inquiry_terms = terms(inquiry)
         require_affirmative = action in self.coverage.frequency and action in inquiry_terms
-        local = [self._measure_local_focus(question, [chunk]) for chunk in passages]
+        local = [
+            self._measure_local_focus(question, [chunk], focus_action=True) for chunk in passages
+        ]
         spans = (
             (chunk.body, _span_terms(chunk.body, False), round(proof.score, 8))
             for chunk, proof in zip(passages, local, strict=True)
@@ -152,15 +153,9 @@ class PassageSupport:
         measured = passage_relations(self.coverage, query, inquiry, spans)
         for chunk, proof, (features, alternate) in zip(passages, local, measured, strict=True):
             bundle = merge_relation_features(bundle, features)
-            if require_affirmative:
-                if proof.witness and _affirmative_action(
-                    proof.witness, terms(proof.witness), action, inquiry_terms
-                ):
-                    candidates.append((proof, features))
-                continue
-            if proof.witness:
+            if require_affirmative and proof.witness:
                 candidates.append((proof, features))
-            elif alternate:
+            elif not require_affirmative and alternate:
                 candidates.append((Support(chunk_id=chunk.chunk_id, witness=alternate), features))
         return bundle, candidates
 
@@ -197,7 +192,7 @@ class PassageSupport:
                     best = Support(score, chunk.chunk_id, span)
         return best
 
-    def _measure_local_focus(self, question, passages):
+    def _measure_local_focus(self, question, passages, *, focus_action=False):
         query, inquiry = _question_parts(question)
         weights = {term: self.coverage.idf(term) for term in sorted(terms(query))}
         inquiry_terms = terms(inquiry)
@@ -208,8 +203,9 @@ class PassageSupport:
 
         # Action wording absent from the corpus may be a paraphrase. Apply the
         # affirmative-clause constraint only for actions the corpus actually uses.
-        action = _requested_action(query)
-        if action not in weights or action not in self.coverage.frequency:
+        action = _requested_action(inquiry if focus_action else query)
+        action_terms = inquiry_terms if focus_action else weights
+        if action not in action_terms or action not in self.coverage.frequency:
             action = None
 
         best = Support()
@@ -222,7 +218,7 @@ class PassageSupport:
                 windows = iter((spans[0][1],))
             full_recall = max(_weighted_recall(weights, total, window) for window in windows)
             for span, present in _span_terms(chunk.body, bool(action)):
-                if action and not _affirmative_action(span, present, action, weights):
+                if action and not _affirmative_action(span, present, action, action_terms):
                     continue
                 inquiry_recall = _weighted_recall(focus_weights, focus_total, present)
                 score = math.sqrt(full_recall * inquiry_recall)
