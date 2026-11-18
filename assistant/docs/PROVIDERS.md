@@ -30,7 +30,7 @@ opt-in also apply when the verifier is selected on its own.
 
 For the evaluation profile, use the local PostgreSQL assistant index and hybrid
 retrieval with `--backend postgres --scope-verifier subscription`. The verifier
-and answer receive the same evidence, bounded to 36,000 bytes. The CLI uses the
+and answer receive the same evidence, bounded to 56,000 bytes. The CLI uses the
 released 0.5512 similarity cutoff for this option unless you pass `--gate`.
 
 The default subscription model is `gpt-6.1-sol`; set

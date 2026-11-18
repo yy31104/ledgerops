@@ -11,8 +11,8 @@ from ledgerops_assistant.coverage import DocumentCoverage, terms
 from ledgerops_assistant.providers.subscription import SubscriptionProvider
 from ledgerops_assistant.support import Support
 
-CONTEXT_SECTIONS = 10
-CONTEXT_BYTES = 36_000
+CONTEXT_SECTIONS = 12
+CONTEXT_BYTES = 56_000
 SUPPORT_THRESHOLD = 1.0
 REQUEST_TIMEOUT = 120
 
@@ -25,8 +25,8 @@ def _body_terms(chunk):
 class SubscriptionContextRetriever(ContextRetriever):
     """Preserve unrepresented rare query terms in an existing bounded pack."""
 
-    def __init__(self, retriever, corpus):
-        super().__init__(retriever, corpus, max_bytes=CONTEXT_BYTES)
+    def __init__(self, retriever, corpus, *, max_bytes=CONTEXT_BYTES):
+        super().__init__(retriever, corpus, max_bytes=max_bytes)
         self.frequency = DocumentCoverage(corpus, 1.0).frequency
 
     def context(self, query, k=CONTEXT_SECTIONS):

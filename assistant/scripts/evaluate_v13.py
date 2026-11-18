@@ -22,6 +22,7 @@ CONTINUATION = STUDY / "CONTINUATION.md"
 QUESTION_ROUTING = STUDY / "QUESTION-ROUTING.md"
 SUBSCRIPTION_EVIDENCE = STUDY / "SUBSCRIPTION-EVIDENCE.md"
 SUBSCRIPTION_CONTEXT = STUDY / "SUBSCRIPTION-CONTEXT.md"
+SUBSCRIPTION_EXPANSION = STUDY / "SUBSCRIPTION-CONTEXT-EXPANSION.md"
 FIT_RECORDS = {
     "compact-veto": STUDY / "compact-veto-fit.json",
     "conditional-veto": STUDY / "conditional-veto-fit.json",
@@ -32,9 +33,11 @@ CONTINUATION_COMMIT = "2943f57fbe61b2b3226e5a222c899fc5ee605db1"
 QUESTION_ROUTING_COMMIT = "04c4b56131c8d6175ce4b3ab6c817af1815fbf9a"
 SUBSCRIPTION_EVIDENCE_COMMIT = "7aa4021f436804b737eeeadaceb7194cf437230c"
 SUBSCRIPTION_CONTEXT_COMMIT = "75f167b61608c52abe3f164a7a8c122fe50b8dc5"
+SUBSCRIPTION_EXPANSION_COMMIT = "310a7f4d24473405764589186f3643c88dd92cf3"
 ORIGINAL_ROUNDS = 3
 QUESTION_ROUTING_ROUND = 5
 SUBSCRIPTION_ROUND = 6
+SUBSCRIPTION_EXPANSION_ROUND = 7
 SUBSCRIPTION_MODE = "subscription-evidence"
 SUBSCRIPTION_MODEL = "gpt-6.1-sol"
 DEV_FILES = [EVAL / v / "questions.jsonl" for v in ("v12-dev", "v12-holdout")]
@@ -416,6 +419,8 @@ def verify_frozen_checkout(folder, expected_commit):
             path.relative_to(ROOT).as_posix()
             for path in (SUBSCRIPTION_EVIDENCE, SUBSCRIPTION_CONTEXT)
         )
+    if manifest["round"] >= SUBSCRIPTION_EXPANSION_ROUND:
+        required.add(SUBSCRIPTION_EXPANSION.relative_to(ROOT).as_posix())
     if fit_record := FIT_RECORDS.get(manifest.get("support_mode")):
         required.add(fit_record.relative_to(ROOT).as_posix())
     if not required <= inputs or not frozen_code_paths() <= code:
@@ -454,6 +459,10 @@ def verify_schedule(trial):
         ):
             if path.read_bytes() != git("show", f"{commit}:{path.relative_to(ROOT)}"):
                 raise ValueError("the registered subscription verification changed")
+    if trial >= SUBSCRIPTION_EXPANSION_ROUND and SUBSCRIPTION_EXPANSION.read_bytes() != git(
+        "show", f"{SUBSCRIPTION_EXPANSION_COMMIT}:{SUBSCRIPTION_EXPANSION.relative_to(ROOT)}"
+    ):
+        raise ValueError("the registered context expansion changed")
     for previous in range(1, trial):
         summary = STUDY / f"round-{previous}" / "summary.json"
         if not summary.is_file() or json.loads(summary.read_text())["passed"]:
