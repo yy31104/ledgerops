@@ -1,0 +1,441 @@
+{
+  "audit_version": 1,
+  "round": 6,
+  "draft_sha256": "b728ad0526f04b7a590f0f778a14dbadab27a6d1b3eee0e06f10d0899fab9cd8",
+  "prepared_sha256": "d52e05838ce0f8e5b177c6cac9a2f1c76d1ecf742dd450ef58fb4d01f606ef29",
+  "questions_sha256": "5aa65da2206a0c91d69b9a7be81218b2cc20d78fece693dc99da89b42c76e656",
+  "passages_sha256": "401802aaadd7919d5643da746c5c16a77163804ec8a8c6e94c8e9d13d207e099",
+  "source_file_sha256": {
+    "docs/AUTHENTICATION.md": "bad63ae4e9a617774d7f788b8924cfbd9cba4e3134699d95e3c4e6b9c6a2b03e",
+    "docs/HTTP-SERVICE.md": "2f1271c0b4755851420265fc8a5ccf0dec11b0f090dfb7c3a273047a89f6ebc3",
+    "docs/MAINTENANCE.md": "f5e74a9fd6d0cfbbaa9f02592a392344ce9153d19dc277899a16c01e7787ecdc",
+    "docs/OPERATOR-ACTIONS.md": "7d776f3f3eb2a79724b7c9cc2c3e4e497e41c7ecad01c18b97c879fbc41afc44",
+    "docs/PAYOUTS.md": "0cd994acd009f8b22184c2086496d64575cd8b7d966a9ea2710f26ec0e793cd6",
+    "docs/RECONCILIATION.md": "2a1319d69433ec1d74303a7351528b72ea0ee3b4331649ce57674d36f347fb7f",
+    "docs/internals/adr/0001-initialization.md": "c8e95ea822b08da705f5122f8f89de41ec8bb6cc3ae2a3b7a8ee321d5b74270b",
+    "docs/internals/adr/0002-ledger-foundation.md": "d4fb664b601f7f8f93a6ac013c620d4ff6496aa7602f52c78eb07ba7d93154b1",
+    "docs/internals/adr/0003-purchase-admission.md": "1a85c7c03c993ac198da2ed968b2aa86fbb60d551b413a2b8795e2d876d715cd",
+    "docs/internals/adr/0004-contention-and-recovery.md": "afe50cc7054201aa269534d7d3dbba373dcfeed4143b011ac558217804dffcfa",
+    "docs/internals/backup-restore.md": "3251fa78e175d8660c9507ec313de310eb1c6eac789adaa8ba03873168d88f53",
+    "docs/internals/evidence-exchange.md": "cf3a93fc76d005b8371e450bfcf18e059a10d7d7d6aebc37bec458a0b1683c14",
+    "docs/internals/export-and-verify.md": "70cb75cfa022665e63d512283105eaa80d7112f1b967ac0a9116f575ba67a025",
+    "docs/internals/maintenance-capacity.md": "b6c13e4a90f9b5b910e943759f0986812a028787081453f49dd27a780b162629",
+    "docs/internals/release-readiness.md": "572b7cec576fd80cb02ae7ff2017d09592b50eeb82ef17720ae82ed00b6a8be8",
+    "docs/internals/reservation-index.md": "a6a7f6f4927c249639d41ece03ab7729b9145408fb19835bde83ced2e0418af0",
+    "docs/internals/reversal.md": "fe988eb6c5350276b7ccd15e43295f2efa76382ce9cd8328663980cc61de3847",
+    "docs/internals/streaming-evidence.md": "def39a2a665b39da75d17c78869caf8448b302878db8cc0c7d05457dc215aa53",
+    "docs/internals/streaming-export-protocol.md": "3a16f6cf8a4d0005a35ff9ad61a59ddf787ce0850efade0dd49539cc9ed132bf",
+    "ops/linux/README.md": "8fa1e92cbd18561d71c944cfe853b5a1cdd311cefc87b58a4b3da1d6f30e7365"
+  },
+  "review_input_count": 294,
+  "review_output_sha256": [
+    "a5a77198ba6287c79d327977dd44ffe0e2387b7feb9d8f2f8db02b7204728969",
+    "3af42d2f9860033764e9984e582410e03edebc91d3b13c4a1176d07d844ee0d6",
+    "f86e55c3eee53d4ed004dc762d5a22cb28a86e9a9707e0c3cc939d292f78a95f",
+    "533ee84d3580ea18c636f371496f7578c7b319572f45f0bff9ee987edaba39e5"
+  ],
+  "prior_count": 1510,
+  "retained": {
+    "documentation": 144,
+    "out_of_scope": 109,
+    "product_gaps": 76,
+    "meets_population": true
+  },
+  "static_exclusions": [],
+  "review_exclusions": [
+    {
+      "id": "v13-r6-004",
+      "code": "facts",
+      "sections": [
+        "docs/PAYOUTS.md#dispatch-and-recovery",
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-007",
+      "code": "facts",
+      "sections": [
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+        "docs/PAYOUTS.md#dispatch-and-recovery"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-021",
+      "code": "sections",
+      "sections": [
+        "docs/RECONCILIATION.md#time-and-scope",
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries",
+        "docs/internals/export-and-verify.md#large-inputs-explicit-format-10",
+        "docs/internals/release-readiness.md#verification-and-maintenance-for-larger-workspaces",
+        "docs/internals/streaming-evidence.md#streaming-financial-evidence-and-reconciliation",
+        "docs/internals/streaming-evidence.md#integration-coverage",
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10",
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-022",
+      "code": "sections",
+      "sections": [
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs",
+        "docs/internals/streaming-evidence.md#commands"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-028",
+      "code": "duplicate",
+      "sections": [
+        "docs/HTTP-SERVICE.md#api"
+      ],
+      "duplicate_refs": [
+        "prior-0147"
+      ]
+    },
+    {
+      "id": "v13-r6-029",
+      "code": "sections",
+      "sections": [
+        "docs/HTTP-SERVICE.md#api",
+        "docs/internals/adr/0002-ledger-foundation.md#input-and-identity-details"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-030",
+      "code": "duplicate",
+      "sections": [
+        "docs/HTTP-SERVICE.md#api",
+        "docs/internals/adr/0002-ledger-foundation.md#input-and-identity-details"
+      ],
+      "duplicate_refs": [
+        "prior-0489"
+      ]
+    },
+    {
+      "id": "v13-r6-033",
+      "code": "duplicate",
+      "sections": [
+        "docs/HTTP-SERVICE.md#api"
+      ],
+      "duplicate_refs": [
+        "prior-0306"
+      ]
+    },
+    {
+      "id": "v13-r6-045",
+      "code": "sections",
+      "sections": [
+        "docs/MAINTENANCE.md#preparation-and-identities",
+        "docs/PAYOUTS.md#roles-migrations-and-rebuilds",
+        "docs/internals/export-and-verify.md#database-privileges",
+        "docs/HTTP-SERVICE.md#configuration-and-startup"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-047",
+      "code": "duplicate",
+      "sections": [
+        "docs/MAINTENANCE.md#run-in-order"
+      ],
+      "duplicate_refs": [
+        "prior-1346"
+      ]
+    },
+    {
+      "id": "v13-r6-049",
+      "code": "duplicate",
+      "sections": [
+        "docs/MAINTENANCE.md#failures-and-retries",
+        "docs/internals/export-and-verify.md#commands"
+      ],
+      "duplicate_refs": [
+        "prior-0372"
+      ]
+    },
+    {
+      "id": "v13-r6-052",
+      "code": "sections",
+      "sections": [
+        "docs/internals/reservation-index.md#upgrade-boundaries",
+        "ops/linux/README.md#build-initialize-and-start",
+        "ops/linux/README.md#upgrade-and-rollback"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-053",
+      "code": "sections",
+      "sections": [
+        "docs/internals/reservation-index.md#upgrade-boundaries",
+        "docs/internals/backup-restore.md#local-backup-and-restore-contract"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-062",
+      "code": "sections",
+      "sections": [
+        "docs/PAYOUTS.md#amounts-and-admission-receipts",
+        "docs/HTTP-SERVICE.md#api"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-068",
+      "code": "sections",
+      "sections": [
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-074",
+      "code": "sections",
+      "sections": [
+        "docs/HTTP-SERVICE.md#api",
+        "ops/linux/README.md#worker-fail-stop-and-incident-response"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-075",
+      "code": "duplicate",
+      "sections": [
+        "docs/HTTP-SERVICE.md#api"
+      ],
+      "duplicate_refs": [
+        "prior-0487"
+      ]
+    },
+    {
+      "id": "v13-r6-076",
+      "code": "duplicate",
+      "sections": [
+        "docs/HTTP-SERVICE.md#api"
+      ],
+      "duplicate_refs": [
+        "prior-0306"
+      ]
+    },
+    {
+      "id": "v13-r6-082",
+      "code": "facts",
+      "sections": [
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-085",
+      "code": "sections",
+      "sections": [
+        "docs/MAINTENANCE.md#run-in-order",
+        "docs/internals/maintenance-capacity.md#large-source-maintenance"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-305",
+      "code": "sections",
+      "sections": [
+        "ops/linux/README.md#build-initialize-and-start",
+        "docs/OPERATOR-ACTIONS.md#service-configuration-and-interfaces"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-311",
+      "code": "sections",
+      "sections": [
+        "ops/linux/README.md#resource-limits-and-cleanup",
+        "docs/HTTP-SERVICE.md#api",
+        "docs/HTTP-SERVICE.md#configuration-and-startup"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-315",
+      "code": "sections",
+      "sections": [
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-316",
+      "code": "sections",
+      "sections": [
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-322",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/export-and-verify.md#commands"
+      ],
+      "duplicate_refs": [
+        "prior-0372"
+      ]
+    },
+    {
+      "id": "v13-r6-331",
+      "code": "sections",
+      "sections": [
+        "docs/internals/maintenance-capacity.md#large-source-maintenance",
+        "docs/MAINTENANCE.md#run-in-order",
+        "docs/PAYOUTS.md#roles-migrations-and-rebuilds"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-332",
+      "code": "sections",
+      "sections": [
+        "docs/internals/release-readiness.md#scope-of-deployment-claims",
+        "docs/HTTP-SERVICE.md#investigation-console",
+        "docs/OPERATOR-ACTIONS.md#reviewing-in-the-console"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-337",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/streaming-evidence.md#complete-source-and-limits",
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10"
+      ],
+      "duplicate_refs": [
+        "prior-1056"
+      ]
+    },
+    {
+      "id": "v13-r6-341",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#service-boundary-and-authorization"
+      ],
+      "duplicate_refs": [
+        "prior-0340"
+      ]
+    },
+    {
+      "id": "v13-r6-352",
+      "code": "wording",
+      "sections": [
+        "ops/linux/README.md#worker-fail-stop-and-incident-response"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-356",
+      "code": "sections",
+      "sections": [
+        "ops/linux/README.md#backup-restore-and-reopening",
+        "docs/internals/backup-restore.md#commands"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-357",
+      "code": "sections",
+      "sections": [
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-369",
+      "code": "sections",
+      "sections": [
+        "docs/internals/export-and-verify.md#database-privileges",
+        "docs/MAINTENANCE.md#preparation-and-identities"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-370",
+      "code": "sections",
+      "sections": [
+        "docs/internals/export-and-verify.md#commands",
+        "docs/MAINTENANCE.md#run-in-order"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-371",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/export-and-verify.md#commands"
+      ],
+      "duplicate_refs": [
+        "prior-0372"
+      ]
+    },
+    {
+      "id": "v13-r6-373",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries"
+      ],
+      "duplicate_refs": [
+        "prior-0874"
+      ]
+    },
+    {
+      "id": "v13-r6-378",
+      "code": "sections",
+      "sections": [
+        "docs/internals/evidence-exchange.md#selected-synthetic-evidence-exchange-v1",
+        "docs/internals/release-readiness.md#supported-flows",
+        "docs/internals/release-readiness.md#recovery-identity-and-operator-actions"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-392",
+      "code": "sections",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#identity-and-transaction-order",
+        "docs/internals/adr/0001-initialization.md#trust-boundary-and-changed-guarantees",
+        "docs/internals/adr/0002-ledger-foundation.md#trust-and-evidence",
+        "docs/internals/export-and-verify.md#what-the-report-establishes"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-393",
+      "code": "duplicate",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#outcomes-and-error-precedence"
+      ],
+      "duplicate_refs": [
+        "prior-0705"
+      ]
+    },
+    {
+      "id": "v13-r6-394",
+      "code": "sections",
+      "sections": [
+        "docs/internals/adr/0004-contention-and-recovery.md#bounded-retry",
+        "docs/internals/adr/0003-purchase-admission.md#outcomes-and-error-precedence"
+      ],
+      "duplicate_refs": []
+    },
+    {
+      "id": "v13-r6-672",
+      "code": "other",
+      "sections": [
+        "docs/internals/reservation-index.md#verification-performed"
+      ],
+      "duplicate_refs": []
+    }
+  ]
+}
