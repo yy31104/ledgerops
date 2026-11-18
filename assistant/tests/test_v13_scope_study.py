@@ -60,10 +60,11 @@ def test_paired_recall_preserves_outcomes_inside_source_groups():
 
 
 def test_release_support_cutoff_is_bound_to_a_development_record():
-    from ledgerops_assistant.policy import support_threshold
+    from ledgerops_assistant.policy import support_mode, support_threshold
 
     record = json.loads((STUDY / "development.json").read_text())
     assert support_threshold() == record["support_threshold"]
+    assert support_mode() == record.get("support_mode", "single-span")
     root = Path(__file__).resolve().parents[2]
     for name, digest in record["development_hashes"].items():
         assert hashlib.sha256((root / name).read_bytes()).hexdigest() == digest
@@ -90,7 +91,7 @@ def test_untracked_inputs_cannot_be_used_for_a_frozen_attempt(monkeypatch, tmp_p
 def test_failed_setup_consumes_the_frozen_attempt(monkeypatch, tmp_path):
     import pytest
 
-    from ledgerops_assistant.policy import support_threshold
+    from ledgerops_assistant.policy import support_mode, support_threshold
     from scripts import evaluate_v13 as runner
 
     development = json.loads((STUDY / "development.json").read_text())
@@ -115,7 +116,10 @@ def test_failed_setup_consumes_the_frozen_attempt(monkeypatch, tmp_path):
     monkeypatch.setattr(
         runner,
         "verify_frozen_checkout",
-        lambda folder, commit: ({"support_threshold": threshold}, commit),
+        lambda folder, commit: (
+            {"support_threshold": threshold, "support_mode": support_mode()},
+            commit,
+        ),
     )
 
     def fail(*args, **kwargs):

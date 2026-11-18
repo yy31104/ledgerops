@@ -1,0 +1,49 @@
+{
+  "answers": {
+    "n": 32,
+    "agreements": 32,
+    "agreement_rate": 1.0,
+    "cohens_kappa": 1.0,
+    "left_counts": {
+      "complete": 30,
+      "incomplete": 2,
+      "incorrect": 0
+    },
+    "right_counts": {
+      "complete": 30,
+      "incomplete": 2,
+      "incorrect": 0
+    },
+    "final_counts": {
+      "complete": 30,
+      "incomplete": 2,
+      "incorrect": 0
+    },
+    "adjudicated": 0
+  },
+  "boundary": {
+    "n": 6,
+    "agreements": 5,
+    "agreement_rate": 0.8333333333333334,
+    "cohens_kappa": 0.6,
+    "left_counts": {
+      "retain": 5,
+      "revise": 0,
+      "exclude": 1
+    },
+    "right_counts": {
+      "retain": 4,
+      "revise": 1,
+      "exclude": 1
+    },
+    "final_counts": {
+      "retain": 4,
+      "revise": 0,
+      "exclude": 2
+    },
+    "adjudicated": 1
+  },
+  "review_method": "Two independent GPT-6.2 Sol contexts reviewed identical evidence with a fixed rubric; a third context resolved the only disputed item without seeing either verdict.",
+  "input_lock_sha256": "97381d69c1dbd7d3296fe0a26fbba0835fbc8064724b5bb080641ea7aa2be6cd",
+  "rubric_sha256": "bbb526b361b53994fd026b5822591404f6872d39988aa8ffa4dcc3abe13e911b"
+}
