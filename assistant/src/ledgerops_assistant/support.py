@@ -9,11 +9,20 @@ from itertools import pairwise
 from ledgerops_assistant.corpus import _FENCE
 from ledgerops_assistant.coverage import stem, terms
 from ledgerops_assistant.support_relation import (
+    INTERCEPT,
+    WEIGHTS,
     RelationFeatures,
     merge_relation_features,
     passage_relations,
     relation_score,
     witness_score,
+)
+from ledgerops_assistant.support_veto import (
+    VETO_INTERCEPT,
+    VETO_WEIGHTS,
+    VETO_WITNESS_INTERCEPT,
+    VETO_WITNESS_WEIGHTS,
+    VetoEvidence,
 )
 
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
@@ -36,7 +45,7 @@ _UNAVAILABLE = re.compile(
 _CONTRAST = re.compile(r";|\bbut\b", re.I)
 _INQUIRY_END = re.compile(r"(?<=[?!.;])\s+")
 _PRODUCT_NAME = re.compile(r"\bLedgerOps\b", re.I)
-SUPPORT_MODES = frozenset({"single-span", "local-focus", "compact-relation"})
+SUPPORT_MODES = frozenset({"single-span", "local-focus", "compact-relation", "compact-veto"})
 
 
 @dataclass(frozen=True)
@@ -117,16 +126,20 @@ class PassageSupport:
     about capability availability. A procedure with a known action needs an
     affirmative witness for the action and another subject term. Compact-relation
     combines span, adjacent span and query-part features fitted on development data.
+    Compact-veto uses corpus-derived prose features to further limit a chunk score.
     """
 
-    def __init__(self, coverage, *, mode="single-span"):
+    def __init__(self, coverage, *, mode="single-span", corpus=None):
         if mode not in SUPPORT_MODES:
             raise ValueError(f"unknown passage support mode: {mode}")
         self.coverage = coverage
         self.mode = mode
+        if mode == "compact-veto" and corpus is None:
+            raise ValueError("compact-veto support needs the documentation corpus")
+        self.veto = VetoEvidence(coverage, corpus, _spans) if mode == "compact-veto" else None
 
     def measure(self, question, passages):
-        if self.mode == "compact-relation":
+        if self.mode in {"compact-relation", "compact-veto"}:
             best = self._measure_compact_relation(question, passages)
         elif self.mode == "local-focus":
             best = self._measure_local_focus(question, passages)
@@ -164,9 +177,18 @@ class PassageSupport:
 
     def _measure_compact_relation(self, question, passages):
         bundle, candidates = self.relation_features(question, passages)
+        intercept, weights = (
+            (VETO_WITNESS_INTERCEPT, VETO_WITNESS_WEIGHTS) if self.veto else (INTERCEPT, WEIGHTS)
+        )
         winner = max(
             (
-                (witness_score(relation_score(features), focused=focused), witness)
+                (
+                    witness_score(
+                        relation_score(features, intercept=intercept, weights=weights),
+                        focused=focused,
+                    ),
+                    witness,
+                )
                 for witness, features, focused in candidates
             ),
             key=lambda candidate: candidate[0],
@@ -175,7 +197,13 @@ class PassageSupport:
         if winner is None:
             return Support()
         score, witness = winner
-        return replace(witness, score=min(score, relation_score(bundle)))
+        if self.veto:
+            inquiry = _question_parts(question)[1]
+            features = self.veto.features(bundle, inquiry, passages)
+            veto_score = relation_score(features, intercept=VETO_INTERCEPT, weights=VETO_WEIGHTS)
+        else:
+            veto_score = relation_score(bundle)
+        return replace(witness, score=min(score, veto_score))
 
     def _measure_single_span(self, question, passages):
         weights = {term: self.coverage.idf(term) ** 3 for term in sorted(terms(question))}

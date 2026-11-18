@@ -107,7 +107,11 @@ class ScopeGate:
             retriever,
             threshold,
             coverage=coverage,
-            support=PassageSupport(coverage, mode=support_mode()) if cutoff is not None else None,
+            support=(
+                PassageSupport(coverage, mode=support_mode(), corpus=corpus)
+                if cutoff is not None
+                else None
+            ),
             support_threshold=cutoff,
         )
 

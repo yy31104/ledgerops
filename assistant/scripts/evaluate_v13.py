@@ -16,6 +16,7 @@ EVAL = ROOT / "assistant/eval"
 STUDY = EVAL / "v13-scope"
 PROTOCOL = STUDY / "protocol.json"
 CONTINUATION = STUDY / "CONTINUATION.md"
+VETO_FIT = STUDY / "compact-veto-fit.json"
 REFERENCE = "7e637477223983917257fbb96d9c85ffcace979e"
 TARGET_COMMIT = "5e316fdb401399708ba54a1ebb5645aec60777ae"
 CONTINUATION_COMMIT = "2943f57fbe61b2b3226e5a222c899fc5ee605db1"
@@ -167,7 +168,7 @@ def measure(questions, *, threshold=None, update=None):
     if any(set(q["relevant_sections"]) - corpus.section_ids() for q in questions):
         raise ValueError("question labels contain a missing section")
     coverage = DocumentCoverage(corpus, coverage_threshold())
-    support = PassageSupport(coverage, mode=support_mode())
+    support = PassageSupport(coverage, mode=support_mode(), corpus=corpus)
     embedder = BgeSmallEmbedder()
     rows = []
     with temporary_database() as dsn:
@@ -282,6 +283,8 @@ def verify_frozen_checkout(folder, expected_commit):
     code = set(manifest["code_sha256"])
     if manifest["round"] > ORIGINAL_ROUNDS:
         required.add(CONTINUATION.relative_to(ROOT).as_posix())
+    if manifest.get("support_mode") == "compact-veto":
+        required.add(VETO_FIT.relative_to(ROOT).as_posix())
     if not required <= inputs or not frozen_code_paths() <= code:
         raise ValueError("manifest omits required study or executable inputs")
     for name in sorted(inputs | code):
@@ -333,6 +336,8 @@ def run(trial, output, expected_commit):
         or development.get("support_mode", "single-span") != mode
     ):
         raise ValueError("release settings do not match the frozen candidate")
+    if mode == "compact-veto" and development["fit_report_sha256"] != sha(VETO_FIT):
+        raise ValueError("development cutoff does not match the frozen fit record")
     questions = [json.loads(line) for line in (folder / "questions.jsonl").read_text().splitlines()]
     counts = Counter(q["expected_route"] for q in questions)
     product = sum(
