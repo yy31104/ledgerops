@@ -39,8 +39,8 @@ contains `ledgerops-evidence-v1.0.0.tar.gz`: current development evaluation, the
 failed first check. `release-evidence-manifest.json` pins its archive and four raw
 files; `release-summary.json` keeps summaries. Use the same restore command with
 that manifest after publication. `answer-review.json` contains per-question AI
-judgements; the refusal study folders retain frozen protocols, data and
-run controls. No claim of independent human labels is made.
+judgements. The refusal study folders retain frozen protocols, data and run
+records.
 
 ## v1.1 comparison and answer worksheet
 
