@@ -9,6 +9,7 @@ from scripts.evaluate_v13 import (
     TARGET_COMMIT,
     git,
     paired_recall,
+    pinned_reference,
     select_threshold,
 )
 
@@ -74,6 +75,37 @@ def test_calibration_prefers_scope_reduction_within_documentation_constraint():
     assert selected["out_of_scope_passed"]["count"] == 0
     assert curve[0]["out_of_scope_passed"]["count"] == 1
     assert curve[-1]["documentation_refused"]["count"] == 20
+
+
+def test_reference_loads_the_released_question_grammar():
+    from ledgerops_assistant import routing
+
+    question = "Under which setting does the health probe run?"
+    assert pinned_reference()(question) == routing.ACTION
+    assert routing.classify(question) == routing.DOCS
+
+
+def test_calibration_includes_a_documentation_question_recovered_by_routing():
+    rows = [
+        {
+            "id": "rule",
+            "expected_route": "docs",
+            "reference_admitted": False,
+            "candidate_eligible": True,
+            "score": 0.8,
+        },
+        {
+            "id": "gap",
+            "expected_route": "out_of_scope",
+            "reference_admitted": True,
+            "candidate_eligible": True,
+            "score": 0.2,
+        },
+    ]
+    chosen, _ = select_threshold(rows)
+    assert chosen["threshold"] == math.nextafter(0.2, math.inf)
+    assert chosen["documentation_refused"]["count"] == 0
+    assert chosen["out_of_scope_passed"]["count"] == 0
 
 
 def test_paired_recall_preserves_outcomes_inside_source_groups():
