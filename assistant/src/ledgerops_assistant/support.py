@@ -1,8 +1,10 @@
 """Find local lexical evidence in the documentation actually supplied to a model."""
 
+import math
 import re
 from dataclasses import dataclass, replace
 from functools import lru_cache
+from itertools import pairwise
 
 from ledgerops_assistant.corpus import _FENCE
 from ledgerops_assistant.coverage import stem, terms
@@ -25,6 +27,8 @@ _UNAVAILABLE = re.compile(
     re.I,
 )
 _CONTRAST = re.compile(r";|\bbut\b", re.I)
+_INQUIRY_END = re.compile(r"(?<=[?!.;])\s+")
+_PRODUCT_NAME = re.compile(r"\bLedgerOps\b", re.I)
 
 
 @dataclass(frozen=True)
@@ -71,25 +75,53 @@ def _denies_action(span, action):
     )
 
 
-class PassageSupport:
-    """Weighted term coverage in one source span, discounted for absent corpus terms.
+def _requested_action(question):
+    procedure = _PROCEDURE.search(question)
+    return stem(procedure[1].lower()) if procedure else None
 
-    High-IDF stems carry most of the score. A direct procedure question also needs
-    the requested action and a second subject term in the same span. An explicit
-    denial can answer a question about whether a capability exists. It cannot
-    witness a procedure for that capability.
+
+def _affirmative_action(span, present, action, query_terms):
+    return (
+        action in present
+        and any(term != action and term in present for term in query_terms)
+        and not _denies_action(span, action)
+    )
+
+
+def _weighted_recall(weights, total, present):
+    return sum(weight for term, weight in weights.items() if term in present) / total
+
+
+class PassageSupport:
+    """Measure lexical support within the selected document evidence.
+
+    Single-span scores one clause and discounts absent vocabulary. Local-focus
+    checks the entire query against two adjacent spans and its last inquiry
+    against one span of the same chunk. An explicit denial can answer a question
+    about capability availability. A procedure with a known action needs an
+    affirmative witness for the action and another subject term.
     """
 
-    def __init__(self, coverage):
+    def __init__(self, coverage, *, mode="single-span"):
+        if mode not in ("single-span", "local-focus"):
+            raise ValueError(f"unknown passage support mode: {mode}")
         self.coverage = coverage
+        self.mode = mode
 
     def measure(self, question, passages):
+        if self.mode == "local-focus":
+            best = self._measure_local_focus(question, passages)
+        else:
+            best = self._measure_single_span(question, passages)
+        # Quantize the final score so an identical cutoff survives platform rounding.
+        return replace(best, score=round(min(best.score, 1.0), 8))
+
+    def _measure_single_span(self, question, passages):
         weights = {term: self.coverage.idf(term) ** 3 for term in sorted(terms(question))}
         total = sum(weights.values())
         if not total:
             return Support()
-        procedure = _PROCEDURE.search(question)
-        action = stem(procedure[1].lower()) if procedure else None
+        action = _requested_action(question)
         # A generic wrapper word removed from the query is not an action constraint.
         if action not in weights:
             action = None
@@ -97,15 +129,44 @@ class PassageSupport:
         best = Support()
         for chunk in passages:
             for span, present in _span_terms(chunk.body, bool(action)):
-                if action and (
-                    action not in present
-                    or not any(term != action and term in present for term in weights)
-                    or _denies_action(span, action)
-                ):
+                if action and not _affirmative_action(span, present, action, weights):
                     continue
                 matched = sum(weight for term, weight in weights.items() if term in present)
                 score = matched * discount
                 if score > best.score:
                     best = Support(score, chunk.chunk_id, span)
-        # Quantize the final score so an identical cutoff survives platform rounding.
-        return replace(best, score=round(min(best.score, 1.0), 8))
+        return best
+
+    def _measure_local_focus(self, question, passages):
+        query = _PRODUCT_NAME.sub("", question).strip()
+        inquiry = next((part for part in reversed(_INQUIRY_END.split(query)) if part.strip()), "")
+        weights = {term: self.coverage.idf(term) for term in sorted(terms(query))}
+        inquiry_terms = terms(inquiry)
+        focus_weights = {term: weight for term, weight in weights.items() if term in inquiry_terms}
+        total, focus_total = sum(weights.values()), sum(focus_weights.values())
+        if not total or not focus_total:
+            return Support()
+
+        # Action wording absent from the corpus may be a paraphrase. Apply the
+        # affirmative-clause constraint only for actions the corpus actually uses.
+        action = _requested_action(query)
+        if action not in weights or action not in self.coverage.frequency:
+            action = None
+
+        best = Support()
+        for chunk in passages:
+            spans = _span_terms(chunk.body, False)
+            if not spans:
+                continue
+            windows = (left[1] | right[1] for left, right in pairwise(spans))
+            if len(spans) == 1:
+                windows = iter((spans[0][1],))
+            full_recall = max(_weighted_recall(weights, total, window) for window in windows)
+            for span, present in _span_terms(chunk.body, bool(action)):
+                if action and not _affirmative_action(span, present, action, weights):
+                    continue
+                inquiry_recall = _weighted_recall(focus_weights, focus_total, present)
+                score = math.sqrt(full_recall * inquiry_recall)
+                if score > best.score:
+                    best = Support(score, chunk.chunk_id, span)
+        return best

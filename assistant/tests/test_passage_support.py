@@ -29,12 +29,16 @@ def chunk(name, body, heading="Operating instructions"):
     )
 
 
-def gate_for(tmp_path, *passages, cutoff=0.75):
+def gate_for(tmp_path, *passages, cutoff=0.75, mode="single-span"):
     other = chunk("other", "The backup directory is local.")
     corpus = Corpus(tmp_path, "test", (*passages, other), {})
     coverage = DocumentCoverage(corpus, 0.597)
     return ScopeGate(
-        None, None, coverage=coverage, support=PassageSupport(coverage), support_threshold=cutoff
+        None,
+        None,
+        coverage=coverage,
+        support=PassageSupport(coverage, mode=mode),
+        support_threshold=cutoff,
     )
 
 
@@ -49,10 +53,11 @@ def gate_for(tmp_path, *passages, cutoff=0.75):
         "The screen lists snapshot metadata.",
     ],
 )
-def test_matches_never_join_separate_evidence_or_take_a_title_as_a_witness(tmp_path, body):
+@pytest.mark.parametrize("mode", ["single-span", "local-focus"])
+def test_matches_never_join_separate_evidence_or_take_a_title_as_a_witness(tmp_path, body, mode):
     source = chunk("only", body, heading="Export a snapshot")
     other = chunk("target", "To export a snapshot, open its manifest and run the export job.")
-    gate = gate_for(tmp_path, source, other)
+    gate = gate_for(tmp_path, source, other, mode=mode)
     missing = gate.support.measure(QUESTION, [source])
     assert missing.score == 0 and missing.witness is None
     supported = gate.support.measure(QUESTION, [source, other])
@@ -78,9 +83,10 @@ def test_equivalent_procedure_wording_still_requires_local_evidence(tmp_path, qu
         "The service does not offer snapshot export.",
     ],
 )
-def test_denial_answers_a_capability_question_but_supplies_no_procedure(tmp_path, body):
+@pytest.mark.parametrize("mode", ["single-span", "local-focus"])
+def test_denial_answers_a_capability_question_but_supplies_no_procedure(tmp_path, body, mode):
     source = chunk("denial", body)
-    gate = gate_for(tmp_path, source)
+    gate = gate_for(tmp_path, source, mode=mode)
     assert gate.supports("Can I export a snapshot?", [source])
     assert not gate.supports(QUESTION, [source])
 
@@ -92,16 +98,39 @@ def test_unrelated_negative_clause_keeps_the_supported_action(tmp_path):
     assert gate_for(tmp_path, source).supports(QUESTION, [source])
 
 
-def test_contrast_clause_must_independently_support_the_procedure(tmp_path):
+@pytest.mark.parametrize("mode", ["single-span", "local-focus"])
+def test_contrast_clause_must_independently_support_the_procedure(tmp_path, mode):
     denied = "You cannot export a snapshot while maintenance is active"
     supported = "you can export a snapshot after maintenance ends."
     source = chunk("supported", f"{denied}, but {supported}")
     unrelated = chunk("unrelated", f"{denied}, but you can export a run report.")
-    gate = gate_for(tmp_path, source, unrelated)
+    gate = gate_for(tmp_path, source, unrelated, mode=mode)
 
     result = gate.support.measure(QUESTION, [source])
     assert result.witness == supported and gate.supports(QUESTION, [source])
     assert gate.support.measure(QUESTION, [unrelated]).witness is None
+
+
+def test_local_focus_cannot_borrow_context_from_another_chunk(tmp_path):
+    context = chunk("context", "Storage accounting audit retention.")
+    inquiry = chunk("inquiry", "Retries expire after an hour.")
+    joined = chunk("joined", f"{context.body} {inquiry.body}")
+    gate = gate_for(tmp_path, context, inquiry, joined, mode="local-focus", cutoff=0.7)
+    question = "Storage accounting audit retention. When do retries expire?"
+
+    assert not gate.supports(question, [context, inquiry])
+    witness = gate.support.measure(question, [joined])
+    assert gate.supports(question, [joined])
+    assert witness.chunk_id == joined.chunk_id
+    assert witness.witness == inquiry.body
+    named_question = question.replace("When", "For LedgerOps, when")
+    assert gate.support.measure(named_question, [joined]) == witness
+
+
+def test_local_focus_accepts_lexical_subject_evidence_for_unseen_action_wording(tmp_path):
+    source = chunk("proxy", "Set the proxy hosts list in the configuration.")
+    gate = gate_for(tmp_path, source, mode="local-focus", cutoff=0.35)
+    assert gate.supports("How should I enumerate proxy hosts?", [source])
 
 
 class ObservedFake(FakeProvider):
@@ -117,10 +146,11 @@ def retriever(*passages):
     return SimpleNamespace(context=lambda _query, _k: list(passages))
 
 
-def test_standalone_answer_checks_selected_passages_before_model(tmp_path):
+@pytest.mark.parametrize("mode", ["single-span", "local-focus"])
+def test_standalone_answer_checks_selected_passages_before_model(tmp_path, mode):
     unrelated = chunk("other", "Export a run report. Restore a snapshot.")
     source = chunk("evidence", "To export a snapshot, run the export job.")
-    gate = gate_for(tmp_path, unrelated, source)
+    gate = gate_for(tmp_path, unrelated, source, mode=mode)
     provider = ObservedFake()
     declined = answer(QUESTION, retriever(unrelated), provider, gate=gate)
     assert declined.refused and declined.reason == "not_in_docs"
@@ -129,10 +159,11 @@ def test_standalone_answer_checks_selected_passages_before_model(tmp_path):
     assert not supported.refused and provider.calls == 1
 
 
-def test_authenticated_planner_requires_evidence_after_fitting(tmp_path):
+@pytest.mark.parametrize("mode", ["single-span", "local-focus"])
+def test_authenticated_planner_requires_evidence_after_fitting(tmp_path, mode):
     filler = chunk("filler", "Report metadata. " * 65)
     source = chunk("evidence", "To export a snapshot, run the export job. " * 12)
-    gate = gate_for(tmp_path, filler, source)
+    gate = gate_for(tmp_path, filler, source, mode=mode)
     provider = ObservedFake()
     attempts = []
     requests = []
