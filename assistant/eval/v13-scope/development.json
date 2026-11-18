@@ -4,115 +4,117 @@
   "development_hashes": {
     "assistant/eval/v12-dev/questions.jsonl": "5f0a56ce089316e55435324efcab2f9eae43b5c6cfced3833d2032113a93ae21",
     "assistant/eval/v12-holdout/questions.jsonl": "c3f74fe3a8de31a132e5c32a2fdb661b4ef9d1d71c2751099c6a074d8bea0a65",
-    "assistant/eval/v13-scope/round-1/questions.jsonl": "2f8a64c6881dae85a3166acbef58cc0bf04a3d1004a3649115ea15703834a025"
+    "assistant/eval/v13-scope/round-1/questions.jsonl": "2f8a64c6881dae85a3166acbef58cc0bf04a3d1004a3649115ea15703834a025",
+    "assistant/eval/v13-scope/round-2/questions.jsonl": "ca0a0864d38923dfaff1428b292a6f73259a1d426d086731d878f80e4e0a3b21"
   },
-  "support_threshold": 0.21087987000000002,
-  "support_mode": "local-focus",
+  "support_threshold": 0.45189292000000003,
+  "support_mode": "compact-relation",
   "reference_rates": {
     "out_of_scope_passed": {
-      "count": 56,
-      "n": 121,
-      "rate": 0.4628099173553719,
+      "count": 119,
+      "n": 216,
+      "rate": 0.5509259259259259,
       "wilson_ci95": [
-        0.3765,
-        0.5514
+        0.4843,
+        0.6158
       ]
     },
     "documentation_refused": {
-      "count": 1,
-      "n": 230,
-      "rate": 0.004347826086956522,
+      "count": 3,
+      "n": 326,
+      "rate": 0.009202453987730062,
       "wilson_ci95": [
-        0.0008,
-        0.0242
+        0.0031,
+        0.0267
       ]
     }
   },
   "candidate_rates": {
     "out_of_scope_passed": {
-      "count": 9,
-      "n": 121,
-      "rate": 0.0743801652892562,
+      "count": 15,
+      "n": 216,
+      "rate": 0.06944444444444445,
       "wilson_ci95": [
-        0.0396,
-        0.1353
+        0.0425,
+        0.1114
       ]
     },
     "documentation_refused": {
-      "count": 11,
-      "n": 230,
-      "rate": 0.04782608695652174,
+      "count": 16,
+      "n": 326,
+      "rate": 0.049079754601226995,
       "wilson_ci95": [
-        0.0269,
-        0.0836
+        0.0304,
+        0.0782
       ]
     }
   },
   "neighboring_development_cutoffs": [
     {
-      "threshold": 0.21024206000000004,
+      "threshold": 0.4417487600000001,
       "out_of_scope_passed": {
-        "count": 10,
-        "n": 121,
-        "rate": 0.08264462809917356,
+        "count": 16,
+        "n": 216,
+        "rate": 0.07407407407407407,
         "wilson_ci95": [
-          0.0455,
-          0.1455
+          0.0461,
+          0.1169
         ]
       },
       "documentation_refused": {
-        "count": 11,
-        "n": 230,
-        "rate": 0.04782608695652174,
+        "count": 16,
+        "n": 326,
+        "rate": 0.049079754601226995,
         "wilson_ci95": [
-          0.0269,
-          0.0836
+          0.0304,
+          0.0782
         ]
       }
     },
     {
-      "threshold": 0.21087987000000002,
+      "threshold": 0.45189292000000003,
       "out_of_scope_passed": {
-        "count": 9,
-        "n": 121,
-        "rate": 0.0743801652892562,
+        "count": 15,
+        "n": 216,
+        "rate": 0.06944444444444445,
         "wilson_ci95": [
-          0.0396,
-          0.1353
+          0.0425,
+          0.1114
         ]
       },
       "documentation_refused": {
-        "count": 11,
-        "n": 230,
-        "rate": 0.04782608695652174,
+        "count": 16,
+        "n": 326,
+        "rate": 0.049079754601226995,
         "wilson_ci95": [
-          0.0269,
-          0.0836
+          0.0304,
+          0.0782
         ]
       }
     },
     {
-      "threshold": 0.21195675000000003,
+      "threshold": 0.4599443200000001,
       "out_of_scope_passed": {
-        "count": 9,
-        "n": 121,
-        "rate": 0.0743801652892562,
+        "count": 15,
+        "n": 216,
+        "rate": 0.06944444444444445,
         "wilson_ci95": [
-          0.0396,
-          0.1353
+          0.0425,
+          0.1114
         ]
       },
       "documentation_refused": {
-        "count": 12,
-        "n": 230,
-        "rate": 0.05217391304347826,
+        "count": 17,
+        "n": 326,
+        "rate": 0.05214723926380368,
         "wilson_ci95": [
-          0.0301,
-          0.089
+          0.0328,
+          0.0819
         ]
       }
     }
   ],
-  "raw_report_sha256": "c4570f052a511638090443f36ad3a771b42b10634b552d9ba2de161fdb9d5314",
-  "support_commit": "cf77fdd6fa28f7bb5dbe1a919918045b9e3adb80"
+  "raw_report_sha256": "2f0bc9b40da97d5633f1b3f432d2308307ee00e7ef6cc45b87fa0232ed3549d4",
+  "support_commit": "44fbe6056040c5dced81f31ef58d1a44f0832fb3",
+  "fit_report_sha256": "7bb8ce5a028d827b4385e93ebe1081149107bccac57f8a9415813978cb9cdccd"
 }
