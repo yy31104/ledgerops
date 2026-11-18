@@ -3,10 +3,12 @@
 import argparse
 import json
 import math
+import runpy
 import subprocess
 from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from scripts.evaluate_v11 import Cached, sha, verify, write
 from scripts.evaluate_v12 import wilson
@@ -16,11 +18,14 @@ EVAL = ROOT / "assistant/eval"
 STUDY = EVAL / "v13-scope"
 PROTOCOL = STUDY / "protocol.json"
 CONTINUATION = STUDY / "CONTINUATION.md"
+QUESTION_ROUTING = STUDY / "QUESTION-ROUTING.md"
 VETO_FIT = STUDY / "compact-veto-fit.json"
 REFERENCE = "7e637477223983917257fbb96d9c85ffcace979e"
 TARGET_COMMIT = "5e316fdb401399708ba54a1ebb5645aec60777ae"
 CONTINUATION_COMMIT = "2943f57fbe61b2b3226e5a222c899fc5ee605db1"
+QUESTION_ROUTING_COMMIT = "04c4b56131c8d6175ce4b3ab6c817af1815fbf9a"
 ORIGINAL_ROUNDS = 3
+QUESTION_ROUTING_ROUND = 5
 DEV_FILES = [EVAL / v / "questions.jsonl" for v in ("v12-dev", "v12-holdout")]
 
 
@@ -68,15 +73,16 @@ def rates(rows, key, *, details=True):
 
 
 def select_threshold(rows):
-    scores = {row["score"] for row in rows if row["reference_admitted"]}
+    eligible = [row.get("candidate_eligible", row["reference_admitted"]) for row in rows]
+    scores = {row["score"] for admitted, row in zip(eligible, rows, strict=True) if admitted}
     # Crossing an observed score changes admission. Use the lowest float in
     # each interval to implement the registered more-permissive tie break.
     cutoffs = [0.0, *sorted(math.nextafter(score, math.inf) for score in scores)]
     curve = []
     for threshold in cutoffs:
         updated = [
-            {**row, "admitted": row["reference_admitted"] and row["score"] >= threshold}
-            for row in rows
+            {**row, "admitted": admitted and row["score"] >= threshold}
+            for admitted, row in zip(eligible, rows, strict=True)
         ]
         outcome = rates(updated, "admitted", details=False)
         curve.append({"threshold": threshold, **outcome})
@@ -120,6 +126,8 @@ def git(*args):
 
 
 def pinned_reference():
+    from ledgerops_assistant import routing
+
     # Raw retrieval shares the exact released code and corpus. Prove the files
     # participating in ranking are byte-identical before sharing their ranks.
     checkout = ROOT / "assistant/src/ledgerops_assistant"
@@ -128,16 +136,24 @@ def pinned_reference():
         "embeddings.py",
         "postgres.py",
         "retrieval.py",
-        "routing.py",
         "coverage.py",
         "context.py",
         "sql/001_rag.sql",
     ):
         path = checkout / name
         if path.read_bytes() != git("show", f"{REFERENCE}:{path.relative_to(ROOT)}"):
-            raise ValueError(f"released retrieval/router changed: {name}")
+            raise ValueError(f"released retrieval changed: {name}")
     if PROTOCOL.read_bytes() != git("show", f"{TARGET_COMMIT}:{PROTOCOL.relative_to(ROOT)}"):
         raise ValueError("the registered targets changed")
+    # Load the immutable reference router separately from the corrected runtime.
+    relative = (checkout / "routing.py").relative_to(ROOT)
+    with TemporaryDirectory(prefix="ledgerops-v12-router-") as directory:
+        source = Path(directory) / "routing.py"
+        source.write_bytes(git("show", f"{REFERENCE}:{relative}"))
+        reference = runpy.run_path(str(source))
+    if reference["_EXTERNAL_CAPABILITY"] != routing._EXTERNAL_CAPABILITY:
+        raise ValueError("released topic list changed")
+    return reference["classify"]
 
 
 def measure(questions, *, threshold=None, update=None):
@@ -158,7 +174,7 @@ def measure(questions, *, threshold=None, update=None):
     from ledgerops_assistant.support import PassageSupport
     from scripts.evaluate_local import temporary_database
 
-    pinned_reference()
+    classify_reference = pinned_reference()
     corpus = load_corpus()
     protocol = json.loads(PROTOCOL.read_text())
     if corpus.digest != protocol["reference"]["corpus_digest"]:
@@ -193,8 +209,16 @@ def measure(questions, *, threshold=None, update=None):
         provider = FakeProvider()
         for question in questions:
             text = question["question"]
-            baseline = answer(text, context, provider, gate=reference, revision=corpus.revision)
-            admitted = bool(baseline.provider)
+            baseline = answer(
+                text,
+                context,
+                provider,
+                gate=reference,
+                revision=corpus.revision,
+                classify_route=classify_reference,
+            )
+            eligible = answer(text, context, provider, gate=reference, revision=corpus.revision)
+            admitted = bool(eligible.provider)
             pack = retrieve_passages(context, text, 5) if admitted else []
             proof = support.measure(text, pack)
             row = {
@@ -202,8 +226,10 @@ def measure(questions, *, threshold=None, update=None):
                 "expected_route": question["expected_route"],
                 "group": question["group"],
                 "category": question["category"],
-                "reference_admitted": admitted,
+                "reference_admitted": bool(baseline.provider),
                 "reference_reason": baseline.reason,
+                "candidate_eligible": admitted,
+                "before_support_reason": eligible.reason,
                 "score": proof.score,
                 "support": asdict(proof),
                 "passage_ids": [passage.chunk_id for passage in pack],
@@ -236,6 +262,7 @@ def calibration(output):
         "development_hashes": {str(path.relative_to(ROOT)): sha(path) for path in paths},
         "chosen": chosen,
         "reference": rates(rows, "reference_admitted"),
+        "before_support": rates(rows, "candidate_eligible"),
         "curve": curve,
         "rows": rows,
     }
@@ -283,6 +310,8 @@ def verify_frozen_checkout(folder, expected_commit):
     code = set(manifest["code_sha256"])
     if manifest["round"] > ORIGINAL_ROUNDS:
         required.add(CONTINUATION.relative_to(ROOT).as_posix())
+    if manifest["round"] >= QUESTION_ROUTING_ROUND:
+        required.add(QUESTION_ROUTING.relative_to(ROOT).as_posix())
     if manifest.get("support_mode") == "compact-veto":
         required.add(VETO_FIT.relative_to(ROOT).as_posix())
     if not required <= inputs or not frozen_code_paths() <= code:
@@ -310,6 +339,10 @@ def verify_schedule(trial):
         "show", f"{CONTINUATION_COMMIT}:{CONTINUATION.relative_to(ROOT)}"
     ):
         raise ValueError("the registered continuation changed")
+    if trial >= QUESTION_ROUTING_ROUND and QUESTION_ROUTING.read_bytes() != git(
+        "show", f"{QUESTION_ROUTING_COMMIT}:{QUESTION_ROUTING.relative_to(ROOT)}"
+    ):
+        raise ValueError("the registered question-routing correction changed")
     for previous in range(1, trial):
         summary = STUDY / f"round-{previous}" / "summary.json"
         if not summary.is_file() or json.loads(summary.read_text())["passed"]:
@@ -390,6 +423,7 @@ def run(trial, output, expected_commit):
         recall = paired_recall([r for r in rows if r["expected_route"] == "docs"])
         target = json.loads(PROTOCOL.read_text())["targets"]
         reference, candidate = rates(rows, "reference_admitted"), rates(rows, "candidate_admitted")
+        before_support = rates(rows, "candidate_eligible")
         met = {
             "out_of_scope": candidate["out_of_scope_passed"]["rate"]
             <= target["out_of_scope_pass_rate_max"],
@@ -402,6 +436,7 @@ def run(trial, output, expected_commit):
             status="completed",
             recall=recall,
             reference=reference,
+            before_support=before_support,
             candidate=candidate,
             targets_met=met,
             passed=all(met.values()),

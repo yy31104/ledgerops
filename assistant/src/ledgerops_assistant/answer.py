@@ -14,6 +14,7 @@ Every refusal names its reason, so an evaluation can tell "refused correctly" fr
 "refused because retrieval missed".
 """
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 
 from ledgerops_assistant import routing
@@ -146,8 +147,9 @@ def answer(
     gate: ScopeGate | None = None,
     top_n: int = 5,
     revision: str = "",
+    classify_route: Callable[[str], str] | None = None,
 ) -> Answer:
-    route = routing.classify(question)
+    route = (classify_route or routing.classify)(question)
     if route == routing.ACTION:
         return Answer(question, route, ACTION_TEXT, True, "action_not_permitted")
     if routing.unsupported_topic(question):
