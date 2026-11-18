@@ -97,7 +97,7 @@ def test_failed_setup_consumes_the_frozen_attempt(monkeypatch, tmp_path):
     threshold = support_threshold()
     trial = tmp_path / "round-1"
     trial.mkdir()
-    (tmp_path / "development.json").write_text(json.dumps(development))
+    (trial / "development.json").write_text(json.dumps(development))
     (trial / "manifest.json").write_text("{}\n")
     rows = [
         {

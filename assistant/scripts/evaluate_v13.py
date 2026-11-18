@@ -267,7 +267,7 @@ def verify_frozen_checkout(folder, expected_commit):
     required = {
         PROTOCOL.relative_to(ROOT).as_posix(),
         (folder / "questions.jsonl").relative_to(ROOT).as_posix(),
-        (STUDY / "development.json").relative_to(ROOT).as_posix(),
+        (folder / "development.json").relative_to(ROOT).as_posix(),
     }
     inputs = set(manifest["inputs_sha256"])
     code = set(manifest["code_sha256"])
@@ -296,7 +296,7 @@ def run(trial, output, expected_commit):
         (ROOT / "assistant/src/ledgerops_assistant/retrieval_policy.json").read_text()
     )
     threshold = manifest["support_threshold"]
-    development = json.loads((STUDY / "development.json").read_text())
+    development = json.loads((folder / "development.json").read_text())
     if (
         config["support_threshold"] != threshold
         or development["support_threshold"] != threshold
