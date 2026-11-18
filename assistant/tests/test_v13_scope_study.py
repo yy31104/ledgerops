@@ -67,3 +67,67 @@ def test_release_support_cutoff_is_bound_to_a_development_record():
     root = Path(__file__).resolve().parents[2]
     for name, digest in record["development_hashes"].items():
         assert hashlib.sha256((root / name).read_bytes()).hexdigest() == digest
+
+
+def test_untracked_inputs_cannot_be_used_for_a_frozen_attempt(monkeypatch, tmp_path):
+    import pytest
+
+    from scripts import evaluate_v13 as runner
+
+    def local_git(*args):
+        if args == ("rev-parse", "HEAD"):
+            return b"expected\n"
+        if args == ("status", "--porcelain"):
+            return b"?? assistant/eval/v13-scope/round-1/questions.jsonl\n"
+        raise AssertionError("an untracked input must fail before remote verification")
+
+    monkeypatch.setattr(runner, "git", local_git)
+    with pytest.raises(ValueError, match="clean tracked tree"):
+        runner.verify_frozen_checkout(tmp_path, "expected")
+    assert not (tmp_path / "run.json").exists()
+
+
+def test_failed_setup_consumes_the_frozen_attempt(monkeypatch, tmp_path):
+    import pytest
+
+    from ledgerops_assistant.policy import support_threshold
+    from scripts import evaluate_v13 as runner
+
+    development = json.loads((STUDY / "development.json").read_text())
+    threshold = support_threshold()
+    trial = tmp_path / "round-1"
+    trial.mkdir()
+    (tmp_path / "development.json").write_text(json.dumps(development))
+    (trial / "manifest.json").write_text("{}\n")
+    rows = [
+        {
+            "id": str(index),
+            "expected_route": route,
+            "split": "test",
+            "group": "source#heading",
+            "relevant_sections": ["source#heading"] if route == "docs" else [],
+            "category": "documentation" if route == "docs" else "product_gap",
+        }
+        for index, route in enumerate(["docs"] * 60 + ["out_of_scope"] * 60)
+    ]
+    (trial / "questions.jsonl").write_text("".join(json.dumps(row) + "\n" for row in rows))
+    monkeypatch.setattr(runner, "STUDY", tmp_path)
+    monkeypatch.setattr(
+        runner,
+        "verify_frozen_checkout",
+        lambda folder, commit: ({"support_threshold": threshold}, commit),
+    )
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("database initialization failed")
+
+    monkeypatch.setattr(runner, "measure", fail)
+    result = tmp_path / "raw.json"
+    with pytest.raises(RuntimeError, match="initialization"):
+        runner.run(1, result, "frozen")
+    assert json.loads((trial / "run.json").read_text())["status"] == "failed"
+    assert json.loads(result.read_text())["status"] == "failed"
+    second = tmp_path / "retry.json"
+    with pytest.raises(FileExistsError):
+        runner.run(1, second, "frozen")
+    assert not second.exists()
