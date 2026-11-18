@@ -296,11 +296,18 @@ def run(trial, output, expected_commit):
         (ROOT / "assistant/src/ledgerops_assistant/retrieval_policy.json").read_text()
     )
     threshold = manifest["support_threshold"]
-    if config["support_threshold"] != threshold or config["method"] != "hybrid":
+    development = json.loads((STUDY / "development.json").read_text())
+    if (
+        config["support_threshold"] != threshold
+        or development["support_threshold"] != threshold
+        or config["method"] != "hybrid"
+    ):
         raise ValueError("release settings do not match the frozen candidate")
     questions = [json.loads(line) for line in (folder / "questions.jsonl").read_text().splitlines()]
     counts = Counter(q["expected_route"] for q in questions)
-    product = sum(q["category"] == "product_gap" for q in questions)
+    product = sum(
+        q["expected_route"] == "out_of_scope" and q["category"] == "product_gap" for q in questions
+    )
     if (
         counts["docs"] < 60
         or counts["out_of_scope"] < 60
@@ -308,6 +315,10 @@ def run(trial, output, expected_commit):
         or counts.total() != counts["docs"] + counts["out_of_scope"]
         or len({q["id"] for q in questions}) != counts.total()
         or any(q["split"] != "test" for q in questions)
+        or any(
+            q["expected_route"] == "docs" and q["group"] not in q["relevant_sections"]
+            for q in questions
+        )
     ):
         raise ValueError("frozen cohort does not meet the registered population")
     if output.exists():
