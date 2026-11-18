@@ -15,14 +15,17 @@ ROOT = Path(__file__).resolve().parents[2]
 EVAL = ROOT / "assistant/eval"
 STUDY = EVAL / "v13-scope"
 PROTOCOL = STUDY / "protocol.json"
+CONTINUATION = STUDY / "CONTINUATION.md"
 REFERENCE = "7e637477223983917257fbb96d9c85ffcace979e"
 TARGET_COMMIT = "5e316fdb401399708ba54a1ebb5645aec60777ae"
+CONTINUATION_COMMIT = "2943f57fbe61b2b3226e5a222c899fc5ee605db1"
+ORIGINAL_ROUNDS = 3
 DEV_FILES = [EVAL / v / "questions.jsonl" for v in ("v12-dev", "v12-holdout")]
 
 
 def development_paths():
     paths = list(DEV_FILES)
-    for trial in sorted(STUDY.glob("round-*")):
+    for trial in sorted(STUDY.glob("round-*"), key=lambda folder: int(folder.name[6:])):
         record = trial / "run.json"
         summary = trial / "summary.json"
         if (
@@ -277,6 +280,8 @@ def verify_frozen_checkout(folder, expected_commit):
     }
     inputs = set(manifest["inputs_sha256"])
     code = set(manifest["code_sha256"])
+    if manifest["round"] > ORIGINAL_ROUNDS:
+        required.add(CONTINUATION.relative_to(ROOT).as_posix())
     if not required <= inputs or not frozen_code_paths() <= code:
         raise ValueError("manifest omits required study or executable inputs")
     for name in sorted(inputs | code):
@@ -293,11 +298,27 @@ def verify_frozen_checkout(folder, expected_commit):
     return manifest, head
 
 
+def verify_schedule(trial):
+    if trial < 1:
+        raise ValueError("round must be positive")
+    if trial <= ORIGINAL_ROUNDS:
+        return
+    if CONTINUATION.read_bytes() != git(
+        "show", f"{CONTINUATION_COMMIT}:{CONTINUATION.relative_to(ROOT)}"
+    ):
+        raise ValueError("the registered continuation changed")
+    for previous in range(1, trial):
+        summary = STUDY / f"round-{previous}" / "summary.json"
+        if not summary.is_file() or json.loads(summary.read_text())["passed"]:
+            raise ValueError("a continuation requires a reported miss for every earlier round")
+
+
 def run(trial, output, expected_commit):
-    if not 1 <= trial <= 3:
-        raise ValueError("round must be from 1 to 3")
+    verify_schedule(trial)
     folder = STUDY / f"round-{trial}"
     manifest, head = verify_frozen_checkout(folder, expected_commit)
+    if manifest["round"] != trial:
+        raise ValueError("manifest and requested round differ")
     config = json.loads(
         (ROOT / "assistant/src/ledgerops_assistant/retrieval_policy.json").read_text()
     )

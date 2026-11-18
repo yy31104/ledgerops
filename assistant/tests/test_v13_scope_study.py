@@ -43,6 +43,22 @@ def test_reported_trials_match_their_one_run_receipts():
             assert summary["raw_result_sha256"] == receipt["result_sha256"]
 
 
+def test_continuation_requires_a_recorded_miss_in_each_earlier_round(monkeypatch, tmp_path):
+    import pytest
+
+    from scripts import evaluate_v13 as runner
+
+    monkeypatch.setattr(runner, "STUDY", tmp_path)
+    for number in range(1, 4):
+        folder = tmp_path / f"round-{number}"
+        folder.mkdir()
+        (folder / "summary.json").write_text('{"passed": false}\n')
+    runner.verify_schedule(4)
+    (tmp_path / "round-2" / "summary.json").write_text('{"passed": true}\n')
+    with pytest.raises(ValueError, match="reported miss"):
+        runner.verify_schedule(4)
+
+
 def test_calibration_prefers_scope_reduction_within_documentation_constraint():
     docs = [
         {"id": str(i), "expected_route": "docs", "reference_admitted": True, "score": 0.8}
@@ -130,7 +146,7 @@ def test_failed_setup_consumes_the_frozen_attempt(monkeypatch, tmp_path):
         runner,
         "verify_frozen_checkout",
         lambda folder, commit: (
-            {"support_threshold": threshold, "support_mode": support_mode()},
+            {"round": 1, "support_threshold": threshold, "support_mode": support_mode()},
             commit,
         ),
     )
