@@ -373,7 +373,10 @@ def run(trial, output, expected_commit):
     ):
         raise ValueError("release settings do not match the frozen candidate")
     fit_record = FIT_RECORDS.get(mode)
-    if fit_record and development["fit_report_sha256"] != sha(fit_record):
+    if fit_record and (
+        development["fit_report_sha256"] != sha(fit_record)
+        or json.loads(fit_record.read_text())["calibration"]["threshold"] != threshold
+    ):
         raise ValueError("development cutoff does not match the frozen fit record")
     questions = [json.loads(line) for line in (folder / "questions.jsonl").read_text().splitlines()]
     counts = Counter(q["expected_route"] for q in questions)

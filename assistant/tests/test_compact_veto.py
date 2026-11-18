@@ -1,3 +1,4 @@
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -99,3 +100,19 @@ def test_configured_veto_requires_a_procedure_witness(monkeypatch, mode):
 )
 def test_fronted_or_coordinated_inquiry(inquiry, expected):
     assert has_fronted_or_coordinated_inquiry(inquiry) is expected
+
+
+def test_conditional_runtime_coefficients_match_the_recorded_fit():
+    from ledgerops_assistant import support_veto
+    from scripts.evaluate_v13 import FIT_RECORDS
+
+    fit = json.loads(FIT_RECORDS["conditional-veto"].read_text())
+    assert fit["intercept"] == support_veto.CONDITIONAL_VETO_INTERCEPT
+    assert fit["weights"] == support_veto.CONDITIONAL_VETO_WEIGHTS._asdict()
+    assert fit["context_intercept"] == support_veto.CONDITIONAL_CONTEXT_INTERCEPT
+    assert fit["context_weights"] == support_veto.CONDITIONAL_CONTEXT_WEIGHTS._asdict()
+    assert fit["witness_intercept"] == support_veto.CONDITIONAL_WITNESS_INTERCEPT
+    assert fit["witness_weights"] == support_veto.CONDITIONAL_WITNESS_WEIGHTS._asdict()
+    assert fit["focused_witness_log_odds_shift"] == (
+        support_veto.CONDITIONAL_FOCUSED_WITNESS_LOG_ODDS_SHIFT
+    )
