@@ -10,7 +10,10 @@ from ledgerops_assistant.coverage import stem, terms
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 _LIST_ITEM = re.compile(r"^\s*(?:[-+*]|[0-9]+[.)])\s+")
 _TABLE_SEPARATOR = re.compile(r"^\s*\|[|:\s-]+$")
-_PROCEDURE = re.compile(r"\bhow (?:can|could|do|should|would|must) (?:i|we|one)\s+([a-z]+)\b", re.I)
+_PROCEDURE = re.compile(
+    r"\bhow\s+(?:to|(?:can|could|do|should|would|must)\s+(?:i|we|you|one))\s+([a-z]+)\b",
+    re.I,
+)
 _DENIED_ACTION = re.compile(
     r"\b(?:cannot|can't|can not|does not|do not|doesn't|don't|must not|never|not allowed to)"
     r"\s+(?:be\s+)?([a-z]+)\b",

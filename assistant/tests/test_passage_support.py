@@ -61,6 +61,15 @@ def test_matches_never_join_separate_evidence_or_take_a_title_as_a_witness(tmp_p
     assert supported.witness in other.body
 
 
+@pytest.mark.parametrize("question", ["How do you export a snapshot?", "How to export a snapshot?"])
+def test_equivalent_procedure_wording_still_requires_local_evidence(tmp_path, question):
+    split = chunk("split", "Export a run report. Restore a snapshot.")
+    joined = chunk("joined", "To export a snapshot, run the export job.")
+    gate = gate_for(tmp_path, split, joined, cutoff=0.1)
+    assert not gate.supports(question, [split])
+    assert gate.supports(question, [joined])
+
+
 @pytest.mark.parametrize(
     "body",
     [
