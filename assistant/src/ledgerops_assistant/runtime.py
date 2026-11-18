@@ -12,10 +12,14 @@ from ledgerops_assistant.context import ContextRetriever
 from ledgerops_assistant.corpus import load_corpus
 from ledgerops_assistant.drafts import setup as setup_drafts
 from ledgerops_assistant.embeddings import BgeSmallEmbedder, HashingEmbedder
-from ledgerops_assistant.policy import scope_threshold
+from ledgerops_assistant.policy import coverage_threshold, scope_threshold
 from ledgerops_assistant.postgres import PostgresRetriever, corpus_key, index_corpus, setup
 from ledgerops_assistant.retrieval import HybridRetriever
 from ledgerops_assistant.settings import Settings
+from ledgerops_assistant.support_semantic import (
+    SubscriptionContextRetriever,
+    SubscriptionDocumentCoverage,
+)
 
 
 def encoder(settings):
@@ -47,9 +51,16 @@ def retriever_for(settings):
     context = ContextRetriever(retriever, corpus)
     # The hashing stand-in does not share the real encoder's cosine scale.
     gate_vector = vector if settings.embedder == "bge" else None
-    context.scope_gate = ScopeGate.for_corpus(
-        gate_vector, scope_threshold() if gate_vector is not None else None, corpus
-    )
+    threshold = scope_threshold() if gate_vector is not None else None
+    context.scope_gate = ScopeGate.for_corpus(gate_vector, threshold, corpus)
+    if settings.scope_verifier == "subscription":
+        passage_retriever = SubscriptionContextRetriever(retriever, corpus)
+        passage_retriever.scope_gate = ScopeGate(
+            gate_vector,
+            threshold,
+            coverage=SubscriptionDocumentCoverage(corpus, coverage_threshold()),
+        )
+        context.passage_retriever = passage_retriever
     return context
 
 
@@ -102,7 +113,7 @@ def main():
 
             from ledgerops_assistant.api import create_app
 
-            app = create_app(settings)
+            app = create_app(settings, bind_host=args.host)
             uvicorn.run(app, host=args.host, port=args.port, access_log=False)
     except Exception:
         print(

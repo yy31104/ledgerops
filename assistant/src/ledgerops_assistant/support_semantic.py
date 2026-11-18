@@ -1,20 +1,46 @@
 """Local passage support through the opt-in ChatGPT subscription adapter."""
 
 import json
+import re
 from collections.abc import Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import lru_cache
 
 from ledgerops_assistant.context import ContextRetriever
 from ledgerops_assistant.corpus import Chunk
-from ledgerops_assistant.coverage import DocumentCoverage, terms
+from ledgerops_assistant.coverage import DocumentCoverage, terms, tokens
 from ledgerops_assistant.providers.subscription import SubscriptionProvider
 from ledgerops_assistant.support import Support
 
 CONTEXT_SECTIONS = 12
 CONTEXT_BYTES = 56_000
 SUPPORT_THRESHOLD = 1.0
+SUPPORT_MODEL = "gpt-6.1-sol"
 REQUEST_TIMEOUT = 120
+
+_ACRONYM = re.compile(r"[A-Z][A-Z0-9]+s?")
+
+
+class SubscriptionDocumentCoverage(DocumentCoverage):
+    """Recognize the singular or plural of an exact acronym in the sources."""
+
+    def __init__(self, corpus, threshold):
+        super().__init__(corpus, threshold)
+        self.acronym_aliases = {
+            word[:-1] if word.endswith("s") else f"{word}s"
+            for chunk in corpus.chunks
+            for word in tokens(chunk.text)
+            if _ACRONYM.fullmatch(word)
+        }
+
+    def measure(self, question):
+        result = super().measure(question)
+        return replace(
+            result,
+            unknown_codes=tuple(
+                code for code in result.unknown_codes if code not in self.acronym_aliases
+            ),
+        )
 
 
 @lru_cache(maxsize=256)
@@ -113,21 +139,36 @@ def _unique_fields(pairs):
     return fields
 
 
+def support_message(question: str, passages: Sequence[Chunk]) -> str:
+    return json.dumps(
+        {
+            "question": question,
+            "passages": [
+                {"chunk_id": key, "body": body}
+                for key, body in {chunk.chunk_id: chunk.body for chunk in passages}.items()
+            ],
+        }
+    )
+
+
 class SubscriptionPassageSupport:
     def __init__(self, provider: SubscriptionProvider):
         self.provider = provider
 
-    def measure(self, question: str, passages: Sequence[Chunk]) -> SemanticSupport:
+    def measure(
+        self, question: str, passages: Sequence[Chunk], *, timeout=None, cancel=None
+    ) -> SemanticSupport:
         if not passages:
             return SemanticSupport()
-        bodies = {chunk.chunk_id: chunk.body for chunk in passages}
-        message = json.dumps(
-            {
-                "question": question,
-                "passages": [{"chunk_id": key, "body": body} for key, body in bodies.items()],
-            }
+        options = {
+            key: value
+            for key, value in (("timeout", timeout), ("cancel", cancel))
+            if value is not None
+        }
+        raw, usage = self.provider.generate(
+            SUPPORT_PROMPT, support_message(question, passages), SUPPORT_SCHEMA, **options
         )
-        raw, usage = self.provider.generate(SUPPORT_PROMPT, message, SUPPORT_SCHEMA)
+        bodies = {chunk.chunk_id: chunk.body for chunk in passages}
         usage = usage or {}
         invalid = SemanticSupport(usage=usage, valid=False)
         try:

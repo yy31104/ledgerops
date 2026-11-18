@@ -3,7 +3,9 @@
 import asyncio
 import json
 import threading
+import time
 from dataclasses import replace
+from ipaddress import ip_address
 from uuid import UUID
 
 import psycopg
@@ -15,7 +17,13 @@ from starlette.staticfiles import StaticFiles
 from ledgerops_assistant.agent import Agent
 from ledgerops_assistant.drafts import WorkflowConflict
 from ledgerops_assistant.providers import get_provider
+from ledgerops_assistant.providers.subscription import SubscriptionProvider
 from ledgerops_assistant.settings import Settings
+from ledgerops_assistant.support_semantic import (
+    REQUEST_TIMEOUT,
+    SUPPORT_MODEL,
+    SubscriptionPassageSupport,
+)
 from ledgerops_assistant.telemetry import RequestLimit, RequestTelemetry, Telemetry
 from ledgerops_assistant.tools import APIUnavailable, AuthenticationRequired, ReadOnlyAPI
 from ledgerops_assistant.workflow import DraftWorkflow
@@ -45,6 +53,7 @@ def sse(event, data):
 def public_result(state):
     return {
         "answer": state["result"],
+        "route": state["route"],
         "steps": state.get("steps", 0),
         "cost_usd": state.get("cost_usd", 0),
         "cost_kind": "estimated_upper_bound",
@@ -52,6 +61,7 @@ def public_result(state):
         "output_tokens": state.get("output_tokens", 0),
         "usage": state.get("usage", {}),
         "duration_ms": state.get("duration_ms", 0),
+        **({"verification": state["verification"]} if "verification" in state else {}),
     }
 
 
@@ -59,12 +69,40 @@ def public_draft(state):
     return {k: state[k] for k in ("status", "reason", "draft") if k in state}
 
 
-def create_app(settings=None, *, retriever=None, api_factory=None, telemetry=None):
+def create_app(
+    settings=None,
+    *,
+    retriever=None,
+    api_factory=None,
+    telemetry=None,
+    bind_host=None,
+    passage_retriever=None,
+    passage_verifier=None,
+):
     settings = settings or Settings.environment()
+    verify_documents = settings.scope_verifier == "subscription"
+    if verify_documents:
+        try:
+            loopback = bool(bind_host) and ip_address(bind_host).is_loopback
+        except ValueError:
+            loopback = False
+        if not loopback:
+            raise ValueError("subscription passage verification requires a loopback IP bind")
+        if passage_verifier is None:
+            passage_verifier = SubscriptionPassageSupport(
+                SubscriptionProvider(timeout=REQUEST_TIMEOUT, model=SUPPORT_MODEL)
+            )
+    elif passage_verifier is not None or passage_retriever is not None:
+        raise ValueError("enable subscription passage verification to supply a verifier or context")
+
     if retriever is None:
         from ledgerops_assistant.runtime import retriever_for
 
         retriever = retriever_for(settings)
+    if verify_documents and passage_retriever is None:
+        passage_retriever = getattr(retriever, "passage_retriever", None)
+        if passage_retriever is None:
+            raise ValueError("subscription passage verification requires a passage retriever")
     agents = {}
     for name in settings.providers:
         if name not in ("fake", "openai_api", "ollama"):
@@ -74,7 +112,13 @@ def create_app(settings=None, *, retriever=None, api_factory=None, telemetry=Non
             if name == "openai_api"
             else replace(settings.limits, input_usd_per_million=0, output_usd_per_million=0)
         )
-        agents[name] = Agent(retriever, get_provider(name), limits=limits)
+        agents[name] = Agent(
+            retriever,
+            get_provider(name),
+            limits=limits,
+            passage_retriever=passage_retriever,
+            passage_verifier=passage_verifier,
+        )
     workflows = {
         name: DraftWorkflow(settings.database_url, agent) for name, agent in agents.items()
     }
@@ -163,6 +207,7 @@ def create_app(settings=None, *, retriever=None, api_factory=None, telemetry=Non
 
     @app.post("/v1/assist")
     async def assist(body: Ask, request: Request):
+        deadline = time.monotonic() + settings.limits.deadline_seconds
         client, identity = await authenticate(request)
         agent = selected(body.provider)
         key = (identity.owner_key, str(body.request_id))
@@ -191,6 +236,9 @@ def create_app(settings=None, *, retriever=None, api_factory=None, telemetry=Non
                 body.question,
                 client,
                 cancel=cancel,
+                deadline=deadline,
+                expected_owner_key=identity.owner_key,
+                verify_documents=verify_documents,
                 on_event=progress,
                 on_charge=charge,
                 on_usage=usage,

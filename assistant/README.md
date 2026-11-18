@@ -10,17 +10,17 @@ The panel above uses synthetic data and fake generation.
 
 ## Current results
 
-| Frozen round 7 | v1.2 reference | Local subscription verifier |
+| Frozen HTTP trial | v1.3.0 offline HTTP | Local HTTP with passage verification |
 |---|---:|---:|
-| Unsupported questions admitted | 77/108 (71.3%) | **1/108 (0.9%)** |
-| Documentation questions refused | 2/103 (1.9%) | **4/103 (3.9%)** |
-| Hybrid Recall@5 | 0.9110 | **0.9110** |
+| Unsupported questions admitted | 50/102 (49.0%) | **1/102 (1.0%)** |
+| Documentation questions refused | 7/102 (6.9%) | **2/102 (2.0%)** |
+| Hybrid Recall@5 | 0.8464 | **0.8464** |
 
-Opt into the verifier with `--scope-verifier subscription` on the
-[local CLI](docs/PROVIDERS.md#local-chatgpt-subscription). It checks the passages
-before the answer provider runs. The HTTP service uses the rule evaluated in
-round 5, which missed both scope targets. The [evaluation](docs/RETRIEVAL-QUALITY-V2.md)
-has every round, confidence intervals and the review of 32 saved answers.
+The [local HTTP profile](docs/PROVIDERS.md#verify-passages-in-the-local-http-service)
+met all three targets on 204 new frozen questions. It checks documentation
+passages using a ChatGPT subscription before the answer provider runs. The trial
+used fake answer generation. The [evaluation](docs/RETRIEVAL-QUALITY-V2.md#http-scope-trial)
+includes confidence intervals and failure cases.
 
 ## Try it locally
 
@@ -57,8 +57,8 @@ homepage, navigation and article are excluded. Editing an indexed operating rule
 requires source-label review and a new development baseline. Historical studies
 remain unchanged.
 
-Raw evaluations, generated answers and performance samples are release attachments.
-Git keeps questions, protocols, manifests and summaries. See the
+Historical raw evaluations, generated answers and performance samples are release
+attachments. Git keeps questions, protocols, manifests and summaries. See the
 [evidence guide](eval/README.md). Citation validation rejects unknown passage IDs
 and uncited answers; it establishes provenance rather than semantic correctness.
 

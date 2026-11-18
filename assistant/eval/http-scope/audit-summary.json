@@ -1,0 +1,2310 @@
+{
+  "audit": "Independent static examiners checked source support, label coverage, quotation text and the same information need against previously committed questions. Exclusions preceded the frozen trial.",
+  "audit_version": 1,
+  "authoring": "Separate source-only writers saw the operations-v4 documents, passage IDs and question schema. They had no earlier questions, retrieval outputs or model results.",
+  "draft_rows": 430,
+  "draft_sha256": "2ee1f108b91e4c3783de0397f4e0c620d256fc7fa937a42534994caebbed6470",
+  "draft_sha256_by_file": {
+    "docs-reserve-a.jsonl": "131306ee5c3b41bba3c2374a8be466fbd0f208db53398bad270b6a16c27d75da",
+    "docs-reserve-b.jsonl": "72c3e7b239b4ace8c6a8f8797c8d3fc0997999f51157d368fae7853478679080",
+    "docs.jsonl": "f0e9bfd85645e97797859acd71cac15a4ceb35509b67c2b36a56286361511b4e",
+    "out-of-scope.jsonl": "de93546762a4e88d1999caf025f0c7ea91cc5957c988e15033188a72f3b46b2e"
+  },
+  "exclusions_by_reason": {
+    "answerability": 7,
+    "duplicate": 191,
+    "facts": 1,
+    "sections": 25,
+    "wording": 2
+  },
+  "passages_sha256": "7f40f34d2cb19f26d5436bc5f5a1f961ead83844cc9b4c9301b90a456b82b47e",
+  "prepared_sha256": "4228bcec8f3ba800d37889aced7b55550a4420afc07a62ba8d0136497c48cc5a",
+  "prior_count": 1750,
+  "questions_sha256": "6d3b911032d3a36d3b76a9a47a9cfd986467f13dfb87bf8420b0d2e8b5474af1",
+  "retained": {
+    "documentation": 102,
+    "meets_population": true,
+    "out_of_scope": 102,
+    "product_gaps": 73
+  },
+  "retained_section_clusters": 50,
+  "review_exclusions": [
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0303"
+      ],
+      "id": "http-doc-003",
+      "reason": "The earlier question already asks how to handle a credential that may have been issued during an interrupted issuance.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0143"
+      ],
+      "id": "http-doc-004",
+      "reason": "Both questions ask whether original purchase idempotency survives rotation of a token for the same client.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1733"
+      ],
+      "id": "http-doc-005",
+      "reason": "The earlier question directly asks which current version is required to change a client or membership record.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1634"
+      ],
+      "id": "http-doc-006",
+      "reason": "The earlier question asks how an HTTP-authenticated purchase is ordered against revocation, including what occurs if revocation wins before admission.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1637"
+      ],
+      "id": "http-doc-007",
+      "reason": "Both ask why the authorized read acquires its permission lock before opening its repeatable-read snapshot.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0173",
+        "prior-1636"
+      ],
+      "id": "http-doc-008",
+      "reason": "The earlier questions already ask whether retrying the same restore invalidation revokes credentials issued afterward.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0551"
+      ],
+      "id": "http-doc-009",
+      "reason": "Both ask which validations the HTTP API performs for each newly opened database connection.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1661"
+      ],
+      "id": "http-doc-010",
+      "reason": "The earlier question asks whether using local development disables authentication, the same requirement for an issued token in loopback development.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1662"
+      ],
+      "id": "http-doc-011",
+      "reason": "The earlier question explicitly requires the allowed character set and length for a financial HTTP POST Idempotency-Key.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0840"
+      ],
+      "id": "http-doc-012",
+      "reason": "The earlier question asks for the body field that keeps the original status when the operations GET returns 200.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1421"
+      ],
+      "id": "http-doc-013",
+      "reason": "Both ask which marker indicates that a capped operation investigation response omitted records.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0148",
+        "prior-1663"
+      ],
+      "id": "http-doc-014",
+      "reason": "The earlier questions already ask whether the callback writes quarantine before a signature is trusted.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0188"
+      ],
+      "id": "http-doc-015",
+      "reason": "Both ask whether a response from an older console request can redisplay data after logout.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0308"
+      ],
+      "id": "http-doc-016",
+      "reason": "The earlier question asks what the HTTP service puts in JSON request logs, including the identifiers the candidate requests.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0983",
+        "prior-0184"
+      ],
+      "id": "http-doc-017",
+      "reason": "The prior pair covers whether the same HTTP startup creates test identities or populates a demonstration ledger.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0096"
+      ],
+      "id": "http-doc-018",
+      "reason": "Both ask whether the operator reprocessing workflow can resolve an UNKNOWN payout.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0076"
+      ],
+      "id": "http-doc-019",
+      "reason": "The earlier question explicitly asks whether a proposer can self-approve by changing tokens or clients.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0360"
+      ],
+      "id": "http-doc-020",
+      "reason": "The earlier question already asks whether old operator audit reads remain available in restore mode.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1710"
+      ],
+      "id": "http-doc-023",
+      "reason": "Both ask whether publishing reconciliation for a different date invalidates a pending operator proposal.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0845",
+        "prior-1660"
+      ],
+      "id": "http-doc-024",
+      "reason": "The earlier questions already ask why the offline verifier leaves historical operator authorization unverified.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0141"
+      ],
+      "id": "http-doc-025",
+      "reason": "Both ask what remains in payout history when completed reservations leave the active-hold index.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0329"
+      ],
+      "id": "http-doc-026",
+      "reason": "Both ask whether migration 011 can run on a busy database without stopping writers.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1649"
+      ],
+      "id": "http-doc-027",
+      "reason": "The earlier question explicitly requires the post-restore index-only path that leaves runtime CONNECT closed.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-028",
+      "reason": "The backup contract also expressly says the native backup keeps the checksummed inventory including 011. The export guide directly contrasts this inventory with the financial capability list.",
+      "sections": [
+        "docs/internals/reservation-index.md#export-and-backup-compatibility",
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10",
+        "docs/internals/backup-restore.md#local-backup-and-restore-contract",
+        "docs/internals/export-and-verify.md#large-inputs-explicit-format-10"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0514"
+      ],
+      "id": "http-doc-029",
+      "reason": "Both ask for the shared-block counts before and after the active-hold index in the documented plan sample.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-030",
+      "reason": "The operating guide and Linux deployment section independently identify the payout provider as synthetic and local. The payout scope section describes retained simulator behavior without identifying the adapter's actual external target.",
+      "sections": [
+        "docs/PAYOUTS.md#payout-admission-retained-instructions-and-dispatch",
+        "docs/PAYOUTS.md#bounded-payout-worker-process",
+        "docs/internals/release-readiness.md#ledgerops-release-and-operating-guide",
+        "ops/linux/README.md#local-linux-deployment"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1695"
+      ],
+      "id": "http-doc-031",
+      "reason": "Both ask whether accepting the payout immediately creates its outgoing journal.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1694"
+      ],
+      "id": "http-doc-032",
+      "reason": "Both ask whether replaying payout admission refreshes the saved dispatch deadline after a policy-window change.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1687"
+      ],
+      "id": "http-doc-034",
+      "reason": "Both ask which provider call begins recovery after an abandoned payout claim expires.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0597"
+      ],
+      "id": "http-doc-036",
+      "reason": "Both ask whether the local payout HTTP client follows redirects or consults environment proxy settings.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0368"
+      ],
+      "id": "http-doc-037",
+      "reason": "The earlier question already asks why the worker has narrow operation UPDATE privilege and whether that permits changes to retained receipts.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0371"
+      ],
+      "id": "http-doc-038",
+      "reason": "Both ask whether a failed lookup can return an already-ACCEPTED payout to the initial UNKNOWN dispatch state.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0156"
+      ],
+      "id": "http-doc-039",
+      "reason": "Both ask whether a valid terminal payout observation can still settle once the diagnostic quarantine is full.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-040",
+      "reason": "The payout resolver and worked operator example detail which evidence and funds remain after rollback. The listed operator overview only identifies a LOCAL_BLOCKER as a prerequisite for later reprocessing.",
+      "sections": [
+        "docs/PAYOUTS.md#authenticated-observations-and-one-time-resolution-007",
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0112",
+        "prior-1690"
+      ],
+      "id": "http-doc-041",
+      "reason": "The prior pair covers both independently required explicitly set switches and the startup refusal when either is omitted.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1689"
+      ],
+      "id": "http-doc-042",
+      "reason": "Both ask how much extra time the worker lease must allow over the complete provider timeout.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1683"
+      ],
+      "id": "http-doc-043",
+      "reason": "Both ask for the process exit code used on a payout worker invariant failure.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0157"
+      ],
+      "id": "http-doc-044",
+      "reason": "Both ask whether a purely internal purchase produces an external settlement row.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1703"
+      ],
+      "id": "http-doc-045",
+      "reason": "Both ask what the statement command does when its SQLite path does not point to the existing provider database.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1704"
+      ],
+      "id": "http-doc-046",
+      "reason": "Both ask whether requesting an earlier signed statement version returns its fixed original output.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1701"
+      ],
+      "id": "http-doc-049",
+      "reason": "The earlier question already asks for the duration of the Warsaw business-day window on a daylight-saving transition.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0099"
+      ],
+      "id": "http-doc-050",
+      "reason": "Both concern the exact MISSING_INTERNAL classification when the provider has a payment and the local payout is still HELD.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0105"
+      ],
+      "id": "http-doc-051",
+      "reason": "Both ask what a successful reconciliation publication with published=false means.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0838"
+      ],
+      "id": "http-doc-052",
+      "reason": "The earlier question already asks whether a concurrent change to current can change the pinned reconciliation read.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0316"
+      ],
+      "id": "http-doc-053",
+      "reason": "Both ask how to recover reconciliation publication reporting an unknown outcome after a database disconnect.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0319"
+      ],
+      "id": "http-doc-054",
+      "reason": "Both ask whether large-source maintenance opens a separate repeatable-read transaction and which transaction it actually uses.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0080",
+        "prior-1647"
+      ],
+      "id": "http-doc-055",
+      "reason": "The earlier questions already ask whether a barrier-captured large maintenance preview can be reused for reconciliation and whether a new capture is required.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0107"
+      ],
+      "id": "http-doc-056",
+      "reason": "Both ask whether freezing a workspace stops payout calls already sent to the provider.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-057",
+      "reason": "The ordinary export command separately identifies LEDGEROPS_EXPORT_DSN as the reader credential, and the release guide also directs stream export through that variable.",
+      "sections": [
+        "docs/MAINTENANCE.md#preparation-and-identities",
+        "docs/internals/streaming-evidence.md#commands",
+        "docs/internals/export-and-verify.md#commands",
+        "docs/internals/release-readiness.md#verification-and-maintenance-for-larger-workspaces"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0361"
+      ],
+      "id": "http-doc-058",
+      "reason": "The earlier question already asks whether the rebuild preview includes inactive accounts with unchanged amounts.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1722"
+      ],
+      "id": "http-doc-059",
+      "reason": "Both ask whether apply-rebuild trusts amounts from an earlier preview.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-060",
+      "reason": "The maintenance identity section also explicitly protects holds and events when granting privileges for reserved-projection repair.",
+      "sections": [
+        "docs/MAINTENANCE.md#run-in-order",
+        "docs/PAYOUTS.md#roles-migrations-and-rebuilds",
+        "docs/internals/maintenance-capacity.md#large-source-maintenance",
+        "docs/MAINTENANCE.md#preparation-and-identities"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0037",
+        "prior-0077"
+      ],
+      "id": "http-doc-061",
+      "reason": "The earlier questions directly ask whether a frozen workspace with passing structure and A may resume after B fails. Prior-0037 also asks about the saved B failure.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1645"
+      ],
+      "id": "http-doc-062",
+      "reason": "The earlier question already asks what replaying the same repair ID and fields does after a lost apply-rebuild COMMIT response.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0175"
+      ],
+      "id": "http-doc-063",
+      "reason": "Both ask whether migration 006 proceeds when existing nonzero reservations lack authoritative hold provenance.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0213"
+      ],
+      "id": "http-doc-064",
+      "reason": "Both ask whether a conflict received in another workspace can still change linked diagnostics during this workspace's freeze.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1628"
+      ],
+      "id": "http-doc-065",
+      "reason": "The earlier question explicitly asks for the SQLSTATEs and total number of purchase admission attempts, including the first attempt.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0320"
+      ],
+      "id": "http-doc-067",
+      "reason": "Both ask whether a payout admitted after pg_dump takes its snapshot appears in the same-snapshot business archive.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0836"
+      ],
+      "id": "http-doc-068",
+      "reason": "The earlier question already asks whether the backup manifest identifies the producer and which fields verify integrity.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1135"
+      ],
+      "id": "http-doc-069",
+      "reason": "Both ask who can still connect to a restored database while runtime access is closed.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0321"
+      ],
+      "id": "http-doc-070",
+      "reason": "The earlier question already asks which connection database the administrator DSN needs for restore and provider history recovery.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-071",
+      "reason": "The operator lock and invalidation section directly states that a change of restore generation requires fresh review, supporting why the retained approval cannot execute.",
+      "sections": [
+        "docs/internals/backup-restore.md#commands",
+        "ops/linux/README.md#backup-restore-and-reopening",
+        "docs/internals/release-readiness.md#recovery-identity-and-operator-actions",
+        "docs/OPERATOR-ACTIONS.md#locks-invalidation-and-resource-limits"
+      ]
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-072",
+      "reason": "The backup command explicitly requires each old key needed by retained events for history capture. The Linux citation addresses qualifying a result for reopening after capture, a different condition.",
+      "sections": [
+        "docs/internals/backup-restore.md#commands"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0174",
+        "prior-1654"
+      ],
+      "id": "http-doc-073",
+      "reason": "The earlier questions require the fixed first watermark and consistent page coverage while new provider events arrive.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1655"
+      ],
+      "id": "http-doc-074",
+      "reason": "Both ask about access when a killed closed-target recovery leaves the workspace in NORMAL. The earlier question already requires the independent runtime restrictions.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1652"
+      ],
+      "id": "http-doc-075",
+      "reason": "The earlier question already asks why a provider payment whose original admission postdates the backup is a recovery gap and cannot be reconstructed.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0214",
+        "prior-1656"
+      ],
+      "id": "http-doc-076",
+      "reason": "The earlier questions require the same restored open-freeze lifecycle and retention of the original maintenance identity.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0145"
+      ],
+      "id": "http-doc-077",
+      "reason": "The earlier signed-history limits question already asks for the bounds on events in recovery response pages.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0853"
+      ],
+      "id": "http-doc-079",
+      "reason": "Both ask whether an exchange's historical reconciliation pin says its referenced run is still current.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1678"
+      ],
+      "id": "http-doc-080",
+      "reason": "The earlier question already asks which provider execution time the selected exchange knows and whether receipt time can supply it.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0703"
+      ],
+      "id": "http-doc-081",
+      "reason": "Both ask which ledgerops.exchange input flag accepts a format 10 export UUID directory.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0178"
+      ],
+      "id": "http-doc-083",
+      "reason": "Both ask why an evidence reader can insert and delete pins while lacking financial write privileges.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1631"
+      ],
+      "id": "http-doc-085",
+      "reason": "Both ask which independent check detects a purchase credited to the wrong merchant when journals and balances agree.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0528"
+      ],
+      "id": "http-doc-086",
+      "reason": "Both ask whether current balance can change the independent assessment of a retained purchase refusal.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-087",
+      "reason": "The large-input export section also states that the complete financial export reads every permitted table in one read-only repeatable-read transaction. The reconciliation export instructions and maintenance guide each specify a single repeatable-read source snapshot.",
+      "sections": [
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries",
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10",
+        "docs/internals/streaming-evidence.md#complete-source-and-limits",
+        "docs/internals/export-and-verify.md#large-inputs-explicit-format-10",
+        "docs/MAINTENANCE.md#old-bundle-compatibility-and-scope",
+        "docs/RECONCILIATION.md#capture-a-local-export-then-compare-offline"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0673"
+      ],
+      "id": "http-doc-088",
+      "reason": "The earlier question expressly asks for the unverified_intent_kinds disclosure for external payout results in version 5.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0674",
+        "prior-1660"
+      ],
+      "id": "http-doc-089",
+      "reason": "The earlier questions already cover why retained provider signatures in the financial export cannot be authenticated without trusted verification keys.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0185"
+      ],
+      "id": "http-doc-091",
+      "reason": "Both ask whether readers accept a completed stream directory after replacing its manifest UUID basename with a friendly name.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0259"
+      ],
+      "id": "http-doc-093",
+      "reason": "Both ask which runtime and files the standalone stream10 verifier needs on an offline host.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1675"
+      ],
+      "id": "http-doc-095",
+      "reason": "Both ask whether a stream10 reconciliation publication can reuse --workers 4 and which count is supported.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0187"
+      ],
+      "id": "http-doc-096",
+      "reason": "Both ask whether missing an unused quarantine source chunk blocks using the stream evidence to authorize settlement.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0260"
+      ],
+      "id": "http-doc-097",
+      "reason": "The earlier question asks whether a published diagnostic report with failed internal checks can authorize a typed operator action.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0193"
+      ],
+      "id": "http-doc-098",
+      "reason": "The earlier question already asks how a full reversal affects the retained original purchase, including its original successful receipt.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1638",
+        "prior-0040"
+      ],
+      "id": "http-doc-100",
+      "reason": "The earlier questions ask whether a disabled original customer's unretained refusal allows the merchant to retry the same reversal identity after reenabling the customer.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1204"
+      ],
+      "id": "http-doc-101",
+      "reason": "The earlier question already asks whether replay of a retained reversal changes its original diagnostic request ID.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1640",
+        "prior-1734"
+      ],
+      "id": "http-doc-102",
+      "reason": "The earlier questions cover competing reversal operation IDs, the original purchase lock and the result for the second request.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1622",
+        "prior-0179"
+      ],
+      "id": "http-doc-103",
+      "reason": "Both earlier questions cover why a later balanced entry pair cannot be appended to an existing journal.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0738"
+      ],
+      "id": "http-doc-104",
+      "reason": "The earlier question already asks which financial records may be pending only inside a transaction, including the operation row at issue.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0181"
+      ],
+      "id": "http-doc-106",
+      "reason": "The earlier question directly asks whether balanced purchase entries can commit despite an omitted customer projection update.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1625"
+      ],
+      "id": "http-doc-107",
+      "reason": "Both ask whether submit_purchase accepts an already open transaction or must own an idle autocommit connection.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-108",
+      "reason": "Purchase admission checks authorization on the stored customer before disclosing a collision. The listed reversal section describes a separate rule for retained reversal ownership.",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#service-boundary-and-authorization"
+      ]
+    },
+    {
+      "code": "wording",
+      "duplicate_refs": [],
+      "id": "http-doc-109",
+      "reason": "The question omits changed canonical content. Matching content can replay successfully in both key scenarios, so the key pattern alone does not select a conflict code.",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#outcomes-and-error-precedence"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1629"
+      ],
+      "id": "http-doc-110",
+      "reason": "Both ask which identities to preserve when retrying a purchase after losing the database connection during COMMIT.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0170"
+      ],
+      "id": "http-doc-112",
+      "reason": "Both ask whether the deployed runtime containers depend on mounting the checkout or tests.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0396"
+      ],
+      "id": "http-doc-113",
+      "reason": "The earlier question already asks what plain up does to a worker that was enabled on a previous run.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0261"
+      ],
+      "id": "http-doc-116",
+      "reason": "The earlier question already asks why the worker can no longer communicate after the provider container is recreated, requiring the same namespace explanation.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0584"
+      ],
+      "id": "http-doc-117",
+      "reason": "Both ask whether ordinary Linux stack down preserves the local Compose volumes.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0036"
+      ],
+      "id": "http-doc-118",
+      "reason": "Both ask why a worker invariant can be reported while the workspace's blocked_count remains zero.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0399"
+      ],
+      "id": "http-doc-119",
+      "reason": "The earlier question already asks how interleaving and the cursor let other workspaces into a scan despite a backlog in one workspace.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0192"
+      ],
+      "id": "http-doc-120",
+      "reason": "Both ask when an earlier container image can be used without rolling back the current database.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1314"
+      ],
+      "id": "http-oos-002",
+      "reason": "The earlier question asks the identity audit for each credential's last successful use.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0419"
+      ],
+      "id": "http-oos-003",
+      "reason": "The earlier question asks for an alert ahead of a service credential's expiry.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0422"
+      ],
+      "id": "http-oos-010",
+      "reason": "The earlier OpenAPI question seeks the same machine-readable HTTP contract.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1324"
+      ],
+      "id": "http-oos-018",
+      "reason": "The earlier question asks to check callback signature trust offline with a key file, without submitting the observation.",
+      "sections": []
+    },
+    {
+      "code": "answerability",
+      "duplicate_refs": [],
+      "id": "http-oos-024",
+      "reason": "Admission accepts a fixed PayoutCommand and creates a READY dispatch intent. HTTP rejects extra scheduling fields.",
+      "sections": [
+        "docs/PAYOUTS.md#amounts-and-admission-receipts",
+        "docs/HTTP-SERVICE.md#api"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0411"
+      ],
+      "id": "http-oos-026",
+      "reason": "The earlier question asks for the same supported workspace filter on a payout worker.",
+      "sections": []
+    },
+    {
+      "code": "answerability",
+      "duplicate_refs": [],
+      "id": "http-oos-029",
+      "reason": "Payout admission has a fixed set of canonical fields and rejects unknown HTTP business fields, excluding a merchant remittance reference.",
+      "sections": [
+        "docs/PAYOUTS.md#amounts-and-admission-receipts",
+        "docs/HTTP-SERVICE.md#api"
+      ]
+    },
+    {
+      "code": "answerability",
+      "duplicate_refs": [],
+      "id": "http-oos-038",
+      "reason": "The canonical purchase fields omit a client cutoff and HTTP rejects unknown business fields.",
+      "sections": [
+        "docs/internals/adr/0002-ledger-foundation.md#input-and-identity-details",
+        "docs/HTTP-SERVICE.md#api"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0661"
+      ],
+      "id": "http-oos-042",
+      "reason": "The earlier question asks for a field-level comparison of successive proposals for the same payout.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0417"
+      ],
+      "id": "http-oos-044",
+      "reason": "The earlier question asks to group related payout blocker cases under one parent case for follow-up.",
+      "sections": []
+    },
+    {
+      "code": "answerability",
+      "duplicate_refs": [],
+      "id": "http-oos-045",
+      "reason": "The report compares evidence within fixed workspace and provider namespace inputs, so one report cannot consolidate namespaces.",
+      "sections": [
+        "docs/RECONCILIATION.md#time-and-scope"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1032"
+      ],
+      "id": "http-oos-046",
+      "reason": "The earlier question asks to compare two reconciliation runs for discrepancies that appeared or disappeared.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1538"
+      ],
+      "id": "http-oos-050",
+      "reason": "The earlier question asks for published reconciliation runs indexed by the signing key ID of their statements.",
+      "sections": []
+    },
+    {
+      "code": "answerability",
+      "duplicate_refs": [],
+      "id": "http-oos-055",
+      "reason": "The publication protocol attempts to make the complete run current and reports when another run updates current first.",
+      "sections": [
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs"
+      ]
+    },
+    {
+      "code": "answerability",
+      "duplicate_refs": [],
+      "id": "http-oos-059",
+      "reason": "Financial exports retain business identifiers and exact source payloads as part of their verification contract.",
+      "sections": [
+        "docs/internals/streaming-evidence.md#complete-source-and-limits",
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1051"
+      ],
+      "id": "http-oos-067",
+      "reason": "The earlier question asks for scheduled maintenance freezes across workspaces, including the scheduling capability asked here.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0547"
+      ],
+      "id": "http-oos-075",
+      "reason": "The earlier question asks for the same pre-restore disk-space estimate using the dump and object inventory.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0462"
+      ],
+      "id": "http-oos-108",
+      "reason": "The earlier question asks for the same horizon Moon illusion.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1635"
+      ],
+      "id": "http-doc-121",
+      "reason": "The earlier issuance question already asks what must be true of the output path, including that it must not exist.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0669"
+      ],
+      "id": "http-doc-122",
+      "reason": "Both ask which credential information auth_cli issue prints to stdout after writing the token file.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0351"
+      ],
+      "id": "http-doc-123",
+      "reason": "Both ask if the identity management commands will accept a PostgreSQL superuser DSN in place of the dedicated login.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-124",
+      "reason": "The Linux reopening section independently states that native restore sets RESTORE, revokes old tokens and invalidates the old approval generation, the same invalidation completed by the two listed sections.",
+      "sections": [
+        "docs/AUTHENTICATION.md#restoring-an-old-backup",
+        "docs/internals/backup-restore.md#commands",
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1655"
+      ],
+      "id": "http-doc-125",
+      "reason": "Both ask whether a restored workspace showing NORMAL on its own reopens service writes or dispatch.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1662"
+      ],
+      "id": "http-doc-128",
+      "reason": "The prior question expressly requires why the HTTP key character boundary is narrower than the internal Python request-key type.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0306"
+      ],
+      "id": "http-doc-130",
+      "reason": "The earlier question already asks how the API distinguishes a missing current credential from insufficient scope using 401 and 403.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1132"
+      ],
+      "id": "http-doc-135",
+      "reason": "Both ask whether the console can serve a file through an arbitrary pathname instead of one of its registered static asset URLs.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-136",
+      "reason": "The maintenance runbook directly covers waiting for in-flight purchases. The operator section describes waiting for operator transactions, and the ADR passage discusses rebuild activation instead of a purchase-time freeze.",
+      "sections": [
+        "docs/MAINTENANCE.md#run-in-order"
+      ]
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-139",
+      "reason": "The large-source maintenance section also explicitly requires complete hold-source and structure checks before a repair can run.",
+      "sections": [
+        "docs/MAINTENANCE.md#run-in-order",
+        "docs/internals/reversal.md#locks-uniqueness-and-independent-verification",
+        "docs/internals/maintenance-capacity.md#large-source-maintenance"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0149"
+      ],
+      "id": "http-doc-140",
+      "reason": "The earlier question about a failed large-source maintenance post-check already requires the coupled rollback of balances, audit records and projection epoch.",
+      "sections": []
+    },
+    {
+      "code": "wording",
+      "duplicate_refs": [],
+      "id": "http-doc-141",
+      "reason": "The phrase 'rebuild a workspace from a version 4 export' implies the tool accepts an export as executable repair input. Apply rereads current database state and does not import export balances. The historical nonzero reservation restriction applies separately.",
+      "sections": [
+        "docs/MAINTENANCE.md#run-in-order",
+        "docs/internals/reversal.md#locks-uniqueness-and-independent-verification",
+        "docs/internals/export-and-verify.md#what-the-report-establishes",
+        "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds"
+      ]
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-144",
+      "reason": "The maintenance compatibility section documents source-checkout provenance for previews. The cited export command section describes the ordinary export invocation.",
+      "sections": [
+        "docs/MAINTENANCE.md#old-bundle-compatibility-and-scope"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1441"
+      ],
+      "id": "http-doc-146",
+      "reason": "The earlier question also asks whether a public HTTP instance can rely on hidden operator controls when operator credentials are present.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0098"
+      ],
+      "id": "http-doc-149",
+      "reason": "Both ask for the four settings that must be configured together to enable operator endpoints.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0091"
+      ],
+      "id": "http-doc-150",
+      "reason": "The earlier question directly asks what CLOSED_ABSENT does to the original payout hold.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1149"
+      ],
+      "id": "http-doc-167",
+      "reason": "The earlier question already asks which dimensions scope the current reconciliation pointer. Both require workspace, provider namespace and date.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1670"
+      ],
+      "id": "http-doc-168",
+      "reason": "The earlier question already asks when to clear a reader pin after an interrupted read and which identities release-pin requires.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1697"
+      ],
+      "id": "http-doc-170",
+      "reason": "The earlier question already asks which reference and pin checks are required before deleting an apparently unreferenced reconciliation object.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1659"
+      ],
+      "id": "http-doc-173",
+      "reason": "The earlier question asks whether internal verification can detect a wrong merchant when the retained request and posted state agree.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-174",
+      "reason": "The ADR 0002 foundation decisions also specify that the runtime admission login has no escalation privileges.",
+      "sections": [
+        "docs/internals/adr/0001-initialization.md#trust-boundary-and-changed-guarantees",
+        "docs/internals/adr/0002-ledger-foundation.md#foundation-decisions"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0206"
+      ],
+      "id": "http-doc-175",
+      "reason": "The earlier question asks whether composite foreign keys enforce row-level authorization for the service credential.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1627"
+      ],
+      "id": "http-doc-176",
+      "reason": "The earlier question asks whether replay of the original refusal reevaluates funds after a top-up.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-178",
+      "reason": "The contention evidence addresses competing claims and changed bytes. The connection-loss section explicitly covers changing only the transport key.",
+      "sections": [
+        "docs/internals/adr/0004-contention-and-recovery.md#connection-loss-and-response-loss"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0346"
+      ],
+      "id": "http-doc-179",
+      "reason": "The earlier question contrasts the same two proxy schedules and their committed outcomes.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-180",
+      "reason": "The Linux restore guide also explicitly describes the business archive as same-snapshot and dependent on the database.",
+      "sections": [
+        "docs/internals/backup-restore.md#artifact-and-authority",
+        "docs/internals/release-readiness.md#recovery-identity-and-operator-actions",
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1653"
+      ],
+      "id": "http-doc-181",
+      "reason": "The earlier question asks what to do when backup creation loses its final durability acknowledgment after rename.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1679"
+      ],
+      "id": "http-doc-188",
+      "reason": "The earlier question asks how to run the same isolated consumer on another machine, including its required input and dependencies.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1678"
+      ],
+      "id": "http-doc-190",
+      "reason": "The earlier question explicitly asks whether the exchange's journal timestamp can establish database COMMIT time.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0933"
+      ],
+      "id": "http-doc-196",
+      "reason": "The earlier question asks which digests must agree across the independently verified execution chain.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1736"
+      ],
+      "id": "http-doc-197",
+      "reason": "The earlier question asks whether the financial exchange package contains failed nonfinancial operator attempts.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-200",
+      "reason": "The maintenance overview and large-source guide also describe verifying current data and recomputing targets after the exclusive barrier.",
+      "sections": [
+        "docs/internals/export-and-verify.md#what-the-report-establishes",
+        "docs/MAINTENANCE.md#run-in-order",
+        "docs/internals/maintenance-capacity.md#large-source-maintenance",
+        "docs/MAINTENANCE.md#freeze-verify-rebuild-and-resume-including-active-payout-holds"
+      ]
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-205",
+      "reason": "The results table gives a generic 404 for ineligible originals. The Python and locking sections establish the specific committed-success requirement.",
+      "sections": [
+        "docs/internals/reversal.md#locks-uniqueness-and-independent-verification",
+        "docs/internals/reversal.md#python-entry-point"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0620"
+      ],
+      "id": "http-doc-208",
+      "reason": "The earlier question asks whether the stream10 manifest carries the count for an empty table.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-212",
+      "reason": "The large-input export section also explicitly states that report v4 records whether verification completed.",
+      "sections": [
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10",
+        "docs/internals/export-and-verify.md#what-the-report-establishes",
+        "docs/internals/export-and-verify.md#large-inputs-explicit-format-10"
+      ]
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-213",
+      "reason": "The streaming integration coverage also describes the fixture above the legacy cap. The legacy file contract specifies hex encoding and the 16 MiB package limit.",
+      "sections": [
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10",
+        "ops/linux/README.md#disposable-synthetic-acceptance",
+        "docs/internals/release-readiness.md#verification-and-maintenance-for-larger-workspaces",
+        "docs/internals/streaming-evidence.md#integration-coverage",
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1634"
+      ],
+      "id": "http-doc-216",
+      "reason": "The earlier purchase authorization question already requires the outcome when revocation wins the auth lock before business admission.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0218"
+      ],
+      "id": "http-doc-217",
+      "reason": "Both ask whether expiry at COMMIT cancels an already admitted financial operation.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1637"
+      ],
+      "id": "http-doc-218",
+      "reason": "Both ask why the read's permission lock is acquired before its repeatable-read snapshot.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "http-doc-001"
+      ],
+      "id": "http-doc-220",
+      "reason": "The retained original question already asks for the stored SHA-256 representation of issued opaque credentials.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0356"
+      ],
+      "id": "http-doc-221",
+      "reason": "The earlier environment configuration question explicitly asks the limit on the trusted proxy address list.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0581"
+      ],
+      "id": "http-doc-223",
+      "reason": "The earlier callback configuration question already requires all three settings, including the verification keys file.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0077"
+      ],
+      "id": "http-doc-228",
+      "reason": "Both ask whether valid structure and A with failed B permit either a maintenance rebuild or resume.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1643",
+        "prior-1722"
+      ],
+      "id": "http-doc-229",
+      "reason": "Both earlier questions ask whether apply-rebuild imports or trusts amounts from an old preview instead of recalculating against current data.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0171"
+      ],
+      "id": "http-doc-231",
+      "reason": "The earlier question asks whether the maintenance role can change holds or their authoritative event history, the same grant boundary at issue in an active-hold rebuild.",
+      "sections": []
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-232",
+      "reason": "The payout role preparation section also expressly requires the dedicated worker login before applying migration 006, one member of the requested role set.",
+      "sections": [
+        "docs/MAINTENANCE.md#preparation-and-identities",
+        "docs/PAYOUTS.md#roles-migrations-and-rebuilds"
+      ]
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-233",
+      "reason": "The release instructions also expressly direct ordinary stream export through LEDGEROPS_EXPORT_DSN. The other references support the maintenance and reader DSN distinction.",
+      "sections": [
+        "docs/MAINTENANCE.md#preparation-and-identities",
+        "docs/internals/export-and-verify.md#commands",
+        "docs/internals/streaming-evidence.md#commands",
+        "docs/internals/release-readiness.md#verification-and-maintenance-for-larger-workspaces"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1706"
+      ],
+      "id": "http-doc-234",
+      "reason": "Both ask whether an empty, newly versioned provider manifest can authorize reprocessing of an already successful payout.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0309"
+      ],
+      "id": "http-doc-236",
+      "reason": "The earlier proposal replay question explicitly asks whether using the same action ID changes the original absolute expiry and proposal bytes.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0708"
+      ],
+      "id": "http-doc-237",
+      "reason": "The earlier question already asks for the relation that distinguishes open or unresolved incidents from resolved typed-action incidents.",
+      "sections": []
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0359"
+      ],
+      "id": "http-doc-238",
+      "reason": "Both ask which identifier the checker enters to load the retained original proposal in their console session.",
+      "sections": []
+    },
+    {
+      "code": "facts",
+      "duplicate_refs": [],
+      "id": "http-doc-240",
+      "reason": "The export inventory also adds operator_actions for proposals. The open-ended question asks which relations appeared, but its key facts omit this relation.",
+      "sections": [
+        "docs/OPERATOR-ACTIONS.md#independent-checks-and-limits",
+        "docs/AUTHENTICATION.md#restoring-an-old-backup",
+        "docs/internals/export-and-verify.md#files-and-snapshot-boundaries"
+      ]
+    },
+    {
+      "code": "answerability",
+      "duplicate_refs": [],
+      "id": "http-doc-241",
+      "reason": "Additional merchant reservations can coexist with a new gross-62 hold. The stated balances apply to the worked example, which starts with no amount reserved.",
+      "sections": [
+        "docs/PAYOUTS.md#amounts-and-admission-receipts",
+        "docs/OPERATOR-ACTIONS.md#a-complete-example-using-62"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0123"
+      ],
+      "id": "http-doc-243",
+      "reason": "Both questions ask whether improved funding changes an already retained refusal for the same identity.",
+      "sections": [
+        "docs/PAYOUTS.md#amounts-and-admission-receipts"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1694"
+      ],
+      "id": "http-doc-244",
+      "reason": "Both ask whether a changed dispatch window replaces the original deadline on payout replay.",
+      "sections": [
+        "docs/PAYOUTS.md#amounts-and-admission-receipts"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0254"
+      ],
+      "id": "http-doc-245",
+      "reason": "Both ask when the max-calls option causes the worker to exit. The threshold counts completed attempts and the worker waits when idle.",
+      "sections": [
+        "docs/PAYOUTS.md#bounded-payout-worker-process"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1689"
+      ],
+      "id": "http-doc-246",
+      "reason": "Both require the same minimum lease rule of provider timeout plus five seconds.",
+      "sections": [
+        "docs/PAYOUTS.md#bounded-payout-worker-process"
+      ]
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-247",
+      "reason": "The payout worker configuration defines the format and permissions directly. The other labels describe key files for reconciliation and HTTP service roles.",
+      "sections": [
+        "docs/PAYOUTS.md#bounded-payout-worker-process"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0679"
+      ],
+      "id": "http-doc-248",
+      "reason": "Both ask what startup checks must pass before worker_ready is emitted.",
+      "sections": [
+        "docs/PAYOUTS.md#bounded-payout-worker-process"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0263"
+      ],
+      "id": "http-doc-249",
+      "reason": "Both ask what happens to payout dispatch when an invariant violation stops the whole worker.",
+      "sections": [
+        "docs/PAYOUTS.md#bounded-payout-worker-process",
+        "ops/linux/README.md#worker-fail-stop-and-incident-response"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1703"
+      ],
+      "id": "http-doc-251",
+      "reason": "Both ask how the simulator statement command handles a path that lacks the existing provider database.",
+      "sections": [
+        "docs/RECONCILIATION.md#obtain-provider-evidence-first"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0079",
+        "prior-0160"
+      ],
+      "id": "http-doc-253",
+      "reason": "Both ask how Warsaw day windows are converted around clock changes.",
+      "sections": [
+        "docs/RECONCILIATION.md#time-and-scope"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0315"
+      ],
+      "id": "http-doc-254",
+      "reason": "Both ask for the distinction between the provider assignment's effective_at and recorded_at timestamps.",
+      "sections": [
+        "docs/RECONCILIATION.md#time-and-scope"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0102"
+      ],
+      "id": "http-doc-255",
+      "reason": "The prior definition already requires equal economic fields and distinct windows for TIMING_ONLY.",
+      "sections": [
+        "docs/RECONCILIATION.md#time-and-scope"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0099"
+      ],
+      "id": "http-doc-256",
+      "reason": "Both ask for the MISSING_INTERNAL classification when a provider payment has only a local HELD reservation.",
+      "sections": [
+        "docs/RECONCILIATION.md#time-and-scope"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0159",
+        "prior-1700"
+      ],
+      "id": "http-doc-257",
+      "reason": "Both ask for the effect of unsettled provider keys on the reconciliation report's completion flags.",
+      "sections": [
+        "docs/RECONCILIATION.md#read-the-report"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0202"
+      ],
+      "id": "http-doc-258",
+      "reason": "Both require the same normal sides for clearing and merchant balances.",
+      "sections": [
+        "docs/internals/adr/0001-initialization.md#ledger-defaults"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1639"
+      ],
+      "id": "http-doc-259",
+      "reason": "Both ask which reversal identity can be reconsidered after a retained insufficient-funds refusal and improved funds.",
+      "sections": [
+        "docs/internals/adr/0001-initialization.md#verification-and-recovery",
+        "docs/internals/adr/0001-initialization.md#ledger-defaults",
+        "docs/internals/reversal.md#results-and-retries"
+      ]
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-260",
+      "reason": "The foundation ADR states what the migration runner records. The startup section describes the HTTP service checking versions and digests on connection.",
+      "sections": [
+        "docs/internals/adr/0002-ledger-foundation.md#foundation-decisions"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0179",
+        "prior-1622"
+      ],
+      "id": "http-doc-261",
+      "reason": "Both ask why immutable journal declarations and deferred checks prevent appending another balanced pair under the same historical header.",
+      "sections": [
+        "docs/internals/adr/0002-ledger-foundation.md#foundation-decisions",
+        "docs/internals/adr/0001-initialization.md#trust-boundary-and-changed-guarantees"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0600",
+        "prior-1298"
+      ],
+      "id": "http-doc-264",
+      "reason": "The prior questions cover both PUBLIC privilege revocations named here.",
+      "sections": [
+        "docs/internals/adr/0002-ledger-foundation.md#foundation-decisions"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1625"
+      ],
+      "id": "http-doc-265",
+      "reason": "Both ask whether submit_purchase may run inside an existing transaction and when the result is durable.",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#service-boundary-and-authorization",
+        "docs/internals/adr/0004-contention-and-recovery.md#connection-loss-and-response-loss",
+        "docs/internals/reversal.md#python-entry-point"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0590"
+      ],
+      "id": "http-doc-266",
+      "reason": "Both require the same merchant account based payee identity and lookup of the immutable owner and account class.",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#service-boundary-and-authorization"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0342"
+      ],
+      "id": "http-doc-269",
+      "reason": "Both ask how a losing purchase INSERT sees the committed winner through a fresh READ COMMITTED SELECT.",
+      "sections": [
+        "docs/internals/adr/0003-purchase-admission.md#identity-and-transaction-order",
+        "docs/internals/adr/0004-contention-and-recovery.md#deterministic-contention-evidence"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0333"
+      ],
+      "id": "http-doc-271",
+      "reason": "The prior backoff question already covers the second delay range and absence of locks during the wait.",
+      "sections": [
+        "docs/internals/adr/0004-contention-and-recovery.md#bounded-retry"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0345"
+      ],
+      "id": "http-doc-272",
+      "reason": "Both ask for the exception reason and where the last database error appears once automatic purchase retries are exhausted.",
+      "sections": [
+        "docs/internals/adr/0004-contention-and-recovery.md#bounded-retry"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1630"
+      ],
+      "id": "http-doc-273",
+      "reason": "Both ask for the committed outcomes of two distinct purchases of 80 against the same balance of 100.",
+      "sections": [
+        "docs/internals/adr/0004-contention-and-recovery.md#deterministic-contention-evidence"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "http-doc-111"
+      ],
+      "id": "http-doc-275",
+      "reason": "The retained candidate requires the same committed attempt and knowledge state before a network call.",
+      "sections": [
+        "docs/internals/adr/0004-contention-and-recovery.md#payout-dispatch-without-a-distributed-transaction",
+        "docs/PAYOUTS.md#dispatch-and-recovery"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "http-doc-035"
+      ],
+      "id": "http-doc-276",
+      "reason": "The retained candidate asks whether a late response can overwrite the newer claim's schedule.",
+      "sections": [
+        "docs/internals/adr/0004-contention-and-recovery.md#payout-dispatch-without-a-distributed-transaction",
+        "docs/PAYOUTS.md#dispatch-and-recovery"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0321"
+      ],
+      "id": "http-doc-278",
+      "reason": "The prior question already asks which database the administrator DSN targets for provider history recovery.",
+      "sections": [
+        "docs/internals/backup-restore.md#commands",
+        "ops/linux/README.md#backup-restore-and-reopening"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0603"
+      ],
+      "id": "http-doc-279",
+      "reason": "The previous name-rule question covers the same lowercase suffix and length constraints applied to this example.",
+      "sections": [
+        "docs/internals/backup-restore.md#commands",
+        "docs/internals/backup-restore.md#local-backup-and-restore-contract"
+      ]
+    },
+    {
+      "code": "sections",
+      "duplicate_refs": [],
+      "id": "http-doc-281",
+      "reason": "The history command directly requires old keys still needed by retained events. The Linux citation lists reopening criteria after the capture.",
+      "sections": [
+        "docs/internals/backup-restore.md#commands"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1731"
+      ],
+      "id": "http-doc-282",
+      "reason": "Both ask which originally authenticated watermark all subsequent history pages must repeat.",
+      "sections": [
+        "docs/internals/backup-restore.md#commands"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0537"
+      ],
+      "id": "http-doc-283",
+      "reason": "Both ask which signed bytes and capture metadata are kept in the private history artifact.",
+      "sections": [
+        "docs/internals/backup-restore.md#commands"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1655"
+      ],
+      "id": "http-doc-285",
+      "reason": "Both ask whether runtime access and dispatch may resume when a killed closed resolver leaves the mode NORMAL.",
+      "sections": [
+        "docs/internals/backup-restore.md#commands",
+        "docs/PAYOUTS.md#bounded-payout-worker-process",
+        "docs/HTTP-SERVICE.md#configuration-and-startup"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1641",
+        "prior-1735"
+      ],
+      "id": "http-doc-286",
+      "reason": "The prior questions cover the same reversal-reason validation, including the UTF-8 byte limit and prohibited NUL.",
+      "sections": [
+        "docs/internals/reversal.md#python-entry-point"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0962"
+      ],
+      "id": "http-doc-287",
+      "reason": "Both ask for the route constraint on the request key supplied with a typed Python reversal.",
+      "sections": [
+        "docs/internals/reversal.md#python-entry-point"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0327",
+        "prior-0542",
+        "prior-0996"
+      ],
+      "id": "http-doc-288",
+      "reason": "The earlier reversal questions cover the fixed amount, currency and original posting accounts for a full reversal.",
+      "sections": [
+        "docs/internals/reversal.md#python-entry-point",
+        "docs/internals/reversal.md#full-reversal-by-the-original-merchant"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "http-doc-084"
+      ],
+      "id": "http-doc-289",
+      "reason": "The retained documentation question requires the same full build revision and dirty flag for installed artifacts.",
+      "sections": [
+        "docs/internals/export-and-verify.md#commands",
+        "docs/internals/streaming-evidence.md#commands",
+        "docs/RECONCILIATION.md#capture-a-local-export-then-compare-offline"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1657"
+      ],
+      "id": "http-doc-290",
+      "reason": "The prior verification question already asks whether a completed financial export can be verified without a database DSN.",
+      "sections": [
+        "docs/internals/export-and-verify.md#commands",
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0178"
+      ],
+      "id": "http-doc-292",
+      "reason": "Both ask why pin insertion and deletion is necessary for evidence reading despite the absence of financial write permission.",
+      "sections": [
+        "docs/internals/export-and-verify.md#database-privileges",
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1657"
+      ],
+      "id": "http-doc-293",
+      "reason": "The earlier question already requires distinguishing the standalone financial verifier's failure exit codes.",
+      "sections": [
+        "docs/internals/export-and-verify.md#commands"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0080",
+        "prior-1647"
+      ],
+      "id": "http-doc-294",
+      "reason": "Both ask whether a barrier-captured maintenance preview can be used for reconciliation or requires an ordinary export instead.",
+      "sections": [
+        "docs/internals/maintenance-capacity.md#large-source-maintenance",
+        "docs/internals/export-and-verify.md#large-inputs-explicit-format-10",
+        "docs/internals/release-readiness.md#verification-and-maintenance-for-larger-workspaces"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0365"
+      ],
+      "id": "http-doc-295",
+      "reason": "Both ask how an unpublished large SQL observation is identified in the saved resume review.",
+      "sections": [
+        "docs/internals/maintenance-capacity.md#large-source-maintenance"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0367"
+      ],
+      "id": "http-doc-296",
+      "reason": "Both ask how the SQLite assessment accounts for multibyte content against its byte budget.",
+      "sections": [
+        "docs/internals/maintenance-capacity.md#large-source-maintenance"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0149"
+      ],
+      "id": "http-doc-297",
+      "reason": "Both ask which balances, repair records and epoch changes roll back when the independent post-check fails.",
+      "sections": [
+        "docs/internals/maintenance-capacity.md#large-source-maintenance",
+        "docs/MAINTENANCE.md#run-in-order"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1675"
+      ],
+      "id": "http-doc-298",
+      "reason": "Both ask whether the legacy worker settings carry over to stream10 and require the one-worker limit.",
+      "sections": [
+        "docs/internals/streaming-evidence.md#commands"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1699"
+      ],
+      "id": "http-doc-299",
+      "reason": "Both ask whether successful publication exit status guarantees a report free of reconciliation differences.",
+      "sections": [
+        "docs/internals/streaming-evidence.md#commands"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0187",
+        "prior-1676"
+      ],
+      "id": "http-doc-300",
+      "reason": "The cited prior questions ask whether missing original quarantine bytes block action authority despite a usable compact view.",
+      "sections": [
+        "docs/internals/streaming-evidence.md#full-source-authority-reaches-approvals",
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0316"
+      ],
+      "id": "http-doc-301",
+      "reason": "Both ask how to resolve a reconciliation publication whose commit outcome is unknown after losing the database connection.",
+      "sections": [
+        "docs/internals/streaming-evidence.md#full-source-authority-reaches-approvals",
+        "docs/RECONCILIATION.md#publish-read-and-recover-interrupted-runs"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1651"
+      ],
+      "id": "http-doc-302",
+      "reason": "The prior question already asks why the physical index migration is present in backup history while it leaves financial export capabilities unchanged.",
+      "sections": [
+        "docs/internals/reservation-index.md#export-and-backup-compatibility",
+        "docs/internals/export-and-verify.md#large-inputs-explicit-format-10",
+        "docs/internals/streaming-export-protocol.md#complete-bounded-financial-stream-format-10",
+        "docs/internals/backup-restore.md#local-backup-and-restore-contract"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0214",
+        "prior-1656"
+      ],
+      "id": "http-doc-304",
+      "reason": "The earlier questions address the original open freeze, its preserved identity and the transition back to FROZEN before resume.",
+      "sections": [
+        "ops/linux/README.md#backup-restore-and-reopening",
+        "docs/internals/backup-restore.md#commands",
+        "docs/AUTHENTICATION.md#restoring-an-old-backup"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1504"
+      ],
+      "id": "http-doc-305",
+      "reason": "Both ask which API role groups receive database connection access when reopening a reviewed restore.",
+      "sections": [
+        "ops/linux/README.md#backup-restore-and-reopening",
+        "docs/AUTHENTICATION.md#database-identities",
+        "docs/HTTP-SERVICE.md#configuration-and-startup"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0182"
+      ],
+      "id": "http-doc-306",
+      "reason": "Both ask for the private failed Linux acceptance subprocess diagnostic size limits.",
+      "sections": [
+        "ops/linux/README.md#disposable-synthetic-acceptance"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-1723"
+      ],
+      "id": "http-doc-307",
+      "reason": "Both ask for the exact scratch resource error in the networkless 4 MiB test.",
+      "sections": [
+        "ops/linux/README.md#disposable-synthetic-acceptance"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0262"
+      ],
+      "id": "http-doc-308",
+      "reason": "Both ask when leftover stream scratch directories can be removed after a SIGKILL.",
+      "sections": [
+        "ops/linux/README.md#resource-limits-and-cleanup"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0111",
+        "prior-0036"
+      ],
+      "id": "http-doc-309",
+      "reason": "The earlier questions cover the meaning of blocked_count and why it can be zero despite a worker invariant error.",
+      "sections": [
+        "ops/linux/README.md#worker-fail-stop-and-incident-response",
+        "docs/HTTP-SERVICE.md#api"
+      ]
+    },
+    {
+      "code": "duplicate",
+      "duplicate_refs": [
+        "prior-0400"
+      ],
+      "id": "http-doc-310",
+      "reason": "Both ask whether a capacity skip creates a transport attempt or changes payout knowledge.",
+      "sections": [
+        "ops/linux/README.md#worker-fail-stop-and-incident-response"
+      ]
+    }
+  ],
+  "review_input_count": 430,
+  "review_output_sha256": [
+    "415ded57c432672bb0db629e450f84a02516943b4299504e59a6661d8cc6811e",
+    "3295fde5da73b53b10f4b383137c32fc7346942c1d221abb40f1a21a15437c56",
+    "7e931f5f0f344dc216d8c6e32529c951a21208775486b01868afb1c624cbe430",
+    "532cfb8cca7c466d222ec34ce04e1796b85f5ab0936691abc789124294c7d928",
+    "88bd607f7060bab8b8fbdf83249c7e8ebba3267de9209d5420176accfa915824"
+  ],
+  "source_file_sha256": {
+    "docs/AUTHENTICATION.md": "bad63ae4e9a617774d7f788b8924cfbd9cba4e3134699d95e3c4e6b9c6a2b03e",
+    "docs/HTTP-SERVICE.md": "2f1271c0b4755851420265fc8a5ccf0dec11b0f090dfb7c3a273047a89f6ebc3",
+    "docs/MAINTENANCE.md": "f5e74a9fd6d0cfbbaa9f02592a392344ce9153d19dc277899a16c01e7787ecdc",
+    "docs/OPERATOR-ACTIONS.md": "7d776f3f3eb2a79724b7c9cc2c3e4e497e41c7ecad01c18b97c879fbc41afc44",
+    "docs/PAYOUTS.md": "0cd994acd009f8b22184c2086496d64575cd8b7d966a9ea2710f26ec0e793cd6",
+    "docs/RECONCILIATION.md": "2a1319d69433ec1d74303a7351528b72ea0ee3b4331649ce57674d36f347fb7f",
+    "docs/internals/adr/0001-initialization.md": "c8e95ea822b08da705f5122f8f89de41ec8bb6cc3ae2a3b7a8ee321d5b74270b",
+    "docs/internals/adr/0002-ledger-foundation.md": "d4fb664b601f7f8f93a6ac013c620d4ff6496aa7602f52c78eb07ba7d93154b1",
+    "docs/internals/adr/0003-purchase-admission.md": "1a85c7c03c993ac198da2ed968b2aa86fbb60d551b413a2b8795e2d876d715cd",
+    "docs/internals/adr/0004-contention-and-recovery.md": "afe50cc7054201aa269534d7d3dbba373dcfeed4143b011ac558217804dffcfa",
+    "docs/internals/backup-restore.md": "3251fa78e175d8660c9507ec313de310eb1c6eac789adaa8ba03873168d88f53",
+    "docs/internals/evidence-exchange.md": "cf3a93fc76d005b8371e450bfcf18e059a10d7d7d6aebc37bec458a0b1683c14",
+    "docs/internals/export-and-verify.md": "70cb75cfa022665e63d512283105eaa80d7112f1b967ac0a9116f575ba67a025",
+    "docs/internals/maintenance-capacity.md": "b6c13e4a90f9b5b910e943759f0986812a028787081453f49dd27a780b162629",
+    "docs/internals/release-readiness.md": "572b7cec576fd80cb02ae7ff2017d09592b50eeb82ef17720ae82ed00b6a8be8",
+    "docs/internals/reservation-index.md": "a6a7f6f4927c249639d41ece03ab7729b9145408fb19835bde83ced2e0418af0",
+    "docs/internals/reversal.md": "fe988eb6c5350276b7ccd15e43295f2efa76382ce9cd8328663980cc61de3847",
+    "docs/internals/streaming-evidence.md": "def39a2a665b39da75d17c78869caf8448b302878db8cc0c7d05457dc215aa53",
+    "docs/internals/streaming-export-protocol.md": "3a16f6cf8a4d0005a35ff9ad61a59ddf787ce0850efade0dd49539cc9ed132bf",
+    "ops/linux/README.md": "8fa1e92cbd18561d71c944cfe853b5a1cdd311cefc87b58a4b3da1d6f30e7365"
+  },
+  "static_exclusions": []
+}

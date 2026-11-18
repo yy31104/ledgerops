@@ -1,4 +1,4 @@
-"""SDK isolation process: never used in CI or by the HTTP service."""
+"""SDK isolation process for opt-in local CLI and HTTP passage verification."""
 
 import json
 import os

@@ -33,13 +33,36 @@ retrieval with `--backend postgres --scope-verifier subscription`. The verifier
 and answer receive the same evidence, bounded to 56,000 bytes. The CLI uses the
 released 0.5512 similarity cutoff for this option unless you pass `--gate`.
 
-The default subscription model is `gpt-6.1-sol`; set
+The default CLI subscription model is `gpt-6.1-sol`; set
 `LEDGEROPS_ASSISTANT_SUBSCRIPTION_MODEL` to choose another supported model.
 
 The SDK owns sign-in. The adapter never reads or copies its credential file and
 rejects API-key accounts. Calls consume ChatGPT plan quota; a per-request dollar
-bill cannot be inferred from the subscription price. This provider is disabled in
-CI and the HTTP service.
+bill cannot be inferred from the subscription price. Subscription answer generation
+is available from the local CLI.
+
+### Verify passages in the local HTTP service
+
+After [initializing the dedicated assistant database](PRODUCT.md#connect-an-existing-api)
+and signing in as above, start the service on the host from `assistant/`:
+
+```sh
+LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION=1 \
+LEDGEROPS_ASSISTANT_SCOPE_VERIFIER=subscription \
+LEDGEROPS_ASSISTANT_DEADLINE_SECONDS=120 \
+LEDGEROPS_ASSISTANT_RETRIEVAL=hybrid \
+uv run --locked --extra subscription python -m ledgerops_assistant.runtime serve \
+  --host 127.0.0.1
+```
+
+The HTTP verifier uses `gpt-6.1-sol` to check the documentation passages before
+generation. Answer generation uses the selected server-enabled provider. Live
+API investigations still use the caller's token. The verifier receives only the
+question and supplied documents, and a verifier error stops the answer. This
+profile requires a loopback bind and a local ChatGPT sign-in. The Compose demo
+uses the offline rule. CI exercises the verifier with fixtures.
+
+### SDK isolation
 
 Each call uses an empty temporary directory, an ephemeral thread, read-only
 filesystem mode and a process-group deadline. Shell execution, web search and

@@ -2,6 +2,8 @@ import json
 import signal
 import subprocess
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 
 import pytest
@@ -15,6 +17,16 @@ def test_adapter_passes_schema_but_not_api_key_to_worker(monkeypatch):
     monkeypatch.setenv("LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION", "1")
     monkeypatch.setenv("OPENAI_API_KEY", "not-a-real-key")
     monkeypatch.setenv("OPENAI_BASE_URL", "https://example.invalid")
+    private_keys = {
+        "LEDGEROPS_ASSISTANT_DATABASE_URL",
+        "LEDGEROPS_ASSISTANT_DEMO_TOKEN",
+        "ASSISTANT_RUNTIME_PASSWORD",
+        "DATABASE_URL",
+        "PGPASSWORD",
+        "POSTGRES_PASSWORD",
+    }
+    for key in private_keys:
+        monkeypatch.setenv(key, "assistant-local-secret")
     seen = {}
 
     class Process:
@@ -34,6 +46,8 @@ def test_adapter_passes_schema_but_not_api_key_to_worker(monkeypatch):
     )
     assert "OPENAI_API_KEY" not in seen["env"]
     assert "OPENAI_BASE_URL" not in seen["env"] and seen["start_new_session"] is True
+    assert not private_keys.intersection(seen["env"])
+    assert seen["env"]["LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION"] == "1"
     assert seen["request"]["schema"] == ANSWER_SCHEMA
     assert seen["request"]["model"] == "gpt-6.1-sol"
     assert seen["request"]["isolated"] is True
@@ -144,3 +158,35 @@ def test_subscription_deadline_kills_the_worker_process_group(monkeypatch):
     with pytest.raises(TimeoutError, match="deadline"):
         SubscriptionProvider(timeout=0.1).generate("i", "q", ANSWER_SCHEMA)
     assert killed == [(424242, signal.SIGKILL)] and len(drained) == 2
+
+
+def test_subscription_cancel_kills_the_worker_process_group(monkeypatch):
+    monkeypatch.delenv("CI", raising=False)
+    monkeypatch.delenv("LEDGEROPS_ASSISTANT_SERVER", raising=False)
+    monkeypatch.setenv("LEDGEROPS_ASSISTANT_ALLOW_SUBSCRIPTION", "1")
+    entered, finished, cancel = (threading.Event() for _ in range(3))
+    killed = []
+
+    class Worker:
+        pid = 424242
+
+        def communicate(self, *args, **kwargs):
+            entered.set()
+            assert finished.wait(5)
+            return "", ""
+
+    def kill(pid, sig):
+        killed.append((pid, sig))
+        finished.set()
+
+    monkeypatch.setattr(subprocess, "Popen", lambda *args, **kwargs: Worker())
+    monkeypatch.setattr("os.killpg", kill)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        pending = pool.submit(
+            SubscriptionProvider().generate, "i", "q", ANSWER_SCHEMA, cancel=cancel
+        )
+        assert entered.wait(5)
+        cancel.set()
+        with pytest.raises(TimeoutError, match="cancelled"):
+            pending.result(timeout=5)
+    assert killed == [(424242, signal.SIGKILL)]

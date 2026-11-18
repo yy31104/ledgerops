@@ -50,6 +50,8 @@ disconnect. Credentials do not enter model prompts or graph state.
 | `LEDGEROPS_ASSISTANT_WEB_DIST` | Built panel assets for an installed package |
 | `LEDGEROPS_ASSISTANT_PROVIDERS` | Enabled providers; default `fake` |
 | `LEDGEROPS_ASSISTANT_EMBEDDER` | `bge`, or `hashing` for plumbing checks |
+| `LEDGEROPS_ASSISTANT_SCOPE_VERIFIER` | `lexical` (default) or host-local `subscription` passage verification |
+| `LEDGEROPS_ASSISTANT_DEADLINE_SECONDS` | Request deadline in seconds, from greater than zero through 120; default 60 |
 
 Leave `LEDGEROPS_ASSISTANT_DEMO_TOKEN` unset with a real upstream. Empty recent
 lists and 404 responses do not prove that no payment occurred.
@@ -57,10 +59,11 @@ lists and 404 responses do not prove that no payment occurred.
 ## Models, limits and cost
 
 The panel lists server-enabled `fake`, `openai_api` and `ollama` providers.
-`chatgpt_subscription` is a local CLI adapter and is disabled in HTTP and CI.
-See [PROVIDERS.md](PROVIDERS.md) for setup and restrictions. The bundled image uses
-fake generation. API mode needs its optional dependency, model/key configuration
-and positive input/output token prices; Ollama needs a configured model/server.
+Subscription answer generation is available from the CLI. The host-local HTTP
+service can use the [subscription passage verifier](PROVIDERS.md#verify-passages-in-the-local-http-service)
+before calling the selected answer provider. The bundled image uses fake
+generation. API mode needs its optional dependency, model/key configuration and
+positive input/output token prices; Ollama needs a configured model/server.
 
 Each investigation allows at most six model steps, 24,000 input bytes, 512 output
 tokens per API call and a 60-second graph deadline. The process admits four active
@@ -68,6 +71,11 @@ investigations/draft preparations. Reads cap response size, attempts and backoff
 A 401 stops, 403 denies access and 404 leaves the outcome unknown. Timeouts and 429
 cannot retry forever. Cancellation prevents further work; in-flight calls retain
 their own timeout.
+
+With subscription verification enabled, documentation questions use a larger
+56,000-byte passage pack within a 64,000-byte answer input ceiling. The same
+fitted passages reach the verifier and answer provider. The separate SSE
+`verification` object records status, duration and reported subscription usage.
 
 `cost_usd` is a conservative budget reservation: input bytes and framing are priced
 as tokens, plus the output cap. Failed or ambiguous calls retain that reservation;
@@ -121,7 +129,8 @@ actor must review the retained proposal before execution. See
 The stdio server exposes one read-only `investigate(question)` tool. It calls a
 fixed assistant origin and returns checked structured output. Set
 `LEDGEROPS_ASSISTANT_MCP_PROVIDER` to `fake`, `openai_api` or `ollama`; the HTTP
-service must also enable that provider. Subscription inference stays CLI-only.
+service must also enable that answer provider. The HTTP service controls passage
+checking for documentation questions.
 The tool has no approval, execution, credential, method or URL argument.
 
 The credential file uses LedgerOps's `{"token": ...}` shape. It must be a regular,

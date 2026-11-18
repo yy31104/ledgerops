@@ -15,6 +15,12 @@ from ledgerops_assistant import routing
 from ledgerops_assistant.context import retrieve_passages
 from ledgerops_assistant.corpus import Chunk
 from ledgerops_assistant.providers.base import ANSWER_SCHEMA, parse_draft, user_message
+from ledgerops_assistant.support_semantic import (
+    CONTEXT_SECTIONS,
+    SUPPORT_PROMPT,
+    SUPPORT_THRESHOLD,
+    support_message,
+)
 from ledgerops_assistant.tools import TOOLS, APIUnavailable, AuthenticationRequired, ReadOnlyAPI
 from ledgerops_assistant.usage import accumulate, summary
 
@@ -42,6 +48,7 @@ consequences and exceptions from the sources, distinguish paths with different
 conditions, and describe workflows in order. Retain roles, identifiers, numeric
 outcomes and time-window qualifications; never invent missing details. Use at most
 180 words and the supplied answer JSON schema."""
+MAX_INPUT_BYTES = 64_000
 
 
 @dataclass(frozen=True)
@@ -66,7 +73,7 @@ class Limits:
             or not 1 <= self.max_steps <= 12
             or not 0 <= self.max_cost_usd <= 10
             or not 1 <= self.max_output_tokens <= 2048
-            or not 1024 <= self.max_input_bytes <= 64000
+            or not 1024 <= self.max_input_bytes <= MAX_INPUT_BYTES
             or min(self.input_usd_per_million, self.output_usd_per_million) < 0
             or not 0 < self.deadline_seconds <= 120
         ):
@@ -96,6 +103,8 @@ class AgentState(TypedDict, total=False):
     usage_complete: bool
     usage: dict
     duration_ms: float
+    verify_documents: bool
+    verification: dict
     observations: list[dict]
     documents: list[dict]
     tool_call: dict
@@ -114,8 +123,19 @@ def refusal(reason):
 
 
 class Agent:
-    def __init__(self, retriever, provider, *, limits=None, planner=None, scope_gate=None):
+    def __init__(
+        self,
+        retriever,
+        provider,
+        *,
+        limits=None,
+        planner=None,
+        scope_gate=None,
+        passage_retriever=None,
+        passage_verifier=None,
+    ):
         self.retriever, self.provider = retriever, provider
+        self.passage_retriever, self.passage_verifier = passage_retriever, passage_verifier
         self.scope_gate = scope_gate or getattr(retriever, "scope_gate", None)
         self.revision = getattr(retriever, "revision", "unknown")
         self.limits, self.planner = limits or Limits(), planner
@@ -127,7 +147,11 @@ class Agent:
         graph.add_node("decide", self._decide)
         graph.add_node("read", self._read)
         graph.add_node("answer", self._answer)
-        graph.add_edge(START, "decide")
+        graph.add_conditional_edges(
+            START,
+            lambda s: "answer" if s.get("verify_documents") else "decide",
+            ["answer", "decide"],
+        )
         graph.add_conditional_edges(
             "decide", lambda s: s["next"], {"read": "read", "answer": "answer", "end": END}
         )
@@ -145,24 +169,35 @@ class Agent:
         return None
 
     @staticmethod
-    def _input_bytes(message):
-        return len(message.encode()) + len(ANSWER_PROMPT.encode()) + 4096
+    def _input_bytes(message, prompt=ANSWER_PROMPT):
+        return len(message.encode()) + len(prompt.encode()) + 4096
 
-    def _fit_documents(self, documents, build_message):
+    def _fit_documents(
+        self, documents, build_message, *, maximum=None, additional_input_bytes=None
+    ):
+        maximum = self.limits.max_input_bytes if maximum is None else maximum
         documents = list(documents)
         message = build_message(documents)
         # Keep API observations intact. Drop whole trailing document additions,
         # preserving citation identities and the existing total request bound.
-        while documents and self._input_bytes(message) > self.limits.max_input_bytes:
+        while (
+            documents
+            and max(
+                self._input_bytes(message),
+                additional_input_bytes(documents) if additional_input_bytes else 0,
+            )
+            > maximum
+        ):
             documents.pop()
             message = build_message(documents)
         return documents, message
 
-    def _reserve(self, state, message):
+    def _reserve(self, state, message, *, maximum=None):
         # Reserve one input token per UTF-8 byte, plus a framing allowance. This
         # intentionally overestimates token usage; API prices remain per token.
         input_bytes_with_allowance = self._input_bytes(message)
-        if input_bytes_with_allowance > self.limits.max_input_bytes:
+        maximum = self.limits.max_input_bytes if maximum is None else maximum
+        if input_bytes_with_allowance > maximum:
             raise ValueError("context_limit")
         input_token_upper_bound = input_bytes_with_allowance
         cost = (
@@ -205,21 +240,19 @@ class Agent:
         if state.get("route") != routing.DOCS:
             return False
         supports = getattr(self.scope_gate, "supports", None)
-        return supports is not None and not supports(
-            state["question"], [Chunk(**d) for d in documents]
-        )
+        return supports is not None and not supports(state["question"], documents)
+
+    def _preflight_reason(self, state, context):
+        if reason := self._guard(state, context):
+            return reason
+        try:
+            self._authorize_evidence(state, context)
+        except (AuthenticationRequired, APIUnavailable) as error:
+            return error.reason if isinstance(error, APIUnavailable) else "authentication_required"
+        return self._guard(state, context)
 
     def _decide(self, state, runtime: Runtime[OperatorContext]):
-        if reason := self._guard(state, runtime.context):
-            return {"next": "end", "result": refusal(reason)}
-        try:
-            self._authorize_evidence(state, runtime.context)
-        except (AuthenticationRequired, APIUnavailable) as error:
-            reason = (
-                error.reason if isinstance(error, APIUnavailable) else "authentication_required"
-            )
-            return {"next": "end", "result": refusal(reason)}
-        if reason := self._guard(state, runtime.context):
+        if reason := self._preflight_reason(state, runtime.context):
             return {"next": "end", "result": refusal(reason)}
         documents, message = self._fit_documents(
             state["documents"],
@@ -232,7 +265,7 @@ class Agent:
                 }
             ),
         )
-        if self._unsupported_documents(state, documents):
+        if self._unsupported_documents(state, [Chunk(**d) for d in documents]):
             return {"next": "end", "result": refusal("not_in_docs")}
         reserved, usage, called = 0, {}, False
         try:
@@ -297,17 +330,29 @@ class Agent:
         ):
             raise AuthenticationRequired()
 
-    def _answer(self, state, runtime: Runtime[OperatorContext]):
-        if reason := self._guard(state, runtime.context):
-            return {"result": refusal(reason)}
+    def _verify_passages(self, question, passages, context):
+        started = time.monotonic()
+        report = {"status": "error", "passage_ids": [c.chunk_id for c in passages], "usage": {}}
         try:
-            self._authorize_evidence(state, runtime.context)
-        except (AuthenticationRequired, APIUnavailable) as error:
-            reason = (
-                error.reason if isinstance(error, APIUnavailable) else "authentication_required"
+            proof = self.passage_verifier.measure(
+                question, passages, timeout=context.deadline - started, cancel=context.cancel
             )
-            return {"result": refusal(reason)}
-        if reason := self._guard(state, runtime.context):
+        except Exception:
+            pass
+        else:
+            report["usage"] = proof.usage
+            if not proof.valid:
+                report["status"] = "invalid"
+            else:
+                report["status"] = (
+                    "supported" if proof.score >= SUPPORT_THRESHOLD else "unsupported"
+                )
+        report["duration_ms"] = (time.monotonic() - started) * 1000
+        return report
+
+    def _answer(self, state, runtime: Runtime[OperatorContext]):
+        context = runtime.context
+        if reason := self._preflight_reason(state, context):
             return {"result": refusal(reason)}
         api_chunks = []
         for item in state["observations"]:
@@ -321,20 +366,44 @@ class Agent:
                     "Live API observation\n\n" + json.dumps(item),
                 )
             )
+        verify = state.get("verify_documents", False)
+        maximum = MAX_INPUT_BYTES if verify else self.limits.max_input_bytes
+        question = state["question"]
+
+        def verifier_input_bytes(documents):
+            return self._input_bytes(support_message(question, documents), SUPPORT_PROMPT)
+
         documents, message = self._fit_documents(
-            state["documents"],
-            lambda documents: user_message(
-                state["question"], [Chunk(**d) for d in documents] + api_chunks
-            ),
+            [Chunk(**d) for d in state["documents"]],
+            lambda documents: user_message(question, documents + api_chunks),
+            maximum=maximum,
+            additional_input_bytes=verifier_input_bytes if verify else None,
         )
-        if self._unsupported_documents(state, documents):
+        verification = {}
+        if verify:
+            if not documents:
+                return {"result": refusal("not_in_docs")}
+            if reason := self._guard(state, context):
+                return {"result": refusal(reason)}
+            report = self._verify_passages(question, documents, context)
+            verification = {"verification": report}
+            if reason := self._preflight_reason(state, context):
+                if reason in ("cancelled", "deadline_exceeded"):
+                    return {**verification, "result": refusal(reason)}
+                return {"result": refusal(reason)}
+            if report["status"] != "supported":
+                reason = (
+                    "passage_verifier_unavailable" if report["status"] == "error" else "not_in_docs"
+                )
+                return {**verification, "result": refusal(reason)}
+        elif self._unsupported_documents(state, documents):
             return {"result": refusal("not_in_docs")}
-        chunks = [Chunk(**d) for d in documents] + api_chunks
+        chunks = documents + api_chunks
         if not chunks:
             return {"result": refusal("no_evidence")}
         reserved, usage, called = 0, {}, False
         try:
-            reserved = self._reserve(state, message)
+            reserved = self._reserve(state, message, maximum=maximum)
             if runtime.context.on_charge:
                 runtime.context.on_charge(reserved)
             if self.provider.name == "fake":
@@ -345,6 +414,7 @@ class Agent:
                 draft = parse_draft(raw, usage)
         except Exception:
             return {
+                **verification,
                 "result": refusal("model_or_budget_error"),
                 "steps": state["steps"] + 1,
                 "cost_usd": state["cost_usd"] + reserved,
@@ -359,7 +429,7 @@ class Agent:
         observed = {o["source_id"]: o["observed_at"] for o in state["observations"]}
         cited = [given[c] for c in dict.fromkeys(draft.citations) if c in given]
         if not cited and not draft.refused:
-            return {**billing, "result": refusal("ungrounded")}
+            return {**billing, **verification, "result": refusal("ungrounded")}
         if runtime.context.cancel.is_set():
             return {**billing, "result": refusal("cancelled")}
         try:
@@ -369,8 +439,11 @@ class Agent:
                 error.reason if isinstance(error, APIUnavailable) else "authentication_required"
             )
             return {**billing, "result": refusal(reason)}
+        if verify and (reason := self._guard(state, context)):
+            return {**billing, **verification, "result": refusal(reason)}
         return {
             **billing,
+            **verification,
             "result": {
                 "text": draft.answer,
                 "refused": draft.refused,
@@ -390,7 +463,19 @@ class Agent:
             },
         }
 
-    def run(self, question, client, *, cancel=None, on_event=None, on_charge=None, on_usage=None):
+    def run(
+        self,
+        question,
+        client,
+        *,
+        cancel=None,
+        deadline=None,
+        expected_owner_key=None,
+        verify_documents=False,
+        on_event=None,
+        on_charge=None,
+        on_usage=None,
+    ):
         started = time.monotonic()
 
         def finish(state):
@@ -402,28 +487,18 @@ class Agent:
 
         identity = client.identity()
         route = routing.classify(question)
-        rejection = (
-            "action_not_permitted"
-            if route == routing.ACTION
-            else "not_in_docs"
-            if routing.unsupported_topic(question)
-            else None
+        verify = verify_documents and route == routing.DOCS
+        retriever = self.passage_retriever if verify else self.retriever
+        gate = getattr(retriever, "scope_gate", self.scope_gate) if verify else self.scope_gate
+        request_deadline = started + self.limits.deadline_seconds
+        context = OperatorContext(
+            client,
+            identity.owner_key,
+            cancel or threading.Event(),
+            request_deadline if deadline is None else min(deadline, request_deadline),
+            on_charge,
+            on_usage,
         )
-        if not rejection and route == routing.DOCS and self.scope_gate is not None:
-            admitted, _ = self.scope_gate.admits(question)
-            if not admitted:
-                rejection = "not_in_docs"
-        if rejection:
-            return finish(
-                {
-                    "question": question,
-                    "owner_key": identity.owner_key,
-                    "steps": 0,
-                    "cost_usd": 0,
-                    "observations": [],
-                    "result": refusal(rejection),
-                }
-            )
         initial = AgentState(
             question=question,
             route=route,
@@ -436,16 +511,27 @@ class Agent:
             reported_model_calls=0,
             usage_complete=True,
             observations=[],
-            documents=[asdict(c) for c in retrieve_passages(self.retriever, question, 5)],
+            verify_documents=verify,
         )
-        context = OperatorContext(
-            client,
-            identity.owner_key,
-            cancel or threading.Event(),
-            time.monotonic() + self.limits.deadline_seconds,
-            on_charge,
-            on_usage,
-        )
+        reason = self._guard(initial, context)
+        if expected_owner_key is not None and identity.owner_key != expected_owner_key:
+            reason = "authentication_required"
+        if reason is None:
+            if route == routing.ACTION:
+                reason = "action_not_permitted"
+            elif routing.unsupported_topic(question):
+                reason = "not_in_docs"
+            elif route == routing.DOCS and gate is not None:
+                admitted, _ = gate.admits(question)
+                if not admitted:
+                    reason = "not_in_docs"
+        if reason:
+            return finish({**initial, "result": refusal(reason)})
+
+        initial["documents"] = [
+            asdict(c)
+            for c in retrieve_passages(retriever, question, CONTEXT_SECTIONS if verify else 5)
+        ]
         if on_event is None:
             return finish(self.graph.invoke(initial, {"recursion_limit": 40}, context=context))
         latest = initial

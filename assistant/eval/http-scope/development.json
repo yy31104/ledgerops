@@ -1,0 +1,258 @@
+{
+  "alias_change": {
+    "after_change": {
+      "candidate": {
+        "documentation_refused": {
+          "count": 2,
+          "ids": [
+            "v13-r7-322",
+            "v13-r7-376"
+          ],
+          "n": 4,
+          "rate": 0.5,
+          "wilson_ci95": [
+            0.15,
+            0.85
+          ]
+        },
+        "out_of_scope_passed": {
+          "count": 1,
+          "ids": [
+            "v13-r7-647"
+          ],
+          "n": 5,
+          "rate": 0.2,
+          "wilson_ci95": [
+            0.0362,
+            0.6245
+          ]
+        }
+      },
+      "counts": {
+        "docs": 4,
+        "out_of_scope": 5
+      },
+      "question_ids": [
+        "v13-r6-622",
+        "v13-r6-654",
+        "v13-r7-037",
+        "v13-r7-314",
+        "v13-r7-322",
+        "v13-r7-376",
+        "v13-r7-604",
+        "v13-r7-647",
+        "v13-r7-653"
+      ],
+      "questions_sha256": "85df7ca58b5165303d85770e694a3ae1638d083852150be1eccdea1a3e0ccee5",
+      "raw_result_sha256": "8448521c5a1506e7bfedecfd73d772a6b67ed332a9093ecdce568566b226d36b",
+      "reference": {
+        "documentation_refused": {
+          "count": 3,
+          "ids": [
+            "v13-r7-037",
+            "v13-r7-314",
+            "v13-r7-322"
+          ],
+          "n": 4,
+          "rate": 0.75,
+          "wilson_ci95": [
+            0.3006,
+            0.9544
+          ]
+        },
+        "out_of_scope_passed": {
+          "count": 3,
+          "ids": [
+            "v13-r7-604",
+            "v13-r7-647",
+            "v13-r7-653"
+          ],
+          "n": 5,
+          "rate": 0.6,
+          "wilson_ci95": [
+            0.2307,
+            0.8824
+          ]
+        }
+      },
+      "retrieval": {
+        "candidate": 0.5,
+        "clusters": 4,
+        "difference": 0.0,
+        "n": 4,
+        "reference": 0.5,
+        "section_cluster_ci95": [
+          0.0,
+          0.0
+        ]
+      },
+      "verifier": {
+        "calls": 9,
+        "invalid_verdicts": 0,
+        "median_ms": 5278.567874978762,
+        "usage": {
+          "cached_input_tokens": 42624,
+          "input_tokens": 128318,
+          "output_tokens": 406
+        }
+      }
+    },
+    "newly_eligible_in_consumed_v13": {
+      "documentation": [
+        "v13-r7-037",
+        "v13-r7-314"
+      ],
+      "out_of_scope": [
+        "v13-r6-622",
+        "v13-r6-654"
+      ]
+    },
+    "outcome": "Both documentation cases were answered. Both newly eligible unsupported cases were refused.",
+    "rule": "Accept exact-case singular and plural variants of uppercase acronyms already in the corpus. The semantic verifier still checks the requested relation."
+  },
+  "before_alias_change": {
+    "candidate": {
+      "documentation_refused": {
+        "count": 4,
+        "ids": [
+          "v13-r7-037",
+          "v13-r7-314",
+          "v13-r7-322",
+          "v13-r7-376"
+        ],
+        "n": 20,
+        "rate": 0.2,
+        "wilson_ci95": [
+          0.0807,
+          0.416
+        ]
+      },
+      "out_of_scope_passed": {
+        "count": 1,
+        "ids": [
+          "v13-r7-647"
+        ],
+        "n": 14,
+        "rate": 0.07142857142857142,
+        "wilson_ci95": [
+          0.0127,
+          0.3147
+        ]
+      }
+    },
+    "counts": {
+      "docs": 20,
+      "out_of_scope": 14
+    },
+    "question_ids": [
+      "v13-r7-005",
+      "v13-r7-012",
+      "v13-r7-018",
+      "v13-r7-031",
+      "v13-r7-037",
+      "v13-r7-039",
+      "v13-r7-046",
+      "v13-r7-055",
+      "v13-r7-062",
+      "v13-r7-070",
+      "v13-r7-305",
+      "v13-r7-311",
+      "v13-r7-314",
+      "v13-r7-322",
+      "v13-r7-331",
+      "v13-r7-341",
+      "v13-r7-351",
+      "v13-r7-363",
+      "v13-r7-373",
+      "v13-r7-376",
+      "v13-r7-604",
+      "v13-r7-612",
+      "v13-r7-620",
+      "v13-r7-628",
+      "v13-r7-636",
+      "v13-r7-644",
+      "v13-r7-647",
+      "v13-r7-653",
+      "v13-r7-661",
+      "v13-r7-669",
+      "v13-r7-677",
+      "v13-r7-685",
+      "v13-r7-693",
+      "v13-r7-701"
+    ],
+    "questions_sha256": "a82ac194b7686768e911dddc6095b9d4fe1f1b6c21dddf34e1328fac30816468",
+    "raw_result_sha256": "a4e185c74e2d4a42816de908d512d55006bf6386384cd93a151bfe97e7e4dc15",
+    "reference": {
+      "documentation_refused": {
+        "count": 4,
+        "ids": [
+          "v13-r7-037",
+          "v13-r7-062",
+          "v13-r7-314",
+          "v13-r7-322"
+        ],
+        "n": 20,
+        "rate": 0.2,
+        "wilson_ci95": [
+          0.0807,
+          0.416
+        ]
+      },
+      "out_of_scope_passed": {
+        "count": 5,
+        "ids": [
+          "v13-r7-604",
+          "v13-r7-620",
+          "v13-r7-628",
+          "v13-r7-647",
+          "v13-r7-653"
+        ],
+        "n": 14,
+        "rate": 0.35714285714285715,
+        "wilson_ci95": [
+          0.1634,
+          0.6124
+        ]
+      }
+    },
+    "retrieval": {
+      "candidate": 0.85,
+      "clusters": 17,
+      "difference": 0.0,
+      "n": 20,
+      "reference": 0.85,
+      "section_cluster_ci95": [
+        0.0,
+        0.0
+      ]
+    },
+    "verifier": {
+      "calls": 28,
+      "invalid_verdicts": 0,
+      "median_ms": 6418.54722899734,
+      "usage": {
+        "cached_input_tokens": 93184,
+        "input_tokens": 397421,
+        "output_tokens": 1482
+      }
+    }
+  },
+  "profile": {
+    "answer_input_bytes": 64000,
+    "api": "POST /v1/assist over loopback in local runtime serve",
+    "context_bytes": 56000,
+    "context_sections": 12,
+    "deadline_seconds": 120,
+    "generation": "fake",
+    "model": "gpt-6.1-sol",
+    "scope_verifier": "subscription"
+  },
+  "purpose": "Check the production HTTP wiring using already consumed v1.3 questions. The samples deliberately include earlier errors.",
+  "recorded_replay_before_alias_change": {
+    "changed_decisions": 0,
+    "changed_passage_packs": 0,
+    "requests": 211,
+    "source": "v1.3 frozen round 7",
+    "verifier_passage_packs": 178
+  }
+}

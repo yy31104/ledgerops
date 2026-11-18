@@ -21,10 +21,13 @@ class Settings:
     web_dist: Path = Path(__file__).resolve().parents[2] / "web" / "dist"
     demo_token: str = field(default="", repr=False)
     limits: Limits = field(default_factory=Limits)
+    scope_verifier: str = "lexical"
 
     def __post_init__(self):
         if self.retrieval not in METHODS:
             raise ValueError("retrieval must be vector or hybrid")
+        if self.scope_verifier not in ("lexical", "subscription"):
+            raise ValueError("scope verifier must be lexical or subscription")
         if not self.demo_token:
             return
         try:
@@ -53,9 +56,7 @@ class Settings:
     def environment(cls):
         providers = tuple(os.environ.get("LEDGEROPS_ASSISTANT_PROVIDERS", "fake").split(","))
         if not set(providers) <= {"fake", "openai_api", "ollama"}:
-            raise ValueError(
-                "HTTP service supports fake, openai_api or ollama; subscription is CLI only"
-            )
+            raise ValueError("HTTP answer generation supports fake, openai_api or ollama")
         return cls(
             api_origin=os.environ.get("LEDGEROPS_ASSISTANT_API_ORIGIN", "http://127.0.0.1:8090"),
             database_url=os.environ.get("LEDGEROPS_ASSISTANT_DATABASE_URL", ""),
@@ -63,11 +64,15 @@ class Settings:
             providers=providers,
             embedder=os.environ.get("LEDGEROPS_ASSISTANT_EMBEDDER", "bge"),
             retrieval=os.environ.get("LEDGEROPS_ASSISTANT_RETRIEVAL", default_retrieval()),
+            scope_verifier=os.environ.get("LEDGEROPS_ASSISTANT_SCOPE_VERIFIER", "lexical"),
             console_url=os.environ.get("LEDGEROPS_ASSISTANT_CONSOLE_URL", "http://127.0.0.1:8080"),
             demo_token=os.environ.get("LEDGEROPS_ASSISTANT_DEMO_TOKEN", ""),
             limits=Limits(
                 input_usd_per_million=float(os.environ.get("MODEL_INPUT_USD_PER_MILLION", "0")),
                 output_usd_per_million=float(os.environ.get("MODEL_OUTPUT_USD_PER_MILLION", "0")),
                 max_cost_usd=float(os.environ.get("MODEL_MAX_COST_USD", "0.10")),
+                deadline_seconds=float(
+                    os.environ.get("LEDGEROPS_ASSISTANT_DEADLINE_SECONDS", "60")
+                ),
             ),
         )

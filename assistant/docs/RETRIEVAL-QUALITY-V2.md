@@ -1,5 +1,47 @@
 # Scope and retrieval evaluation
 
+## HTTP scope trial
+
+In a [single attempt](../eval/http-scope/run.json) after freeze `7a43fc4`,
+the local HTTP subscription profile met all three targets. The source-only
+audit retained 102 documentation questions across 50 sections and 102
+unsupported questions, including 73 about undocumented LedgerOps capabilities.
+The [audit](../eval/http-scope/audit-summary.json) records the exclusions.
+
+Both arms used authenticated `POST /v1/assist` over loopback, with synthetic operator
+identity, a disposable PostgreSQL index, BGE-small and fake answer generation.
+The v1.3.0 reference ran its original HTTP app and offline rule. The candidate ran
+the [host-local subscription verifier](PROVIDERS.md#verify-passages-in-the-local-http-service).
+The final SSE result supplies the admission decision.
+
+| Target | v1.3.0 HTTP, 95% Wilson interval | Candidate HTTP, 95% Wilson interval |
+|---|---:|---:|
+| Unsupported admissions ≤10% | 50/102 (49.0%) [39.5%, 58.6%] | **1/102 (1.0%) [0.2%, 5.3%]** |
+| Documentation refusals ≤5% | 7/102 (6.9%) [3.4%, 13.5%] | **2/102 (2.0%) [0.5%, 6.9%]** |
+
+Rate targets apply to the observed counts. Raw hybrid ranks use the same v1.2.0
+ranking code, model and corpus for every documentation question, including refusals.
+Recall@5 was **0.8464**; the paired change was **0.0000**,
+with a 95% source-section bootstrap interval of **[0.0000, 0.0000]**.
+The registered lower bound is **−0.03**.
+
+The candidate refused two questions whose fitted passages lacked the labelled
+excerpts: reconciliation publisher timeout cleanup and rejection of a no-op
+update to a terminal operation. Its one unsupported admission asked for member
+and fee details by settlement row. The answer cited streaming format and
+integration coverage.
+
+Median end-to-end HTTP latency was 0.36 s for the reference and 5.88 s for the
+candidate. The 180 verification calls took a median of 5.68 s and used 2,555,135
+input and 9,622 output tokens from the ChatGPT plan. The
+[result summary](../eval/http-scope/summary.json) lists the miss IDs, refusal reasons
+and raw report hash.
+
+The evaluated profile is available on a host-local loopback bind. Compose uses the
+offline rule. The trial measures scope decisions on synthetic questions.
+
+## Earlier CLI scope trial
+
 The local CLI's subscription verifier admitted **1/108 (0.9%)** unsupported
 questions and refused **4/103 (3.9%)** documentation questions in round 7.
 Hybrid Recall@5 was **0.9110** for both gates. That cohort met all three

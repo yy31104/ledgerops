@@ -80,3 +80,12 @@ shows each round, including misses. CI verifies frozen inputs and receipts.
 The [v1.3.0 release](https://github.com/yy31104/ledgerops/releases/tag/v1.3.0)
 contains `ledgerops-evidence-v1.3.0.tar.gz`, pinned by `v13-evidence-manifest.json`.
 Restore it to inspect individual decisions and development calibration.
+
+## Local HTTP scope comparison
+
+[HTTP scope](http-scope/) contains the protocol, independently audited questions,
+freeze manifest, attempt receipt and results. The runner used two local HTTP
+processes and compared their final SSE responses. It used a real subscription
+verifier in the candidate and fake generation in both arms. The checkout and
+upstream branch had to match the freeze. CI verifies the hashes and saved
+outcome without submitting requests.
