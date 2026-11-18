@@ -147,7 +147,7 @@ def measure(questions, *, threshold=None, update=None):
     from ledgerops_assistant.coverage import DocumentCoverage
     from ledgerops_assistant.embeddings import BgeSmallEmbedder
     from ledgerops_assistant.evaluation import score_ranking
-    from ledgerops_assistant.policy import coverage_threshold, scope_threshold
+    from ledgerops_assistant.policy import coverage_threshold, scope_threshold, support_mode
     from ledgerops_assistant.postgres import PostgresRetriever, index_corpus, setup
     from ledgerops_assistant.providers.fake import FakeProvider
     from ledgerops_assistant.retrieval import HybridRetriever, rank_sections
@@ -164,7 +164,7 @@ def measure(questions, *, threshold=None, update=None):
     if any(set(q["relevant_sections"]) - corpus.section_ids() for q in questions):
         raise ValueError("question labels contain a missing section")
     coverage = DocumentCoverage(corpus, coverage_threshold())
-    support = PassageSupport(coverage)
+    support = PassageSupport(coverage, mode=support_mode())
     embedder = BgeSmallEmbedder()
     rows = []
     with temporary_database() as dsn:
@@ -222,10 +222,13 @@ def measure(questions, *, threshold=None, update=None):
 
 
 def calibration(output):
+    from ledgerops_assistant.policy import support_mode
+
     paths = development_paths()
     rows = measure(development_rows(paths))
     chosen, curve = select_threshold(rows)
     report = {
+        "support_mode": support_mode(),
         "development_hashes": {str(path.relative_to(ROOT)): sha(path) for path in paths},
         "chosen": chosen,
         "reference": rates(rows, "reference_admitted"),
@@ -296,11 +299,14 @@ def run(trial, output, expected_commit):
         (ROOT / "assistant/src/ledgerops_assistant/retrieval_policy.json").read_text()
     )
     threshold = manifest["support_threshold"]
+    mode = config.get("support_mode", "single-span")
     development = json.loads((folder / "development.json").read_text())
     if (
         config["support_threshold"] != threshold
         or development["support_threshold"] != threshold
         or config["method"] != "hybrid"
+        or manifest.get("support_mode", "single-span") != mode
+        or development.get("support_mode", "single-span") != mode
     ):
         raise ValueError("release settings do not match the frozen candidate")
     questions = [json.loads(line) for line in (folder / "questions.jsonl").read_text().splitlines()]
@@ -337,6 +343,7 @@ def run(trial, output, expected_commit):
     report = {
         **record,
         "support_threshold": threshold,
+        "support_mode": mode,
         "counts": dict(counts),
         "product_gaps": product,
     }

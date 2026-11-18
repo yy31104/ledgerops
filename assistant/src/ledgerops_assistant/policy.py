@@ -36,3 +36,10 @@ def support_threshold():
     if value is not None and (type(value) not in (float, int) or not 0 <= value <= 1):
         raise ValueError("invalid release passage support threshold")
     return float(value) if value is not None else None
+
+
+def support_mode():
+    mode = _policy().get("support_mode", "single-span")
+    if mode not in {"single-span", "local-focus"}:
+        raise ValueError("invalid release passage support mode")
+    return mode

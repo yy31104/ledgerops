@@ -5,6 +5,7 @@
       -> ScopeGate coverage: does the documentation mention what is asked?
       -> retriever.search: top passages
       -> ScopeGate similarity: is the best passage close enough to be about this at all?
+      -> ScopeGate support: do the supplied passages support the question?
       -> provider.draft: answer text + cited passage IDs
       -> grounding check: keep only citations of passages actually given;
          no valid citation means no answer
@@ -19,7 +20,7 @@ from ledgerops_assistant import routing
 from ledgerops_assistant.context import retrieve_passages
 from ledgerops_assistant.corpus import Chunk
 from ledgerops_assistant.coverage import DocumentCoverage
-from ledgerops_assistant.policy import coverage_threshold, support_threshold
+from ledgerops_assistant.policy import coverage_threshold, support_mode, support_threshold
 from ledgerops_assistant.providers.base import Provider
 from ledgerops_assistant.retrieval import Retriever
 from ledgerops_assistant.support import PassageSupport
@@ -106,7 +107,7 @@ class ScopeGate:
             retriever,
             threshold,
             coverage=coverage,
-            support=PassageSupport(coverage) if cutoff is not None else None,
+            support=PassageSupport(coverage, mode=support_mode()) if cutoff is not None else None,
             support_threshold=cutoff,
         )
 
